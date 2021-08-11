@@ -437,7 +437,7 @@ export class LeadDashboardComponent implements OnInit {
 
           const clonedDescriptor = JSON.parse(JSON.stringify(descriptor));
           clonedDescriptor.required = true;
-         
+
           this.assigneeFieldDescriptors.push(clonedDescriptor);
         },
         error => {
@@ -1332,16 +1332,16 @@ export class LeadDashboardComponent implements OnInit {
     this.multipleChoice = false;
     this.selectId = lead_id;
     this.assigneeObj = {
-      assignee:this._global.user.username
-    } 
+      assignee: this._global.user.username
+    }
     this.assigneeModal.show();
   }
   // using in many leads be checked of the table. 
   assignOnSelected() {
     this.multipleChoice = true;
     this.assigneeObj = {
-      assignee:this._global.user.username
-    } 
+      assignee: this._global.user.username
+    }
     this.assigneeModal.show();
   }
 
@@ -1380,26 +1380,41 @@ export class LeadDashboardComponent implements OnInit {
 
   assigneeSubmit(event) {
     if (event.object.assignee) {
-      const myusers = this.users
-        .filter(
-          u =>
-            u.manager === this._global.user.username||
-            this.isAdmin()
-        )
-        .map(u => u.username);
-      myusers.push(this._global.user.username);
-      if (myusers.indexOf(event.object.assignee) < 0) {
-        event.acknowledge("Failed to assign to " + event.object.assignee);
-      } else {
-        if (!this.multipleChoice) {
-          let lead = this.filterLeads.find(lead => lead._id === this.selectId);
 
+      if (!this.multipleChoice) {
+        let lead = this.filterLeads.find(lead => lead._id === this.selectId);
+
+        const clonedLead = JSON.parse(JSON.stringify(lead));
+
+        if (!clonedLead.assignee) {
+          clonedLead.assignee = event.object.assignee;
+          this._api
+            .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
+            .subscribe(
+              result => {
+                // let's update original, assuming everything successful
+                lead.assignee = clonedLead.assignee;
+                this._global.publishAlert(
+                  AlertType.Success,
+                  lead.name + " was updated"
+                );
+              },
+              error => {
+                error = error;
+                this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+              }
+            );
+        } else {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Failed to assign to " + event.object.assignee
+          );
+        }
+      } else {
+        this.leads.filter(lead => this.selectionSet.has(lead._id)).map(lead => {
           const clonedLead = JSON.parse(JSON.stringify(lead));
 
-          if (
-            !clonedLead.assignee ||
-            myusers.indexOf(clonedLead.assignee) >= 0
-          ) {
+          if (!clonedLead.assignee) {
             clonedLead.assignee = event.object.assignee;
             this._api
               .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
@@ -1420,46 +1435,14 @@ export class LeadDashboardComponent implements OnInit {
           } else {
             this._global.publishAlert(
               AlertType.Danger,
-              "Failed to assign to " + event.object.assignee
+              "Failed to assign " + event.object.assignee
             );
           }
-        } else {
-          this.leads.filter(lead => this.selectionSet.has(lead._id)).map(lead => {
-            const clonedLead = JSON.parse(JSON.stringify(lead));
-
-            if (
-              !clonedLead.assignee ||
-              myusers.indexOf(clonedLead.assignee) >= 0
-            ) {
-              clonedLead.assignee = event.object.assignee;
-              this._api
-                .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
-                .subscribe(
-                  result => {
-                    // let's update original, assuming everything successful
-                    lead.assignee = clonedLead.assignee;
-                    this._global.publishAlert(
-                      AlertType.Success,
-                      lead.name + " was updated"
-                    );
-                  },
-                  error => {
-                    error = error;
-                    this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-                  }
-                );
-            } else {
-              this._global.publishAlert(
-                AlertType.Danger,
-                "Failed to assign " + event.object.assignee
-              );
-            }
-          });
-        }
-        this.multipleChoice = false;
-        this.assigneeModal.hide();
-        event.acknowledge(null);
+        });
       }
+      this.multipleChoice = false;
+      this.assigneeModal.hide();
+      event.acknowledge(null);
     } else {
       event.acknowledge("No assignee is selected");
     }
@@ -1467,57 +1450,9 @@ export class LeadDashboardComponent implements OnInit {
 
   // using in many leads be checked of the table. 
   unassignOnSelected() {
-    const myusers = this.users
-      .filter(
-        u =>
-          u.manager === this._global.user.username || 
-          this.isAdmin()
-      )
-      .map(u => u.username);
-    myusers.push(this._global.user.username);
 
     this.leads.filter(lead => this.selectionSet.has(lead._id)).map(lead => {
       const clonedLead = JSON.parse(JSON.stringify(lead));
-      if (myusers.indexOf(clonedLead.assignee) >= 0) {
-        clonedLead.assignee = undefined;
-        this._api
-          .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
-          .subscribe(
-            result => {
-              // let's update original, assuming everything successful
-              lead.assignee = undefined;
-              this._global.publishAlert(
-                AlertType.Success,
-                lead.name + " was updated"
-              );
-            },
-            error => {
-              this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-            }
-          );
-      } else {
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Failed to unassign."
-        );
-      }
-    });
-  }
-
-  // using single button clicked (green button named unassign of each row).
-  unassignSingle(lead_id) {
-    const myusers = this.users
-      .filter(
-        u =>
-          u.manager === this._global.user.username ||
-          this.isAdmin()
-      )
-      .map(u => u.username);
-    myusers.push(this._global.user.username);
-    let lead = this.filterLeads.find(lead => lead._id === lead_id);
-
-    const clonedLead = JSON.parse(JSON.stringify(lead));
-    if (myusers.indexOf(clonedLead.assignee) >= 0) {
       clonedLead.assignee = undefined;
       this._api
         .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
@@ -1534,12 +1469,31 @@ export class LeadDashboardComponent implements OnInit {
             this._global.publishAlert(AlertType.Danger, "Error updating to DB");
           }
         );
-    } else {
-      this._global.publishAlert(
-        AlertType.Danger,
-        "Failed to unassign."
+    });
+  }
+
+  // using single button clicked (green button named unassign of each row).
+  unassignSingle(lead_id) {
+
+    let lead = this.filterLeads.find(lead => lead._id === lead_id);
+
+    const clonedLead = JSON.parse(JSON.stringify(lead));
+    clonedLead.assignee = undefined;
+    this._api
+      .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
+      .subscribe(
+        result => {
+          // let's update original, assuming everything successful
+          lead.assignee = undefined;
+          this._global.publishAlert(
+            AlertType.Success,
+            lead.name + " was updated"
+          );
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+        }
       );
-    }
   }
 
   getGoogleQuery(lead) {
