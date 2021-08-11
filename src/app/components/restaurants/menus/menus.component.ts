@@ -476,6 +476,7 @@ export class MenusComponent implements OnInit {
   }
 
   clickNew() {
+    this.menuEditor.selectedOption = 'New Menu';
     this.menuEditor.setMenu(new Menu());
     this.menuEditingModal.show();
   }
@@ -484,9 +485,8 @@ export class MenusComponent implements OnInit {
     this.menuEditor.setMenu(new Menu(menu));
     this.menuEditingModal.show();
   }
-
+  
   onDoneEditing(menu: Menu) {
-    console.log(JSON.stringify(menu))
     const newMenus = (this.restaurant.menus || []).slice(0);
     if (menu.id) {
       for (let i = newMenus.length - 1; i >= 0; i--) {
