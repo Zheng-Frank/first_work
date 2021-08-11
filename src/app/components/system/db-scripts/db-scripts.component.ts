@@ -109,7 +109,7 @@ export class DbScriptsComponent implements OnInit {
       let trans = (translations || []).find(x => x.EN === en);
       return !(trans && trans.ZH === zh && !number);
     }
-    return number || hasMeasure;
+    return !!number;
   }
 
   needClean (restaurant) {
@@ -133,15 +133,16 @@ export class DbScriptsComponent implements OnInit {
     return false;
   }
 
-  async markRtMenu() {
+  async getRTsToCleanMenu() {
 
     const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: { disabled: { $ne: true }, needCleanMenu: {$ne: true} },
-      projection: { 'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, name: 1 }
-    }, 700);
+      projection: { 'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, name: 1, translations: 1 }
+    }, 500);
 
     let needCleaned = rts.filter(rt => this.needClean(rt));
+    console.log(needCleaned.length);
     console.log(JSON.stringify(needCleaned.map(rt => rt._id)));
   }
 

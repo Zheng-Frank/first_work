@@ -41,7 +41,7 @@ export class CleanMenusComponent implements OnInit {
     let [restaurant] = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {_id: {$oid: rt._id}},
-      projection: {name: 1, menus: 1},
+      projection: {name: 1, menus: 1, translations: 1},
       limit: 1
     }).toPromise();
     this.restaurant = restaurant;
@@ -55,6 +55,7 @@ export class CleanMenusComponent implements OnInit {
   cleanupCancel() {
     // @ts-ignore
     this.restaurants = this.restaurants.filter(rt => !rt.menuCleaned);
+    this.restaurant = null;
     this.validateModal.hide();
   }
 
@@ -68,8 +69,11 @@ export class CleanMenusComponent implements OnInit {
         }
       }]).toPromise();
       this._global.publishAlert(AlertType.Success, 'Success!');
-      // @ts-ignore
-      this.restaurant.menuCleaned = true;
+      let rt = this.restaurants.find(x => x._id === this.restaurant._id);
+      if (rt) {
+        // @ts-ignore
+        rt.menuCleaned = true;
+      }
       this.cleanupCancel();
     } catch (error) {
       console.log('error...', error);
@@ -90,8 +94,11 @@ export class CleanMenusComponent implements OnInit {
       this._global.publishAlert(AlertType.Success, 'Success!');
       // @ts-ignore
       this.restaurant.menus = menus.map(m => new Menu(m));
-      // @ts-ignore
-      this.restaurant.menuCleaned = true;
+      let rt = this.restaurants.find(x => x._id === this.restaurant._id);
+      if (rt) {
+        // @ts-ignore
+        rt.menuCleaned = true;
+      }
       this.cleanupCancel();
     } catch (error) {
       console.log('error...', error);

@@ -3,7 +3,7 @@
   <table class="table table-bordered">
     <tbody>
       <tr *ngFor="let rt of restaurants">
-        <td><a class="btn-link" [href]="'restaurants/' + rt._id">{{rt.name}}</a></td>
+        <td><a class="btn-link" [routerLink]="'/restaurants/' + rt._id">{{rt.name}}</a></td>
         <td>
           <a (click)="validate(rt)" class="btn btn-link">Validate</a>
         </td>

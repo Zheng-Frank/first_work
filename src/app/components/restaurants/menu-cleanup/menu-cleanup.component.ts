@@ -40,9 +40,6 @@ export class MenuCleanupComponent implements OnInit {
     if (!name) {
       return;
     }
-    // add space to brackets, both english and chinese
-    name = name.replace(/\s*\((.+)\)\s*/, ' ($1) ').replace(/\s*\[(.+)\]\s*/, ' [$1] ')
-        .replace(/\s*（(.+)）\s*/, ' ($1) ').replace(/\s*【(.+)】\s*/, ' [$1] ').trim();
 
     // extract the possible number info from menu's name
     let numMatched = this.parsePrefixNum(name);
@@ -66,7 +63,9 @@ export class MenuCleanupComponent implements OnInit {
         number = item.number || num;
       }
     }
-    item.editName = item.cleanedName || name;
+    // add space to brackets, both english and chinese, replace some chinese quote to english quote
+    item.editName = (item.cleanedName || name).replace(/\s*\((.+)\)\s*/, ' ($1) ').replace(/\s*\[(.+)\]\s*/, ' [$1] ')
+        .replace(/\s*（(.+)）\s*/, ' ($1) ').replace(/\s*【(.+)】\s*/, ' [$1] ').trim();
 
     // if we meet 【回锅 肉】，we should be able to keep "回锅" and "肉" together with space as zh
     let regex = /[\s\-(\[]?(\s*([^\x00-\xff]+)(\s+[^\x00-\xff]+)*\s*)[\s)\]]?/;
@@ -89,7 +88,7 @@ export class MenuCleanupComponent implements OnInit {
       item.indices = indices;
       this.flattened.push(item);
     } else {
-      if (number || hasMeasure) {
+      if (number) {
         item.translation = { en: name };
         item.number = number || item.number;
         item.indices = indices;

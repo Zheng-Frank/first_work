@@ -20,12 +20,12 @@
             <div><strong>Number: </strong>{{item.number}}</div>
           </td>
           <td>
-            <textarea [value]="item.editName" (change)="change(item, 'editName', $event)"></textarea>
+            <textarea rows="3" [value]="item.editName" (change)="change(item, 'editName', $event)"></textarea>
           </td>
         </ng-container>
         <td><i class="fa fa-arrow-right"></i></td>
         <td><input class="input-menu-number" [value]="item.number || ''" (change)="change(item, 'number', $event)" /></td>
-        <td><textarea [value]="item.translation?.en || ''" (change)="change(item.translation, 'en', $event, 'prev_en')"></textarea></td>
+        <td><textarea rows="3" [value]="item.translation?.en || ''" (change)="change(item.translation, 'en', $event, 'prev_en')"></textarea></td>
         <td><input [value]="item.translation?.zh || ''" (change)="change(item.translation, 'zh', $event)" /></td>
       </tr>
     </tbody>
