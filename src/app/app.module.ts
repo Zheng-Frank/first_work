@@ -1,3 +1,4 @@
+/* tslint:disable:max-line-length */
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -93,6 +94,8 @@ import { GmbAccountEditorComponent } from './components/gmbs2/gmb-account-editor
 import { GmbRequestListComponent } from './components/gmbs2/gmb-request-list/gmb-request-list.component';
 import { GmbUnderattackListComponent } from './components/gmbs2/gmb-underattack-list/gmb-underattack-list.component';
 import { GmbSuspendedListComponent } from './components/gmbs2/gmb-suspended-list/gmb-suspended-list.component';
+import { GmbMissingListComponent } from './components/gmbs2/gmb-missing-list/gmb-missing-list.component';
+import { GmbPermanentlyClosedListComponent } from './components/gmbs2/gmb-closed-list/gmb-closed-list.component';
 import { GmbLostListComponent } from './components/gmbs2/gmb-lost-list/gmb-lost-list.component';
 import { TaskActionBarComponent } from './components/tasks/task-action-bar/task-action-bar.component';
 import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
@@ -160,16 +163,17 @@ import { CyclesComponent } from './components/invoices/cycles/cycles.component';
 import { CycleDetailsComponent } from './components/invoices/cycle-details/cycle-details.component';
 import { GmbPinsComponent } from './components/gmbs2/gmb-pins/gmb-pins.component';
 import { GmbTasksComponent } from './components/gmbs2/gmb-tasks/gmb-tasks.component';
+import { DefendGmbTasksComponent } from './components/gmbs2/defend-gmb-tasks/defend-gmb-tasks.component';
 import { ChangeOwnershipComponent } from './components/change-ownership/change-ownership.component';
 
 import { BulkMessagingComponent } from './components/bulk-messaging/bulk-messaging.component';
 import { RoutineDashboardComponent } from './components/routines/routine-dashboard/routine-dashboard.component';
+import { RoutineAdminDashboardComponent } from './components/routines/routine-admin-dashboard/routine-admin-dashboard.component';
 import { RoutineListComponent } from './components/routines/routine-list/routine-list.component';
 import { RoutineInstanceListComponent } from './components/routines/routine-instance-list/routine-instance-list.component';
 
 
 import { RestaurantTasksComponent } from './components/restaurants/restaurant-tasks/restaurant-tasks.component';
-import { MonitoringGmbOpenComponent } from './components/monitoring/monitoring-gmb-open/monitoring-gmb-open.component';
 import { RestaurantGmbPostComponent } from './components/restaurants/restaurant-gmb-post/restaurant-gmb-post.component';
 import { RestaurantGmbPostsComponent } from './components/restaurants/restaurant-gmb-posts/restaurant-gmb-posts.component';
 import { GmbCampaignComponent } from './components/gmb-campaign/gmb-campaign.component';
@@ -232,6 +236,8 @@ import { MenuCleanupComponent } from './components/restaurants/menu-cleanup/menu
 import { ApiLogsDashboardComponent } from './components/monitoring/api-logs-dashboard/api-logs-dashboard.component';
 import { SeoTrackingComponent } from './components/monitoring/seo-tracking/seo-tracking.component';
 import { RestaurantSeoTrackingComponent } from './components/restaurants/restaurant-seo-tracking/restaurant-seo-tracking.component';
+import { MonitoringPromotionCellComponent } from './components/monitoring/monitoring-promotion-cell/monitoring-promotion-cell.component';
+import { RestaurantMapComponent } from './components/restaurants/restaurant-map/restaurant-map.component';
 
 
 
@@ -242,7 +248,6 @@ import { RestaurantSeoTrackingComponent } from './components/restaurants/restaur
     HomeComponent,
     MonitoringScriptComponent,
     MonitoringDbComponent,
-    MonitoringGmbOpenComponent,
     LogsDashboardComponent,
     Bs4Component,
     UIPreviewComponent,
@@ -318,6 +323,7 @@ import { RestaurantSeoTrackingComponent } from './components/restaurants/restaur
     GmbRequestListComponent,
     GmbUnderattackListComponent,
     GmbSuspendedListComponent,
+    GmbMissingListComponent,
     GmbLostListComponent,
     TaskActionBarComponent,
     EmailCodeReaderComponent,
@@ -376,6 +382,7 @@ import { RestaurantSeoTrackingComponent } from './components/restaurants/restaur
     CycleDetailsComponent,
     GmbPinsComponent,
     GmbTasksComponent,
+    DefendGmbTasksComponent,
     ChangeOwnershipComponent,
     BulkMessagingComponent,
     RestaurantTasksComponent,
@@ -428,14 +435,17 @@ import { RestaurantSeoTrackingComponent } from './components/restaurants/restaur
     SendTextReplyComponent,
     PostmatesOrderCardComponent,
     PostmatesOrdersComponent,
-    GmbWrongLinkComponent,
+    GmbPermanentlyClosedListComponent,
     MenuCleanupComponent,
     ApiLogsDashboardComponent,
     RoutineDashboardComponent,
+    RoutineAdminDashboardComponent,
     RoutineListComponent,
     RoutineInstanceListComponent,
     SeoTrackingComponent,
-    RestaurantSeoTrackingComponent
+    RestaurantSeoTrackingComponent,
+    MonitoringPromotionCellComponent,
+    RestaurantMapComponent
   ],
   imports: [
     BrowserModule,

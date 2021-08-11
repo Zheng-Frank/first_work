@@ -66,9 +66,10 @@ export class GmbAccountListComponent implements OnInit {
         postcardId: 1,
         gmbScannedAt: 1,
         emailScannedAt: 1,
-        "locations.statusHisotory": { $slice: 1 },
+        "locations.statusHisotory": { $slice: 2 },
         "locations.status": 1,
         "locations.statusHistory.time": 1,
+        "locations.statusHistory.status": 1,
         "locations.cid": 1,
         "locations.place_id": 1,
         "locations.locationName": 1,
@@ -77,18 +78,24 @@ export class GmbAccountListComponent implements OnInit {
         "locations.role": 1,
         disabled: 1,
         isAgencyAcct: 1,
-        isYelpEmail: 1
+        isYelpEmail: 1,
+        isDefenseAccount: 1
       }
-    }, 40);
+    }, 35);
     // add 24 hours suspended and duplicate!
     accountList.map(a => {
       let suspendedInPastDay = 0;
+      let lostIn2Days = 0;
       (a.locations || []).map(loc => {
         if (loc.status === 'Suspended' && new Date().valueOf() - new Date(loc.statusHistory[0].time).valueOf() < 48 * 3600000) {
           suspendedInPastDay++;
         }
+        if (loc.status !== 'Published' && loc.statusHistory.length > 1 && loc.statusHistory[1].status === 'Published' && new Date().valueOf() - new Date(loc.statusHistory[0].time).valueOf() < 48 * 3600000) {
+          lostIn2Days++;
+        }
       });
       a.suspendedInPastDay = suspendedInPastDay;
+      a.lostIn2Days = lostIn2Days;
     });
 
     this.publishedTotal = accountList.reduce((sum, a) => sum + (a.published || 0), 0);
@@ -174,7 +181,7 @@ export class GmbAccountListComponent implements OnInit {
     } else {
       this.filteredGmbAccounts.sort((a, b) => a.email.toLowerCase() > b.email.toLowerCase() ? 1 : -1)
     }
- 
+
   }
 
   async done(event: FormEvent) {
@@ -194,7 +201,8 @@ export class GmbAccountListComponent implements OnInit {
       comments: gmb.comments,
       disabled: gmb.disabled,
       isAgencyAcct: gmb.isAgencyAcct,
-      isYelpEmail: gmb.isYelpEmail
+      isYelpEmail: gmb.isYelpEmail,
+      isDefenseAccount: gmb.isDefenseAccount
     } as any;
 
     if (gmb.recoveryEmail) {

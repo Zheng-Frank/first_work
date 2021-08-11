@@ -97,11 +97,6 @@ export class RestaurantPromotionsComponent implements OnInit {
       }
     } else {
       promotion.id = new Date().valueOf().toString();
-      if (typeof promotion.expiry === 'string') {
-        promotion.expiry = new Date(promotion.expiry);
-        // this is UTC, we need to make it local browser (whoever operating this! Assuming same timezone as restaurant owner)
-        promotion.expiry.setMinutes(promotion.expiry.getMinutes() + new Date().getTimezoneOffset());
-      }
       newPromotions.push(promotion);
     }
     this.patchDiff(newPromotions);

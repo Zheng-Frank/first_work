@@ -35,4 +35,16 @@
     <span class="h3">Restaurants With Wrong Link</span>
     <hr>&nbsp;
   </button>
+  <button class="btn btn-warning btn-status mr-4" routerLink="/gmb-missing">
+    <span class="h3">Restaurants With Missing GMB</span>
+    <hr>&nbsp;
+  </button>
+  <button class="btn btn-warning btn-status mr-4" routerLink="/gmb-closed">
+    <span class="h3">Restaurants With Closed GMB</span>
+    <hr>&nbsp;
+  </button>
+  <button *ngIf="isAdmin" class="btn btn-warning btn-status mr-4" routerLink="/defend-gmb-tasks">
+    <span class="h3">Defend GMB Tasks</span>
+    <hr>&nbsp;
+  </button>
 </div>

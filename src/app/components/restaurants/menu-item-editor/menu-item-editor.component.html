@@ -27,34 +27,29 @@
     <app-switch (onSelectValue)="onSelectAvailability($event)" [selectedValue]="getAvailability()" [values]="availabilityValues"></app-switch>
     <div class="form-group pt-1">
         <!--two columns, one for name, one for sorting order-->
-        <div class="row">
-          <div class="col-xs-8">
-            <div class="form-group {{!mi.name ? 'has-danger' : ''}}">
-              <label>Name:</label>
-              <input name="mi-name" type="text" class="form-control" [attr.list]="'mi-names-' + mi.id"
-                [(ngModel)]="mi.name" placeholder="eg. spring rolls" autofocus>
-            </div>
-            <datalist [id]="'mi-names-' + mi.id">
-              <option *ngFor="let miName of miNames" value="{{miName}}">
-            </datalist>
+        <div class="col-xs-12">
+          <div class="form-group {{!mi.name ? 'has-danger' : ''}}">
+            <label>Name:</label>
+            <input name="mi-name" type="text" class="form-control" [attr.list]="'mi-names-' + mi.id"
+              [(ngModel)]="mi.name" placeholder="eg. spring rolls" autofocus>
+          </div>
+          <datalist [id]="'mi-names-' + mi.id">
+            <option *ngFor="let miName of miNames" value="{{miName}}">
+          </datalist>
+        </div>
+        <!--description and order number-->
+        <div class="col-xs-12">
+          <div class="form-group">
+            <label>Description:</label>
+            <textarea name="mi-description" type="text" class="form-control" [(ngModel)]="mi.description"
+              placeholder="eg. source: New Zealand"></textarea>
           </div>
         </div>
-  
-        <!--description and order number-->
-        <div class="row">
-          <div class="col-xs-8">
-            <div class="form-group">
-              <label>Description:</label>
-              <input name="mi-description" type="text" class="form-control" [(ngModel)]="mi.description"
-                placeholder="eg. source: New Zealand">
-            </div>
-          </div>
-          <div class="col-xs-4">
-            <div class="form-group">
-              <label for="mi-order-number">Number:</label>
-              <input type="text" class="form-control" id="mi-order-number" [(ngModel)]="mi.number"
-                placeholder="A1, A2...">
-            </div>
+        <div class="col-xs-12">
+          <div class="form-group">
+            <label for="mi-order-number">Number:</label>
+            <input type="text" class="form-control" id="mi-order-number" [(ngModel)]="mi.number"
+              placeholder="A1, A2...">
           </div>
         </div>
     </div>
@@ -72,32 +67,28 @@
   <div *qIf="showDetails || !mi.id">
     <div *ngIf="!mi.id">
       <!--two columns, one for name, one for sorting order-->
-      <div class="row">
-        <div class="col-xs-8">
-          <div class="form-group {{!mi.name ? 'has-danger' : ''}}">
-            <label>Name:</label>
-            <input name="mi-name" type="text" class="form-control" [attr.list]="'mi-names-' + mi.id" [(ngModel)]="mi.name" placeholder="eg. spring rolls"
-              autofocus>
-          </div>
-          <datalist [id]="'mi-names-' + mi.id">
-            <option *ngFor="let miName of miNames" value="{{miName}}">
-          </datalist>
+      <div class="col-xs-12">
+        <div class="form-group {{!mi.name ? 'has-danger' : ''}}">
+          <label>Name:</label>
+          <input name="mi-name" type="text" class="form-control" [attr.list]="'mi-names-' + mi.id" [(ngModel)]="mi.name" placeholder="eg. spring rolls"
+            autofocus>
+        </div>
+        <datalist [id]="'mi-names-' + mi.id">
+          <option *ngFor="let miName of miNames" value="{{miName}}">
+        </datalist>
+      </div>
+      <!--description and order number-->
+      <div class="col-xs-12">
+        <div class="form-group">
+          <label>Description:</label>
+          <textarea name="mi-description" type="text" class="form-control" [(ngModel)]="mi.description" placeholder="eg. source: New Zealand">
+          </textarea>
         </div>
       </div>
-
-      <!--description and order number-->
-      <div class="row">
-        <div class="col-xs-8">
-          <div class="form-group">
-            <label>Description:</label>
-            <input name="mi-description" type="text" class="form-control" [(ngModel)]="mi.description" placeholder="eg. source: New Zealand">
-          </div>
-        </div>
-        <div class="col-xs-4">
-          <div class="form-group">
-            <label for="mi-order-number">Number:</label>
-            <input type="text" class="form-control" id="mi-order-number" [(ngModel)]="mi.number" placeholder="A1, A2...">
-          </div>
+      <div class="col-xs-12">
+        <div class="form-group">
+          <label for="mi-order-number">Number:</label>
+          <input type="text" class="form-control" id="mi-order-number" [(ngModel)]="mi.number" placeholder="A1, A2...">
         </div>
       </div>
     </div>

@@ -21,19 +21,18 @@ export class RoutineInstanceListComponent implements OnChanges {
   routineInReporting;
   resultsTable = {};
 
-  pagination = true;
+  pagination = {};
 
   ngOnChanges() {
-    this.groupAndSortInstances()
-    this.createInstanceColumnDescriptors();
-    this.createResultsTable();
-    console.log(this.resultsTable)
+    if ((this.routineList || []).length && (this.instanceList || []).length) {
+      this.groupAndSortInstances()
+      this.createInstanceColumnDescriptors();
+      this.createResultsTable();
+      this.createPaginationTable();
+    }
   }
 
   columnDescriptors = [
-    {
-      label: 'Number'
-    },
     {
       label: "Routine Name",
       paths: ['name'],
@@ -53,10 +52,10 @@ export class RoutineInstanceListComponent implements OnChanges {
   }
 
   groupAndSortInstances() {
-    this.groupedInstances = this.routineList.map(routine => {
-      routine.instances = this.instanceList.filter(inst => inst.routineId === routine._id).sort((a, b) => new Date(b.createdAt).valueOf() - new Date(a.createdAt).valueOf());
-      return routine;
-    });
+    this.groupedInstances = this.routineList.reduce((dict, routine) => {
+      dict[routine._id] = this.instanceList.filter(inst => inst.routineId === routine._id).sort((a, b) => new Date(b.createdAt).valueOf() - new Date(a.createdAt).valueOf());
+      return dict;
+    }, {});
   }
 
   createInstanceColumnDescriptors() {
@@ -86,21 +85,21 @@ export class RoutineInstanceListComponent implements OnChanges {
 
   createResultsTable() {
     this.instanceList.forEach(inst => {
-      const instanceData = {}
-      inst.results.forEach(res => {
+      const instanceData = {};
+      (inst.results || []).forEach(res => {
         instanceData[res.name] = res.result
       })
       this.resultsTable[inst._id] = instanceData;
     });
   }
 
-  displayStuff(p1, p2) {
-    if (p1 === "60df720a5f322f680d674d50" || p1 === "60df74d15f322f680d6af516") {
+  createPaginationTable() {
+    this.routineList.forEach(routine => {
+      this.pagination[routine._id] = true;
+    });
+  }
 
-
-      console.log('name: ', p2)
-      console.log('value: ', this.resultsTable[p1][p2])
-    }
-
+  togglePagination(routineId) {
+    this.pagination[routineId] = !this.pagination[routineId];
   }
 }

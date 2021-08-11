@@ -21,6 +21,64 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
+  shrink(str) {
+    let regex = /(^\s+)|(\s{2,})|(\s+$)/g;
+    let changed = regex.test(str);
+    return { changed, result: (str || '').trim().replace(/\s+/g, ' ') };
+  }
+
+  trimName(item) {
+    let { changed, result } = this.shrink(item.name);
+    item.name = result;
+    return changed;
+  }
+
+  async removeAllMenuSpaces() {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: { disabled: { $ne: true } },
+      projection: { menus: 1, name: 1 },
+    }, 2000);
+
+    for (let i = 0; i < rts.length; i++) {
+      let rt = rts[i], hasChanged = false, tmp = false;
+      (rt.menus || []).forEach(menu => {
+        tmp = this.trimName(menu);
+        hasChanged = hasChanged || tmp;
+        (menu.mcs || []).forEach(mc => {
+          tmp = this.trimName(mc);
+          hasChanged = hasChanged || tmp;
+          (mc.mis || []).forEach(mi => {
+            tmp = this.trimName(mi);
+            hasChanged = hasChanged || tmp;
+            (mi.sizeOptions || []).forEach(so => {
+              tmp = this.trimName(so);
+              hasChanged = hasChanged || tmp;
+            });
+          });
+        });
+      });
+
+      if (hasChanged) {
+        try {
+          await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+            old: { _id: rt._id },
+            new: { _id: rt._id, menus: rt.menus }
+          }]);
+          this._global.publishAlert(
+            AlertType.Success,
+            `Menus in restaurant ${rt.name} are cleaned.`
+          );
+        } catch (err) {
+          this._global.publishAlert(
+            AlertType.Danger,
+            `Menus in restaurant ${rt.name} clean failed...${err}`
+          );
+        }
+      }
+    }
+  }
+
   async recoverMenu() {
     // const rtId = "5edd90ee8b6849feece9e8b9";
     // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
@@ -183,7 +241,7 @@ export class DbScriptsComponent implements OnInit {
       }
 
       console.log(restaurants.map(r => r.name));
-      // a local function to sort arr based on sortOrder. 
+      // a local function to sort arr based on sortOrder.
       const sort = function (arr) {
         let firstPart = arr.filter((i) => i && typeof i.sortOrder === 'number');
         let secondPart = arr.filter((i) => i && typeof i.sortOrder !== 'number');
@@ -660,80 +718,6 @@ export class DbScriptsComponent implements OnInit {
     const duplicatedGroups = grouped.filter(g => g.list.length > 1);
 
     console.log(duplicatedGroups)
-  }
-
-  async injectPopularItems() {
-    // 1. get 1000 orders of each restaurant
-    // 2. get miInstance.id of each menu
-    // 3. get top 20 and inject back to restaurant
-    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: {
-      },
-      projection: {
-        'name': 1,
-        'menus.name': 1,
-        'menus.popularMiIds': 1
-      },
-      limit: 8000
-    }).toPromise();
-    const restaurantsWithoutPopularItems = restaurants.filter(rt => rt.menus && rt.menus.length > 0 && !rt.menus.some(menu => menu.popularMiIds));
-
-    // console.log('need injection: ', restaurantsWithoutPopularItems);
-    for (let rt of restaurantsWithoutPopularItems) {
-
-      // if (rt._id !== '57e9574c1d1ef2110045e665') {
-      //   continue;
-      // }
-      console.log(rt.name, rt._id);
-      const rtId = rt._id;
-      const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'order',
-        query: {
-          restaurant: { $oid: rtId }
-        },
-        projection: {
-          'orderItems.miInstance.id': 1,
-          'orderItems.miInstance.name': 1,
-          'orderItems.menuName': 1
-        },
-        limit: 1000
-      }).toPromise();
-      // console.log(orders);
-      const menuIdCounter = {};
-
-      const idNameMap = {};
-
-
-      orders.map(order => order.orderItems.filter(oi => oi.miInstance && oi.miInstance.id && oi.menuName).map(oi => {
-        idNameMap[oi.miInstance.id] = oi.miInstance.name;
-        menuIdCounter[oi.menuName] = menuIdCounter[oi.menuName] || {};
-        menuIdCounter[oi.menuName][oi.miInstance.id] = (menuIdCounter[oi.menuName][oi.miInstance.id] || 0) + 1;
-      }));
-
-      const newRt = JSON.parse(JSON.stringify(rt));
-      const menuPopularIds = Object.keys(menuIdCounter).map(menuName => {
-        const idCoutDict = menuIdCounter[menuName];
-        const sortedItems = Object.keys(idCoutDict).map(id => ({ id: id, name: idNameMap[id], count: idCoutDict[id] })).sort((i1, i2) => i2.count - i1.count);
-        // popular: first item's 1/5
-        const cutOff = sortedItems[0].count / 4 + 10;
-        const popularItems = sortedItems.filter(s => s.count >= cutOff);
-        newRt.menus.map(menu => {
-          if (menu.name === menuName) {
-            menu.popularMiIds = popularItems.map(item => item.id);
-          }
-        });
-        // console.log(menuName, popularItems);
-      });
-      if (JSON.stringify(newRt) !== JSON.stringify(rt)) {
-        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-          old: rt,
-          new: newRt
-        }]).toPromise();
-      }
-
-    }
-
   }
 
   async migrateTme() {
@@ -1745,7 +1729,7 @@ export class DbScriptsComponent implements OnInit {
         rtStats[rtId].lastKnownAliveTime = time;
       }
     });
-    
+
     // scan events in past xxx days
     const analyticsEvents = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'analytics-event',
@@ -2852,12 +2836,14 @@ export class DbScriptsComponent implements OnInit {
   async injectRequireZipBillingAddress() {
     const serviceSettings = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
+      query: {disabled: { $ne: true }},
       projection: {
         name: 1,
         googleListing: 1,
         serviceSettings: 1,
         requireZipcode: 1,
         requireBillingAddress: 1
+        
       }
     }, 3000)
 
@@ -2865,7 +2851,7 @@ export class DbScriptsComponent implements OnInit {
     for (let r of serviceSettings) {
       const oldR = r;
       let newR = JSON.parse(JSON.stringify(r));
-      if (r.serviceSettings && r.serviceSettings.some(each => each.paymentMethods.indexOf('QMENU') > -1)) {
+      if (r.serviceSettings && r.serviceSettings.some(each => each.paymentMethods && each.paymentMethods.indexOf('QMENU') > -1)) {
         if (!newR.requireZipcode || !newR.requireBillingAddress) {
           newR.requireZipcode = true;
           updatedRestaurantPairs.push({
@@ -3188,7 +3174,6 @@ export class DbScriptsComponent implements OnInit {
         "googleListing.cid": 1,
         "googleListing.gmbOwner": 1,
         "googleListing.gmbWebsite": 1,
-        "googleListing.gmbOpen": 1,
         "googleAddress.formatted_address": 1,
         web: 1,
         disabled: 1,

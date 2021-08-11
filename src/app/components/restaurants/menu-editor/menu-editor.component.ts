@@ -1,8 +1,8 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {Hour, Menu, Restaurant} from '@qmenu/ui';
-import {Helper} from '../../../classes/helper';
-import {ApiService} from '../../../services/api.service';
-import {HttpClient} from '@angular/common/http';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Hour, Menu, Restaurant } from '@qmenu/ui';
+import { Helper } from '../../../classes/helper';
+import { ApiService } from '../../../services/api.service';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-menu-editor',
@@ -10,7 +10,7 @@ import {HttpClient} from '@angular/common/http';
   styleUrls: ['./menu-editor.component.css']
 })
 export class MenuEditorComponent implements OnInit {
-
+  
   menu: Menu;
   @Input() timezone = 'America/New_York';
   @Output() onDelete = new EventEmitter();
@@ -38,11 +38,27 @@ export class MenuEditorComponent implements OnInit {
     }];
 
   selectedTarget = this.targets[0];
-
+  sampleMenu = require('./sample_menu.json');
   constructor(private _api: ApiService, private _http: HttpClient) {
   }
 
   ngOnInit() {
+  }
+  // copy sample menu from demo of prod for new restaurant signing up.
+  createSampleMenu() {
+    let sampleMenu = this.sampleMenu;
+    sampleMenu.name = 'Example Menu';
+    delete sampleMenu.id; // delete the copy's id, or else we will just end up editing the existing menu
+    sampleMenu.mcs.map((mc, index) => {
+      let subid = this.restaurant._id.substring(3,6);
+      mc.id = mc.id + index + subid + '';
+      mc.mis.map(mi => {
+        mi.id += mi.id + index + subid + ''; // append a restaurant._id's substring to all Mc and Mi id's to keep them unique
+        mi.category = mc.id;
+      });
+    });
+    sampleMenu = new Menu(sampleMenu);
+    this.setMenu(sampleMenu);
   }
 
   isValid() {
@@ -60,6 +76,8 @@ export class MenuEditorComponent implements OnInit {
   radioSelect(event) {
     if (event === 'New Menu') {
       this.setMenu(new Menu());
+    } else if (event === 'Sample Menu') {
+      this.createSampleMenu();
     }
   }
 
@@ -125,7 +143,7 @@ export class MenuEditorComponent implements OnInit {
       // @ts-ignore
       this.menu['targetCustomer'] = this.selectedTarget.value;
     }
-
+    this.menu.name = Helper.shrink(this.menu.name);
     this.onDone.emit(this.menu);
     this.clickedDelete = false;
   }

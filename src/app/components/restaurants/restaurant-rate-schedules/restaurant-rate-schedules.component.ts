@@ -46,11 +46,6 @@ export class RestaurantRateSchedulesComponent implements OnInit {
   dateChanged(date) {
   }
 
-  canEditCommission() {
-    const roles = this._global.user.roles || [];
-    return roles.includes('ADMIN') || roles.includes('RATE_EDITOR');
-  }
-
   toggleEditing() {
     this.editing = !this.editing;
     this.rateSchedulesInEditing = JSON.parse(JSON.stringify(this.restaurant.rateSchedules || []));

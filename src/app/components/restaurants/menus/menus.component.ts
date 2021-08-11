@@ -1,14 +1,14 @@
-import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 
-import {Menu, MenuOption, Restaurant} from '@qmenu/ui';
-import {ModalComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
-import {MenuEditorComponent} from '../menu-editor/menu-editor.component';
-import {Helper} from '../../../classes/helper';
+import { Menu, MenuOption, Restaurant } from '@qmenu/ui';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { MenuEditorComponent } from '../menu-editor/menu-editor.component';
+import { Helper } from '../../../classes/helper';
 
-import {ApiService} from '../../../services/api.service';
-import {GlobalService} from '../../../services/global.service';
-import {environment} from '../../../../environments/environment';
-import {AlertType} from '../../../classes/alert-type';
+import { ApiService } from '../../../services/api.service';
+import { GlobalService } from '../../../services/global.service';
+import { environment } from '../../../../environments/environment';
+import { AlertType } from '../../../classes/alert-type';
 
 
 @Component({
@@ -27,6 +27,7 @@ export class MenusComponent implements OnInit {
   @Output() menusChanged = new EventEmitter();
 
   importMenu = false;
+  importJson = false;
   importCoupon = false;
   apiRequesting = false;
   providerUrl;
@@ -48,6 +49,7 @@ export class MenusComponent implements OnInit {
 
   menusToClean = [];
   menusIncludeCleaned = {};
+  menuJson = '';
 
 
   constructor(private _api: ApiService, private _global: GlobalService) {
@@ -55,6 +57,77 @@ export class MenusComponent implements OnInit {
 
   ngOnInit() {
     this.disableNotesFlag = (this.restaurant.menus || []).some(m => m.mcs.some(mc => mc.mis.some(mi => mi.nonCustomizable)));
+  }
+
+  async confirmImportJson() {
+    try {
+      const menus = JSON.parse(this.menuJson);
+
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {
+          _id: this.restaurant['_id']
+        }, new: {
+          _id: this.restaurant['_id'],
+          menus: menus
+        }
+      }]).toPromise();
+      this._global.publishAlert(AlertType.Success, 'Success!');
+      this.restaurant.menus = menus.map(menu => new Menu(menu));
+      this._global.publishAlert(AlertType.Success, "Done");
+      this.importJson = false;
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, "Failed");
+    }
+  }
+
+  isArray(obj) {
+    return Object.prototype.toString.call(obj) === '[object Array]';
+  }
+
+  getProviders() {
+    // only show supported providers: menufy,Red Passion, CMO (Chinese Menu Online), Beyond Menu, Grubhub, Slicelife
+    let supported = ['menufy', 'redpassion', 'chinesemenuonline', 'chinesemenuonline', 'beyondmenu', 'grubhub', 'slicelife'];
+    return (this.restaurant.providers || this.providers).filter(x => supported.includes(x.name));
+  }
+
+  /*
+    a public logic we should extract it.
+  */
+  removeSpace(str) {
+    return (str || '').trim().replace(/\s+/g, ' ');
+  }
+  /*
+    remove space of the property's value of mi if it suit for the rules.
+  */
+  async doRemoveUnnessarySpace() {
+    const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
+    newMenus.forEach(menu => {
+      menu.name = this.removeSpace(menu.name);
+      (menu.mcs || []).forEach(mc => {
+        mc.name = this.removeSpace(mc.name);
+        (mc.mis || []).forEach(mi => {
+          mi.name = this.removeSpace(mi.name);
+          (mi.sizeOptions || []).forEach(so => {
+            so.name = this.removeSpace(so.name);
+          });
+        });
+      });
+    });
+    try {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {
+          _id: this.restaurant['_id']
+        }, new: {
+          _id: this.restaurant['_id'],
+          menus: newMenus
+        }
+      }]).toPromise();
+      this._global.publishAlert(AlertType.Success, 'Success!');
+      this.restaurant.menus = newMenus.map(menu => new Menu(menu));
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, 'Failed!');
+    }
   }
 
   hasMenuHoursMissing() {
@@ -77,7 +150,7 @@ export class MenusComponent implements OnInit {
       const providers = await this._api.post(environment.appApiUrl + 'utils/menu', {
         name: 'get-service-providers',
         payload: {
-          ludocid: (this.restaurant.googleListing || {}).cid
+          restaurantId: this.restaurant._id
         }
       }).toPromise();
       this.providers = providers.map(p => ({
@@ -93,6 +166,22 @@ export class MenusComponent implements OnInit {
       alert('timeout');
     }
     this.apiRequesting = false;
+  }
+
+  trimName(menus) {
+    (menus || []).forEach(menu => {
+      menu.name = Helper.shrink(menu.name);
+      (menu.mcs || []).forEach(mc => {
+        mc.name = Helper.shrink(mc.name);
+        (mc.mis || []).forEach(mi => {
+          mi.name = Helper.shrink(mi.name);
+          (mi.sizeOptions || []).forEach(so => {
+            so.name = Helper.shrink(so.name);
+          });
+        });
+      });
+    });
+    return menus;
   }
 
   async crawl(synchronously) {
@@ -114,7 +203,7 @@ export class MenusComponent implements OnInit {
             _id: this.restaurant._id
           }, new: {
             _id: this.restaurant._id,
-            menus: crawledRestaurant.menus,
+            menus: this.trimName(crawledRestaurant.menus),
             menuOptions: crawledRestaurant.menuOptions
           }
         }]).toPromise();
@@ -132,7 +221,7 @@ export class MenusComponent implements OnInit {
         await this._api.post(environment.appApiUrl + 'events',
           [{
             queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`,
-            event: {name: 'populate-menus', params: {restaurantId: this.restaurant._id, url: this.providerUrl}}
+            event: { name: 'populate-menus', params: { restaurantId: this.restaurant._id, url: this.providerUrl } }
           }]
         ).toPromise();
         alert('Started in background. Refresh in about 1 minute or come back later to check if menus are crawled successfully.');
@@ -144,18 +233,26 @@ export class MenusComponent implements OnInit {
     this.apiRequesting = false;
   }
 
+  parsePrefixNum(name) {
+    // 1) A1. XXX; A12. XXX; A1 XXX; A12 XXX; AB1 XXX; AB12 XXX; AB12. XXX; AB1. XXX;
+    let regex1 = /^(?<to_rm>(?<num>([a-z]{0,2}\d+))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
+    // 2) 1A XXX; 12A XXX; 11B. XXX; 1B. XXX;
+    let regex2 = /^(?<to_rm>(?<num>(\d+[a-z]{0,2}))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
+    // 3) No. 1 XXX; NO. 12 XXX;
+    let regex3 = /^(?<to_rm>(?<num>(No\.\s?\d+))\s+)(?<word>\S+)\s*/i;
+    return [regex1, regex2, regex3].reduce((a, c) => a || name.match(c), null);
+  }
+
   match(item) {
-    let {name, translation} = item;
+    let { name, translation } = item;
     if (!name) {
       return;
     }
 
     name = name.trim();
-    // we'll handle these cases:
-    // 1. A1. XXX; 2. A12 XXX; 3. AB1 XXX; 4. AB12. XXX; 5. 1A XXX; 6. 11B. XXX
-    // 3 cups chicken, 4 pcs XXX etc. these will extract the measure word to judge
-    let withNumRegex = /^(?<to_rm>(?<num>([a-zA-Z]{0,2}\d+)|(\d+[a-zA-Z]))(?<dot>\.?)\s)(?<word>\S+)\s*/i;
-    let numMatched = name.match(withNumRegex);
+    // extract the possible number info from menu's name
+    let numMatched = this.parsePrefixNum(name);
+    // if name itself has a number, like 3 cups chicken, 4 pcs XXX etc. these will extract the measure word to judge
     let measureWords = [
       'piece', 'pieces', 'pc', 'pcs', 'pc.', 'pcs.', 'cups', 'cup',
       'liter', 'liters', 'oz', 'oz.', 'ounces', 'slice', 'lb.', 'item',
@@ -185,7 +282,7 @@ export class MenusComponent implements OnInit {
       // remove brackets around name
       en = en.replace(/^\((.+)\)$/, '$1').replace(/^\[(.+)]$/, '$1');
       zh = zh.replace(/^（(.+)）$/, '$1').replace(/^【(.+)】$/, '$1');
-      item.translation = {zh, en};
+      item.translation = { zh, en };
       item.number = number;
 
       let trans = (this.restaurant.translations || []).find(x => x.EN === en);
@@ -195,7 +292,7 @@ export class MenusComponent implements OnInit {
       this.menusToClean.push(item);
     } else {
       if (number || hasMeasure) {
-        item.translation = {en: name};
+        item.translation = { en: name };
         item.number = number || item.number;
         this.menusToClean.push(item);
       }
@@ -206,31 +303,20 @@ export class MenusComponent implements OnInit {
   async cleanup() {
     this.menusToClean = [];
     this.menusIncludeCleaned = {};
-    let {menus, menuOptions} = this.restaurant;
-    let tempMenus = JSON.parse(JSON.stringify(menus)).map(x => new Menu(x)),
-      tempMenuOptions = JSON.parse(JSON.stringify(menuOptions)).map(x => new MenuOption(x));
+    let { menus } = this.restaurant;
+    let tempMenus = JSON.parse(JSON.stringify(menus)).map(x => new Menu(x));
     tempMenus.forEach(menu => {
       this.match(menu);
       menu.mcs.forEach(mc => {
         this.match(mc);
         mc.mis.forEach(mi => {
           this.match(mi);
-          mi.sizeOptions.forEach(so => {
-            this.match(so);
-          });
         });
       });
     });
 
-    (tempMenuOptions || []).forEach(mo => {
-      this.match(mo.name);
-      (mo.items || []).forEach(moi => {
-        this.match(moi.name);
-      });
-    });
-
     if (this.menusToClean.length > 0) {
-      this.menusIncludeCleaned = {menus: tempMenus, menuOptions: tempMenuOptions};
+      this.menusIncludeCleaned = { menus: tempMenus };
     }
     this.menuCleanModal.show();
   }
@@ -246,13 +332,13 @@ export class MenusComponent implements OnInit {
       let { zh, en, prev_en } = item.translation;
       let translation = translations.find(x => x.EN === en || x.EN === prev_en);
       if (!translation) {
-        translation = {EN: en, ZH: zh};
+        translation = { EN: en, ZH: zh };
         translations.push(translation);
       } else {
         translation.EN = en;
         translation.ZH = zh;
       }
-      ['zh', 'prev_en', 'prev_zh'].forEach(p => delete item.translation[p]);
+      delete item.translation;
     }
   }
 
@@ -266,9 +352,6 @@ export class MenusComponent implements OnInit {
           this.saveTranslation(mc, translations);
           mc.mis.forEach(mi => {
             this.saveTranslation(mi, translations);
-            mi.sizeOptions.forEach(so => {
-              this.saveTranslation(so, translations);
-            });
           });
         });
         (menu.items || []).forEach(moi => {
@@ -288,8 +371,6 @@ export class MenusComponent implements OnInit {
       this._global.publishAlert(AlertType.Success, 'Success!');
       // @ts-ignore
       this.restaurant.menus = this.menusIncludeCleaned.menus.map(m => new Menu(m));
-      // @ts-ignore
-      this.restaurant.menuOptions = this.menusIncludeCleaned.menuOptions.map(mo => new MenuOption(mo));
       this.cleanupCancel();
     } catch (error) {
       console.log('error...', error);
@@ -507,6 +588,7 @@ export class MenusComponent implements OnInit {
   }
 
   clickNew() {
+    this.menuEditor.selectedOption = 'New Menu';
     this.menuEditor.setMenu(new Menu());
     this.menuEditingModal.show();
   }
@@ -515,7 +597,7 @@ export class MenusComponent implements OnInit {
     this.menuEditor.setMenu(new Menu(menu));
     this.menuEditingModal.show();
   }
-
+  
   onDoneEditing(menu: Menu) {
     const newMenus = (this.restaurant.menus || []).slice(0);
     if (menu.id) {
@@ -639,7 +721,7 @@ export class MenusComponent implements OnInit {
             // reset the imageObj
             mi.imageObjs = [];
             (matchingAlias.images || []).map(each => {
-              if(!mi.SkipImageInjection){
+              if (!mi.SkipImageInjection) {
                 (mi.imageObjs).push({
                   originalUrl: each.url,
                   thumbnailUrl: each.url192,

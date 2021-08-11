@@ -18,9 +18,11 @@ export class GmbAccount {
     postcardId:string;
     locations: GmbLocation []; 
     suspendedInPastDay: number;
+    lostIn2Days: number;
     disabled: boolean;
     isAgencyAcct = false;
     isYelpEmail = false;
+    isDefenseAccount = false;
     constructor(gmb?: any) {
         if (gmb) {
             // copy every fields

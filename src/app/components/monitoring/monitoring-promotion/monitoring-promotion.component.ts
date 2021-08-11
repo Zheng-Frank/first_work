@@ -28,9 +28,8 @@ export class MonitoringPromotionComponent implements OnInit {
   coupons = [];
   checkedCoupons = [];
   failedTypes = [];
-  scrapedRegex = /^\[Scraped: (\w+)]/;
   scrapedOnly = false;
-
+  competitorSites = [];
 
   ngOnInit() {
     this.query();
@@ -38,15 +37,6 @@ export class MonitoringPromotionComponent implements OnInit {
 
   getFreeItem(item) {
     return [item.menu.name, item.mc.name, item.mi.name].join('>');
-  }
-
-  scrapedToggle(e) {
-    const {target: {checked}} = e;
-    if (checked) {
-      this.filtered = this.filtered.filter(x => x.promotions && x.promotions.some(p => this.scrapedRegex.test(p.name)));
-    } else {
-      this.filter();
-    }
   }
 
   async crawl(rt) {
@@ -96,22 +86,6 @@ export class MonitoringPromotionComponent implements OnInit {
       && this.checkedCoupons.length < this.coupons.length;
   }
 
-  countScraped(promotions) {
-    let count = 0, provider;
-
-    (promotions || []).forEach(x => {
-      if (this.scrapedRegex.test(x.name)) {
-        count++;
-        provider = (x.name.match(this.scrapedRegex) || [])[1];
-      }
-    });
-    if (count) {
-      return `${count} from ${provider}`;
-    } else {
-      return '';
-    }
-  }
-
   async update() {
 
     try {
@@ -140,7 +114,32 @@ export class MonitoringPromotionComponent implements OnInit {
 
   validate(rt) {
     this.restaurant = rt;
+    this.refreshCompetitorSites(rt);
     this.validateModal.show();
+  }
+
+  sortedPromotions(promotions) {
+    return promotions.sort((x, y) => {
+      return x.name > y.name ? 1 : (x.name < y.name ? -1 : 0);
+    });
+  }
+
+  refreshCompetitorSites(rt) {
+    if (!rt) {
+      this.competitorSites = [];
+      return;
+    }
+    let competitors = {};
+    const Providers = {BeyondMenu: 'beyondmenu', CMO: 'chinesemenuonline'};
+    rt.promotions.forEach(p => {
+      if (p.source && !competitors[p.source]) {
+        let provider = rt.providers.find(x => x.name === Providers[p.source]);
+        if (provider) {
+          competitors[p.source] = provider.url;
+        }
+      }
+    });
+    this.competitorSites = Object.entries(competitors).map(([k, v]) => ({name: k, url: v}));
   }
 
   closeModal(modal) {
@@ -171,7 +170,7 @@ export class MonitoringPromotionComponent implements OnInit {
   async approve(promotion) {
     let {promotions} = this.restaurant;
     promotions = JSON.parse(JSON.stringify(promotions));
-    promotion.name = promotion.name.replace(this.scrapedRegex, '').trim();
+    promotion.source = undefined;
     promotion.expiry = undefined;
     await this.updatePromotion(promotions);
   }
@@ -199,12 +198,16 @@ export class MonitoringPromotionComponent implements OnInit {
         this.filtered = this.rts.filter(rt => rt.googleListing && rt.googleListing.gmbOwner === this.gmbWebsiteOwner);
         break;
     }
+    if (this.scrapedOnly) {
+      // @ts-ignore
+      this.filtered = this.filtered.filter(x => x.promotions && x.promotions.some(p => !!p.source));
+    }
   }
 
   stat(rts) {
     this.rts = rts.filter(rt => {
       return !rt.promotions || !rt.promotions.length
-        || rt.promotions.some(x => this.scrapedRegex.test(x.name))
+        || rt.promotions.some(x => !!x.source)
         || (rt.promotions.every(p => p.expiry && new Date(p.expiry).valueOf() < Date.now()));
     });
 
@@ -249,7 +252,7 @@ export class MonitoringPromotionComponent implements OnInit {
       query: {
         $or: [{disabled: false}, {disabled: {$exists: false}}]
       },
-      projection: {'googleListing.gmbOwner': 1, name: 1, _id: 1, promotions: 1},
+      projection: {'googleListing.gmbOwner': 1, name: 1, _id: 1, promotions: 1, providers: 1},
     }, 3000);
 
     this.stat(rts);

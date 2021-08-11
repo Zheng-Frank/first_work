@@ -476,22 +476,6 @@ export class OrderCardComponent implements OnInit {
     return updates;
   }
 
-  displayRestaurantNotice() {
-    /* 6/23/2021: bug fix. Sometimes a restaurantNotice message meant for a delivery order
-     (e.g. "COOK ASAP! DRIVER ON THEIR WAY.") remains in place after the order has been changed to pickup.
-     We want to check and make sure these messages are only displayed when it is appropriate */
-    const deliveryNotices = ["COOK ASAP! DRIVER ON THEIR WAY.", "NO DRIVER FOUND YET. DO NOT COOK UNTIL FURTHER NOTICE."];
-    const pickupNotices = ["Customer is coming to pickup the order"];
-    if (this.order.type === 'PICKUP') {
-      return pickupNotices.indexOf(this.order['restaurantNotice']) >= 0;
-    }
-
-    if (this.order.type === 'DELIVERY') {
-      return deliveryNotices.indexOf(this.order['restaurantNotice']) >= 0;
-    }
-    return false;
-  }
-
   postmatesStatus(status) {
     switch (status) {
       case 'pickup':
@@ -506,8 +490,8 @@ export class OrderCardComponent implements OnInit {
       case 'dropoff':
         return 'Delivering';
 
-      case 'delivered':
-        return 'Delivered';
+      case 'pending':
+        return 'Pending';
     }
   }
 }

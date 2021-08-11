@@ -1,29 +1,39 @@
 <div class="text-center">
   <h3>List of Restaurants with QR Dine-In ({{qrFilterRestaurantListRows?.length || 0}})</h3>
 </div>
-<div class="pb-5 text-left">
-  <div class="float-left form-inline ml-2 mr-2">
-    <label class="form-check-label mr-2">Show</label>
-    <select [(ngModel)]="filterType" class="form-control ml-1" (change)="filter()">
-      <option *ngFor="let type of filterTypes" [value]="type">{{type}}</option>
-    </select>
-  </div>
-  <div class="float-left form-inline ml-2 mr-2">
-    <label class="form-check-label mr-2">QR Salesperson</label>
-    <select [(ngModel)]="qrSalesperson" class="form-control ml-1" (change)="filter()">
-      <option value="All">All</option>
-      <ng-container *ngFor="let person of qrSalespeople">
-        <option *ngIf="person != 'None'" [value]="person">{{person}}</option>
-      </ng-container>
-      <option value="None">None</option>
-    </select>
-  </div>
-  <div class="float-left form-inline ml-2 mr-2">
-    <button class="btn btn-primary" (click)="populateQrRestaurant()"><i class="fas fa-sync"></i> Rescan</button>
-  </div>
-  <div class="float-left form-inline ml-2 mr-2 mt-2">
-    <input class="form-check-input" type="checkbox" [(ngModel)]="showAllLogs">
-    <label class="form-check-label" for="id-gmb"> Show all logs</label>
+<div class="row">
+  <div class="pb-2 text-left col-12">
+    <div class="float-left form-inline ml-2 mr-2">
+      <label class="form-check-label mr-2">Show</label>
+      <select [(ngModel)]="filterType" class="form-control ml-1" (change)="filter()">
+        <option *ngFor="let type of filterTypes" [value]="type">{{type}}</option>
+      </select>
+    </div>
+    <div class="float-left form-inline ml-2 mr-2">
+      <label class="form-check-label mr-2">QR Salesperson</label>
+      <select [(ngModel)]="qrSalesperson" class="form-control ml-1" (change)="filter()">
+        <option value="All">All</option>
+        <ng-container *ngFor="let person of qrSalespeople">
+          <option *ngIf="person != 'None'" [value]="person">{{person}}</option>
+        </ng-container>
+        <option value="None">None</option>
+      </select>
+    </div>
+    <div class="float-left form-inline ml-2 mr-2 mt-2">
+      <input class="form-check-input" type="checkbox" [(ngModel)]="showAllLogs">
+      <label class="form-check-label" for="id-gmb"> Show all logs</label>
+    </div>
+    <div class="float-left form-inline ml-2 mr-2 mt-2">
+      <input class="form-check-input" type="checkbox" [(ngModel)]="hideMore20OrdersFlag" (change)='filter()'>
+      <label class="form-check-label" for="id-gmb"> Hide RTs with >20 orders</label>
+    </div>
+    <div class="float-left form-inline ml-2 mr-2">
+      <button class="btn btn-primary" (click)="showQRSettingsFilters()">Filters</button>
+      <span class="ml-2"> {{qrSettingFilterText}}</span>
+    </div>
+    <div class="float-right pr-5">
+      <button class="btn btn-primary" (click)="reload()"><i class="fas fa-sync"></i> Reload</button>
+    </div>
   </div>
 </div>
 
@@ -37,6 +47,8 @@
       <td>{{qrFilterRestaurantListRows.indexOf(restaurant) + 1}}</td>
       <td>
         <a href="#/restaurants/{{restaurant._id}}" target="_blank">{{restaurant.name}}</a>
+        <br>
+        {{restaurant._id}}
         <br>
         {{restaurant.googleAddress?.formatted_address}}
         <br>
@@ -73,6 +85,30 @@
         <div *ngIf="isSchedulesValid(restaurant)">
           <button class="btn btn-link" (click)="openSchedulesModal(restaurant)">Fix Fee/Rate Schedules</button>
         </div>
+        <div class="row">
+          <div class="col-12">
+            <div class="ml-2 mt-2">
+              <input class="form-check-input" type="checkbox" [checked]="restaurant.qrSettings.hasSignHoldersAt"
+                (change)="addQRSettingFilters(restaurant,'hasSignHoldersAt')">
+              <label class="form-check-label"> Sign holders purchased</label>
+            </div>
+            <div class="ml-2 mt-2">
+              <input class="form-check-input" type="checkbox" [checked]="restaurant.qrSettings.hasQRTrainingAt"
+                (change)="addQRSettingFilters(restaurant,'hasQRTrainingAt')">
+              <label class="form-check-label"> RT is trained</label>
+            </div>
+            <div class="ml-2 mt-2">
+              <input class="form-check-input" type="checkbox" [checked]="restaurant.qrSettings.qrCodesMailedAt"
+                (change)="addQRSettingFilters(restaurant,'qrCodesMailedAt')">
+              <label class="form-check-label"> QR codes mailed</label>
+            </div>
+            <div class="ml-2 mt-2">
+              <input class="form-check-input" type="checkbox" [checked]="restaurant.qrSettings.qrCodesObtainedAt"
+                (change)="addQRSettingFilters(restaurant,'qrCodesObtainedAt')">
+              <label class="form-check-label"> QR codes received</label>
+            </div>
+          </div>
+        </div>
       </td>
       <td>
         {{restaurant.qrSettings.createdAt | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}}
@@ -97,6 +133,9 @@
               </tr>
             </ng-container>
           </table>
+          <div>
+            <button class="btn btn-primary" (click)="addLog(restaurant)"><i class="fas fa-plus"></i>Add Log</button>
+          </div>
         </ng-container>
         <ng-container *ngIf="showAllLogs">
           <table class="table table-sm">
@@ -115,11 +154,14 @@
               <td>{{log.response}}</td>
             </tr>
           </table>
+          <div>
+            <button class="btn btn-primary" (click)="addLog(restaurant)"><i class="fas fa-plus"></i>Add Log</button>
+          </div>
         </ng-container>
       </td>
     </tr>
   </q-table>
-
+  <!-- start with schedule modal -->
   <q-modal #schedulesModal>
     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
       <span aria-hidden="true">×</span>
@@ -135,6 +177,46 @@
       </app-restaurant-rate-schedules>
     </div>
   </q-modal>
-
-
+  <!-- end with schedule modal -->
+  <!-- start with the log editing modal-->
+  <q-modal #logEditingModal>
+    <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="[]" [log]="logInEditing"
+      (success)="onSuccessAddLog($event)" (cancel)="onCancelAddLog()"></app-log-editor>
+  </q-modal>
+  <!-- end with the log editing modal -->
+  <!-- start with qrsettings filters condition modal -->
+  <q-modal #QRSettingsFiltersModal>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">Filters</h4>
+    <hr>
+    <div class="container">
+      <div class="row mb-3 ml-5">
+        <div class="col-12">
+          <div class="ml-2 mt-2">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="hasSignHolders">
+            <label class="form-check-label"> Sign holders purchased</label>
+          </div>
+          <div class="ml-2 mt-2">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="hasQRTraining">
+            <label class="form-check-label"> RT is trained</label>
+          </div>
+          <div class="ml-2 mt-2">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="qrCodesMailed">
+            <label class="form-check-label"> QR codes mailed</label>
+          </div>
+          <div class="ml-2 mt-2">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="qrCodesObtained">
+            <label class="form-check-label"> QR codes received</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="d-flex justify-content-end p-4">
+      <button class="btn btn-secondary mr-2" (click)="cancelQRSettingsFilter()">Cancel</button>
+      <button class="btn btn-primary" (click)="filter()">OK</button>
+    </div>
+  </q-modal>
+  <!-- end with qrsettings filters condition modal -->
 </div>

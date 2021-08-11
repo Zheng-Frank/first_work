@@ -13,6 +13,12 @@ import { OrderCardComponent } from '../../restaurants/order-card/order-card.comp
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { environment } from 'src/environments/environment';
 declare var $: any;
+// 
+enum filterTypes {
+  Last24Hours = 'Last 24 hours',
+  Previous24Hours = 'Previous 24 Hours',
+  Custom = 'Custom'
+}
 @Component({
   selector: 'app-postmates-orders',
   templateUrl: './postmates-orders.component.html',
@@ -50,10 +56,10 @@ export class PostmatesOrdersComponent implements OnInit {
   cancelError = '';
   undoOrder: any;
   isPostmatesStatusDelivered = false;
-  searchTypes = ['Order Number', 'Customer Phone', 'Postmates ID', 'Restautant ID', 'Order ID'];
-  dateType = 'Today';
-  dateSearchTypes = ['Today', 'Yesterday', 'Custom'];
-  type = 'Order Number';//  concrete search type
+  searchTypes = ['Customer Phone', 'Postmates ID', 'Restautant ID', 'Order ID'];
+  dateType = filterTypes.Last24Hours;
+  dateSearchTypes = [filterTypes.Last24Hours, filterTypes.Previous24Hours, filterTypes.Custom];
+  type = 'Order ID';//  concrete search type
   showAdvancedSearch: boolean = false;//show advanced Search ,time picker ,search a period time of orders.
   fromDate; //time picker to search order.
   toDate;
@@ -67,7 +73,7 @@ export class PostmatesOrdersComponent implements OnInit {
     "googleAddress.timezone": 1,
     "channels": 1
   };
-
+  showExplanation = false;
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
   /**
@@ -84,35 +90,26 @@ export class PostmatesOrdersComponent implements OnInit {
     );
   }
 
-  /**
-   *
-   *cancel the advanced date search
-   * @memberof RestaurantOrdersComponent
-   */
-  cancelDoSearchOrderByDateCustom() {
-    this.showAdvancedSearch = false;
-    this.dateType = 'Today';
-    this.populateOrders();
-  }
-
   toggleShowAdvancedSearch() {
     this.showAdvancedSearch = !this.showAdvancedSearch;
     if (!this.showAdvancedSearch) {
+      this.searchText = '';
+      this.type = 'Order ID';
+      this.fromDate = '';
       this.populateOrders();
     } else {
-      this.dateType = 'Today';
-      this.searchOrderByDate();
+      this.searchText = '';
+      this.type = 'Order ID';
+      this.dateType = filterTypes.Last24Hours;
     }
   }
   /*
     we can search order in today ,yesterday,last three days ,and also can give a time.
   */
   async searchOrderByDate() {
-    if (this.dateType != 'Custom') {
+    if (this.dateType != filterTypes.Custom) {
       let query = {};
-      if (this.dateType === 'Today') {
-        let today = new Date();
-        let hours = today.getHours();
+      if (this.dateType === filterTypes.Last24Hours) {
         query = {
           restaurant: {
             $exists: true
@@ -122,7 +119,7 @@ export class PostmatesOrdersComponent implements OnInit {
           },
           $and: [{
             createdAt: {
-              $gte: { $date: new Date(new Date().valueOf() - hours * 3600 * 1000) }
+              $gte: { $date: new Date(new Date().valueOf() - 24 * 3600 * 1000) }
             } // less than and greater than
           }, {
             createdAt: {
@@ -131,11 +128,7 @@ export class PostmatesOrdersComponent implements OnInit {
           }
           ]
         } as any;
-      } else if (this.dateType === 'Yesterday') {
-        let today = new Date();
-        let hours = today.getHours();
-        // new Date().valueOf() - (hours) * 3600 * 1000) means today has started,
-        // new Date(new Date().valueOf() - (24 + hours) * 3600 * 1000) means yestoday has started.
+      } else if (this.dateType === filterTypes.Previous24Hours) {
         query = {
           restaurant: {
             $exists: true
@@ -145,15 +138,40 @@ export class PostmatesOrdersComponent implements OnInit {
           },
           $and: [{
             createdAt: {
-              $gte: { $date: new Date(new Date().valueOf() - (24 + hours) * 3600 * 1000) }
+              $gte: { $date: new Date(new Date().valueOf() - 48 * 3600 * 1000) }
             } // less than and greater than
           }, {
             createdAt: {
-              $lte: { $date: new Date(new Date().valueOf() - (hours) * 3600 * 1000) }
+              $lte: { $date: new Date(new Date().valueOf() - 24 * 3600 * 1000) }
             }
           }
           ]
         } as any;
+      }
+
+      if (!this.searchText) {
+
+      } else if (this.type == 'Postmates ID' && this.searchText) {
+        query['delivery.id'] = this.searchText.trim();
+      } else if (this.type == 'Customer Phone' && this.searchText) {
+        if (this.searchText.indexOf('-') != -1) { //to make  it support query order with phone number using - to split
+          let str_arr = this.searchText.trim().split('-');
+          let queryStr = '';
+          str_arr.forEach(function (s) {
+            queryStr += s
+          });
+          query['customerObj.phone'] = queryStr
+        } else { //the situation of the phone number don't have '-'
+          query['customerObj.phone'] = this.searchText.trim();
+        }
+      } else if (this.type == 'Restautant ID' && this.searchText) {
+        query['restaurant'] = {
+          $oid: this.searchText
+        }
+      } else if (this.type == 'Order ID' && this.searchText) {
+        query['_id'] = {
+          $oid: this.searchText
+        }
       }
 
       // ISO-Date()
@@ -168,38 +186,52 @@ export class PostmatesOrdersComponent implements OnInit {
         },
       }, 100);
       const customerIds = orders.filter(order => order.customer).map(order => order.customer);
-
-      const blacklist = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
-        resource: "blacklist",
-        query: {
-          "value": { $in: customerIds },
-          disabled: { $ne: true }
-        },
-        projection: {
-          disabled: 1,
-          reasons: 1, //
-          // reasons: {$slice: -10}, 数组里面前两个
-          value: 1,
-          orders: 1
-        },
-        sort: {
-          createAt: 1
+      // the cutomerIds array is very large and need to slice it.
+      const split_arr = (arr, len) => {
+        var newArr = [];
+        for (let i = 0; i < arr.length; i += len) {
+          newArr.push(arr.slice(i, i + len));
         }
-      }, 100000);
-      const previousOrders = await this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "order",
-        query: {
-          'customerObj._id': { $in: customerIds }
-        },
-        projection: {
-          _id: 1,
-          customer: 1
-        },
-        sort: {
-          createdAt: -1
-        },
-        limit: 10000,
-      }).toPromise();
+        return newArr;
+      }
+      var tempCustomerIds = split_arr(customerIds, parseInt(String(customerIds.length / 3)));
+      let blacklist = [];
+      let previousOrders = [];
+      for (let i = 0; i < tempCustomerIds.length; i++) {
+        const subBlackList = await this._api.get(environment.qmenuApiUrl + "generic", {
+          resource: "blacklist",
+          query: {
+            "value": { $in: tempCustomerIds[i] },
+            disabled: { $ne: true }
+          },
+          projection: {
+            disabled: 1,
+            reasons: 1,
+            value: 1,
+            orders: 1
+          },
+          sort: {
+            createAt: 1
+          },
+          limit: 100000
+        }).toPromise();
+        blacklist.push(...subBlackList);
+        const subPreviousOrders = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+          resource: "order",
+          query: {
+            'customerObj._id': { $in: tempCustomerIds[i] }
+          },
+          projection: {
+            _id: 1,
+            customer: 1
+          },
+          sort: {
+            createdAt: -1
+          },
+          limit: 1000,
+        }, 500);
+        previousOrders.push(...subPreviousOrders);
+      }
       orders.forEach(order => {
         order.previousOrders = [];
         previousOrders.forEach(previousOrder => {
@@ -231,8 +263,58 @@ export class PostmatesOrdersComponent implements OnInit {
         return new Order(order);
       });
     }
-
   }
+
+  private isLeapYear(year): boolean {
+    return year % 100 != 0 && year % 4 == 0 || year % 400 == 0;
+  }
+
+  // it can't just enlarge the date range because to date maybe more than 31 days at the end of the month.
+  private getCorrectToDate(toDate) {
+    let tostr = toDate.split('-');
+    let to_year = parseInt(tostr[0]);
+    let to_month = parseInt(tostr[1]);
+    let to_day = parseInt(tostr[2]);
+    let bigMonth = [1, 3, 5, 7, 8, 10, 12];
+    //enlarge the day range to get correct timezone
+    if (to_month !== 2) {
+      if (bigMonth.includes(to_month)) {
+        if (to_day < 31) {
+          tostr[2] = (parseInt(tostr[2]) + 1) + "";
+        } else {
+          tostr[1] = to_month + 1 + "";
+          tostr[2] = 1 + "";
+        }
+      } else {
+        if (to_day < 30) {
+          tostr[2] = (parseInt(tostr[2]) + 1) + "";
+        } else {
+          tostr[1] = to_month + 1 + "";
+          tostr[2] = 1 + "";
+        }
+      }
+    } else {
+      // judge is it leap year?
+      if (this.isLeapYear(to_year)) {
+        if (to_day < 29) {
+          tostr[2] = (parseInt(tostr[2]) + 1) + "";
+        } else {
+          tostr[1] = to_month + 1 + "";
+          tostr[2] = 1 + "";
+        }
+      } else {
+        if (to_day < 28) {
+          tostr[2] = (parseInt(tostr[2]) + 1) + "";
+        } else {
+          tostr[1] = to_month + 1 + "";
+          tostr[2] = 1 + "";
+        }
+      }
+
+    }
+    return tostr.join('-');
+  }
+
   /**
    *
    * this function is used to filter order by createdAt
@@ -240,34 +322,21 @@ export class PostmatesOrdersComponent implements OnInit {
    * @param {*} to
    * @memberof RestaurantOrdersComponent
    */
-  async doSearchOrderByDateCustom(from, to) {
-    if (this.type != 'Restautant ID' || (this.type == 'Restautant ID' && !this.searchText)) {
-      return this._global.publishAlert(AlertType.Danger, "Please select search type as Restaurant and fill it correctly before using the advanced search");
-    }
+  async doSearchOrderByDateCustom() {
 
-    if (from == undefined) {
+    if (this.fromDate === undefined || this.fromDate === '') {
       return this._global.publishAlert(AlertType.Danger, "please input a correct from time date format!");
     }
-    if (to == undefined) {
-      return this._global.publishAlert(AlertType.Danger, "please input a correct to time date format !");
-    }
-    const selectRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: { _id: { $oid: this.searchText } },
-      projection: this.restaurantProjection,
-    }, 1);
-    let tostr = to.split('-');
-    tostr[2] = (parseInt(tostr[2]) + 1) + "";//enlarge the day range to get correct timezone
-    to = tostr.join('-');
-    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(from), selectRestaurants[0].googleAddress.timezone);
-    const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to), selectRestaurants[0].googleAddress.timezone);
+    let to = this.getCorrectToDate(this.fromDate);
+    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.fromDate + " 00:00:00.000"), 'America/New_York');
+    const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to + " 00:00:00.000"), 'America/New_York');
 
-    if (utcf > utct) {
-      return this._global.publishAlert(AlertType.Danger, "please input a correct date format,from time is less than or equals to time!");
-    }
     const query = {
       restaurant: {
-        $oid: selectRestaurants[0]._id
+        $exists: true
+      },
+      'delivery.id': {
+        $exists: true
       },
       $and: [{
         createdAt: {
@@ -277,21 +346,43 @@ export class PostmatesOrdersComponent implements OnInit {
         createdAt: {
           $lte: { $date: utct }
         }
-      }
-      ]
+      }]
     } as any;
+    if (!this.searchText) {
+
+    } else if (this.type == 'Postmates ID' && this.searchText) {
+      query['delivery.id'] = this.searchText.trim();
+    } else if (this.type == 'Customer Phone' && this.searchText) {
+      if (this.searchText.indexOf('-') != -1) { //to make  it support query order with phone number using - to split
+        let str_arr = this.searchText.trim().split('-');
+        let queryStr = '';
+        str_arr.forEach(function (s) {
+          queryStr += s
+        });
+        query['customerObj.phone'] = queryStr
+      } else { //the situation of the phone number don't have '-'
+        query['customerObj.phone'] = this.searchText.trim();
+      }
+    } else if (this.type == 'Restautant ID' && this.searchText) {
+      query['restaurant'] = {
+        $oid: this.searchText
+      }
+    } else if (this.type == 'Order ID' && this.searchText) {
+      query['_id'] = {
+        $oid: this.searchText
+      }
+    }
     // ISO-Date()
-    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
+    const orders = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: query,
-      projection: {//返回除logs以外的所有行
+      projection: {
         logs: 0,
       },
       sort: {
         createdAt: -1
-      },
-      limit: 100
-    }).toPromise();
+      }
+    }, 100);
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
 
     const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {
@@ -302,8 +393,7 @@ export class PostmatesOrdersComponent implements OnInit {
       },
       projection: {
         disabled: 1,
-        reasons: 1, //
-        // reasons: {$slice: -10}, 数组里面前两个
+        reasons: 1,
         value: 1,
         orders: 1
       },
@@ -334,11 +424,16 @@ export class PostmatesOrdersComponent implements OnInit {
         }
       });
     });
-
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+      },
+      projection: this.restaurantProjection
+    }, 5000);
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     // assemble back to order:
     this.orders = orders.map(order => {
-      let restaurant = selectRestaurants[0];
+      let restaurant = restaurants.find(restaurant => restaurant._id === order.restaurant);
       restaurant.channels && (restaurant.channels = restaurant.channels.filter(channel => channel.type && channel.type === 'Phone' && channel.notifications && channel.notifications.includes('Business')));
       order.restaurant = restaurant;
       order.orderNumber = order.orderNumber;
@@ -384,7 +479,7 @@ export class PostmatesOrdersComponent implements OnInit {
    * @param {*} event
    * @memberof RestaurantOrdersComponent
    */
-  search(event) {
+  search() {
     this.populateOrders();
   }
 
@@ -402,29 +497,20 @@ export class PostmatesOrdersComponent implements OnInit {
       }
     } as any;
 
-    let regexp = /^[0-9]{3,4}$/; //regular express patternt to match order number 3 or 4 digits
     if (!this.searchText) {
 
-    } else if (this.type == 'Order Number' && this.searchText && regexp.test(this.searchText)) {
-      query.orderNumber = +this.searchText;
     } else if (this.type == 'Postmates ID' && this.searchText) {
-      query['delivery.id'] = {
-        $regex: this.searchText
-      }
+      query['delivery.id'] = this.searchText.trim();
     } else if (this.type == 'Customer Phone' && this.searchText) {
       if (this.searchText.indexOf('-') != -1) { //to make  it support query order with phone number using - to split
-        let str_arr = this.searchText.split('-');
+        let str_arr = this.searchText.trim().split('-');
         let queryStr = '';
         str_arr.forEach(function (s) {
           queryStr += s
         });
-        query['customerObj.phone'] = {
-          $regex: queryStr
-        }
+        query['customerObj.phone'] = queryStr
       } else { //the situation of the phone number don't have '-'
-        query['customerObj.phone'] = {
-          $regex: this.searchText
-        }
+        query['customerObj.phone'] = this.searchText.trim();
       }
     } else if (this.type == 'Restautant ID' && this.searchText) {
       query['restaurant'] = {
@@ -435,6 +521,7 @@ export class PostmatesOrdersComponent implements OnInit {
         $oid: this.searchText
       }
     }
+
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: query,
@@ -444,11 +531,10 @@ export class PostmatesOrdersComponent implements OnInit {
       sort: {
         createdAt: -1
       },
-      limit: 100
+      limit: 50
     }).toPromise();
 
     // get blocked customers and assign back to each order blacklist reasons
-
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
 
     const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {
@@ -572,7 +658,7 @@ export class PostmatesOrdersComponent implements OnInit {
     }, 5000);
     // assemble back to order:
     this.previousOrders = orders.map(order => {
-      let restaurant = restaurants.find(restaurant => restaurant._id === order.restaurant);;
+      let restaurant = restaurants.find(restaurant => restaurant._id === order.restaurant);
       restaurant.channels && (restaurant.channels = restaurant.channels.filter(channel => channel.type && channel.type === 'Phone'));
       order.restaurant = restaurant;
       order.orderNumber = order.orderNumber;

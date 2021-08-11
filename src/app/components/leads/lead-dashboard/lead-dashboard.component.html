@@ -69,7 +69,6 @@
       <i *ngIf="!getLogo(lead) && lead.gmbOwner" class="fas fa-question text-danger"></i>
       <img *ngIf="getLogo(lead)" [attr.src]="'/assets/images/' + getLogo(lead)" [attr.alt]="lead.gmbOwner"
         height="16px">
-      <i class="fas fa-lock-open text-info" *ngIf="lead.gmbOpen"></i>
       <i class="fas fa-globe text-muted"
         *ngIf="!lead.gmbWebsite && lead.serviceProviders && lead.serviceProviders.length > 0"></i>
     </td>
@@ -129,7 +128,7 @@
       <div class="card card-body">
         <h5 class="card-title">Edit Call Log</h5>
         <app-call-logger [showDelete]="true" [lead]="selectedLead" [callLog]="selectedCallLog"
-          (cancel)="selectedCallLog = null" (submit)="sumbitCallLog($event)" (remove)="removeCallLog($event)">
+          (cancel)="selectedCallLog = null" (submit)="submitCallLog($event)" (remove)="removeCallLog($event)">
         </app-call-logger>
 
       </div>
@@ -242,7 +241,7 @@
     <div class="card-body">
       <h5 class="card-title">New Call Log</h5>
       <app-call-logger [lead]="selectedLead" [callLog]="newCallLog" (cancel)="editingNewCallLog = false"
-        (submit)="sumbitCallLog($event)"></app-call-logger>
+        (submit)="submitCallLog($event)"></app-call-logger>
     </div>
   </div>
 
@@ -298,7 +297,7 @@
               <div class="card card-body">
                 <h5 class="card-title">Edit Call Log</h5>
                 <app-call-logger [showDelete]="true" [lead]="selectedLead" [callLog]="selectedCallLog"
-                  (cancel)="selectedCallLog = null" (submit)="sumbitCallLog($event)" (remove)="removeCallLog($event)">
+                  (cancel)="selectedCallLog = null" (submit)="submitCallLog($event)" (remove)="removeCallLog($event)">
                 </app-call-logger>
 
               </div>
@@ -330,7 +329,7 @@
   <div class="card-body">
     <h5 class="card-title">New Call Log</h5>
     <app-call-logger [lead]="selectedLead" [callLog]="newCallLog" (cancel)="editingNewCallLog = false"
-      (submit)="sumbitCallLog($event)"></app-call-logger>
+      (submit)="submitCallLog($event)"></app-call-logger>
   </div>
 
 </div>

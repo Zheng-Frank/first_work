@@ -49,7 +49,6 @@ export class TaskDashboardComponent {
       projection: {
         qmenuId: 1,
         address: 1,
-        gmbOpen: 1,
         phone: 1,
         name: 1,
         isDirectSignUp: 1,

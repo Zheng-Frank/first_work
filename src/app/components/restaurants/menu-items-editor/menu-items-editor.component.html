@@ -1,10 +1,37 @@
 <div *ngIf="mc">
   <h4 class="text-center">All Items Under Category: {{mc.name}}</h4>
-
+  <div class="row">
+    <div class="form-inline form-group">
+      <button class="btn btn-link" (click)="toggleMoreFunctions()">
+        {{ showMoreFunction ? 'Hide more functions...' : 'Show more functions...'}}
+      </button>
+      <ng-container *ngIf="showMoreFunction">
+        <label class="form-check-label mr-2 ml-3">Hide Translations
+          <input type="checkbox" [(ngModel)]="hideTranslations" class="ml-1"/>
+        </label>
+        <label class="ml-3"> Adjust menu items #
+          <i class="fa fa-info-circle icon-color mouse-pointer" (mouseover)="showExplanation = true"
+            (mouseout)="showExplanation = false">
+            <div *ngIf="showExplanation" class="left talk radius">
+              <p>Select items to adjust and enter first number to increment from.</p>
+              -------------<br>
+              <p>选择要调整的项目，然后输入要从中递增的第一个序号。</p>
+            </div>
+          </i>
+          <input type="text" class="form-control ml-2" style="min-width:120px;max-width: 120px;"
+          placeholder="e.g. 1 D1 1D" [(ngModel)]="formatNumber" />
+        </label>
+        <button class="btn btn-primary ml-2" (click)="adjustMenuItemsNumber()">Execute</button>
+      </ng-container>
+    </div>
+  </div>
 
   <table class="table">
     <thead>
       <tr>
+        <th *ngIf="showMoreFunction">
+          <input type="checkbox" (change)="checkAllItems()" [(ngModel)]="checkedAll">
+        </th>
         <th>
           Number
         </th>
@@ -27,11 +54,24 @@
     </thead>
     <tbody>
       <tr *ngFor="let mi of mc.mis">
-        <td>
-          <input type="text" [(ngModel)]="mi.number" placeholder="eg. A1" class="form-control app-input-md">
+        <td *ngIf="showMoreFunction">
+          <input *ngIf="mi && mi.name" type="checkbox" [checked]="checkedItems.includes(mi.id)" (change)="setMiChecked(mi)">
         </td>
         <td>
-          <input type="text" [(ngModel)]="mi.name" class="form-control app-input-100" placeholder="name">
+          <input type="text" [(ngModel)]="mi.number" placeholder="eg. A1" class="form-control app-input-sm">
+        </td>
+        <td>
+          <div><input type="text" [(ngModel)]="mi.name" class="form-control app-input-100" placeholder="name"></div>
+          <ng-container *ngIf="!hideTranslations">
+            <div class="mi-translation row">
+              <label class="col-form-label col-form-label-sm">English Name</label>
+              <input type="text" [(ngModel)]="mi.translation.EN" class="form-control form-control-sm">
+            </div>
+            <div class="mi-translation row">
+              <label class="col-form-label col-form-label-sm zh">中文名称</label>
+              <input type="text" [(ngModel)]="mi.translation.ZH" class="form-control form-control-sm">
+            </div>
+          </ng-container>
         </td>
         <td>
           <input [(ngModel)]="mi.description" class="form-control app-input-100" placeholder="description">
@@ -54,11 +94,11 @@
   </table>
 
   <div class="text-right">
-    <button type="button" class="btn btn-link" (click)="cancel()" data-dismiss="modal">  
-          Cancel
+    <button type="button" class="btn btn-link" (click)="cancel()" data-dismiss="modal">
+      Cancel
     </button>
     <button type="button" class="btn btn-primary" (click)="ok()">
-          <span class="fa fa-ok"></span> &nbsp;&nbsp;OK&nbsp;&nbsp;&nbsp;&nbsp;
+      <span class="fa fa-ok"></span> &nbsp;&nbsp;OK&nbsp;&nbsp;&nbsp;&nbsp;
     </button>
   </div>
 

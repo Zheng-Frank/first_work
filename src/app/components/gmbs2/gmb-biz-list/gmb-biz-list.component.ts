@@ -6,13 +6,13 @@ import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { AlertType } from 'src/app/classes/alert-type';
 import { Helper } from 'src/app/classes/helper';
 
-enum SkipFilterTypes{
+enum SkipFilterTypes {
   Title = 'Skip GMB?',
   SkipGMB = 'Skip',
   NotSkipGMB = 'Not Skip'
 }
 
-enum InsistedFilterTypes{
+enum InsistedFilterTypes {
   Title = 'Insist URLs?',
   All = 'Insist All',
   InsistAny = 'Insist Any',
@@ -29,6 +29,7 @@ enum InsistedFilterTypes{
   styleUrls: ['./gmb-biz-list.component.css']
 })
 export class GmbBizListComponent implements OnInit {
+  rowsShowingLimit = 500; // too slow to display ALL, so let's start with a modest number
   rows = [];
   filteredRows = [];
 
@@ -58,24 +59,22 @@ export class GmbBizListComponent implements OnInit {
 
   async refresh() {
     // restaurants -> gmbBiz -> published status
-
-
-    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+    const rtQuery = this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: 'restaurant',
       projection: {
         name: 1,
         "googleListing.cid": 1,
         "googleListing.gmbOwner": 1,
         "googleListing.gmbWebsite": 1,
-        "googleListing.gmbOpen": 1,
         "googleAddress.formatted_address": 1,
         disabled: 1,
         score: 1,
         "deliverySettings": { $slice: -1 },
-        "rateSchedules": { $slice: -1 },
+        "rateSchedules.agent": 1,
+        "rateSchedules.fixed": 1,
+        "rateSchedules.rate": 1,
         "serviceSettings.name": 1,
         "serviceSettings.paymentMethods": 1,
-        "menus.hours": 1,
         "menus.disabled": 1,
         "web.qmenuWebsite": 1,
         "web.bizManagedWebsite": 1,
@@ -86,24 +85,8 @@ export class GmbBizListComponent implements OnInit {
         "web.useBizReservationUrl": 1,
         "web.ignoreGmbOwnershipRequest": 1
       }
-    }, 2000); 
- 
-    const gmbAccounts = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
-      resource: 'gmbAccount',
-      projection: {
-        email: 1,
-        "locations.statusHistory": { $slice: 2 },
-        "locations.cid": 1,
-        "locations.appealId": 1,
-        "locations.name": 1,
-        "locations.address": 1,
-        "locations.status": 1,
-        "locations.role": 1,
-      }
-    }, 30);
-
-
-    const gmbBizList = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+    }, 8000);
+    const gmbBizQuery = this._api.get(environment.qmenuApiUrl + "generic", {
       resource: 'gmbBiz',
       projection: {
         name: 1,
@@ -111,10 +94,44 @@ export class GmbBizListComponent implements OnInit {
         qmenuId: 1,
         gmbOwner: 1,
         gmbWebsite: 1
-      }
-    }, 2000);
+      },
+      limit: 10000000 // avoid using getBatch until it's too big (prefer single query vs many small batches)
+    }).toPromise();
 
-  
+    const gmbAccountQuery = this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      aggregate: [
+        { '$match': { _id: { $exists: true } } },
+        {
+          $project: {
+            email: 1,
+            locations: {
+              $filter: {
+                input: "$locations",
+                as: "location",
+                cond: { $ne: ["$$location.status", 'Removed'] }
+              },
+            }
+          }
+        },
+        {
+          $project: {
+            email: 1,
+            "locations.cid": 1,
+            "locations.appealId": 1,
+            "locations.name": 1,
+            "locations.address": 1,
+            "locations.status": 1,
+            "locations.role": 1,
+          }
+        },
+      ]
+    }).toPromise();
+
+    const [restaurants, gmbBizList, gmbAccounts] = await Promise.all([
+      rtQuery, gmbBizQuery, gmbAccountQuery
+    ]);;
+
     // create a cidMap
     const cidMap = {};
 
@@ -163,14 +180,14 @@ export class GmbBizListComponent implements OnInit {
     }));
 
 
-
     // cids not matched to any restaurants: use qmenuId to match (biz -> qmenuId -> cid -> location and account)
-
+    const rtMap = {};
+    restaurants.map(rt => rtMap[rt._id] = rt);
     Object.keys(cidMap).map(cid => {
       cidMap[cid].restaurants = cidMap[cid].restaurants || [];
       if (cidMap[cid].restaurants.length === 0) {
         const qmenuIds = (cidMap[cid].bizList || []).map(biz => biz.qmenuId).filter(qmenuId => qmenuId);
-        cidMap[cid].restaurants.push(...restaurants.filter(r => qmenuIds.indexOf(r._id) >= 0));
+        cidMap[cid].restaurants.push(...qmenuIds.map(id => rtMap[id]).filter(rt => rt));
       }
     });
 
@@ -218,6 +235,7 @@ export class GmbBizListComponent implements OnInit {
     // if a row has no restaurant._id && cid !== 0 &&  status === Published or Suspended
     this.rows = this.rows.filter(r => r.restaurant._id || (r.accountLocations.some(al => al.location.cid && al.location.cid.length > 3 && al.location.status === 'Published' || al.location.status === 'Suspended')));
     this.filter();
+
   }
 
   filter() {
@@ -289,14 +307,6 @@ export class GmbBizListComponent implements OnInit {
         break;
       case 'suspended':
         this.filteredRows = this.filteredRows.filter(r => r.accountLocations.some(al => al.location.status === 'Suspended'));
-        break;
-      case 'open':
-        this.filteredRows = this.filteredRows.filter(r => r.restaurant.googleListing && r.restaurant.googleListing.gmbOpen);
-        break;
-      case 'lost in 48 hours':
-        const now = new Date();
-        const recentSpan = 48 * 3600000;
-        this.filteredRows = this.filteredRows.filter(r => !r.accountLocations.some(al => al.location.status === 'Published') && r.accountLocations.some(al => al.location.statusHistory[1] && al.location.statusHistory[1].status === 'Published' && now.valueOf() - new Date(al.location.statusHistory[0].time).valueOf() < recentSpan));
         break;
       case 'secondary listing':
         this.filteredRows = this.filteredRows.filter(r => r.restaurant.googleListing && r.accountLocations.some(al => al.location.cid !== r.restaurant.googleListing.cid));
@@ -382,57 +392,57 @@ export class GmbBizListComponent implements OnInit {
         break;
     }
 
-    switch(this.skipStatus){
+    switch (this.skipStatus) {
       case SkipFilterTypes.Title:
         break;
       case SkipFilterTypes.SkipGMB:
-      this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && r.restaurant.web.ignoreGmbOwnershipRequest);
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && r.restaurant.web.ignoreGmbOwnershipRequest);
         break;
       case SkipFilterTypes.NotSkipGMB:
-      this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && !r.restaurant.web.ignoreGmbOwnershipRequest);
+        this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && !r.restaurant.web.ignoreGmbOwnershipRequest);
         break;
       default:
 
         break;
     }
 
-    switch(this.insistStatus){
+    switch (this.insistStatus) {
       case InsistedFilterTypes.Title:
         break;
       case InsistedFilterTypes.All:
-      let allFlag = r => (r.restaurant.web && r.restaurant.web.useBizWebsiteForAll)||(r.restaurant.web && !r.restaurant.web.useBizWebsiteForAll && r.restaurant.web.useBizWebsite && r.restaurant.web.useBizMenuUrl
-        && r.restaurant.web.useBizOrderAheadUrl && r.restaurant.web.useBizReservationUrl)||(r.restaurant.web && r.restaurant.web.useBizWebsiteForAll && r.restaurant.web.useBizWebsite && r.restaurant.web.useBizMenuUrl
-          && r.restaurant.web.useBizOrderAheadUrl && r.restaurant.web.useBizReservationUrl);
-      this.filteredRows = this.filteredRows.filter(allFlag);
+        let allFlag = r => (r.restaurant.web && r.restaurant.web.useBizWebsiteForAll) || (r.restaurant.web && !r.restaurant.web.useBizWebsiteForAll && r.restaurant.web.useBizWebsite && r.restaurant.web.useBizMenuUrl
+          && r.restaurant.web.useBizOrderAheadUrl && r.restaurant.web.useBizReservationUrl) || (r.restaurant.web && r.restaurant.web.useBizWebsiteForAll && r.restaurant.web.useBizWebsite && r.restaurant.web.useBizMenuUrl
+            && r.restaurant.web.useBizOrderAheadUrl && r.restaurant.web.useBizReservationUrl);
+        this.filteredRows = this.filteredRows.filter(allFlag);
         break;
       case InsistedFilterTypes.InsistAny:
-      let insistAnyFlag = r => r.restaurant.web && (r.restaurant.web.useBizWebsiteForAll||r.restaurant.web.useBizWebsite||r.restaurant.web.useBizMenuUrl
-        ||r.restaurant.web.useBizOrderAheadUrl||r.restaurant.web.useBizReservationUrl);
-      this.filteredRows = this.filteredRows.filter(insistAnyFlag);
+        let insistAnyFlag = r => r.restaurant.web && (r.restaurant.web.useBizWebsiteForAll || r.restaurant.web.useBizWebsite || r.restaurant.web.useBizMenuUrl
+          || r.restaurant.web.useBizOrderAheadUrl || r.restaurant.web.useBizReservationUrl);
+        this.filteredRows = this.filteredRows.filter(insistAnyFlag);
         break;
       case InsistedFilterTypes.InsistNone:
-      let NoneFlag = r => !(r.restaurant.web && (r.restaurant.web.useBizWebsiteForAll||r.restaurant.web.useBizWebsite||r.restaurant.web.useBizMenuUrl
-        ||r.restaurant.web.useBizOrderAheadUrl||r.restaurant.web.useBizReservationUrl));
-      this.filteredRows = this.filteredRows.filter(NoneFlag);
+        let NoneFlag = r => !(r.restaurant.web && (r.restaurant.web.useBizWebsiteForAll || r.restaurant.web.useBizWebsite || r.restaurant.web.useBizMenuUrl
+          || r.restaurant.web.useBizOrderAheadUrl || r.restaurant.web.useBizReservationUrl));
+        this.filteredRows = this.filteredRows.filter(NoneFlag);
         break;
       case InsistedFilterTypes.InsistWebsite:
         this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && r.restaurant.web.useBizWebsite);
-          break;
+        break;
       case InsistedFilterTypes.InsistMenuUrl:
         this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && r.restaurant.web.useBizMenuUrl);
-          break;
+        break;
       case InsistedFilterTypes.InsistOrderUrl:
         this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && r.restaurant.web.useBizOrderAheadUrl);
-          break;
+        break;
       case InsistedFilterTypes.InsistResrvationUrl:
         this.filteredRows = this.filteredRows.filter(r => r.restaurant.web && r.restaurant.web.useBizReservationUrl);
-          break;
+        break;
       default:
 
         break;
     }
 
-    
+
 
   }
 

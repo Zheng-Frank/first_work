@@ -9,6 +9,7 @@ import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 import { RestaurantProfileComponent } from '../restaurant-profile/restaurant-profile.component';
 import { SendTextReplyComponent } from '../../utilities/send-text-reply/send-text-reply.component';
+import {Helper} from '../../../classes/helper';
 
 declare var $: any;
 
@@ -36,7 +37,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   sectionVisibilityRolesMap = {
     profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
     contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
-    rateSchedules: ['ADMIN', 'RATE_EDITOR'], // rateSchedule should be migrated to fee schedule, no need to show for normal roles
+    rateSchedules: ['ADMIN', 'RATE_EDITOR'],
     feeSchedules: ['ADMIN', 'RATE_EDITOR', 'MARKETER', 'CSR'],
     paymentMeans: ['ACCOUNTANT', 'CSR', 'MARKETER'],
     serviceSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
@@ -138,6 +139,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     taxRate: 1,
     templateName: 1,
     timeZone: 1,
+    translations: 1,
     web: 1,
     yelpListing: 1,
     phones: 1,
@@ -149,7 +151,9 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     comebackDate: 1,
     ccMinimumCharge: 1,
     hideOrderReadyEstimate: 1,
-    translations: 1,
+    disableOrderCancelation: 1, // add a new prperty and it will control whether the restaurant can cancel order.
+    notificationExpiry: 1, // this value is needed to decide when shows the broadcast on customer pwa.
+    doNotHideUselessMenuItems: 1,
   };
 
   showExplanations = false; // a flag to decide whether show English/Chinese translations,and the switch is closed by default.
@@ -326,7 +330,18 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
   isSectionVisible(sectionName) {
     const roles = this._global.user.roles || [];
-    return this.sectionVisibilityRolesMap[sectionName].filter(r => roles.indexOf(r) >= 0).length > 0;
+    let hasFullPrivilege = this.sectionVisibilityRolesMap[sectionName].filter(r => roles.indexOf(r) >= 0).length > 0;
+
+    if (hasFullPrivilege) {
+      return true;
+    }
+    // marketer should can view rateSchedules in rts under his agent
+    if (sectionName === 'rateSchedules' && roles.includes('MARKETER')) {
+      const username = this._global.user.username;
+      let salesAgent = Helper.getSalesAgent(this.restaurant.rateSchedules, this.knownUsers);
+      return salesAgent === username;
+    }
+    return false;
   }
 
   isMarketerAndCreatedLessThan14Days() {

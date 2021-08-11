@@ -4,43 +4,46 @@
   </h2>
   <div class="card-body">
     <div *ngIf="orders">
-      <div class="row">
-        <label class="col-2 text-center pl-4"
+      <div class="form-inline">
+        <label class="text-center pl-5"
           style="line-height: 35px; vertical-align: center;min-width:200px;max-width:200px;"> Search order by:
         </label>
         <select [(ngModel)]="type" class="form-control mr-3 col-2" style="min-width:180px;max-width:180px;">
           <option *ngFor="let type of searchTypes" [value]="type">{{type}}</option>
         </select>
-        <input [qDebounce]="2000" (debounce)="search($event)" type="text" [(ngModel)]="searchText"
-          class="form-control col-7" placeholder="Search">
-        <div *ngIf="searchText||dateType !=''" class="text-muted float-left col-1">Found: {{orders.length}}</div>
+        <input type="text" [(ngModel)]="searchText" style="min-width:300px;max-width:300px;" class="form-control col-7"
+          placeholder="Please input">
+        <div class="form-inline" *ngIf="showAdvancedSearch">
+          <select [(ngModel)]="dateType" class="form-control mr-3 ml-2">
+            <option *ngFor="let type of dateSearchTypes">{{type}}</option>
+          </select>
+          <button class="btn btn-primary ml-2" *ngIf="dateType !== 'Custom'" (click)="searchOrderByDate()"><i
+              class="fa fa-search"></i>Search</button>
+          <ng-container *ngIf="dateType === 'Custom'">
+            <input class="form-control" type="date" [(ngModel)]="fromDate">
+            <button class="btn btn-primary ml-2" (click)="doSearchOrderByDateCustom()"><i
+                class="fa fa-search"></i>Search</button>
+          </ng-container>
+        </div>
+        <button class="btn btn-primary ml-2 mb-1" *ngIf="!showAdvancedSearch" (click)="search()">
+          <i class="fa fa-search"></i> Search
+        </button>
+        <div class="text-muted float-left col-1">Found: {{orders.length}}
+          <i class="fa fa-info-circle icon-color" (mouseover)="showExplanation = true"
+            (mouseout)="showExplanation = false">
+            <div *ngIf="showExplanation" class="left talk radius">
+              <p>
+                Only the latest 50 orders will be displayed. If unable to find a Postmates order when searching by date, this may be due to use of EST timezone.
+              </p>
+              -------------<br>
+              <p>只显示最新的50个订单。如果在按日期搜索时找不到邮递订单，这可能是由于使用了EST时区。</p>
+            </div>
+          </i>
+        </div>
       </div>
       <div class="form-group">
-        <button type="button" class="btn btn-link ml-3" (click)="toggleShowAdvancedSearch()">
+        <button type="button" class="btn btn-link ml-5" (click)="toggleShowAdvancedSearch()">
           {{ showAdvancedSearch?'Hide advanced search..':'Show advanced search..'}}</button>
-        <div class="alert alert-secondary my-mb-huge mt-2" *ngIf="showAdvancedSearch">
-        <select [(ngModel)]="dateType" class="form-control mr-3 col-2" (change)="searchOrderByDate()">
-          <option *ngFor="let type of dateSearchTypes">{{type}}</option>
-        </select>
-          <div *ngIf="dateType === 'Custom'">
-            <div class="row">
-              <div class="col col-sm-6">
-                <label>From:</label>
-                <input class="form-control" type="date" [(ngModel)]="fromDate">
-              </div>
-              <div class="col col-sm-6">
-                <label>To:</label>
-                <input class="form-control" type="date" [(ngModel)]="toDate">
-              </div>
-            </div>
-            <div class="row">
-              <div class="text-right mt-1 col-12">
-                <button type="button" class="btn btn-secondary" (click)="cancelDoSearchOrderByDateCustom()">Cancel</button>
-                <button class="btn btn-primary" (click)="doSearchOrderByDateCustom(fromDate,toDate)">Submit</button>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div class="row ml-0 mr-0">

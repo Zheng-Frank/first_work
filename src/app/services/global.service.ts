@@ -768,9 +768,11 @@ export class GlobalService {
           "googleAddress.formatted_address": 1,
           "googleListing.place_id": 1,
           "googleListing.cid": 1,
-          "rateSchedules": 1
+          "rateSchedules": 1,
+          preferredLanguage: 1,
+          disabled: 1
         }
-      }, 10000);
+      }, 5000);
       this._cache.set('restaurantListForPicker', restaurants, 60 * 60);
     }
 
