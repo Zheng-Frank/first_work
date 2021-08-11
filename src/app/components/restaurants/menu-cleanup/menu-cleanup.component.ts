@@ -16,6 +16,7 @@ export class MenuCleanupComponent implements OnInit {
   @Input() allMenus = [];
   @Input() translations;
   @Output() cancel = new EventEmitter();
+  @Output() skip = new EventEmitter();
   @Output() save = new EventEmitter();
 
   flattened = [];
@@ -39,8 +40,10 @@ export class MenuCleanupComponent implements OnInit {
     if (!name) {
       return;
     }
+    // add space to brackets, both english and chinese
+    name = name.replace(/\s*\((.+)\)\s*/, ' ($1) ').replace(/\s*\[(.+)\]\s*/, ' [$1] ')
+        .replace(/\s*（(.+)）\s*/, ' ($1) ').replace(/\s*【(.+)】\s*/, ' [$1] ').trim();
 
-    name = name.trim();
     // extract the possible number info from menu's name
     let numMatched = this.parsePrefixNum(name);
     // if name itself has a number, like 3 cups chicken, 4 pcs XXX etc. these will extract the measure word to judge
@@ -62,8 +65,8 @@ export class MenuCleanupComponent implements OnInit {
       if (!hasMeasure) {
         number = item.number || num;
       }
-
     }
+    item.editName = item.cleanedName || name;
 
     // if we meet 【回锅 肉】，we should be able to keep "回锅" and "肉" together with space as zh
     let regex = /[\s\-(\[]?(\s*([^\x00-\xff]+)(\s+[^\x00-\xff]+)*\s*)[\s)\]]?/;
@@ -80,7 +83,7 @@ export class MenuCleanupComponent implements OnInit {
         return;
       }
       item.translation = { zh, en };
-      item.number = number;
+      item.number = item.number || number;
       // indices is used to locate the item in whole menus array
       // cause we need to clone the finished data and lose the reference
       item.indices = indices;
@@ -141,6 +144,10 @@ export class MenuCleanupComponent implements OnInit {
       if (item.cleanedName) {
         item.name = item.cleanedName;
         delete item.cleanedName;
+      }
+      if (item.editName) {
+        item.name = item.editName;
+        delete item.editName;
       }
       this.saveTranslation(item, translations);
       let [i, j, k] = item.indices;

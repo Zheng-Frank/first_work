@@ -22,17 +22,19 @@ export class CleanMenusComponent implements OnInit {
   restaurants: Restaurant[] = [];
   restaurant: Restaurant;
 
-  ngOnInit() {
-    this.getRTs();
+  async ngOnInit() {
+    await this.getRTs();
   }
 
   async getRTs() {
-    this.restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    let rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {disabled: {$ne: true}, needCleanMenu: true},
+      query: {disabled: {$ne: true}, menuCleaned: {$ne: true}},
       projection: {name: 1},
       limit: 20000
     }, 10000);
+    let needCleanMenus = new Set(require('./rts-need-clean-menu.json'));
+    this.restaurants = rts.filter(rt => needCleanMenus.has(rt._id));
   }
 
   async validate(rt) {
@@ -51,7 +53,28 @@ export class CleanMenusComponent implements OnInit {
 
 
   cleanupCancel() {
+    // @ts-ignore
+    this.restaurants = this.restaurants.filter(rt => !rt.menuCleaned);
     this.validateModal.hide();
+  }
+
+  async cleanupSkip() {
+    try {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {
+          _id: this.restaurant['_id']
+        }, new: {
+          _id: this.restaurant['_id'], menuCleaned: true
+        }
+      }]).toPromise();
+      this._global.publishAlert(AlertType.Success, 'Success!');
+      // @ts-ignore
+      this.restaurant.menuCleaned = true;
+      this.cleanupCancel();
+    } catch (error) {
+      console.log('error...', error);
+      this._global.publishAlert(AlertType.Danger, 'Menus update failed.');
+    }
   }
 
   async cleanupSave({menus, translations}: any) {
@@ -61,12 +84,14 @@ export class CleanMenusComponent implements OnInit {
           _id: this.restaurant['_id']
         }, new: {
           _id: this.restaurant['_id'],
-          menus, translations
+          menus, translations, menuCleaned: true
         }
       }]).toPromise();
       this._global.publishAlert(AlertType.Success, 'Success!');
       // @ts-ignore
       this.restaurant.menus = menus.map(m => new Menu(m));
+      // @ts-ignore
+      this.restaurant.menuCleaned = true;
       this.cleanupCancel();
     } catch (error) {
       console.log('error...', error);

@@ -3,6 +3,7 @@
     <table class="table table-bordered">
     <thead>
       <tr>
+        <th *ngIf="nameEditable">Original</th>
         <th>Current Item Name</th>
         <th></th>
         <th>Number</th>
@@ -13,9 +14,15 @@
     <tbody>
       <tr *ngFor="let item of flattened">
         <td *ngIf="!nameEditable">{{item.name}}</td>
-        <td *ngIf="nameEditable">
-          <textarea [value]="item.name" (change)="change(item, 'name', $event)"></textarea>
-        </td>
+        <ng-container *ngIf="nameEditable">
+          <td>
+            <div><strong>Name: </strong>{{item.name}}</div>
+            <div><strong>Number: </strong>{{item.number}}</div>
+          </td>
+          <td>
+            <textarea [value]="item.editName" (change)="change(item, 'editName', $event)"></textarea>
+          </td>
+        </ng-container>
         <td><i class="fa fa-arrow-right"></i></td>
         <td><input class="input-menu-number" [value]="item.number || ''" (change)="change(item, 'number', $event)" /></td>
         <td><textarea [value]="item.translation?.en || ''" (change)="change(item.translation, 'en', $event, 'prev_en')"></textarea></td>
@@ -25,7 +32,8 @@
   </table>
   </div>
   <div class="text-right mt-1">
-    <button type="button" class="btn btn-secondary" (click)="this.cancel.emit()">Cancel</button>
+    <button *ngIf="!nameEditable" type="button" class="btn btn-secondary" (click)="this.cancel.emit()">Cancel</button>
+    <button *ngIf="nameEditable" type="button" class="btn btn-secondary" (click)="this.skip.emit()">Skip</button>
     <button type="button" class="btn btn-primary" (click)="ok()">Confirm</button>
   </div>
 </div>

@@ -1,8 +1,9 @@
 <div>
+  <h3 class="text-center mb-3">Clean Menus</h3>
   <table class="table table-bordered">
     <tbody>
       <tr *ngFor="let rt of restaurants">
-        <td>{{rt.name}}</td>
+        <td><a class="btn-link" [href]="'restaurants/' + rt._id">{{rt.name}}</a></td>
         <td>
           <a (click)="validate(rt)" class="btn btn-link">Validate</a>
         </td>
@@ -11,12 +12,12 @@
   </table>
 </div>
 
-<q-modal #validateModal [size]="'800px'">
+<q-modal #validateModal [size]="'1000px'">
   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
     <span aria-hidden="true">×</span>
   </button>
   <h4 class="text-center">Preview Extractions and Translations</h4>
   <hr>
   <app-menu-cleanup #cleanupComponent [allMenus]="restaurant?.menus" [translations]="restaurant?.translations"
-                    [nameEditable]="true" (cancel)="cleanupCancel()" (save)="cleanupSave($event)"></app-menu-cleanup>
+                    [nameEditable]="true" (skip)="cleanupSkip()" (save)="cleanupSave($event)"></app-menu-cleanup>
 </q-modal>
