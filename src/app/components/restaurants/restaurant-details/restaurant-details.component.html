@@ -154,7 +154,11 @@
       <div *ngIf="activeTab === 'Logs'">
         <app-restaurant-logs [restaurant]="restaurant" (reload)="reload($event)"></app-restaurant-logs>
       </div>
-
+      <!-- start with IVR -->
+      <div *ngIf="activeTab === 'IVR'">
+        <app-ivr-agent [restaurantId]="restaurant._id"></app-ivr-agent>
+      </div>
+      <!-- end with IVR -->
       <div *ngIf="activeTab === 'Tasks'">
         <app-restaurant-tasks [restaurant]="restaurant"></app-restaurant-tasks>
       </div>
