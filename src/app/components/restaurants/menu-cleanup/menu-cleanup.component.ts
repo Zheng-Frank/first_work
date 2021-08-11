@@ -35,6 +35,13 @@ export class MenuCleanupComponent implements OnInit {
     return [regex1, regex2, regex3].reduce((a, c) => a || name.match(c), null);
   }
 
+  replaceQuotes(str) {
+    return str.replace(/([\x00-\xff]+)’/g, "$1'").replace(/‘([\x00-\xff]+)/g, "'$1")
+        .replace(/([\x00-\xff]+)‘/g, "$1'").replace(/’([\x00-\xff]+)/g, "'$1")
+        .replace(/([\x00-\xff]+)“/g, '$1"').replace(/”([\x00-\xff]+)/g, '"$1')
+        .replace(/([\x00-\xff]+)”/g, '$1"').replace(/“([\x00-\xff]+)/g, '"$1');
+  }
+
   detect(item, indices) {
     let { name } = item;
     if (!name) {
@@ -65,7 +72,9 @@ export class MenuCleanupComponent implements OnInit {
     }
     // add space to brackets, both english and chinese, replace some chinese quote to english quote
     item.editName = (item.cleanedName || name).replace(/\s*\((.+)\)\s*/, ' ($1) ').replace(/\s*\[(.+)\]\s*/, ' [$1] ')
-        .replace(/\s*（(.+)）\s*/, ' ($1) ').replace(/\s*【(.+)】\s*/, ' [$1] ').trim();
+        .replace(/\s*（(.+)）\s*/, ' ($1) ').replace(/\s*【(.+)】\s*/, ' [$1] ')
+        .trim();
+    item.editName = this.replaceQuotes(item.editName);
 
     // if we meet 【回锅 肉】，we should be able to keep "回锅" and "肉" together with space as zh
     let regex = /[\s\-(\[]?(\s*([^\x00-\xff]+)(\s+[^\x00-\xff]+)*\s*)[\s)\]]?/;
@@ -81,6 +90,13 @@ export class MenuCleanupComponent implements OnInit {
       if (trans && trans.ZH === zh && !number) {
         return;
       }
+
+      // if zh is just quote
+      if (/^[‘’“”]+$/.test(zh)) {
+        en = item.editName;
+        zh = '';
+      }
+
       item.translation = { zh, en };
       item.number = item.number || number;
       // indices is used to locate the item in whole menus array
