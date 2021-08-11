@@ -9,8 +9,24 @@
   <div *ngIf="order.dineInSessionObj" class="qr">
     <span class="">
       <i class="fa fa-qrcode"></i> QR <span>{{order.dineInSessionObj.code}}</span>
+      <i class="fa fa-laptap" *ngIf="orderFromPC(order)"></i>
+      <i class="fa fa-tablet" *ngIf="orderFromPhone(order)"></i>
     </span>
   </div>
+  <!-- start with pc icon -->
+  <div *ngIf="!order.dineInSessionObj && orderFromPC(order)" class="qr">
+    <span class="">
+      <i class="fa fa-laptap"></i>
+    </span>
+  </div>
+  <!-- end with pc icon -->
+  <!-- start with phone icon -->
+  <div *ngIf="!order.dineInSessionObj && orderFromPhone(order)" class="qr">
+    <span class="">
+      <i class="fa fa-tablet"></i>
+    </span>
+  </div>
+  <!-- end with phone icon -->
   <div class="card-block">
 
     <h4 class="text-sm-center">
@@ -45,8 +61,10 @@
       <strong>{{order.type}}</strong> |
       <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CC' : 'CASH'}}</strong>
       <span *ngIf="order.payment.paymentType === 'CREDITCARD'"> | </span>
-      <strong *ngIf="order.payment.paymentType === 'CREDITCARD' && order.payment.method != 'STRIPE'">{{order.payment.method}}</strong>
-      <strong *ngIf="order.payment.paymentType === 'CREDITCARD' && order.payment.method === 'STRIPE'">RESTAURANT</strong>
+      <strong
+        *ngIf="order.payment.paymentType === 'CREDITCARD' && order.payment.method != 'STRIPE'">{{order.payment.method}}</strong>
+      <strong
+        *ngIf="order.payment.paymentType === 'CREDITCARD' && order.payment.method === 'STRIPE'">RESTAURANT</strong>
       <span *ngIf="order.payment.fattmerchantWebToken"> (FATT)</span>
       <span *ngIf="order?.paymentObj?.stripeObject?.spreedlyGatewayToken"> (SPRE)</span>
       <span *ngIf="order?.paymentObj?.paypalClientId"> (PAYPAL)</span>
@@ -115,7 +133,9 @@
       <div class="text-sm-center"
         *ngIf="order.customerPreviousOrderStatus && order.customerPreviousOrderStatus.status=='CANCELED'">
         Note: Customer's
-        <a href="javascript:void(0)" (click)="openPreviousCanceledOrderModal(order.customerPreviousOrderStatus.order)">previous order</a> was canceled. Reason:
+        <a href="javascript:void(0)"
+          (click)="openPreviousCanceledOrderModal(order.customerPreviousOrderStatus.order)">previous order</a> was
+        canceled. Reason:
         <span class="text-danger">{{order.customerPreviousOrderStatus.comments}}</span>
       </div>
     </small>
@@ -166,7 +186,7 @@
         <a *ngIf="(order.courierId && order.delivery)||(order.type === 'DELIVERY'&&order.restaurantNotice)"
           role="button" class="text-primary text-nowrap card-link" (click)="openChangeOrderTypesModal(order)">
           <i class="fa fa-reply"></i> Change order type</a>
-        <a role="button" class="text-primary text-nowrap card-link" (click)="adjustInvoice()" >
+        <a role="button" class="text-primary text-nowrap card-link" (click)="adjustInvoice()">
           <i class="fas fa-file-invoice-dollar"></i> Invoice Adjust</a>
 
       </div>
