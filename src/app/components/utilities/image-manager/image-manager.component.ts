@@ -58,6 +58,10 @@ export class ImageManagerComponent implements OnInit {
     await this.loadRestaurants();
   }
 
+  isAdmin(){
+    this._global.user.roles.indexOf('ADMIN') > 0;
+  }
+  
   onChangeShowNoImageItems() {
     switch (this.noImagesFlag) {
       case hasImagesTypes.All:
