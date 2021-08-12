@@ -21,6 +21,7 @@ export class CleanMenusComponent implements OnInit {
   @ViewChild('cleanupComponent') cleanupComponent: MenuCleanupComponent;
   restaurants: Restaurant[] = [];
   restaurant: Restaurant;
+  handleIDsOnly = true;
 
   async ngOnInit() {
     await this.getRTs();
@@ -33,8 +34,9 @@ export class CleanMenusComponent implements OnInit {
       projection: {name: 1},
       limit: 20000
     }, 10000);
-    let needCleanMenus = new Set(require('./rts-need-clean-menu.json'));
-    this.restaurants = rts.filter(rt => needCleanMenus.has(rt._id));
+    // let needCleanMenus = new Set(require('./rts-need-clean-menu.json'));
+    // this.restaurants = rts.filter(rt => needCleanMenus.has(rt._id));
+    this.restaurants = rts;
   }
 
   async validate(rt) {
@@ -57,6 +59,7 @@ export class CleanMenusComponent implements OnInit {
     this.restaurants = this.restaurants.filter(rt => !rt.menuCleaned);
     this.restaurant = null;
     this.validateModal.hide();
+    this.handleIDsOnly = true;
   }
 
   async cleanupSkip() {

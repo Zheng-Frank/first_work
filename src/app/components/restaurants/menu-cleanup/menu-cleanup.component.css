@@ -18,3 +18,21 @@
   height: auto;
 
 }
+.cleanup-menus table .warning {
+  position: relative;
+}
+.cleanup-menus table .warning:before {
+  content:"\A";
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background: #fd0707;
+  display:inline-block;
+  position: absolute;
+  left: 0;
+  top: 5px;
+}
+
+.cleanup-menus table td .btn-link {
+  cursor: pointer;
+}

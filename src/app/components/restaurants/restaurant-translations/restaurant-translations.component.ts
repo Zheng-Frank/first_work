@@ -34,17 +34,13 @@ export class RestaurantTranslationsComponent implements OnInit {
   }
 
   extract(item, items) {
-    let {name, description, placement, translation} = item;
-    if (translation) {
-      items.add(translation.en);
-    } else {
-      let hasZhRegex = /[\s-(]?([^\x00-\xff]+)[\s)]?/;
-      [name, placement, description].forEach(text => {
-        if (text && !hasZhRegex.test(name)) {
-          items.add(name);
-        }
-      });
-    }
+    let {name, description, placement} = item;
+    let hasZhRegex = /[\s-(]?([^\x00-\xff]+)[\s)]?/;
+    [name, placement, description].forEach(text => {
+      if (text && !hasZhRegex.test(name)) {
+        items.add(name);
+      }
+    });
   }
 
   private extractTranslatingTexts() {

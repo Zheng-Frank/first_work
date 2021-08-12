@@ -48,20 +48,23 @@ export class DbScriptsComponent implements OnInit {
       'liter', 'liters', 'oz', 'oz.', 'ounces', 'slice', 'lb.', 'item',
       'items', 'ingredients', 'topping', 'toppings', 'flavor', 'flavors'
     ];
-    let number, hasMeasure = false;
+
     if (numMatched) {
       let { to_rm, num, dot, word } = numMatched.groups;
       // if dot after number, definite number, otherwise we check if a measure word after number or not
-      hasMeasure = measureWords.includes((word || '').toLowerCase());
-      if (!!dot || !hasMeasure) {
-        // remove leading number chars
-        name = name.replace(to_rm, '');
-      }
-      return number;
-      if (!hasMeasure) {
-        number = item.number || num;
-      }
+      let hasMeasure = measureWords.includes((word || '').toLowerCase());
 
+      // if no measure word, or have dot, or num is not pure digits
+      // we think we have matched a number
+      if (!hasMeasure || !!dot || /[^\d]/.test(num)) {
+        // if no dot, no measure word, just digits, we should warn that the digits maybe is not number
+        if (!dot && /^\d+$/.test(num)) {
+          // if item already have a number prop under this condition
+          // we should think the extracted num is just part of name
+          return !item.number;
+        }
+        return true;
+      }
     }
     return false;
   }
@@ -116,15 +119,15 @@ export class DbScriptsComponent implements OnInit {
     let { menus, translations } = restaurant;
 
     for (let i = 0; i < (menus || []).length; i++) {
-      if (this.detect(menus[i], translations)) {
+      if (this.detectNumber(menus[i])) {
         return true;
       }
       for (let j = 0; j < (menus[i].mcs || []).length; j++) {
-        if (this.detect(menus[i].mcs[j], translations)) {
+        if (this.detectNumber(menus[i].mcs[j])) {
           return true;
         }
         for (let k = 0; k < (menus[i].mcs[j].mis || []).length; k++) {
-          if (this.detect(menus[i].mcs[j].mis[k], translations)) {
+          if (this.detectNumber(menus[i].mcs[j].mis[k])) {
             return true;
           }
         }

@@ -12,17 +12,25 @@ export class MenuCleanupComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
-  @Input() nameEditable = false;
+  @Input() hasSkip = false;
   @Input() allMenus = [];
   @Input() translations;
   @Output() cancel = new EventEmitter();
   @Output() skip = new EventEmitter();
   @Output() save = new EventEmitter();
+  @Input() handleIDsOnly = false;
 
   flattened = [];
   copied = [];
 
   ngOnInit() {
+  }
+
+  restore(item, index) {
+    item.editName = item.name;
+    item.translation = {};
+    item.editNumber = item.number || '';
+    this.flattened.splice(index, 1, item);
   }
 
   parsePrefixNum(name) {
@@ -35,18 +43,13 @@ export class MenuCleanupComponent implements OnInit {
     return [regex1, regex2, regex3].reduce((a, c) => a || name.match(c), null);
   }
 
-  replaceQuotes(str) {
-    return str.replace(/([\x00-\xff]+)’/g, "$1'").replace(/‘([\x00-\xff]+)/g, "'$1")
-        .replace(/([\x00-\xff]+)‘/g, "$1'").replace(/’([\x00-\xff]+)/g, "'$1")
-        .replace(/([\x00-\xff]+)“/g, '$1"').replace(/”([\x00-\xff]+)/g, '"$1')
-        .replace(/([\x00-\xff]+)”/g, '$1"').replace(/“([\x00-\xff]+)/g, '"$1');
-  }
 
   detect(item, indices) {
     let { name } = item;
     if (!name) {
       return;
     }
+    name = name.trim();
 
     // extract the possible number info from menu's name
     let numMatched = this.parsePrefixNum(name);
@@ -66,35 +69,42 @@ export class MenuCleanupComponent implements OnInit {
         name = name.replace(to_rm, '');
         item.cleanedName = name;
       }
-      if (!hasMeasure) {
+
+      // if no measure word, or have dot, or num is not pure digits
+      // we think we have matched a number
+      if (!hasMeasure || !!dot || /[^\d]/.test(num)) {
         number = item.number || num;
+        // if no dot, no measure word, just digits, we should warn that the digits maybe is not number
+        if (!dot && /^\d+$/.test(num)) {
+          // if item already have a number prop under this condition
+          // we should think the extracted num is just part of name
+          if (item.number) {
+            number = undefined;
+          } else {
+            // otherwise, we should mark this item warning
+            item.warning = true;
+          }
+        }
       }
     }
-    // add space to brackets, both english and chinese, replace some chinese quote to english quote
-    item.editName = (item.cleanedName || name).replace(/\s*\((.+)\)\s*/, ' ($1) ').replace(/\s*\[(.+)\]\s*/, ' [$1] ')
-        .replace(/\s*（(.+)）\s*/, ' ($1) ').replace(/\s*【(.+)】\s*/, ' [$1] ')
-        .trim();
-    item.editName = this.replaceQuotes(item.editName);
 
-    // if we meet 【回锅 肉】，we should be able to keep "回锅" and "肉" together with space as zh
-    let regex = /[\s\-(\[]?(\s*([^\x00-\xff]+)(\s+[^\x00-\xff]+)*\s*)[\s)\]]?/;
+
+    item.editName = name;
+    // we capture 中文， 中文 带空格，(括号内中文)，'引号内中文"
+    let regex = /\s*[('"]?[^\x00-\xff](\s*([^\x00-\xff]|\d|\(|\)|'|")+)*\s*/;
     let re = name.match(regex);
     if (re) {
-      let zh = re[1].trim(), en = name.replace(regex, '').trim().replace(/\s*-$/, '');
-      // remove brackets around name
-      en = en.replace(/^\((.+)\)$/, '$1').replace(/^\[(.+)]$/, '$1');
-      zh = zh.replace(/^（(.+)）$/, '$1').replace(/^【(.+)】$/, '$1');
+      let zh = re[0].trim(), en = name.replace(regex, '').trim().replace(/\s*-$/, '');
+      // strip ()[]''"" pairs around name
+      const strip = str => str.replace(/^\((.+)\)$/, '$1').replace(/^\[(.+)]$/, '$1')
+          .replace(/^'(.+)'$/, '$1').replace(/^"(.+)"$/, '$1');
+      en = strip(en);
+      zh = strip(zh);
 
       let trans = (this.translations || []).find(x => x.EN === en);
 
       if (trans && trans.ZH === zh && !number) {
         return;
-      }
-
-      // if zh is just quote
-      if (/^[‘’“”]+$/.test(zh)) {
-        en = item.editName;
-        zh = '';
       }
 
       item.translation = { zh, en };
@@ -167,7 +177,11 @@ export class MenuCleanupComponent implements OnInit {
       }
       item.number = item.editNumber;
       delete item.editNumber;
-      this.saveTranslation(item, translations);
+      if (!this.handleIDsOnly) {
+        this.saveTranslation(item, translations);
+      } else {
+        delete item.translation;
+      }
       let [i, j, k] = item.indices;
       delete item.indices;
       if (Number.isInteger(k)) {
