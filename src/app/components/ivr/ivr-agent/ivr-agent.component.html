@@ -1,67 +1,45 @@
 <div class="pt-2">
-  <ng-container *ngIf="!restaurantId">
-    <h1 class="text-center">IVR Logs</h1>
-    <div class="my-text-small text-muted text-center" *ngIf="needRefreshCtrs">
-      refreshed: {{ lastRefreshed | ago: now }} | total:
-      {{ totalMinutes }} minutes
-    </div>
+  <h1 class="text-center">IVR Logs</h1>
+  <div class="my-text-small text-muted text-center" *ngIf="needRefreshCtrs">
+    refreshed: {{ lastRefreshed | ago: now }} | total:
+    {{ totalMinutes }} minutes
+  </div>
 
-    <div class="my-text-small text-muted text-center">
-      {{ ivrUsername || "NOT LOGGED IN" }} |
-      <span *ngFor="let phone of getMyPhones()">{{ phone | tel }} | </span>
-      {{ getVisibleQueueNames().join(", ") }}
-    </div>
+  <div class="my-text-small text-muted text-center">
+    {{ ivrUsername || "NOT LOGGED IN" }} |
+    <span *ngFor="let phone of getMyPhones()">{{ phone | tel }} | </span>
+    {{ getVisibleQueueNames().join(", ") }}
+  </div>
+  <div class="row">
+    <!-- start with col-7 -->
+    <div class="form-inline col-7">
+      <input [qDebounce]="500" (debounce)="filter($event)" type="text" class="form-control mr-4"
+        placeholder="phone or restaurant ID" [(ngModel)]="searchFilter" />
 
-    <div class="row">
-      <!-- start with col-7 -->
-        <div class="form-inline col-7">
-          <input [qDebounce]="500" (debounce)="filter($event)" type="text" class="form-control mr-4"
-            placeholder="phone or restaurant ID" [(ngModel)]="searchFilter" />
-
-          <select (change)="filterQueue()" [(ngModel)]="selectedQueue" class="form-control mr-4">
-            <option *ngFor="let q of queuesForFilter" [ngValue]="q">
-              {{ q.name || (q.arn ? "(no name))" : "(no arn)") }}
-            </option>
-          </select>
-          <select (change)="filterQueue()" [(ngModel)]="selectedAgent" class="form-control mr-4">
-            <option *ngFor="let agent of agentsForFilter" [ngValue]="agent">
-              {{ agent || "(no agent)" }}
-            </option>
-          </select>
-          <select (change)="filterQueue()" [(ngModel)]="selectedLanguageCode" class="form-control mr-4">
-            <option *ngFor="let languageCode of languageCodesForFilter" [ngValue]="languageCode">
-              {{ languageCode || "(N/A)" }}
-            </option>
-          </select>
-          <label class="checkbox-inline"><input type="checkbox" [(ngModel)]="shouldCallbackOnly" (change)="filter()"
-              class="mx-1" />
-            Should callback</label>
-        </div>
-      <!-- end with col-7 -->
-      <!-- start with col-5 -->
-      <div class="text-right col-5">
-        <label class="form-check-label mt-2" for="id-gmb"><input type="checkbox" [(ngModel)]="needRefreshCtrs">
-          Auto Refresh
-        </label>
-        <a class="btn btn-primary ml-4 mt-2" href="/#/ivr-agent-analysis">
-          <i class="fas fa-clipboard"></i>
-          IVR Dashboard
-        </a>
-        <button class="btn btn-primary ml-4 mt-2" (click)="startIvr()">
-          <i class="fas fa-headset"></i> Launch qMenu IVR
-        </button>
-        <button class="btn btn-primary ml-4 mt-2" (click)="refreshCtrs()" [qLoading]="refreshing">
-          <i class="fas fa-sync-alt"></i> Reload
-        </button>
-      </div>
-      <!-- end with col-5 -->
+      <select (change)="filterQueue()" [(ngModel)]="selectedQueue" class="form-control mr-4">
+        <option *ngFor="let q of queuesForFilter" [ngValue]="q">
+          {{ q.name || (q.arn ? "(no name))" : "(no arn)") }}
+        </option>
+      </select>
+      <select (change)="filterQueue()" [(ngModel)]="selectedAgent" class="form-control mr-4">
+        <option *ngFor="let agent of agentsForFilter" [ngValue]="agent">
+          {{ agent || "(no agent)" }}
+        </option>
+      </select>
+      <select (change)="filterQueue()" [(ngModel)]="selectedLanguageCode" class="form-control mr-4">
+        <option *ngFor="let languageCode of languageCodesForFilter" [ngValue]="languageCode">
+          {{ languageCode || "(N/A)" }}
+        </option>
+      </select>
+      <label class="checkbox-inline"><input type="checkbox" [(ngModel)]="shouldCallbackOnly" (change)="filter()"
+          class="mx-1" />
+        Should callback</label>
     </div>
-  </ng-container>
-  <!-- start with IVR control in restaurant page -->
-  <div class="row" *ngIf="restaurantId">
-    <div class="text-right col-12">
+    <!-- end with col-7 -->
+    <!-- start with col-5 -->
+    <div class="text-right col-5">
       <label class="form-check-label mt-2" for="id-gmb"><input type="checkbox" [(ngModel)]="needRefreshCtrs">
-        Auto Refresh
+          Auto Refresh
       </label>
       <a class="btn btn-primary ml-4 mt-2" href="/#/ivr-agent-analysis">
         <i class="fas fa-clipboard"></i>
@@ -74,8 +52,8 @@
         <i class="fas fa-sync-alt"></i> Reload
       </button>
     </div>
+    <!-- end with col-5 -->
   </div>
-  <!-- end with IVR control in restaurant page -->
 
   <table class="table mt-2">
     <tr>

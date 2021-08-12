@@ -1,0 +1,54 @@
+<div class="pt-2">
+  <div class="row mb-2">
+    <div class="text-right col-12">
+      <input type="checkbox" [(ngModel)]="pagination">
+      <label class="form-check-label ml-1">
+        Pagination
+      </label>
+      <button class="btn btn-primary ml-4 mt-2" (click)="refreshCtrs()" [qLoading]="refreshing">
+        <i class="fas fa-sync-alt"></i> Reload
+      </button>
+    </div>
+  </div>
+  <q-table [rows]="filteredIvrRecords" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true"
+    [pageSize]="pagination ? 100 : 100000">
+    <tr *tableRowTemplate="let ir;" class="{{ ir.shouldCallback ? 'alert-danger' : '' }}">
+      <th>{{filteredIvrRecords.indexOf(ir) + 1}}</th>
+      <td>
+        {{ ir.initiatedAt | ago: now }}<br />
+        <span class="my-text-small text-muted">{{
+          ir.duration ? ir.duration + "s" : "-"
+        }}</span>
+      </td>
+      <td class="text-nowrap">
+        <strong>{{ ir.customerEndpoint | tel }}</strong>
+        <i *ngIf="!ir.inbound" class="fas fa-external-link-alt"></i>
+        <div class="my-text-small text-muted">{{ ir.ctrId }}</div>
+      </td>
+      <td>
+        {{ (ir.queueName || "").replace("chinese", "中文") }}
+        <div class="my-text-small">
+          <strong>{{ ir.languageCode }}</strong>
+        </div>
+      </td>
+      <td>
+        {{ ir.agentUsername }}
+        <div class="my-text-small text-muted">
+          {{ ir.systemEndpoint | tel }}
+        </div>
+      </td>
+      <td>
+        <audio controls *ngIf="ir.recordingMp3Url" preload="none">
+          <source src="{{ ir.recordingMp3Url }}" />
+        </audio>
+        <div class="my-text-small" *ngIf="ir.transcriptFull">
+          {{ ir.transcriptFull }}
+        </div>
+      </td>
+      <td>
+        <div *ngIf="ir.shouldCallback">SHOULD CALLBACK</div>
+      </td>
+    </tr>
+  </q-table>
+
+</div>

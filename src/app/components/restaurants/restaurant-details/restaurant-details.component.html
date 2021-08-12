@@ -156,7 +156,7 @@
       </div>
       <!-- start with IVR -->
       <div *ngIf="activeTab === 'IVR'">
-        <app-ivr-agent [restaurantId]="restaurant._id"></app-ivr-agent>
+        <app-restaurant-ivr-list [restaurant]="restaurant" ></app-restaurant-ivr-list>
       </div>
       <!-- end with IVR -->
       <div *ngIf="activeTab === 'Tasks'">

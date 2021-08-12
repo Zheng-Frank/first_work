@@ -1,4 +1,3 @@
-import { Input } from '@angular/core';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
@@ -18,7 +17,7 @@ const defaultSelectedLanguageCode = 'all language...';
   styleUrls: ['./ivr-agent.component.css']
 })
 export class IvrAgentComponent implements OnInit, OnDestroy {
-  @Input() restaurantId;
+
   totalMinutes = 0;
   phoneQueuesDict = {} as any;
   visibleQueues = [];
@@ -244,9 +243,6 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
     this.ivrRecords.sort((i2, i1) => i1.initiatedAt.valueOf() - i2.initiatedAt.valueOf());
     this.lastRefreshed = new Date();
     this.computeShouldCallback();
-    if(this.restaurantId){
-      this.searchFilter = this.restaurantId;
-    }
     this.filter();
     this.populateQueuesForFilter();
     this.populateAgentsForFilter();
