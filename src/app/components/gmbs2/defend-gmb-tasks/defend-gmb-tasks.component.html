@@ -1,0 +1,96 @@
+<!-- Page Header/Title -->
+<div class="text-center">
+  <h1 class="text-center">GMB Tasks ({{tasks.length}})</h1>
+  <button class="btn btn-link" (click)="populate()" [qLoading]="apiLoading">
+    <i class="fas fa-sync-alt"></i> Reload</button>
+    <label>Pagination: </label>
+    <input type="checkbox" [(ngModel)]="pagination">
+</div> 
+<div class="clearfix mt-2">
+  <div class="float-left form-inline">
+
+
+  </div>
+  <div class="float-right">
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="card text-center mb-4" *ngIf="currentAction !== 'ADD'">
+  <div class="card-header">
+    <ul class="nav nav-tabs card-header-tabs">
+      <li class="nav-item" *ngFor="let tab of tabs" style="cursor: pointer;">
+        <a class="nav-link {{activeTabLabel === tab.label? 'active' : ''}}"
+          (click)="setActiveTab(tab)">{{tab.label}}({{tab.rows.length}})</a>
+      </li>
+    </ul>
+  </div>
+
+<!-- Main Table Body -->
+  <div class="card-body text-left">
+    <ng-container *ngFor="let tab of tabs">
+      <q-table *ngIf="activeTabLabel === tab.label" [rows]="tab.rows" [tableColumnDescriptors]="myColumnDescriptors"
+        [compact]="true" [pageSize]="pagination ? 100 : 100000">
+
+        <tr *tableRowTemplate="let row;">
+          <td>{{row.rowNumber}}
+          </td>
+          <td>
+            <a target="_blank"
+              href="#/restaurants/{{row.relatedMap?.restaurantId}}">{{row.relatedMap?.restaurantName}}</a>
+            <div class="text-muted">
+              <small>
+                {{row.address}}
+              </small>
+            </div>
+          </td>
+          <td>{{row.score | number : '1.0-0'}}</td>
+          <td class="text-nowrap">
+            {{row.createdAt | ago:now}}
+            <div class="text-muted">
+              <small>{{row._id}}</small>
+            </div>
+          </td>
+          <td>
+            {{row.updated | ago:now}}
+          </td>
+
+          <td>
+            <button class="btn btn-link" (click)="showDetails(row.task)">
+              Details
+            </button>
+          </td>
+
+        </tr>
+      </q-table>
+    </ng-container>
+
+  </div>
+</div>
+
+<!-- Details Modal -->
+<q-modal #taskModal title="Defense Task Details">
+  <div *ngIf="modalTask">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Result</th>
+        </tr>
+
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let req of modalTask.requests">
+          <td>{{req.email}}</td>
+          <td>{{req.result}}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="clearfix float-right">
+      <button class="btn btn-secondary" (click)="closeModal()">Close</button>
+      <button class="btn btn-primary" (click)="hardRefresh(modalTask)" [disabled]="isDefenseCompleted(modalTask)">Retry Task</button>
+    </div>
+  </div>
+</q-modal>

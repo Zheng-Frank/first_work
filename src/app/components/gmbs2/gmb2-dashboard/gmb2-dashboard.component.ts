@@ -23,6 +23,7 @@ export class Gmb2DashboardComponent implements OnInit {
   publishedTotal;
   suspendedTotal;
   isGmbAdmin = false;
+  isAdmin = false;
 
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
     this.refresh();
@@ -30,6 +31,7 @@ export class Gmb2DashboardComponent implements OnInit {
 
   ngOnInit() {
     this.isGmbAdmin = this._global.user.roles.some(role => role === 'GMB_SPECIALIST' || role === 'ADMIN');
+    this.isAdmin = this._global.user.roles.some(role => role === 'ADMIN');
   }
 
   refresh() {

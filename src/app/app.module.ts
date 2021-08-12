@@ -163,6 +163,7 @@ import { CyclesComponent } from './components/invoices/cycles/cycles.component';
 import { CycleDetailsComponent } from './components/invoices/cycle-details/cycle-details.component';
 import { GmbPinsComponent } from './components/gmbs2/gmb-pins/gmb-pins.component';
 import { GmbTasksComponent } from './components/gmbs2/gmb-tasks/gmb-tasks.component';
+import { DefendGmbTasksComponent } from './components/gmbs2/defend-gmb-tasks/defend-gmb-tasks.component';
 import { ChangeOwnershipComponent } from './components/change-ownership/change-ownership.component';
 
 import { BulkMessagingComponent } from './components/bulk-messaging/bulk-messaging.component';
@@ -382,6 +383,7 @@ import { RestaurantIvrListComponent } from './components/restaurants/restaurant-
     CycleDetailsComponent,
     GmbPinsComponent,
     GmbTasksComponent,
+    DefendGmbTasksComponent,
     ChangeOwnershipComponent,
     BulkMessagingComponent,
     RestaurantTasksComponent,
