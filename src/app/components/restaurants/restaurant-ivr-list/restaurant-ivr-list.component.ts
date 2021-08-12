@@ -98,10 +98,6 @@ export class RestaurantIvrListComponent implements OnInit {
         this.ivrRecords.unshift(ir);
       }
     }
-    // build return records and restaurants
-    this.ivrRecords.map(ir => {
-      ir.restaurants = [this.restaurant];
-    });
 
     this.ivrRecords.sort((i2, i1) => i1.initiatedAt.valueOf() - i2.initiatedAt.valueOf());
     this.computeShouldCallback();
