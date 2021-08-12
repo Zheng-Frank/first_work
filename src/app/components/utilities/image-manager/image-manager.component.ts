@@ -59,7 +59,7 @@ export class ImageManagerComponent implements OnInit {
   }
 
   isAdmin(){
-    this._global.user.roles.indexOf('ADMIN') > 0;
+    this._global.user.roles.indexOf('ADMIN') >= 0;
   }
   
   onChangeShowNoImageItems() {
