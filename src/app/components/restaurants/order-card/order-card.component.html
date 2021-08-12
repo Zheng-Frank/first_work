@@ -11,16 +11,12 @@
     <i class="fa fa-laptop" *ngIf="orderFromPC(order)"></i>
     <i class="fa fa-mobile-alt" *ngIf="orderFromPhone(order)"></i>
   </div>
-  <!-- start with pc icon -->
-  <div *ngIf="!order.dineInSessionObj && orderFromPC(order)" class="qr">
-    <i class="fa fa-laptop"></i>
+  <!-- start with pc/phone icon -->
+  <div *ngIf="!order.dineInSessionObj" class="qr">
+    <i class="fa fa-laptop" *ngIf="orderFromPC(order)"></i>
+    <i class="fa fa-mobile-alt" *ngIf="orderFromPhone(order)"></i>
   </div>
-  <!-- end with pc icon -->
-  <!-- start with phone icon -->
-  <div *ngIf="!order.dineInSessionObj && orderFromPhone(order)" class="qr">
-    <i class="fa fa-mobile-alt"></i>
-  </div>
-  <!-- end with phone icon -->
+  <!-- end with pc/phone icon -->
   <div class="card-block">
 
     <h4 class="text-sm-center">
