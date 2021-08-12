@@ -24,7 +24,6 @@
             <option>GMB status</option>
             <option>published</option>
             <option>suspended</option>
-            <option>lost in 48 hours</option>
             <option>secondary listing</option>
         </select>
         <select class="form-control mr-2 mb-1" [(ngModel)]="gmbRole" (change)="filter()">
@@ -93,7 +92,7 @@
         <th>GMB Status</th>
         <th>Websites</th>
     </tr>
-    <ng-container *ngFor="let row of filteredRows; let rowNumber = index">
+    <ng-container *ngFor="let row of filteredRows.slice(0, rowsShowingLimit); let rowNumber = index">
 
         <ng-container *ngFor="let al of row.accountLocations; let alIndex = index">
             <!-- Having restaurant -->
@@ -113,7 +112,8 @@
                     {{row.restaurant.agent}}
                 </td>
                 <td>
-                    <app-gmb-account-hotlink [email]="al.account.email" [appealId]="al.location?.appealId"></app-gmb-account-hotlink>
+                    <app-gmb-account-hotlink [email]="al.account.email" [appealId]="al.location?.appealId">
+                    </app-gmb-account-hotlink>
                 </td>
                 <td>
                     <a href="https://www.google.com/search?ludocid={{al.location?.cid}}&q={{al.location?.name}}"
@@ -184,7 +184,6 @@
             </tr>
         </ng-container>
 
-
         <!-- Restaurant has NO matched GMB at all -->
         <tr *ngIf="row.accountLocations.length === 0" class="{{row.restaurant.disabled?'app-strike' : ''}}">
             <th>{{rowNumber + 1}}</th>
@@ -224,8 +223,12 @@
                 </small>
             </td>
         </tr>
-
     </ng-container>
 
+    <tr *ngIf="rowsShowingLimit < filteredRows.length">
+        <td colspan="9">
+            <button class="btn btn-link" (click)="rowsShowingLimit = filteredRows.length">Show All...</button>
+        </td>
+    </tr>
 
 </table>
