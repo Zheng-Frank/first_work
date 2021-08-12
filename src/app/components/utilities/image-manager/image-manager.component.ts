@@ -14,6 +14,12 @@ enum orderByTypes {
   menuFrequency = 'Menu frequency',
   orderFrequency = 'Order frequency'
 }
+enum hasImagesTypes {
+  All = 'All',
+  WithImage = 'with image',
+  WithoutImage = 'without images'
+}
+
 @Component({
   selector: 'app-image-manager',
   templateUrl: './image-manager.component.html',
@@ -34,6 +40,8 @@ export class ImageManagerComponent implements OnInit {
   cuisineType = '';
   orderBys = [orderByTypes.NAME, orderByTypes.menuFrequency, orderByTypes.orderFrequency];
   orderBy = orderByTypes.NAME;
+  showImagesItemsTypes = [hasImagesTypes.All, hasImagesTypes.WithImage, hasImagesTypes.WithoutImage];
+  noImagesFlag = hasImagesTypes.All;// control whether show no image items. 
   restaurants = [];
   restaurantProjection = {
     "googleListing.cuisine": 1
@@ -44,7 +52,7 @@ export class ImageManagerComponent implements OnInit {
 
   newImages = [];
   calculatingStats = false; // control progress bar actions.
-  noImagesFlag = false; // control whether show no image items. 
+
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) { }
 
   async ngOnInit() {
@@ -52,10 +60,21 @@ export class ImageManagerComponent implements OnInit {
     await this.loadRestaurants();
   }
 
-  onChangeShowNoImageItems(){
-    if(this.noImagesFlag){
-      this.filterRows = this.filterRows.filter(item => !(item.images && item.images.length > 0 &&
-        item.images.filter(image => Object.values(image).some(url => url !== "") && image.url192).length > 0));
+  onChangeShowNoImageItems() {
+    switch (this.noImagesFlag) {
+      case hasImagesTypes.All:
+        this.filterRows = this.filterRows;
+        break;
+      case hasImagesTypes.WithImage:
+        this.filterRows = this.filterRows.filter(item => item.images && item.images.length > 0 &&
+          item.images.filter(image => Object.values(image).some(url => url !== "") && image.url192).length > 0);
+        break;
+      case hasImagesTypes.WithoutImage:
+        this.filterRows = this.filterRows.filter(item => !(item.images && item.images.length > 0 &&
+          item.images.filter(image => Object.values(image).some(url => url !== "") && image.url192).length > 0));
+        break;
+      default:
+        break;
     }
   }
 
@@ -161,19 +180,19 @@ export class ImageManagerComponent implements OnInit {
   aliasesHasEmpty() {
     return this.newImages.filter(img => img.aliases && img.aliases.trim() === '' || !img.aliases).length > 0;
   }
-  
-  isAliasesSame(newImages){
+
+  isAliasesSame(newImages) {
     let flag = false;
     let aliases = [];
-    this.rows.forEach(row=>{
-      if(row.aliases){
+    this.rows.forEach(row => {
+      if (row.aliases) {
         aliases.push(...row.aliases);
       }
     });
     newImages.forEach(image => {
-      (image.aliases||[]).forEach(alias => {
-        aliases.forEach(a=>{
-          if(a === alias){
+      (image.aliases || []).forEach(alias => {
+        aliases.forEach(a => {
+          if (a === alias) {
             flag = true;
           }
         });
@@ -193,7 +212,7 @@ export class ImageManagerComponent implements OnInit {
       return img;
     });
 
-    if(this.isAliasesSame(this.newImages)){
+    if (this.isAliasesSame(this.newImages)) {
       return this._global.publishAlert(AlertType.Danger, 'This alias has already exists !');
     }
 
