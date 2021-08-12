@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {ApiService} from '../../../services/api.service';
 import {GlobalService} from '../../../services/global.service';
-
+declare var $;
 @Component({
   selector: 'app-menu-cleanup',
   templateUrl: './menu-cleanup.component.html',
@@ -98,7 +98,7 @@ export class MenuCleanupComponent implements OnInit {
       }
 
       item.translation = { zh, en };
-      item.number = item.number || number;
+      item.editNumber = item.number || number;
       // indices is used to locate the item in whole menus array
       // cause we need to clone the finished data and lose the reference
       item.indices = indices;
@@ -106,7 +106,7 @@ export class MenuCleanupComponent implements OnInit {
     } else {
       if (number) {
         item.translation = { en: name };
-        item.number = number || item.number;
+        item.editNumber = item.number || number;
         item.indices = indices;
         this.flattened.push(item);
       }
@@ -115,6 +115,7 @@ export class MenuCleanupComponent implements OnInit {
   }
 
   collect() {
+    $('.modal .cleanup-menus').animate({ scrollTop: 0 }, 'slow');
     this.copied = [];
     this.flattened = [];
     if (this.allMenus) {
@@ -164,6 +165,8 @@ export class MenuCleanupComponent implements OnInit {
         item.name = item.editName;
         delete item.editName;
       }
+      item.number = item.editNumber;
+      delete item.editNumber;
       this.saveTranslation(item, translations);
       let [i, j, k] = item.indices;
       delete item.indices;

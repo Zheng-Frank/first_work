@@ -24,7 +24,7 @@
           </td>
         </ng-container>
         <td><i class="fa fa-arrow-right"></i></td>
-        <td><input class="input-menu-number" [value]="item.number || ''" (change)="change(item, 'number', $event)" /></td>
+        <td><input class="input-menu-number" [value]="item.editNumber || ''" (change)="change(item, 'editNumber', $event)" /></td>
         <td><textarea rows="3" [value]="item.translation?.en || ''" (change)="change(item.translation, 'en', $event, 'prev_en')"></textarea></td>
         <td><input [value]="item.translation?.zh || ''" (change)="change(item.translation, 'zh', $event)" /></td>
       </tr>
