@@ -43,14 +43,13 @@ export class OrderCardComponent implements OnInit {
   ngOnInit() {
   }
   // judge order whether is from phone. 
-  orderFromPhone(order){
-    // return order.runtime && order.runtime.isApp;
-    return order.runtime && order.runtime.isApp || 
-    (order.runtime && order.runtime.os && (order.runtime.os === 'Android' || order.runtime.os === 'iOS'));
+  orderFromPhone(order) {
+    return order.runtime && order.runtime.isApp ||
+      (order.runtime && order.runtime.os && (order.runtime.os === 'Android' || order.runtime.os === 'iOS'));
   }
- // judge order whether is from computer. 
-  orderFromPC(order){
-    return order.runtime && order.runtime.os && (order.runtime.os === 'Mac'||order.runtime.os === 'Linux'||order.runtime.os === 'Windows');
+  // judge order whether is from computer. 
+  orderFromPC(order) {
+    return order.runtime && order.runtime.os && (order.runtime.os === 'Mac' || order.runtime.os === 'Linux' || order.runtime.os === 'Windows');
   }
 
   openPreviousCanceledOrderModal(order_id) {
