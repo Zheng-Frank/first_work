@@ -9,11 +9,15 @@ import {
   ModalComponent,
   AddressPickerComponent
 } from "@qmenu/ui/bundles/qmenu-ui.umd";
-import { Address } from "@qmenu/ui";
+import { Address, TimezoneHelper } from "@qmenu/ui";
 import { User } from "../../../classes/user";
 import { Helper } from "../../../classes/helper";
 const FOUR_DAYS = 86400000 * 4; // 4 days
-
+enum enumViewTypes {
+  ALL = 'All',
+  Contacted = 'Contacted',
+  Uncontacted = 'Uncontacted'
+}
 @Component({
   selector: "app-lead-dashboard",
   templateUrl: "./lead-dashboard.component.html",
@@ -26,9 +30,30 @@ export class LeadDashboardComponent implements OnInit {
   @ViewChild("filterModal") filterModal: ModalComponent;
   @ViewChild("viewModal") viewModal: ModalComponent;
   @ViewChild("callModal") callModal: ModalComponent;
-
   @ViewChild("myAddressPicker") myAddressPicker: AddressPickerComponent;
+  @ViewChild("removeRTModal") removeRTModal: ModalComponent;
+  @ViewChild("timeFiltersModal") timeFilterModal: ModalComponent;
 
+  multipleChoice = false; // it's true when using checkbox of the table.
+  checkAllDelChainRT = false; // this flag is used to check chain restaurants which will be deleted.
+  beforeCloseFlag = false; // three conditions of timer filters, and one must be checked at least.
+  betweenHoursFlag = false;
+  openNowFlag = false;
+  //timeFilterHours is an array needed in second condition of time filters, 
+  timeFiltersHours = ['00 AM', '01 AM', '02 AM', '03 AM', '04 AM', '05 AM', '06 AM', '07 AM', '08 AM', '09 AM', '10 AM',
+    '11 AM', '12 AM', '01 PM', '02 PM', '03 PM', '04 PM', '05 PM', '06 PM', '07 PM', '08 PM', '09 PM', '10 PM', '11 PM', '12 PM'];
+  // minsBeforeClosings is an array needed in first condition of time filters, whose elements from 1 - 60.
+  minsBeforeClosings = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+    31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60];
+  minsBeforeClosing = 60; // the first condition of time filters 
+  timeFiltersStartHours; // the first variable of second condition of time filters 
+  timeFiltersEndHours; // the second variable of second condition of time filters 
+  removeLeadsNoLogs = false; // if the value is true,we need to filter which has no logs.
+  chainDelRestaurants = []; // the field is the chain restaurants which needs to be deleted.
+  searchDelRTText = ''; // try to search the name of removed chain restaurant.
+  showMoreFunction = false; // show remove chain restaurant function.
+  viewTypes = [enumViewTypes.ALL, enumViewTypes.Contacted, enumViewTypes.Uncontacted];
+  viewType = enumViewTypes.ALL; // this type is used to control view filters
   users: User[];
   restaurants;
   addressApt = null;
@@ -40,6 +65,7 @@ export class LeadDashboardComponent implements OnInit {
   apiRequesting = false;
 
   leads: Lead[] = [];
+  filterLeads = [];
   selectionSet = new Set();
 
   showSelectOptions = false;
@@ -119,7 +145,6 @@ export class LeadDashboardComponent implements OnInit {
     {
       label: "Logs"
     }
-
   ];
 
   filterFieldDescriptors = [
@@ -357,7 +382,8 @@ export class LeadDashboardComponent implements OnInit {
       ]
     },
   ];
-
+  // select id, which it is used to assign/unassign restaurant to new salesperson. 
+  selectId;
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
@@ -411,6 +437,7 @@ export class LeadDashboardComponent implements OnInit {
 
           const clonedDescriptor = JSON.parse(JSON.stringify(descriptor));
           clonedDescriptor.required = true;
+
           this.assigneeFieldDescriptors.push(clonedDescriptor);
         },
         error => {
@@ -421,6 +448,180 @@ export class LeadDashboardComponent implements OnInit {
         }
       );
   }
+
+
+  /**
+   * - Is RT open today or not?
+     - Show hours they're open on current day (and line on timeline showing current time)
+   */
+  applyTimeFilters() {
+    if (!this.beforeCloseFlag && !this.betweenHoursFlag && !this.openNowFlag) {
+      return this._global.publishAlert(AlertType.Danger, 'Please check one at least!');
+    }
+    this.viewFilter(); // The time filters has an intersection with view filter types.
+    if (this.betweenHoursFlag) {
+      if (!this.timeFiltersStartHours || !this.timeFiltersEndHours) {
+        return this._global.publishAlert(AlertType.Danger, 'Start hours and end hours also should be selected!');
+      }
+      let startHours = this.convertTWToTF(this.timeFiltersStartHours);
+      let endHours = this.convertTWToTF(this.timeFiltersEndHours);
+      if (startHours > endHours) {
+        return this._global.publishAlert(AlertType.Danger, 'Start hours can not be greater than end hours!');
+      }
+      let now = new Date();
+      this.filterLeads = this.filterLeads.filter(lead => {
+        if (lead.timezone) {
+          // midHours maybe -1 or 25 that represents 23:00 yestorday and 1:00 tomorrow using 24 hours rules.
+          let midHour = this.getLeadHoursFromTimezone(now, lead.timezone);
+          return midHour >= Number(startHours) && midHour <= Number(endHours);
+        }
+        return false;
+      });
+    }
+
+    this.timeFilterModal.hide();
+  }
+  // it means convert a.m./p.m. to 24 hours of a day.
+  // tw is twelve,tf is twenty-four
+  convertTWToTF(time: string): string {
+    let formatStr = time[3] + time[4];
+    let result = "";
+    switch (formatStr) {
+      case "AM":
+        result = time[0] + time[1];
+        break;
+      case "PM":
+        result = Number(time[0] + time[1]) + 12 + "";
+        break;
+      default:
+        break;
+    }
+    return result;
+  }
+
+  // lead has a timezone value, and we need it to calculate middle hours
+  // of start hours and end hours of second conditio of time filters.
+  getLeadHoursFromTimezone(now: Date, timezone: string): number {
+    let utcOffsetHours = now.getTimezoneOffset() / 60;
+    const tfMap = { // the map records the delta hours between UTC and PDT,MDT,EDT,CDT
+      PDT: -7,
+      MDT: -6,
+      CDT: -5,
+      EDT: -4,
+      HDT: -9,
+      AKDT: -8,
+      HST: -10,
+      AKST: -9,
+      PST: -8,
+      MST: -7,
+      CST: -6,
+      EST: -5
+    }
+    let deltaHours = utcOffsetHours + tfMap[timezone];
+    return new Date(now.valueOf() + (deltaHours * 3600 * 1000)).getHours();
+  }
+
+  openTimeFiltersModal() {
+    this.timeFilterModal.show();
+  }
+
+  // Disabling remove button, if any chain is not checked.
+  disabledRemove() {
+    return !this.chainDelRestaurants.some(chain => chain.beChecked === true);
+  }
+
+  isAdmin() {
+    return this._global.user.roles.indexOf("ADMIN") >= 0;
+  }
+
+  // when the checkbox is checked, we only checked the chains without logs.
+  onCheckDelChainRTWithoutLogs() {
+    this.checkAllDelChainRT = false;
+    if (this.removeLeadsNoLogs) {
+      this.chainDelRestaurants.forEach(chain => chain.getDescSortedCallLogs().length > 0 ? chain.beChecked = undefined : chain.beChecked = true)
+    } else {
+      this.onCheckAllDelChainRT();
+    }
+  }
+
+  // all table rows be checked, then will be deleted in lead
+  onCheckAllDelChainRT() {
+    this.removeLeadsNoLogs = false;
+    this.chainDelRestaurants.forEach(c => c.beChecked = this.checkAllDelChainRT);
+  }
+
+  // a table row be checked, then will be deleted in lead
+  onCheckDelChainRT(restaurant) {
+    restaurant.beChecked = !restaurant.beChecked;
+  }
+
+  getCheckedDelChainCount() {
+    return this.chainDelRestaurants.filter(chain => chain.beChecked).length;
+  }
+
+  // the function is used to remove chain restaurant in restaurant
+  async removeRTInLeads() {
+    if (this.getCheckedDelChainCount() === 0) {
+      return this._global.publishAlert(AlertType.Danger, 'Please check one at least!');
+    }
+    let delChains = this.chainDelRestaurants.filter(chain => chain.beChecked).map(c => c._id);
+    await this._api.delete(environment.qmenuApiUrl + 'generic', {
+      resource: 'lead',
+      ids: delChains
+    }).toPromise();
+    this.removeRTModal.hide();
+    this.searchLeads();
+  }
+
+  getContactedDelRTCount() {
+    return this.chainDelRestaurants.filter(chain => chain.getDescSortedCallLogs().length > 0).length;
+  }
+
+  // the function is used to search rts which need to delete in leads table.
+  async searchDelRTInLeads() {
+    if (!this.searchDelRTText) {
+      return this._global.publishAlert(AlertType.Danger, 'Please input chain restaurant name!');
+    }
+    const query = {
+      name: {
+        $regex: this.searchDelRTText
+      }
+    };
+    this.chainDelRestaurants.length = 0;
+    this.chainDelRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'lead',
+      query: query,
+      limit: 10000
+    }, 3000);
+    this.chainDelRestaurants = this.chainDelRestaurants.map(u => new Lead(u));
+    this.chainDelRestaurants.sort((u1, u2) => u1.name.localeCompare(u2.name));
+  }
+
+  // remove rt modal is used to remove some out-of-date data in lead table.
+  openRemoveRTModal() {
+    this.removeLeadsNoLogs = false;
+    this.searchDelRTText = '';
+    this.chainDelRestaurants.length = 0;
+    this.removeRTModal.show();
+  }
+
+  // sales person 
+  viewFilter() {
+    switch (this.viewType) {
+      case enumViewTypes.ALL:
+        this.filterLeads = this.leads;
+        break;
+      case enumViewTypes.Contacted:
+        this.filterLeads = this.leads.filter(lead => lead.getDescSortedCallLogs().length > 0);
+        break;
+      case enumViewTypes.Uncontacted:
+        this.filterLeads = this.leads.filter(lead => lead.getDescSortedCallLogs().length === 0);
+        break;
+      default:
+        break;
+    }
+  }
+
 
   resetRating() {
     // we need to parse float out of the rating settings
@@ -458,6 +659,7 @@ export class LeadDashboardComponent implements OnInit {
 
   sortLeads(users) {
     this.leads.sort((u1, u2) => u1.name.localeCompare(u2.name));
+    this.filterLeads = this.leads;
   }
 
   createNew() {
@@ -807,36 +1009,6 @@ export class LeadDashboardComponent implements OnInit {
     this._global.publishAlert(AlertType.Success, "Success");
   }
 
-  formSubmit(event) {
-    if (!this.myAddressPicker.address.place_id) {
-      return event.acknowledge("Must input address");
-    }
-
-    this.leadInEditing.address = this.myAddressPicker.address;
-
-    this.leadInEditing.address.apt = (this.addressApt || "").trim();
-    this._api
-      .post(environment.qmenuApiUrl + "generic?resource=lead", [
-        this.leadInEditing
-      ])
-      .subscribe(
-        result => {
-          event.acknowledge(null);
-          // we get ids returned
-          this.leadInEditing._id = result[0];
-          this.leads.push(new Lead(this.leadInEditing));
-          this.editingModal.hide();
-          this._global.publishAlert(
-            AlertType.Success,
-            this.leadInEditing.name + " was added"
-          );
-        },
-        error => {
-          event.acknowledge(error.json() || error);
-        }
-      );
-  }
-
   formRemove(event) { }
 
   filter() {
@@ -892,7 +1064,8 @@ export class LeadDashboardComponent implements OnInit {
   async searchLeads() {
     // get all users
     const query = {};
-    this.leads.length= 0;
+    this.viewType = enumViewTypes.ALL;
+    this.leads.length = 0;
     this.searchFilters.map(filter => {
       switch (filter.path) {
         case "rating":
@@ -1003,14 +1176,14 @@ export class LeadDashboardComponent implements OnInit {
   }
 
   isAllSelected() {
-    return this.leads.every(lead => this.selectionSet.has(lead._id));
+    return this.filterLeads.every(lead => this.selectionSet.has(lead._id));
   }
 
   toggleSelectAll() {
     if (this.isAllSelected()) {
       this.selectionSet.clear();
     } else {
-      this.selectionSet = new Set(this.leads.map(lead => lead._id));
+      this.selectionSet = new Set(this.filterLeads.map(lead => lead._id));
     }
   }
 
@@ -1029,12 +1202,12 @@ export class LeadDashboardComponent implements OnInit {
   selectNonCrawled() {
     this.selectionSet.clear();
     this.selectionSet = new Set(
-      this.leads.filter(l => !l.gmbScanned).map(l => l._id)
+      this.filterLeads.filter(l => !l.gmbScanned).map(l => l._id)
     );
   }
 
   hasSelection() {
-    return this.leads.some(lead => this.selectionSet.has(lead._id));
+    return this.filterLeads.some(lead => this.selectionSet.has(lead._id));
   }
 
   crawlGoogle(lead: Lead, resolveCallback?, rejectCallback?) {
@@ -1132,7 +1305,6 @@ export class LeadDashboardComponent implements OnInit {
             }
             // let's update original, assuming everything successful
             Object.assign(originalLead, newLead);
-            this.editingModal.hide();
             this._global.publishAlert(
               AlertType.Success,
               originalLead.name + " was updated"
@@ -1147,22 +1319,29 @@ export class LeadDashboardComponent implements OnInit {
 
   async crawlGoogleGmbOnSelected() {
     // this has to be done sequencially otherwise overload the server!
-    this.leads.filter(lead => this.selectionSet.has(lead._id)).reduce(
+    this.filterLeads.filter(lead => this.selectionSet.has(lead._id)).reduce(
       (p: any, lead) =>
         p.then(() => {
           return this.crawlGooglePromise(lead);
         }),
       Promise.resolve()
     );
-    // parallel example
-    // this.leads
-    //   .filter(lead => this.selectionSet.has(lead._id))
-    //   .map(lead => {
-    //     this.crawlGoogle(lead);
-    //   });
   }
-
+  // using single button clicked (green button named assign to marketer of each row).
+  assignSingle(lead_id) {
+    this.multipleChoice = false;
+    this.selectId = lead_id;
+    this.assigneeObj = {
+      assignee: this._global.user.username
+    }
+    this.assigneeModal.show();
+  }
+  // using in many leads be checked of the table. 
   assignOnSelected() {
+    this.multipleChoice = true;
+    this.assigneeObj = {
+      assignee: this._global.user.username
+    }
     this.assigneeModal.show();
   }
 
@@ -1201,26 +1380,58 @@ export class LeadDashboardComponent implements OnInit {
 
   assigneeSubmit(event) {
     if (event.object.assignee) {
-      const myusers = this.users
-        .filter(
-          u =>
-            u.manager === this._global.user.username ||
-            this._global.user.roles.indexOf("ADMIN") >= 0
-        )
-        .map(u => u.username);
-      myusers.push(this._global.user.username);
-      if (myusers.indexOf(event.object.assignee) < 0) {
-        event.acknowledge("Failed to " + event.object.assignee);
+
+      if (!this.multipleChoice) {
+        let lead = this.filterLeads.find(lead => lead._id === this.selectId);
+
+        const clonedLead = JSON.parse(JSON.stringify(lead));
+
+        if (!clonedLead.assignee) {
+          clonedLead.assignee = event.object.assignee;
+          this._api
+            .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
+            .subscribe(
+              result => {
+                // let's update original, assuming everything successful
+                lead.assignee = clonedLead.assignee;
+                this._global.publishAlert(
+                  AlertType.Success,
+                  lead.name + " was updated"
+                );
+              },
+              error => {
+                error = error;
+                this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+              }
+            );
+        } else {
+          this._global.publishAlert(
+            AlertType.Danger,
+            "Failed to assign to " + event.object.assignee
+          );
+        }
       } else {
         this.leads.filter(lead => this.selectionSet.has(lead._id)).map(lead => {
           const clonedLead = JSON.parse(JSON.stringify(lead));
 
-          if (
-            !clonedLead.assignee ||
-            myusers.indexOf(clonedLead.assignee) >= 0
-          ) {
+          if (!clonedLead.assignee) {
             clonedLead.assignee = event.object.assignee;
-            this.patchDiff(lead, clonedLead);
+            this._api
+              .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
+              .subscribe(
+                result => {
+                  // let's update original, assuming everything successful
+                  lead.assignee = clonedLead.assignee;
+                  this._global.publishAlert(
+                    AlertType.Success,
+                    lead.name + " was updated"
+                  );
+                },
+                error => {
+                  error = error;
+                  this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+                }
+              );
           } else {
             this._global.publishAlert(
               AlertType.Danger,
@@ -1228,36 +1439,61 @@ export class LeadDashboardComponent implements OnInit {
             );
           }
         });
-        this.assigneeModal.hide();
-        event.acknowledge(null);
       }
+      this.multipleChoice = false;
+      this.assigneeModal.hide();
+      event.acknowledge(null);
     } else {
       event.acknowledge("No assignee is selected");
     }
   }
 
+  // using in many leads be checked of the table. 
   unassignOnSelected() {
-    const myusers = this.users
-      .filter(
-        u =>
-          u.manager === this._global.user.username ||
-          this._global.user.roles.indexOf("ADMIN") >= 0
-      )
-      .map(u => u.username);
-    myusers.push(this._global.user.username);
 
     this.leads.filter(lead => this.selectionSet.has(lead._id)).map(lead => {
       const clonedLead = JSON.parse(JSON.stringify(lead));
-      if (myusers.indexOf(clonedLead.assignee) >= 0) {
-        clonedLead.assignee = undefined;
-        this.patchDiff(lead, clonedLead);
-      } else {
-        this._global.publishAlert(
-          AlertType.Danger,
-          "Failed to unassign " + clonedLead.assignee
+      clonedLead.assignee = undefined;
+      this._api
+        .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
+        .subscribe(
+          result => {
+            // let's update original, assuming everything successful
+            lead.assignee = undefined;
+            this._global.publishAlert(
+              AlertType.Success,
+              lead.name + " was updated"
+            );
+          },
+          error => {
+            this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+          }
         );
-      }
     });
+  }
+
+  // using single button clicked (green button named unassign of each row).
+  unassignSingle(lead_id) {
+
+    let lead = this.filterLeads.find(lead => lead._id === lead_id);
+
+    const clonedLead = JSON.parse(JSON.stringify(lead));
+    clonedLead.assignee = undefined;
+    this._api
+      .patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: lead, new: clonedLead }])
+      .subscribe(
+        result => {
+          // let's update original, assuming everything successful
+          lead.assignee = undefined;
+          this._global.publishAlert(
+            AlertType.Success,
+            lead.name + " was updated"
+          );
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+        }
+      );
   }
 
   getGoogleQuery(lead) {

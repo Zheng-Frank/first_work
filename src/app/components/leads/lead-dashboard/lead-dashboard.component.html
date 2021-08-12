@@ -4,9 +4,9 @@
     (click)="crawlGoogleGmbOnSelected()">
     <i class="fab fa-searchengin"></i> Crawl Google Info ({{selectionSet.size}})</button>
   <button type="button" class="list-group-item list-group-item-action text-primary" (click)="assignOnSelected()">
-    <i class="fas fa-arrow-circle-right"></i> Assign to Marketer</button>
+    <i class="fas fa-arrow-circle-right"></i> Assign to Marketer ({{selectionSet.size}})</button>
   <button type="button" class="list-group-item list-group-item-action text-primary" (click)="unassignOnSelected()">
-    <i class="fas fa-arrow-circle-right"></i> Unassign</button>
+    <i class="fas fa-arrow-circle-right"></i> Unassign ({{selectionSet.size}})</button>
 
   <!-- <button type="button" class="list-group-item list-group-item-action text-primary" (click)="crawlGoogleAddressAll()">
     <i class="fas fa-map-marker-alt"></i> Inject Google Address</button> -->
@@ -14,27 +14,45 @@
 </div>
 
 <h1 class="text-center">Lead Management</h1>
-<div class="text-right pb-2">
-  Total: {{leads.length}}
-  <!-- selected search filters -->
-  <ng-container *ngFor="let filter of searchFilters">
-    <button class="btn btn-outline-success" (click)="removeFilter(filter)">{{filter.value}}
-      <span class="text-danger">✕</span>
-    </button>
-  </ng-container>
+<div class="row pb-2">
+  <div class="col-8 form-inline text-left">
+    <label class="form-check-label mr-2 ml-3">View
+      <select [(ngModel)]="viewType" class="form-control ml-2 limit-select-width" (change)="viewFilter()">
+        <option *ngFor="let type of viewTypes">{{type}}</option>
+      </select>
+    </label>
+    <button type="button" class="btn btn-link ml-3" (click)="showMoreFunction = !showMoreFunction">
+      {{ showMoreFunction?'Hide more functions...':'Show more functions...'}}</button>
+    <button *ngIf="showMoreFunction && isAdmin()" type="button" class="btn btn-link ml-3" (click)="openRemoveRTModal()">
+      Remove Chain Restaurants</button>
+    <button *ngIf="showMoreFunction" type="button" class="btn btn-primary ml-3" (click)="openTimeFiltersModal()">
+      Time Filters</button>
+    <span *ngIf="timeFiltersStartHours && timeFiltersEndHours" class="ml-1">Applied: between {{timeFiltersStartHours}}
+      and {{timeFiltersEndHours}}</span>
+  </div>
+  <div class="col-4 text-right">
+    Total: {{filterLeads.length}}
+    <!-- selected search filters -->
+    <ng-container *ngFor="let filter of searchFilters">
+      <button class="btn btn-outline-success" (click)="removeFilter(filter)">{{filter.value}}
+        <span class="text-danger">✕</span>
+      </button>
+    </ng-container>
 
-  <button class="btn btn-info" (click)="filter()">
-    <i class="fas fa-filter"></i> Filter</button>
-  <button class="btn btn-primary" (click)="scanNew()">+ Scan New Lead</button>
+    <button class="btn btn-info" (click)="filter()">
+      <i class="fas fa-filter"></i> Filter</button>
+    <button class="btn btn-primary" (click)="scanNew()">+ Scan New Lead</button>
 
-  <!-- <button class="btn btn-info" (click)="filter()">
-    <i class="fas fa-filter"></i> Filter</button>
-  <button class="btn btn-primary" (click)="createNew()">+ Add New Lead</button> -->
+    <!-- <button class="btn btn-info" (click)="filter()">
+      <i class="fas fa-filter"></i> Filter</button>
+    <button class="btn btn-primary" (click)="createNew()">+ Add New Lead</button> -->
+  </div>
 </div>
 
 
 
-<q-table [rows]="leads" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="1000">
+
+<q-table [rows]="filterLeads" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="1000">
 
   <tr *tableRowTemplate="let lead" class=" {{lead.disabled || lead.closed ? 'text-muted closed' : ''}}">
     <th>{{leads.indexOf(lead) + 1}}</th>
@@ -58,9 +76,16 @@
     <td>
       {{lead.totalReviews}}
     </td>
-    <td>
+    <td class="limit-assign-td-width">
       {{lead.assignee}}
+      <!-- start with assign -->
+      <button class="btn btn-outline-success limit-assign-font-size" *ngIf="!lead.assignee" (click)="assignSingle(lead._id)">
+        <i class="fas fa-arrow-circle-right" >Assign</i></button>
+      <button class="btn btn-outline-success limit-assign-font-size" *ngIf="lead.assignee" (click)="unassignSingle(lead._id)">
+        <i class="fas fa-arrow-circle-right" >Unassign</i></button>
+      <!-- end with assign -->
     </td>
+
     <!-- <td>
         <img *ngIf="lead.gmbAccountOwner === 'qmenu'" [attr.src]="'/assets/images/qmenu.png'" [attr.alt]="lead.gmbAccountOwner" height="16px">
         <span *ngIf="lead.gmbAccountOwner !== 'qmenu'">?</span>
@@ -136,20 +161,10 @@
   </tr>
   </ng-container>
   </td>
+
+
   </tr>
 </q-table>
-
-
-<!-- <q-modal [title]="leadInEditing._id ? 'Edit Restaurant Lead: ' + leadInEditing.name : 'Create New Restaurant Lead' " #editingModal>
-  <q-form-builder [object]="leadInEditing" [showDelete]="leadInEditing._id" [fieldDescriptors]="formFieldDescriptors" (submit)="formSubmit($event)"
-    (remove)="formRemove($event)" (cancel)="editingModal.hide()">
-    <q-address-picker #myAddressPicker></q-address-picker>
-    <div class="form-group">
-      <label for="address-apt">Extra (APT, Suite etc.)</label>
-      <input type="text" class="form-control" id="address-apt" placeholder="eg. APT 101 or Suite 300" [(ngModel)]="addressApt">
-    </div>
-  </q-form-builder>
-</q-modal> -->
 
 <q-modal [title]="'Scan New Restaurant Lead'" #scanModal>
   <q-form-builder [object]="leadInEditing" [fieldDescriptors]="formFieldDescriptors" (submit)="scanSubmit($event)"
@@ -341,3 +356,124 @@
     (submit)="assigneeSubmit($event)" (cancel)="assigneeModal.hide()">
   </q-form-builder>
 </q-modal>
+
+<!-- start with remove restaurant modal -->
+
+<q-modal #removeRTModal [size]="'700px'">
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">×</span>
+  </button>
+  <h4 class="text-center">Remove Chain Restaurants</h4>
+  <hr>
+  <div class="container">
+    <div class="row mb-1 ml-1">
+      All restaurants with the following name will be removed from our leads.
+    </div>
+    <div class="row">
+      <input type="text" class="form-control ml-2 mr-2" [(ngModel)]="searchDelRTText" placeholder="Chain Name">
+    </div>
+    <div class="row mb-3">
+      <button type="button" class="btn btn-link ml-2" (click)="searchDelRTInLeads()">
+        Preview consequences</button>
+    </div>
+    <div class="row mb-3 ml-1">
+      <span class="text-danger">{{chainDelRestaurants.length}} records found, of which {{getContactedDelRTCount()}} have
+        call
+        logs/correspondences.</span>
+    </div>
+    <div class="row limit-table-row-height" *ngIf="chainDelRestaurants.length > 0">
+      <table class="table table-sms">
+        <thead>
+          <th>
+            <input type="checkbox" [(ngModel)]="checkAllDelChainRT" (change)="onCheckAllDelChainRT()">
+          </th>
+          <th>
+            Name
+          </th>
+          <th>
+            Having Logs
+          </th>
+        </thead>
+        <tbody>
+          <tr *ngFor="let restaurant of chainDelRestaurants">
+            <td>
+              <input type="checkbox" [checked]="restaurant.beChecked" (change)="onCheckDelChainRT(restaurant)">
+            </td>
+            <td>
+              {{restaurant.name}}
+              <span class="text-muted" *ngIf="restaurant.oldName">
+                <br>
+                <small>{{restaurant.oldName}}</small>
+              </span>
+            </td>
+            <td>
+              {{restaurant.getDescSortedCallLogs().length > 0}}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="row mb-3 ml-3 mt-2">
+      <input class="form-check-input" type="checkbox" [(ngModel)]="removeLeadsNoLogs"
+        (change)="onCheckDelChainRTWithoutLogs()">
+      Remove only leads without logs
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-end p-4">
+    <button class="btn btn-secondary mr-2" (click)="removeRTModal.hide()">Cancel</button>
+    <button class="btn btn-primary" [disabled]="disabledRemove()" (click)="removeRTInLeads()">Remove</button>
+  </div>
+
+</q-modal>
+<!-- end with remove restaurant modal-->
+<!-- start with time filters -->
+<q-modal #timeFiltersModal [size]="'500px'">
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">×</span>
+  </button>
+  <h4 class="text-center">Time Filters</h4>
+  <hr>
+  <div class="container">
+    <div class="row mb-3">
+      <div class="col-12">
+        <!-- <div class="ml-2 mt-2">
+          <label class="form-check-label form-inline">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="beforeCloseFlag">
+            At least 
+            <select [(ngModel)]="minsBeforeClosing" class="form-control ml-2 mr-2 limit-time-select">
+              <option *ngFor="let min of minsBeforeClosings">{{min}}</option>
+            </select>
+             minutes before closing
+          </label>
+        </div> -->
+        <div class="ml-2 mt-2">
+          <label class="form-check-label form-inline">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="betweenHoursFlag">
+            Local time between
+            <select [(ngModel)]="timeFiltersStartHours" class="form-control ml-2 mr-2 limit-time-input">
+              <option *ngFor="let hour of timeFiltersHours">{{hour}}</option>
+            </select>
+            to
+            <select [(ngModel)]="timeFiltersEndHours" class="form-control ml-2 mr-2 limit-time-input">
+              <option *ngFor="let hour of timeFiltersHours">{{hour}}</option>
+            </select>
+          </label>
+        </div>
+        <!-- <div class="ml-2 mt-2">
+          <label class="form-check-label form-inline">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="openNowFlag">
+            Open now?
+          </label>
+        </div> -->
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-end p-4">
+    <button class="btn btn-secondary mr-2" (click)="timeFilterModal.hide()">Cancel</button>
+    <button class="btn btn-primary" (click)="applyTimeFilters()">Apply</button>
+  </div>
+
+</q-modal>
+<!-- end with time filters -->
