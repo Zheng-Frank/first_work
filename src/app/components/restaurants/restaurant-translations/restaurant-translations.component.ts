@@ -35,10 +35,10 @@ export class RestaurantTranslationsComponent implements OnInit {
 
   extract(item, items) {
     let {name, description, placement} = item;
-    let hasZhRegex = /[\s-(]?([^\x00-\xff]+)[\s)]?/;
+    let regex = /\s*[('"]?[^\x00-\xff](\s*([^\x00-\xff]|\d|\(|\)|'|")+)*\s*/;
     [name, placement, description].forEach(text => {
-      if (text && !hasZhRegex.test(name)) {
-        items.add(name);
+      if (text) {
+        items.add(text.replace(regex, ''));
       }
     });
   }
