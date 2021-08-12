@@ -71,9 +71,7 @@ export class BulkMessagingComponent implements OnInit {
 
   async onAddRestaurant() {
     this.restaurants.length = 0;
-    console.log("replace之前："+this.inputRestaurantString);
     this.inputRestaurantString = this.inputRestaurantString.replace(/\s+/g,' ');
-    console.log("replace之后："+this.inputRestaurantString);
     const restaurantIdList = this.inputRestaurantString.split(',').map(str=>str.trim());
     let tempRestaurantIdList = [];
     restaurantIdList.forEach(rt => {
