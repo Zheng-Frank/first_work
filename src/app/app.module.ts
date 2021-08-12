@@ -238,6 +238,7 @@ import { SeoTrackingComponent } from './components/monitoring/seo-tracking/seo-t
 import { RestaurantSeoTrackingComponent } from './components/restaurants/restaurant-seo-tracking/restaurant-seo-tracking.component';
 import { MonitoringPromotionCellComponent } from './components/monitoring/monitoring-promotion-cell/monitoring-promotion-cell.component';
 import { RestaurantMapComponent } from './components/restaurants/restaurant-map/restaurant-map.component';
+import { RestaurantIvrListComponent } from './components/restaurants/restaurant-ivr-list/restaurant-ivr-list.component';
 
 
 
@@ -445,7 +446,8 @@ import { RestaurantMapComponent } from './components/restaurants/restaurant-map/
     SeoTrackingComponent,
     RestaurantSeoTrackingComponent,
     MonitoringPromotionCellComponent,
-    RestaurantMapComponent
+    RestaurantMapComponent,
+    RestaurantIvrListComponent
   ],
   imports: [
     BrowserModule,
