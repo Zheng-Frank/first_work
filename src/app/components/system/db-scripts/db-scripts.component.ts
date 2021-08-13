@@ -53,7 +53,14 @@ export class DbScriptsComponent implements OnInit {
       let { to_rm, num, dot, word } = numMatched.groups;
       // if dot after number, definite number, otherwise we check if a measure word after number or not
       let hasMeasure = measureWords.includes((word || '').toLowerCase());
-
+      if (num && /\D+$/.test(num)) {
+        let [suffix] = num.match(/\D+$/);
+        // for 20oz XXX case
+        hasMeasure = measureWords.includes((suffix || '').toLowerCase());
+        if (hasMeasure) {
+          num = num.replace(/\D+$/, '');
+        }
+      }
       // if no measure word, or have dot, or num is not pure digits
       // we think we have matched a number
       if (!hasMeasure || !!dot || /[^\d]/.test(num)) {
@@ -90,6 +97,14 @@ export class DbScriptsComponent implements OnInit {
       let { to_rm, num, dot, word } = numMatched.groups;
       // if dot after number, definite number, otherwise we check if a measure word after number or not
       hasMeasure = measureWords.includes((word || '').toLowerCase());
+      if (num && /\D+$/.test(num)) {
+        let [suffix] = num.match(/\D+$/);
+        // for 20oz XXX case
+        hasMeasure = measureWords.includes((suffix || '').toLowerCase());
+        if (hasMeasure) {
+          num = num.replace(/\D+$/, '');
+        }
+      }
       if (!!dot || !hasMeasure) {
         // remove leading number chars
         name = name.replace(to_rm, '');

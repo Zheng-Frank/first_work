@@ -15,10 +15,16 @@
     </thead>
     <tbody>
       <tr *ngFor="let item of flattened; let i = index;">
-        <td [ngClass]="{warning: item.warning}">
-          <div><strong>Name: </strong>{{item.name}}</div>
-          <div><strong>Number: </strong>{{item.number}}</div>
-          <div><a class="btn-link" (click)="restore(item, i)">Maintain</a></div>
+        <td [ngClass]="{warning: item.warning}" class="original-cell">
+          <div>
+            <i class="fa fa-circle"></i>
+            <div>
+              <div><strong>Path: </strong>{{getPath(item.indices)}}</div>
+              <div><strong>Name: </strong>{{item.name}}</div>
+              <div><strong>Number: </strong>{{item.number}}</div>
+              <div><a class="btn-link" (click)="restore(item, i)">Maintain</a></div>
+            </div>
+          </div>
         </td>
         <td><i class="fa fa-arrow-right"></i></td>
         <td><input class="input-menu-number" [value]="item.editNumber || ''" (change)="change(item, 'editNumber', $event)" /></td>

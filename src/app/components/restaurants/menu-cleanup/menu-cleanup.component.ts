@@ -64,6 +64,14 @@ export class MenuCleanupComponent implements OnInit {
       let { to_rm, num, dot, word } = numMatched.groups;
       // if dot after number, definite number, otherwise we check if a measure word after number or not
       hasMeasure = measureWords.includes((word || '').toLowerCase());
+      if (num && /\D+$/.test(num)) {
+        let [suffix] = num.match(/\D+$/);
+        // for 20oz XXX case
+        hasMeasure = measureWords.includes((suffix || '').toLowerCase());
+        if (hasMeasure) {
+          num = num.replace(/\D+$/, '');
+        }
+      }
       if (!!dot || !hasMeasure) {
         // remove leading number chars
         name = name.replace(to_rm, '');
@@ -142,7 +150,21 @@ export class MenuCleanupComponent implements OnInit {
       // sort, first by warning (warning rows first), then on number field by numeric order if has digit Number, otherwise by alphabet order
       let warnings = this.flattened.filter(x => x.warning);
       let normals = this.flattened.filter(x => !x.warning);
-      this.flattened = this.flattened.sort((a, b) => Number(a.warning) - Number(b.warning));
+      const sortNumber = (a, b) => {
+        // compare digit part with math
+        // compare letter part with alphabet order
+        let regex = /^(\D*)(\d*|\d+\.\d+)(\D*)$/;
+        let [, prefixA, digitsA, suffixA] = (a.editNumber || '').replace(/\s+/g, '').match(regex);
+        let [, prefixB, digitsB, suffixB] = (b.editNumber || '').replace(/\s+/g, '').match(regex);
+        if ((prefixA || prefixB) && prefixA !== prefixB) {
+          return prefixA > prefixB ? 1 : -1;
+        }
+        if (digitsA || digitsB) {
+          return (Number(digitsA) || Number.POSITIVE_INFINITY) - (Number(digitsB) || Number.POSITIVE_INFINITY);
+        }
+        return suffixA > suffixB ? 1 : (suffixA < suffixB ? -1 : 0);
+      };
+      this.flattened = [...(warnings.sort(sortNumber)), ...(normals.sort(sortNumber))];
     }
   }
 
@@ -151,6 +173,23 @@ export class MenuCleanupComponent implements OnInit {
       item[prev] = item[prev] || item[prop];
     }
     item[prop] = e.target.value;
+  }
+
+  getPath(indices) {
+    let [i, j, k] = indices;
+    let names = [];
+
+    if (Number.isInteger(i)) {
+      names.push(this.copied[i].name);
+      if (Number.isInteger(j)) {
+        names.push(this.copied[i].mcs[j].name);
+        if (Number.isInteger(k)) {
+          names.push(this.copied[i].mcs[j].mis[k].name);
+        }
+      }
+    }
+    names.pop();
+    return names.join(' -> ');
   }
 
   saveTranslation(item, translations) {

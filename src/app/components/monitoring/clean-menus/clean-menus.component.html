@@ -13,7 +13,7 @@
 </div>
 
 <q-modal #validateModal [size]="'1000px'">
-  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+  <button type="button" (click)="cleanupCancel()" class="close" data-dismiss="modal" aria-label="Close">
     <span aria-hidden="true">×</span>
   </button>
   <h4 class="header-title text-center">

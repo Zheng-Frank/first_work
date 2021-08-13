@@ -18,20 +18,23 @@
   height: auto;
 
 }
-.cleanup-menus table .warning {
-  position: relative;
+
+.cleanup-menus table .original-cell {
+  padding-left: 6px;
 }
-.cleanup-menus table .warning:before {
-  content:"\A";
-  width:10px;
-  height:10px;
-  border-radius:50%;
-  background: #fd0707;
-  display:inline-block;
-  position: absolute;
-  left: 0;
-  top: 5px;
+.cleanup-menus table .original-cell > div {
+  display: flex;
+  align-items: center;
 }
+.cleanup-menus table .original-cell .fa {
+  margin-right: 6px;
+  color: transparent;
+}
+
+.cleanup-menus table .original-cell.warning .fa {
+  color: red;
+}
+
 
 .cleanup-menus table td .btn-link {
   cursor: pointer;

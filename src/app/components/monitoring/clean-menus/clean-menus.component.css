@@ -1,5 +1,7 @@
 .header-title {
   position: relative;
+  width: calc(100% - 30px);
+  margin: auto;
 }
 
 .header-title .header-checkbox {
