@@ -34,9 +34,9 @@ export class CleanMenusComponent implements OnInit {
       projection: {name: 1},
       limit: 20000
     }, 10000);
-    // let needCleanMenus = new Set(require('./rts-need-clean-menu.json'));
-    // this.restaurants = rts.filter(rt => needCleanMenus.has(rt._id));
-    this.restaurants = rts;
+    let needCleanMenus = new Set(require('./rts-need-clean-menu.json'));
+    this.restaurants = rts.filter(rt => needCleanMenus.has(rt._id));
+    // this.restaurants = rts;
   }
 
   async validate(rt) {

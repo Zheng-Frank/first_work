@@ -5,8 +5,8 @@
       <tr>
         <th>Original</th>
         <th></th>
-        <th>Modified Item Name</th>
         <th>Number</th>
+        <th>Modified Item Name</th>
         <ng-container *ngIf="!handleIDsOnly">
           <th>English Name</th>
           <th>Chinese Translation</th>
@@ -21,10 +21,10 @@
           <div><a class="btn-link" (click)="restore(item, i)">Maintain</a></div>
         </td>
         <td><i class="fa fa-arrow-right"></i></td>
+        <td><input class="input-menu-number" [value]="item.editNumber || ''" (change)="change(item, 'editNumber', $event)" /></td>
         <td>
           <textarea rows="3" [value]="item.editName" (change)="change(item, 'editName', $event)"></textarea>
         </td>
-        <td><input class="input-menu-number" [value]="item.editNumber || ''" (change)="change(item, 'editNumber', $event)" /></td>
         <ng-container *ngIf="!handleIDsOnly">
           <td><textarea rows="3" [value]="item.translation?.en || ''" (change)="change(item.translation, 'en', $event, 'prev_en')"></textarea></td>
           <td><input [value]="item.translation?.zh || ''" (change)="change(item.translation, 'zh', $event)" /></td>

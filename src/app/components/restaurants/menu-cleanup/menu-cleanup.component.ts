@@ -139,6 +139,10 @@ export class MenuCleanupComponent implements OnInit {
           });
         });
       });
+      // sort, first by warning (warning rows first), then on number field by numeric order if has digit Number, otherwise by alphabet order
+      let warnings = this.flattened.filter(x => x.warning);
+      let normals = this.flattened.filter(x => !x.warning);
+      this.flattened = this.flattened.sort((a, b) => Number(a.warning) - Number(b.warning));
     }
   }
 
