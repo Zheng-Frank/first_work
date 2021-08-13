@@ -239,6 +239,7 @@ import { RestaurantSeoTrackingComponent } from './components/restaurants/restaur
 import { MonitoringPromotionCellComponent } from './components/monitoring/monitoring-promotion-cell/monitoring-promotion-cell.component';
 import { RestaurantMapComponent } from './components/restaurants/restaurant-map/restaurant-map.component';
 import { CleanMenusComponent } from './components/monitoring/clean-menus/clean-menus.component';
+import { RestaurantIvrListComponent } from './components/restaurants/restaurant-ivr-list/restaurant-ivr-list.component';
 
 
 
@@ -445,9 +446,10 @@ import { CleanMenusComponent } from './components/monitoring/clean-menus/clean-m
     RoutineInstanceListComponent,
     SeoTrackingComponent,
     RestaurantSeoTrackingComponent,
-    RestaurantMapComponent,
     CleanMenusComponent,
-    MonitoringPromotionCellComponent
+    MonitoringPromotionCellComponent,
+    RestaurantMapComponent,
+    RestaurantIvrListComponent
   ],
   imports: [
     BrowserModule,

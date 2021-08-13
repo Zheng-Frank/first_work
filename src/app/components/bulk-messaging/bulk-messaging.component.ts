@@ -66,22 +66,26 @@ export class BulkMessagingComponent implements OnInit {
       default:
         break;
     }
-    this.inputRestaurantString = this.filterEPLRestaurants.map(rt => rt._id).join(',');
+    this.inputRestaurantString = this.filterEPLRestaurants.map(rt => rt._id).join(', ');
   }
 
   async onAddRestaurant() {
     this.restaurants.length = 0;
-    const restaurantIdList = this.inputRestaurantString.split(',');
-
-    restaurantIdList.forEach(restaurantId => {
-      const restaurant = this.filterEPLRestaurants.find(rt => rt._id === restaurantId);
+    this.inputRestaurantString = this.inputRestaurantString.replace(/\s+/g,' ');
+    const restaurantIdList = this.inputRestaurantString.split(',').map(str=>str.trim());
+    let tempRestaurantIdList = [];
+    restaurantIdList.forEach(rt => {
+      if (tempRestaurantIdList.indexOf(rt) === -1) {
+        tempRestaurantIdList.push(rt);
+      }
+    });
+    tempRestaurantIdList.forEach(restaurantId => {
+      const restaurant = this.ePLRestaurants.find(rt => rt._id === restaurantId);
       if (restaurant) {
         this.restaurants.push(restaurant);
       }
     });
-
     this.inputRestaurantString = '';
-    this.filterEPLRestaurants.length = 0;
   }
 
   onRemove(id) {
