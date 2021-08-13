@@ -65,7 +65,7 @@ export class RestaurantContactsComponent implements OnInit {
 
   channelLanguageDescriptor = {
       field: "channelLanguage",
-      label: "Order Notify Language",
+      label: "Channel Language",
       required: false,
       inputType: "single-select",
       items: [
