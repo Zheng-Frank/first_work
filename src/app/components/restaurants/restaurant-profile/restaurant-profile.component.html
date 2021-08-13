@@ -161,7 +161,7 @@
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('Disabled')" (mouseout)="translating = ''">
                       <div *ngIf="translating === 'Disabled'" class="left talk radius">
-                        <p>Disabled:{{Explanations.EnglishExplanations.Disabled}}</p>
+                        <p>Disabled:{{Explanations.EnglishExplanations.Disabled}}}}</p>
                         -------------<br>
                         <p>终止合作:{{Explanations.ChineseExplanations.Disabled}}</p>
                       </div>
@@ -169,6 +169,7 @@
                   </div>
                   <div class="col-7 pl-1" style="font-weight: 600;">
                     {{!!restaurant.disabled}}
+                    <ng-container *ngIf="!!restaurant.disabled">(At {{restaurant.disabledAt | adjustedDate: "yyyy-MM-dd HH:mm:ss" }})</ng-container>
                   </div>
                 </div>
               </th>
@@ -572,8 +573,7 @@
               <td class="pl-1" style="white-space: pre-wrap">{{restaurant.notes}}</td> -->
             </tr>
             <tr>
-              <button class="btn btn-link" (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More
-                details...'}}
+              <button class="btn btn-link" (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More details...'}}
               </button>
             </tr>
             <ng-container *ngIf="showDetails">
