@@ -1,101 +1,102 @@
-<div class="ml-3">
+<div class="row">
+  <h2 class="col-12 text-center">
+    Onboarding ({{filteredRows.length}})
+  </h2>
+</div>
+<div class="form-inline">
+  <select class="form-control mr-2 mb-1 ml-2" [(ngModel)]="hideInvalidSales" (change)="filter()">
+    <option>Valid Sale?</option>
+    <option>All</option>
+    <option>Valid Sales</option>
+    <option>Invalid Sales</option>
+  </select>
+  <select class="form-control mr-2 mb-1 ml-2" [(ngModel)]="filterBy" (change)="filter()">
+    <option>Has Menu?</option>
+    <option>All</option>
+    <option>No Menu</option>
+    <option>Having Menu</option>
+  </select>
+  <select class="form-control mr-2 mb-1 ml-2" [(ngModel)]="salesperson" (change)="filter()">
+    <option>Salesperson...</option>
+    <option *ngFor="let person of salespeople">{{person}}</option>
+  </select>
+  <div class="ml-2">
     <input type="checkbox" [(ngModel)]="isWarning" (change)="filter()">
     <i class="fas fa-square text-warning"></i> Need Action Immediately!
-</div>
-<div class="ml-3">
+  </div>
+  <div class="ml-2">
     <input type="checkbox" [(ngModel)]="havingGMB" (change)="filter()" id="havingGMB">
     <img [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px"> Currently Owning GMB
-</div>
-<div class="ml-3">
+  </div>
+  <div class="ml-2">
     <img [attr.src]="'/assets/images/qmenu-gray.png'" alt="qmenu" height="16px"> Owned GMB but Lost Now
-</div>
-<div class="ml-3">
-    <div class="float-left form-inline">
-        <label for="">Filter by Sales: </label>
-        <select class="form-control mr-2 mb-1 ml-2" [(ngModel)]="hideInvalidSales" (change)="filter()">
-            <option>All</option>
-            <option>Valid Sales</option>
-            <option>Invalid Sales</option>
-        </select>
-    </div>
-</div>
-<div class="ml-3">
-    <div class="float-left form-inline">
-        <label for="">Filter by Menu: </label>
-        <select class="form-control mr-2 mb-1 ml-2" [(ngModel)]="filterBy" (change)="filter()">
-            <option>All</option>
-            <option>No Menu</option>
-            <option>Having Menu</option>
-        </select>
-    </div>
-
-Total : {{filteredRows.length}}
-
+  </div>
 </div>
 
 <table class="table my-2">
-    <tr>
-        <th></th>
-        <th>Restaurant</th>
-        <th>Created</th>
-        <th class="text-nowrap">Sales Agent</th>
-        <th>GMB</th>
-        <th class="text-nowrap">Has Menu</th>
-        <th class="text-nowrap">Has Order</th>
-        <th class="text-nowrap">Status</th>
-        <th class="text-nowrap">Role</th>
-        <th class="text-wrap">Logs</th>
-    </tr>
-    <tr *ngFor="let row of filteredRows; let i = index">
-        <td>
-            {{i+1}}
-        </td>
-        <td>
-            <a routerLink="/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
-            <div class="text-muted">
-                <small>{{row.restaurant.googleAddress?.formatted_address}}</small>
-            </div>
-        </td>
-        <td class="text-nowrap">
-            {{getDaysFromId(row.restaurant._id)}} days ago
-        </td>
-        <td>
-            {{row.agent}}
-        </td>
-        <td class="text-nowrap">
-            <ng-container *ngIf="row.accountAndStatuses[0]?.status === 'Published'">
-                <img [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
-                <br>
-                <app-gmb-account-hotlink [email]="row.accountAndStatuses[0].email" [appealId]="row.accountAndStatuses[0].appealId"></app-gmb-account-hotlink>
-            </ng-container>
+  <tr>
+    <th></th>
+    <th>Restaurant</th>
+    <th>Created</th>
+    <th class="text-nowrap">Sales Agent</th>
+    <th>GMB</th>
+    <th class="text-nowrap">Has Menu</th>
+    <th class="text-nowrap">Has Order</th>
+    <th class="text-nowrap">Status</th>
+    <th class="text-nowrap">Role</th>
+    <th class="text-wrap">Logs</th>
+  </tr>
+  <tr *ngFor="let row of filteredRows; let i = index">
+    <td>
+      {{i+1}}
+    </td>
+    <td>
+      <a routerLink="/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
+      <div class="text-muted">
+        <small>{{row.restaurant.googleAddress?.formatted_address}}</small>
+      </div>
+    </td>
+    <td class="text-nowrap">
+      {{getDaysFromId(row.restaurant._id)}} days ago
+    </td>
+    <td>
+      {{row.agent}}
+    </td>
+    <td class="text-nowrap">
+      <ng-container *ngIf="row.accountAndStatuses[0]?.status === 'Published'">
+        <img [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
+        <br>
+        <app-gmb-account-hotlink [email]="row.accountAndStatuses[0].email"
+          [appealId]="row.accountAndStatuses[0].appealId"></app-gmb-account-hotlink>
+      </ng-container>
 
-            <ng-container *ngIf="row.accountAndStatuses[0]?.status !== 'Published'">
-                <div *ngFor="let item of row.accountAndStatuses">
-                    <span>{{item.status}}</span>
-                    <br>
-                    <app-gmb-account-hotlink [email]="item.email" [appealId]="item.appealId"></app-gmb-account-hotlink>
-                </div>
-            </ng-container>
+      <ng-container *ngIf="row.accountAndStatuses[0]?.status !== 'Published'">
+        <div *ngFor="let item of row.accountAndStatuses">
+          <span>{{item.status}}</span>
+          <br>
+          <app-gmb-account-hotlink [email]="item.email" [appealId]="item.appealId"></app-gmb-account-hotlink>
+        </div>
+      </ng-container>
 
-        </td>
-        <td class="{{row.hadGmb && row.noMenu ? 'bg-warning' : ''}}">
-            <span *ngIf="row.noMenu" class="text-danger">?</span>
-            <span *ngIf="!row.noMenu" class="text-success">✓</span>
-        </td>
-        <td class="{{!row.noMenu && row.hadGmb && row.noOrder ? 'bg-warning' : ''}}">
-            <span *ngIf="row.noOrder" class="text-danger">?</span>
-            <span *ngIf="!row.noOrder" class="text-success">✓</span>
-        </td>
-        <td>{{row.accountAndStatuses[0]?.status}}</td>
-        <td>{{row.accountAndStatuses[0]?.role}}</td>
-        <td class="text-wrap">
-            <div *ngFor="let log of row.restaurant.logs">
-                {{log.time | date: 'short'}} <br>
-                {{log.problem}} <br>
-                {{log.response}}
-                <hr *ngIf="row.restaurant.logs.length>1">
-            </div>
-        </td>
-    </tr>
+    </td>
+    <td class="{{row.hadGmb && row.noMenu ? 'bg-warning' : ''}}">
+      <span *ngIf="row.noMenu" class="text-danger">?</span>
+      <span *ngIf="!row.noMenu" class="text-success">✓</span>
+    </td>
+    <td class="{{!row.noMenu && row.hadGmb && row.noOrder ? 'bg-warning' : ''}}">
+      <span *ngIf="row.noOrder" class="text-danger">?</span>
+      <span *ngIf="!row.noOrder" class="text-success">✓</span>
+    </td>
+    <td>{{row.accountAndStatuses[0]?.status}}</td>
+    <td>{{row.accountAndStatuses[0]?.role}}</td>
+    <td class="text-wrap">
+      <div *ngFor="let log of row.restaurant.logs">
+        {{log.time | date: 'short'}} <br>
+        {{log.problem}} <br>
+        {{log.response}}
+        <hr *ngIf="row.restaurant.logs.length>1">
+      </div>
+    </td>
+  </tr>
 
 </table>
