@@ -244,7 +244,7 @@ export class MenusComponent implements OnInit {
     this.menuCleanModal.hide();
   }
 
-  async cleanupSave({menus, translations}) {
+  async cleanupSave({menus, translations}: any) {
     try {
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: {
@@ -485,7 +485,7 @@ export class MenusComponent implements OnInit {
     this.menuEditor.setMenu(new Menu(menu));
     this.menuEditingModal.show();
   }
-  
+
   onDoneEditing(menu: Menu) {
     const newMenus = (this.restaurant.menus || []).slice(0);
     if (menu.id) {
