@@ -82,15 +82,18 @@ export class MenuCleanupComponent implements OnInit {
       // we think we have matched a number
       if (!hasMeasure || !!dot || /[^\d]/.test(num)) {
         number = item.number || num;
-        // if no dot, no measure word, just digits, we should warn that the digits maybe is not number
-        if (!dot && /^\d+$/.test(num)) {
-          // if item already have a number prop under this condition
-          // we should think the extracted num is just part of name
-          if (item.number) {
-            number = undefined;
-          } else {
-            // otherwise, we should mark this item warning
-            item.warning = true;
+        // if no dot
+        if (!dot) {
+          // if no measure word, just digits(or aftered with L/l), we should warn that the digits maybe is not number
+          if (/^\d+L?$/.test(num)) {
+            // if item already have a number prop under this condition
+            // we should think the extracted num is just part of name
+            if (item.number) {
+              number = undefined;
+            } else {
+              // otherwise, we should mark this item warning
+              item.warning = true;
+            }
           }
         }
       }

@@ -46,6 +46,7 @@ export class CleanMenusComponent implements OnInit {
       limit: 1
     }).toPromise();
     this.restaurant = restaurant;
+    this.handleIDsOnly = true;
     this.validateModal.show();
     setTimeout(() => {
       this.cleanupComponent.collect();
