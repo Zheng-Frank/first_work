@@ -223,7 +223,7 @@ export class MenusComponent implements OnInit {
           ];
           menuOptions = [
             ...(this.restaurant.menuOptions || []),
-            ...(menuOptions.map(m => ({...m, id: m.id + timestamp, disabled: true, name: m.name + ` (imported[${importedTime}]`})))
+            ...(menuOptions.map(m => ({...m, id: m.id + timestamp, disabled: true, name: m.name + ` (imported ${importedTime})`})))
           ];
         }
         await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
@@ -236,12 +236,12 @@ export class MenusComponent implements OnInit {
         }]).toPromise();
 
         this._global.publishAlert(AlertType.Info, 'injecting images...');
-        // await this._api.post(environment.appApiUrl + 'utils/menu', {
-        //   name: 'inject-images',
-        //   payload: {
-        //     restaurantId: this.restaurant._id,
-        //   }
-        // }).toPromise();
+        await this._api.post(environment.appApiUrl + 'utils/menu', {
+          name: 'inject-images',
+          payload: {
+            restaurantId: this.restaurant._id,
+          }
+        }).toPromise();
         this._global.publishAlert(AlertType.Info, 'All done!');
         this.menusChanged.emit();
       } else {
