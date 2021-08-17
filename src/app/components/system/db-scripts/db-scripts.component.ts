@@ -65,7 +65,7 @@ export class DbScriptsComponent implements OnInit {
       // we think we have matched a number
       if (!hasMeasure || !!dot || /[^\d]/.test(num)) {
         // if no dot, no measure word, just digits, we should warn that the digits maybe is not number
-        if (!dot && /^\d+$/.test(num)) {
+        if (!dot && /^\d+L?$/.test(num)) {
           // if item already have a number prop under this condition
           // we should think the extracted num is just part of name
           return !item.number;
@@ -156,7 +156,7 @@ export class DbScriptsComponent implements OnInit {
     const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: { disabled: { $ne: true }, needCleanMenu: {$ne: true} },
-      projection: { 'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, name: 1, translations: 1 }
+      projection: { 'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, 'menus.mcs.mis.number': 1, name: 1, translations: 1 }
     }, 500);
 
     let needCleaned = rts.filter(rt => this.needClean(rt));

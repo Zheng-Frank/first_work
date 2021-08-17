@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
 import {ApiService} from '../../../services/api.service';
 import {GlobalService} from '../../../services/global.service';
 declare var $;
@@ -7,7 +7,7 @@ declare var $;
   templateUrl: './menu-cleanup.component.html',
   styleUrls: ['./menu-cleanup.component.css']
 })
-export class MenuCleanupComponent implements OnInit {
+export class MenuCleanupComponent implements OnInit, OnChanges {
 
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
@@ -18,12 +18,18 @@ export class MenuCleanupComponent implements OnInit {
   @Output() cancel = new EventEmitter();
   @Output() skip = new EventEmitter();
   @Output() save = new EventEmitter();
-  @Input() handleIDsOnly = false;
+  @Input() handleIDsOnly = true;
 
   flattened = [];
   copied = [];
 
   ngOnInit() {
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.handleIDsOnly && changes.handleIDsOnly.currentValue !== changes.handleIDsOnly.previousValue) {
+      this.collect();
+    }
   }
 
   restore(item, index) {
@@ -98,38 +104,46 @@ export class MenuCleanupComponent implements OnInit {
         }
       }
     }
-
-
     item.editName = name;
-    // we capture 中文， 中文 带空格，(括号内中文)，'引号内中文"
-    let regex = /\s*[('"]?[^\x00-\xff](\s*([^\x00-\xff]|\d|\(|\)|'|")+)*\s*/;
-    let re = name.match(regex);
-    if (re) {
-      let zh = re[0].trim(), en = name.replace(regex, '').trim().replace(/\s*-$/, '');
-      // strip ()[]''"" pairs around name
-      const strip = str => str.replace(/^\((.+)\)$/, '$1').replace(/^\[(.+)]$/, '$1')
-          .replace(/^'(.+)'$/, '$1').replace(/^"(.+)"$/, '$1');
-      en = strip(en);
-      zh = strip(zh);
-
-      let trans = (this.translations || []).find(x => x.EN === en);
-
-      if (trans && trans.ZH === zh && !number) {
-        return;
-      }
-
-      item.translation = { zh, en };
-      item.editNumber = item.number || number;
-      // indices is used to locate the item in whole menus array
-      // cause we need to clone the finished data and lose the reference
-      item.indices = indices;
-      this.flattened.push(item);
-    } else {
+    if (this.handleIDsOnly) {
       if (number) {
         item.translation = { en: name };
         item.editNumber = item.number || number;
         item.indices = indices;
         this.flattened.push(item);
+      }
+    } else {
+
+      // we capture 中文， 中文 带空格，(括号内中文)，'引号内中文"
+      let regex = /\s*[('"]?[^\x00-\xff](\s*([^\x00-\xff]|\d|\(|\)|'|")+)*\s*/;
+      let re = name.match(regex);
+      if (re) {
+        let zh = re[0].trim(), en = name.replace(regex, '').trim().replace(/\s*-$/, '');
+        // strip ()[]''"" pairs around name
+        const strip = str => str.replace(/^\((.+)\)$/, '$1').replace(/^\[(.+)]$/, '$1')
+          .replace(/^'(.+)'$/, '$1').replace(/^"(.+)"$/, '$1');
+        en = strip(en);
+        zh = strip(zh);
+
+        let trans = (this.translations || []).find(x => x.EN === en);
+
+        if (trans && trans.ZH === zh && !number) {
+          return;
+        }
+
+        item.translation = { zh, en };
+        item.editNumber = item.number || number;
+        // indices is used to locate the item in whole menus array
+        // cause we need to clone the finished data and lose the reference
+        item.indices = indices;
+        this.flattened.push(item);
+      } else {
+        if (number) {
+          item.translation = { en: name };
+          item.editNumber = item.number || number;
+          item.indices = indices;
+          this.flattened.push(item);
+        }
       }
     }
 
