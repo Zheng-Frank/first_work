@@ -623,13 +623,13 @@ export class GlobalService {
           name: "GMB Tasks",
           href: "#/gmb-tasks",
           fa: "fab fa-google",
-          accessibleRoles: ['ADMIN', 'GMB', 'CSR', 'ACCOUNTANT', 'MARKETER_INTERNAL']
+          accessibleRoles: ['ADMIN', 'GMB', 'GMB_SPECIALIST', 'GMB_ADMIN', 'MARKETER_INTERNAL']
         },
         {
           name: "Leads",
           href: "#/leads",
           fa: "fas fa-lightbulb",
-          accessibleRoles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'GMB', 'CSR']
+          accessibleRoles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'GMB']
         },
         {
           name: "My Leads",
@@ -653,7 +653,9 @@ export class GlobalService {
           name: "SOPs",
           href: "#/sops",
           fa: "fas fa-project-diagram",
-          accessibleRoles: ['ADMIN', 'MENU_EDITOR', 'CSR', 'ACCOUNTANT', 'MARKETER']
+          accessibleRoles: ['ADMIN', 'ACCOUNT', 'CRM', 'CSR', 'DRIVER', 'GMB_SPECIALIST', 'GMB', 'INVOICE_VIEWER', 'IVR_CSR_MANAGER', 'IVR_GMB_MANAGER', 'IVR_INTERNAL_MANAGER',
+            'IVR_SALES_MANAGER','MARKETER_EXTERNAL','MARKETER_INTERNAL', 'MARKETER','MARKETER_DIRECTOR', 'MENU_EDITOR', 'PAYER', 'RATE_EDITOR',
+            'SIGNUP_AGENT']
         },
         {
           name: "Monitoring",
@@ -665,7 +667,7 @@ export class GlobalService {
           name: "System",
           href: "#/system",
           fa: "fas fa-cog",
-          accessibleRoles: ['ADMIN', 'CSR']
+          accessibleRoles: ['ADMIN']
         },
         // {
         //   name: "Transactions",

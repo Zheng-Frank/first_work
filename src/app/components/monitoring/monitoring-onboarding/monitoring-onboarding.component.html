@@ -2,6 +2,7 @@
   <h2 class="col-12 text-center">
     Onboarding ({{filteredRows.length}})
   </h2>
+  <h6 class="col-12 text-center">Only showing about yourself, if you is not admin (you may also be not salesperson that showing nothing).</h6>
 </div>
 <div class="form-inline">
   <select class="form-control mr-2 mb-1 ml-2" [(ngModel)]="hideInvalidSales" (change)="filter()">
@@ -16,10 +17,12 @@
     <option>No Menu</option>
     <option>Having Menu</option>
   </select>
-  <select class="form-control mr-2 mb-1 ml-2" [(ngModel)]="salesperson" (change)="filter()">
-    <option>Salesperson...</option>
-    <option *ngFor="let person of salespeople">{{person}}</option>
-  </select>
+  <ng-container *ngIf="isAdmin()">
+    <select class="form-control mr-2 mb-1 ml-2" [(ngModel)]="salesperson" (change)="filter()">
+      <option>Salesperson...</option>
+      <option *ngFor="let person of salespeople">{{person}}</option>
+    </select>
+  </ng-container>
   <div class="ml-2">
     <input type="checkbox" [(ngModel)]="isWarning" (change)="filter()">
     <i class="fas fa-square text-warning"></i> Need Action Immediately!
