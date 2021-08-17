@@ -3,6 +3,12 @@ import { ApiService } from 'src/app/services/api.service';
 import { GlobalService } from 'src/app/services/global.service';
 import { environment } from "../../../environments/environment";
 
+enum languageTypes {
+  All = 'ALL',
+  Chinese = 'CHINESE',
+  English = 'ENGLISH'
+}
+
 @Component({
   selector: 'app-bulk-messaging',
   templateUrl: './bulk-messaging.component.html',
@@ -10,6 +16,7 @@ import { environment } from "../../../environments/environment";
 })
 export class BulkMessagingComponent implements OnInit {
   @Input() restaurant;
+  @Input() ePLRestaurants = [];// enable prefer language restaurants
 
   isSMS = true;
   isEmail = false;
@@ -30,6 +37,10 @@ export class BulkMessagingComponent implements OnInit {
 
   processedRestaurantIds = new Set();
 
+  filterEPLRestaurants = [];
+  selectTypes = [languageTypes.All, languageTypes.English, languageTypes.Chinese];
+  selectType = languageTypes.All;
+
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
@@ -37,33 +48,52 @@ export class BulkMessagingComponent implements OnInit {
   }
 
   onChange() {
+    this.filterEPLRestaurants = this.ePLRestaurants;
   }
 
-  async getRestaurantById(id) {
-    if (!id) {
-      return;
+  filterRestaurantByLanguage() {
+    this.inputRestaurantString = '';
+    switch (this.selectType) {
+      case languageTypes.All:
+        this.filterEPLRestaurants = this.ePLRestaurants.filter(rt => !rt.disabled ? true : false);;
+        break;
+      case languageTypes.English:
+        this.filterEPLRestaurants = this.ePLRestaurants.filter(rt => !rt.disabled ? rt.preferredLanguage === languageTypes.English : false);
+        break;
+      case languageTypes.Chinese:
+        this.filterEPLRestaurants = this.ePLRestaurants.filter(rt => !rt.disabled ? rt.preferredLanguage === languageTypes.Chinese : false);
+        break;
+      default:
+        break;
     }
-
-    const restaurants = await this._global.getCachedRestaurantListForPicker();
-    const restaurant = restaurants.filter(rt => rt._id === id.trim())[0];
-    return restaurant;
+    this.inputRestaurantString = this.filterEPLRestaurants.map(rt => rt._id).join(', ');
   }
 
   async onAddRestaurant() {
-    const restaurantIdList = this.inputRestaurantString.split(',');
-
-    restaurantIdList.forEach(async restaurantId => {
-      const restaurant = await this.getRestaurantById(restaurantId.trim());
+    this.restaurants.length = 0;
+    this.inputRestaurantString = this.inputRestaurantString.replace(/\s+/g,' ');
+    const restaurantIdList = this.inputRestaurantString.split(',').map(str=>str.trim());
+    let tempRestaurantIdList = [];
+    restaurantIdList.forEach(rt => {
+      if (tempRestaurantIdList.indexOf(rt) === -1) {
+        tempRestaurantIdList.push(rt);
+      }
+    });
+    tempRestaurantIdList.forEach(restaurantId => {
+      const restaurant = this.ePLRestaurants.find(rt => rt._id === restaurantId);
       if (restaurant) {
         this.restaurants.push(restaurant);
       }
     });
-
     this.inputRestaurantString = '';
   }
 
   onRemove(id) {
     this.restaurants = this.restaurants.filter(restaurant => restaurant._id !== id);
+  }
+
+  onClearRestaurants() {
+    this.restaurants.length = 0;
   }
 
   stopBulkSend() {

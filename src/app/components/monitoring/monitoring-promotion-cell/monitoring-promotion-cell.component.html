@@ -1,0 +1,6 @@
+<div *ngIf="countsText">
+  {{ countsText }} (<a class="btn-link" (click)="validate.emit()">Validate</a>)
+</div>
+<div *ngIf="!countsText">
+  <a class="btn-link" (click)="crawl.emit()">Crawl</a>
+</div>

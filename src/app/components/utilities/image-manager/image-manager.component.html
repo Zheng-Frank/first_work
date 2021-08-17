@@ -1,12 +1,35 @@
 <div class="card">
   <h2 class="card-title m-3">
     <!-- <i [routerLink]="['/home']"><i class="fa fa-arrow-left"> Back </i></a> -->
-    <h1 class="text-center">Manage Images ({{rows.length}})</h1>
+    <h1 class="text-center">Manage Images</h1>
+    <div class="text-center text-danger">({{filterRows.length}} items, {{getItemWithImageCount()}} with images)</div>
   </h2>
   <div class="card-body">
-    <div class="text-right pb-2">
-      <!-- <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Inject All</button> -->
-      <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Add New Record</button>
+    <div class="row pb-2">
+      <div class="col-7 text-left form-inline">
+        <label class="form-check-label mr-2 ml-3">Cuisine Type
+          <select [(ngModel)]="cuisineType" class="form-control ml-2 limit-select-width" (change)="filter()">
+            <option *ngFor="let type of cuisineTypes">{{type}}</option>
+          </select>
+        </label>
+        <label class="form-check-label mr-2 ml-3">Order By
+          <select [(ngModel)]="orderBy" class="form-control ml-2" (change)="filter()">
+            <option *ngFor="let type of orderBys">{{type}}</option>
+          </select>
+        </label>
+
+        <!-- start with show no image items -->
+        <label class="form-check-label ml-3">Show
+          <select [(ngModel)]="noImagesFlag" class="form-control ml-2" (change)="filter()">
+            <option *ngFor="let type of showImagesItemsTypes">{{type}}</option>
+          </select>
+        </label>
+        <!-- end with show no image items -->
+      </div>
+      <div class="col-5 text-right">
+           <!-- <button class="btn btn-primary" *ngIf="isAdmin()" (click)="scrape()"><i class="fa fas fa-sync"></i> Scrape Common Items Async</button> -->
+        <button class="btn btn-primary" (click)="openAddRecordsModal()">+ Add New Records</button>
+      </div>
     </div>
     <table class="table table-striped">
       <tr>
@@ -21,20 +44,28 @@
           Delete
         </th>
       </tr>
-      <tr *ngFor="let row of rows; let i = index">
+      <tr *ngFor="let row of filterRows; let i = index">
         <td>
           {{i+1}}
         </td>
         <td>
           <q-values [(ngModel)]="row.aliases" (ngModelChange)="updateAliases(row)"></q-values>
+          <div class="row ml-1 mt-2" *ngIf="row.menuCount || row.orderCount">
+            <span class="mr-2" *ngIf="orderBy === 'Menu frequency'">Menu Frequency: {{row.menuCount || 0}}</span>
+            <span *ngIf="orderBy === 'Order frequency'">Order Frequency: {{row.orderCount || 0}}</span>
+          </div>
+          <div class="row ml-1 mt-2 text-warning" *ngIf="row.cuisines">
+            <span>Cuisines: {{row.cuisines.join(', ').toString()}}</span>
+          </div>
         </td>
         <td class="pl-1">
           <div *ngFor="let img of row.images" class="pr-1 pb-1" style="display:inline-block; position:relative">
             <img src="{{img.url192}}" (click)="thumbnailClick(row)">
-            <button (click)="deleteImage(img, row)" class="btn btn-secondary close-button transparent">
+            <button (click)="deleteImage(img, row)" *ngIf="img.url192"
+              class="btn btn-secondary close-button transparent">
               <i class="fas fa-times"></i>
             </button>
-            <button (click)="deleteImage(img, row)" class="btn btn-link text-danger close-button">
+            <button (click)="deleteImage(img, row)" *ngIf="img.url192" class="btn btn-link text-danger close-button">
               <i class="fas fa-times"></i>
             </button>
           </div>
@@ -54,10 +85,6 @@
       </tr>
 
     </table>
-    <div class="text-right pb-2">
-      <!-- <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Inject All</button> -->
-      <button class="btn btn-primary" (click)="createNew()" [qLoading]="addingNew">+ Add New Record</button>
-    </div>
 
     <q-modal #modalZoom *ngIf="clickedMi">
       <div class="modal-header" data-dismiss="modal">
@@ -90,5 +117,29 @@
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
       </div>
     </q-modal>
+    <!-- start with add new record modal -->
+    <q-modal #addRecordsModal>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">×</span>
+      </button>
+      <h4 class="text-center">Add New Records</h4>
+      <hr>
+      <div class="container">
+        <div class="row mt-2" *ngFor="let img of newImages;let i = index;">
+          <input type="text" class="form-control col-10" [(ngModel)]="img.aliases"
+            placeholder="Enter comma separed values!">
+          <button class="btn btn-link col-1 btn-sm" (click)="deleteNewLine(i)" *ngIf="newImages.length > 1"><i class="fa fa-minus"></i></button>
+          <button class="btn btn-link col-1 btn-sm" *ngIf="(i===newImages.length-1)&&(newImages.length<10)"  (click)="createNewLine()">
+            <i class="fa fa-plus"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end p-4">
+        <button class="btn btn-secondary mr-2" (click)="cancelCreateNew()">Cancel</button>
+        <button class="btn btn-primary" (click)="createNew()">OK</button>
+      </div>
+    </q-modal>
+    <!-- end with add new record modal -->
   </div>
 </div>
