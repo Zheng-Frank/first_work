@@ -17,8 +17,7 @@
           <button *ngIf="!restaurant.skipImageInjection" class="btn btn-link" (click)="injectImages()">Inject Image
             (加图片)</button>
           <button class="btn btn-link" (click)="deleteImages()">Delete Image (删除图片)</button>
-          <button class="btn btn-link" (click)="disableNotes()">{{ !disableNotesFlag ? 'Enable Notes(打开注释)': 'Disable
-            Notes(取消客人注释)' }}</button>
+          <button class="btn btn-link" (click)="disableNotes()">{{ !disableNotesFlag ? 'Enable Notes(打开注释)': 'Disable Notes(取消客人注释)' }}</button>
           <button class="btn btn-link" (click)="copyMenu = !copyMenu">Copy Menu to (拷贝菜单到)</button>
           <button class="btn btn-link" (click)="adjustingAllPrices = !adjustingAllPrices">Adjust All Prices
             (整体提价)</button>
@@ -53,10 +52,14 @@
 
         <div class="py-2">
           <button class="btn btn-default text-right" (click)="importMenu = false">Cancel</button>
-
-          <button class="btn btn-primary" (click)="crawl()"><i class="fas fa-bolt"></i> Crawl Async</button>
-          <button class="btn btn-primary" (click)="crawl(true)"><i class="fas fa-hourglass-half"></i> Crawl
+          <button class="btn btn-primary" (click)="crawl(keepExistingMenusForProvider)"><i class="fas fa-bolt"></i> Crawl Async</button>
+          <button class="btn btn-primary" (click)="crawl(keepExistingMenusForProvider, true)"><i class="fas fa-hourglass-half"></i> Crawl
             Sync</button>
+          <label class="float-right"><input type="checkbox" [(ngModel)]="keepExistingMenusForProvider" /> Keep existing menus after import</label>
+        </div>
+        <div class="text-danger" *ngIf="keepExistingMenusForProvider">
+          <p>WARNING: Newly imported menus will initially be disabled, please compare them with existing menus and make decision about which menu(s) to keep and which to discard.</p>
+          <p>警告：新采集的菜单会被默认设为禁用状态，请将其与原有菜单进行对比，确定每个菜单是保留还是废弃。</p>
         </div>
       </div>
       <div class="card card-body mt-4">
@@ -64,10 +67,14 @@
         <input [(ngModel)]="providerUrl" placeholder="crawl url">
         <div class="py-2">
           <button class="btn btn-default text-right" (click)="importMenu = false">Cancel</button>
-
-          <button class="btn btn-primary" (click)="crawl()"><i class="fas fa-bolt"></i> Crawl Async</button>
-          <button class="btn btn-primary" (click)="crawl(true)" [qLoading]="apiRequesting"><i
+          <button class="btn btn-primary" (click)="crawl(keepExistingMenusForUrl)"><i class="fas fa-bolt"></i> Crawl Async</button>
+          <button class="btn btn-primary" (click)="crawl(keepExistingMenusForUrl, true)" [qLoading]="apiRequesting"><i
               class="fas fa-hourglass-half"></i> Crawl Sync</button>
+          <label class="float-right"><input type="checkbox" [(ngModel)]="keepExistingMenusForUrl" /> Keep existing menus after import</label>
+        </div>
+        <div class="text-danger" *ngIf="keepExistingMenusForUrl">
+          <p>WARNING: Newly imported menus will initially be disabled, please compare them with existing menus and make decision about which menu(s) to keep and which to discard.</p>
+          <p>警告：新采集的菜单会被默认设为禁用状态，请将其与原有菜单进行对比并决定取舍后，将其启用。</p>
         </div>
       </div>
     </div>
