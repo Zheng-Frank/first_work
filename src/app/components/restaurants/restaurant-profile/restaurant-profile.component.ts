@@ -48,6 +48,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'ccMinimumCharge',
     'disableScheduling',
     'disabled',
+    'disabledAt',
     'notification',
     'ccProcessingRate',
     'ccProcessingFlatFee',
@@ -425,6 +426,12 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
     if (!this.disabled) {
       delete newObj.comebackDate;
+      delete newObj.disabledAt;
+    } else {
+      // if from enabled to disabled, update disabledAt field
+      if (!oldObj.disabled) {
+        newObj.disabledAt = new Date();
+      }
     }
 
     newObj.preferredLanguage = (this.preferredLanguage && this.preferredLanguage.value) || undefined;
