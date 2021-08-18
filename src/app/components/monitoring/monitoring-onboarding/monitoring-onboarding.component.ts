@@ -1,3 +1,4 @@
+import { Menu } from '@qmenu/ui';
 import { AlertType } from 'src/app/classes/alert-type';
 import { User } from './../../../classes/user';
 import { Component, OnInit } from '@angular/core';
@@ -6,13 +7,13 @@ import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { Log } from '../../../classes/log';
 enum hideInvaidSalesTypes {
-  All = 'All',
+  All = 'Valid Sale?',
   ValidSales = 'Valid Sales',
   InvalidSales = 'Invalid Sales'
 }
 
 enum MenuTypes {
-  All = 'All',
+  All = 'Has Menu?',
   NoMenu = 'No Menu',
   HavingMenu = 'Having Menu'
 }
@@ -27,10 +28,10 @@ export class MonitoringOnboardingComponent implements OnInit {
   salespeople = []; // filter by Sales people.
   salesperson = 'Salesperson...';
 
-  hideInvalidSales = 'Valid Sale?'; // a flag to control whether hide restaurants of  invalid sales 
+  hideInvalidSales = hideInvaidSalesTypes.All; // a flag to control whether hide restaurants of  invalid sales 
   havingGMB: boolean;
   isWarning: boolean;
-  filterBy = 'Has Menu?';
+  filterBy = MenuTypes.All;
 
   rows = []; // {restaurant, noMenu, noOrder, hasGmb, hadGmb}
   filteredRows = [];
@@ -114,14 +115,14 @@ export class MonitoringOnboardingComponent implements OnInit {
       }
     });
     if(!this.isAdmin()){
-      this.salesperson = this.salespeople.filter(agent=>agent === this._global.user)[0]||'';
+      this.salesperson = this.salespeople.filter(agent=>agent === this._global.user)[0]||'Nothing';
+      this.rows = this.rows.filter(r =>r.agent === this.salesperson);
     }
-    this.filteredRows = this.rows;
     this.filter();
   }
 
   isAdmin(){
-   return this._global.user.roles.indexOf('ADMIN') >= 0;
+   return this._global.user.roles.indexOf('CSR') >= 0;
   }
 
   getDaysFromId(mongoId) {
@@ -150,7 +151,6 @@ export class MonitoringOnboardingComponent implements OnInit {
         this.filteredRows = this.filteredRows.filter(r => r.agent !== 'charity' && !r.noMenu && r.noOrder);
         break;
       default:
-        this.filteredRows = this.filteredRows;
         break;
     }
 
@@ -166,7 +166,6 @@ export class MonitoringOnboardingComponent implements OnInit {
         this.filteredRows = this.filteredRows.filter(r => !(!r.agent || !(r.agent && (r.agent.trim() === "invalid" || r.agent.trim() === "Invalid" || r.agent.trim() === "none" || r.agent.trim() === "None"))));
         break;
       default:
-        this.filteredRows = this.filteredRows;
         break;
     }
     this.filterBySalePerson();

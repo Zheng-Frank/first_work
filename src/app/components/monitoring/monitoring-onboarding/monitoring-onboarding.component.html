@@ -2,18 +2,15 @@
   <h2 class="col-12 text-center">
     Onboarding ({{filteredRows.length}})
   </h2>
-  <h6 class="col-12 text-center">Only showing about yourself, if you is not admin (you may also be not salesperson that showing nothing).</h6>
 </div>
 <div class="form-inline">
   <select class="form-control mr-2 mb-1 ml-2" [(ngModel)]="hideInvalidSales" (change)="filter()">
     <option>Valid Sale?</option>
-    <option>All</option>
     <option>Valid Sales</option>
     <option>Invalid Sales</option>
   </select>
   <select class="form-control mr-2 mb-1 ml-2" [(ngModel)]="filterBy" (change)="filter()">
     <option>Has Menu?</option>
-    <option>All</option>
     <option>No Menu</option>
     <option>Having Menu</option>
   </select>
