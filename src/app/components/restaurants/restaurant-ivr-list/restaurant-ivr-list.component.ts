@@ -139,14 +139,7 @@ export class RestaurantIvrListComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.channels = this.restaurant.channels.filter(c => {
-      if (c.type !== 'Email') {
-        c.value = "+1" + c.value;
-        return true;
-      } else {
-        return false;
-      }
-    }).map(c => c.value);
+    this.channels = this.restaurant.channels.filter(c => c.type !== 'Email').map(c=> "+1" + c.value);
     this.refreshCtrs();
   }
 
