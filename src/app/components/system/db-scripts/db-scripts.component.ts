@@ -157,30 +157,28 @@ export class DbScriptsComponent implements OnInit {
       return false;
     }
     mc.mis.forEach((mi) => {
-      if (!mi.name) {
+      // if mi has no name or has a number, skip
+      if (!mi.name || mi.number) {
         numbers.push(null);
         return false;
       }
       let num = mi.name.split('.')[0];
       numbers.push(num.trim());
     });
-    if (numbers.length < 5) {
+    // if numbers less than 5, or have empty number item,
+    // or have number includes 3+ continuous letter,
+    // or have number includes non-english characters, skip
+    if (numbers.length < 5 || numbers.some(n => !n || /[a-z]{3,}/i.test(n) || /[^\x00-\xff]/.test(n))) {
       return false;
     }
     let base = numbers.shift();
     if (!base) {
       return false;
     }
-    // let suffixRegex = /\s*[.-]$/, suffix = (base.match(suffixRegex) || [])[0];
-    // let hasDotRegex = /\w+\.\w+/, hasDot = hasDotRegex.test(base);
-    // let pureBase = base.replace(suffixRegex, '');
+
 
     let baseLastCharCode = base.charCodeAt(base.length - 1);
     let flag = numbers.every((n, i) => {
-      if (!n) {
-        return false;
-      }
-
       // make sure the extracted number is increasing
       // check the last character
       return baseLastCharCode + (i + 1) === n.charCodeAt(n.length - 1);
@@ -193,7 +191,7 @@ export class DbScriptsComponent implements OnInit {
         let num = numbers[index];
         let names = mi.name.split('.');
         names.shift();
-        mi.name = names.join('.').trim();
+        mi.name = names.join('.').replace(/^\s*\)\s*/, '').trim();
         mi.number = num;
       });
       // if the updated name is empty, we should skip, eg: comb1, comb2, comb3, etc... -> empty name
