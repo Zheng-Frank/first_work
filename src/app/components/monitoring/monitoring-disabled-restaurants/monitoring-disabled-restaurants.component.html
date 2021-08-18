@@ -1,6 +1,5 @@
 <div class="card">
   <h2 class="card-title m-3">
-    <!-- <i [routerLink]="['/home']"><i class="fa fa-arrow-left"> Back </i></a> -->
     <h1 class="text-center">Disabled Restaurants ({{restaurants.length}})</h1>
   </h2>
   <div class="card-body">
@@ -17,7 +16,7 @@
           {{i+1}}
         </td>
         <td>
-          <a routerLink="/restaurants/{{r['_id']}}">{{r.name}}</a>
+          <a routerLink="/restaurants/{{r['_id']}}">{{r.name}} (disabled:  {{getTime(r.disabledAt) | dateTz: 'MMM d, yyyy' : r.googleAddress?.timezone }})</a>
           <div class="text-muted">
             <small>{{r.googleAddress?.formatted_address}}</small>
           </div>
@@ -27,7 +26,6 @@
         </td>
         <td>
           {{getTime(r.createdAt) | dateTz: 'MMM d, yyyy' : r.googleAddress?.timezone }}
-
         </td>
       </tr>
 

@@ -13,14 +13,10 @@ export class MonitoringDisabledRestaurantsComponent implements OnInit {
     rows = []; // {restaurant, orders}
     constructor(private _api: ApiService, private _global: GlobalService) { }
 
-    now = new Date();
-    restaurants;
+    restaurants = [];
 
     ngOnInit() {
         this.refreshOrders();
-        // setInterval(() => { this.refreshOrders(); }, 180000);
-
-        setInterval(() => { this.now = new Date(); }, 60000);
     }
 
     async refreshOrders() {
@@ -36,15 +32,15 @@ export class MonitoringDisabledRestaurantsComponent implements OnInit {
                 _id: 1,
                 'googleAddress.formatted_address': 1,
                 'googleAddress.timezone': 1,
-                'rateSchedules':1,
+                'rateSchedules.agent':1,
                 createdAt: 1,
-                updatedAt: 1
+                updatedAt: 1,
+                disabledAt: 1
             },
             sort: {
                 createdAt: -1
             }
-        }, 1000000)
-
+        }, 1000000);
 
         //restaurants.sort((r1, r2) => r2.createdAt.valueOf() - r1.createdAt.valueOf());
         // console.log('disabled restaurant', this.restaurants);
