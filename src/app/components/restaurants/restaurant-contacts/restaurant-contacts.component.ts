@@ -63,9 +63,9 @@ export class RestaurantContactsComponent implements OnInit {
     }
   ];
 
-  channelLanguageDescriptor = {
-      field: "channelLanguage",
-      label: "Channel Language",
+  languageDescriptor = {
+      field: "language",
+      label: "Language",
       required: false,
       inputType: "single-select",
       items: [
@@ -174,7 +174,7 @@ export class RestaurantContactsComponent implements OnInit {
       this.channelInEditing = JSON.parse(JSON.stringify(channel));
       this.channelInEditing.index = this.restaurant.channels.indexOf(channel);
     }
-    this.channelLanguageDescriptor.items.forEach(x => x.selected = false);
+    this.languageDescriptor.items.forEach(x => x.selected = false);
     this.channelFormChange();
     this.modalChannel.show();
   }
@@ -223,11 +223,11 @@ export class RestaurantContactsComponent implements OnInit {
 
   channelFormChange() {
     if (this.channelInEditing.type === 'Phone') {
-      if (!this.channelFieldDescriptors.some(x => x.field === 'channelLanguage')) {
-        this.channelFieldDescriptors.push(this.channelLanguageDescriptor);
+      if (!this.channelFieldDescriptors.some(x => x.field === 'language')) {
+        this.channelFieldDescriptors.push(this.languageDescriptor);
       }
     } else {
-      this.channelFieldDescriptors = this.channelFieldDescriptors.filter(x => x.field !== 'channelLanguage');
+      this.channelFieldDescriptors = this.channelFieldDescriptors.filter(x => x.field !== 'language');
     }
   }
 
@@ -239,9 +239,9 @@ export class RestaurantContactsComponent implements OnInit {
       this.channelInEditing.value = this.channelInEditing.value.replace(/\D/g, '');
     }
 
-    // currently channelLanguage only support for Phone
+    // currently language only support for Phone
     if (this.channelInEditing.type !== 'Phone') {
-      this.channelInEditing.channelLanguage = undefined;
+      this.channelInEditing.language = undefined;
     }
 
 
