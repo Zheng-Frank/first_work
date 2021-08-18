@@ -191,7 +191,8 @@ export class DbScriptsComponent implements OnInit {
         let num = numbers[index];
         let names = mi.name.split('.');
         names.shift();
-        mi.name = names.join('.').replace(/^\s*\)\s*/, '').trim();
+        // remove pure name's prefix ) or .
+        mi.name = names.join('.').replace(/^\s*[).]\s*/, '').trim();
         mi.number = num;
       });
       // if the updated name is empty, we should skip, eg: comb1, comb2, comb3, etc... -> empty name
