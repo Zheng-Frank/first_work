@@ -151,6 +151,86 @@ export class DbScriptsComponent implements OnInit {
     return false;
   }
 
+  detectNumberByMc(mc, rtId, detectedMis) {
+    let numbers = [];
+    if (!mc.mis) {
+      return false;
+    }
+    mc.mis.forEach((mi) => {
+      if (!mi.name) {
+        numbers.push(null);
+        return false;
+      }
+      let num = mi.name.split('.')[0];
+      numbers.push(num.trim());
+    });
+    if (numbers.length < 5) {
+      return false;
+    }
+    let base = numbers.shift();
+    if (!base) {
+      return false;
+    }
+    // let suffixRegex = /\s*[.-]$/, suffix = (base.match(suffixRegex) || [])[0];
+    // let hasDotRegex = /\w+\.\w+/, hasDot = hasDotRegex.test(base);
+    // let pureBase = base.replace(suffixRegex, '');
+
+    let baseLastCharCode = base.charCodeAt(base.length - 1);
+    let flag = numbers.every((n, i) => {
+      if (!n) {
+        return false;
+      }
+
+      // make sure the extracted number is increasing
+      // check the last character
+      return baseLastCharCode + (i + 1) === n.charCodeAt(n.length - 1);
+    });
+    if (flag) {
+      let origin = mc.mis.map(x => ({number: x.number, name: x.name}));
+      // make update
+      numbers.unshift(base);
+      mc.mis.forEach((mi, index) => {
+        let num = numbers[index];
+        let names = mi.name.split('.');
+        names.shift();
+        mi.name = names.join('.').trim();
+        mi.number = num;
+      });
+      // if the updated name is empty, we should skip, eg: comb1, comb2, comb3, etc... -> empty name
+      if (mc.mis.some(x => !x.name)) {
+        return false;
+      }
+      let temp = {
+        rt: rtId, origin, numbers: [base, ...numbers],
+        updated: mc.mis.map(x => ({number: x.number, name: x.name}))
+      };
+      detectedMis.push(temp);
+    }
+    return flag;
+  }
+
+  async extractMenuNumberInName() {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: { disabled: { $ne: true } },
+      projection: { 'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, 'menus.mcs.mis.number': 1, name: 1 }
+    }, 500);
+
+    let detectedMis = [];
+    let canExtract = rts.filter(rt => {
+      let flag = false;
+      (rt.menus || []).forEach(menu => {
+        (menu.mcs || []).forEach(mc => {
+          flag = this.detectNumberByMc(mc, rt._id, detectedMis) || flag;
+        });
+      });
+      return flag;
+    });
+    console.log('rt count: ', canExtract.length, ' mi count: ', detectedMis.length);
+    console.log(JSON.stringify(detectedMis));
+    console.log(JSON.stringify(canExtract.map(rt => rt._id)));
+  }
+
   async getRTsToCleanMenu() {
 
     const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {

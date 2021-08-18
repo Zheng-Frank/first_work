@@ -1,14 +1,21 @@
 <h1 class="text-center">DB Scripts</h1>
 
 <div class="card-group">
-  <div class="card">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Extract Menu Number In Name</h5>
+            <p class="card-text">Find all menus which has number prefix in name, extract the number.</p>
+            <button class="btn btn-primary" (click)="extractMenuNumberInName()">Execute</button>
+        </div>
+    </div>
+    <div class="card">
         <div class="card-body">
             <h5 class="card-title">Detect Menu</h5>
             <p class="card-text">Get all restaurants' id which has potential menu name issue.</p>
             <button class="btn btn-primary" (click)="getRTsToCleanMenu()">Execute</button>
         </div>
     </div>
-  <div class="card">
+    <div class="card">
         <div class="card-body">
             <h5 class="card-title">Remove Menus' Unnecessary Spaces</h5>
             <p class="card-text">Remove all menus' unnecessary spaces, include preceding, tailing, and shrink continuous spaces between words to one.</p>
