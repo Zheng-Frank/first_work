@@ -81,6 +81,7 @@ import { RoutineDashboardComponent } from './components/routines/routine-dashboa
 import { RoutineAdminDashboardComponent } from './components/routines/routine-admin-dashboard/routine-admin-dashboard.component';
 import { GmbPermanentlyClosedListComponent } from './components/gmbs2/gmb-closed-list/gmb-closed-list.component';
 import { CleanMenusComponent } from './components/monitoring/clean-menus/clean-menus.component';
+import { FraudDetectionComponent } from './components/fraud-detection/fraud-detection.component';
 
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component },
@@ -162,6 +163,7 @@ const routes: Routes = [
   { path: 'routines-admin', component: RoutineAdminDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'seo-tracking', component: SeoTrackingComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'clean-menus', component: CleanMenusComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  { path: 'fraud-detection', component: FraudDetectionComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: '**', redirectTo: '/home' }
 
 ];
