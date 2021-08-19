@@ -115,7 +115,7 @@ export class MonitoringOnboardingComponent implements OnInit {
       }
     });
     if(!this.isAdmin()){
-      this.salesperson = this.salespeople.filter(agent=>agent === this._global.user)[0]||'Nothing';
+      this.salesperson = this.salespeople.filter(agent=>agent === this._global.user.username)[0]||'Nothing';
       this.rows = this.rows.filter(r =>r.agent === this.salesperson);
     }
     this.filter();
