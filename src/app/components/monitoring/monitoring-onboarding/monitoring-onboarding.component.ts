@@ -109,11 +109,13 @@ export class MonitoringOnboardingComponent implements OnInit {
     });
 
     this.rows.sort((r1, r2) => r2.restaurant.createdAt.valueOf() - r1.restaurant.createdAt.valueOf())
-    this.rows.forEach(row=>{
+    this.rows.filter(r => !r.agent || !(r.agent && (r.agent.trim() === "invalid" || r.agent.trim() === "Invalid" || r.agent.trim() === "none" || r.agent.trim() === "None")))
+    .forEach(row=>{
       if(row.agent && !this.salespeople.includes(row.agent)){
         this.salespeople.push(row.agent);
       }
     });
+    this.salespeople.sort((a,b)=> (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0));
     if(!this.isAdmin()){
       this.salesperson = this.salespeople.filter(agent=>agent === this._global.user.username)[0]||'Nothing';
       this.rows = this.rows.filter(r =>r.agent === this.salesperson);
@@ -122,7 +124,7 @@ export class MonitoringOnboardingComponent implements OnInit {
   }
 
   isAdmin(){
-   return this._global.user.roles.indexOf('ADMIN') >= 0;
+   return this._global.user.roles.indexOf('CSR') >= 0;
   }
 
   getDaysFromId(mongoId) {
