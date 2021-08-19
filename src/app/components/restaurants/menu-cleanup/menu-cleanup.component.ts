@@ -56,7 +56,8 @@ export class MenuCleanupComponent implements OnInit, OnChanges {
 
   detect(item, indices) {
     let { name } = item;
-    if (!name) {
+    // if name is empty or item has number already, skip
+    if (!name || !!item.number) {
       return;
     }
     name = name.trim();

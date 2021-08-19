@@ -39,8 +39,9 @@ export class DbScriptsComponent implements OnInit {
 
   detectNumber(item) {
     let { name } = item;
-    if (!name) {
-      return false;
+    // if name is empty or item has number already, skip
+    if (!name || !!item.number) {
+      return;
     }
 
     name = name.trim();
