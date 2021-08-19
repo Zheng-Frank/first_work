@@ -24,14 +24,16 @@ export class SendTextReplyComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
-    if(this.restaurant.channels){
-      this.channels = this.restaurant.channels.filter(channel => channel.type && channel.type === 'SMS');
-      if(this.channels && this.channels.length > 0){
-        this.sendToTypes = [...new Set(this.channels.map(channel=>channel.value))];
-        this.sendToTypes.unshift('All');
+    if(this.restaurant){
+      if(this.restaurant.channels){
+        this.channels = this.restaurant.channels.filter(channel => channel.type && channel.type === 'SMS');
+        if(this.channels && this.channels.length > 0){
+          this.sendToTypes = [...new Set(this.channels.map(channel=>channel.value))];
+          this.sendToTypes.unshift('All');
+        }
       }
+      this.sendToTypes.push('Other');
     }
-    this.sendToTypes.push('Other');
   }
 
   isPhoneValid(text) {
@@ -163,7 +165,7 @@ export class SendTextReplyComponent implements OnInit {
       case 'QR promo pamphlet (Eng)':
         this.message = `Take a look at all qMenu's QR dine-in system has to offer: https://pro-bee-beepro-messages.s3.amazonaws.com/474626/454906/1210649/5936605.html`;
         break;
-      case 'QR promo pamphlet (Chn)':
+      case 'QR promo pamphlet (中)':
         this.message = '看看 qMenu 的扫码点餐系统提供的所有好处：https://pro-bee-beepro-messages.s3.amazonaws.com/474626/454906/1210649/6204156.html';
         break;
       default:
