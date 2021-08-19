@@ -103,6 +103,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     name: 1,
     notes: 1,
     notification: 1,
+    orderNotifications: 1,
     paymentMeans: 1,
     people: 1,
     pickupMinimum: 1,
