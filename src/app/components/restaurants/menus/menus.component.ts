@@ -29,6 +29,8 @@ export class MenusComponent implements OnInit {
   @Output() menusChanged = new EventEmitter();
 
   importMenu = false;
+  keepExistingMenusForProvider = false;
+  keepExistingMenusForUrl = false;
   importJson = false;
   importCoupon = false;
   apiRequesting = false;
@@ -138,11 +140,18 @@ export class MenusComponent implements OnInit {
     this.showAdditionalFunctions = false;
     this.copyMenu = false;
     this.importMenu = false;
+    this.keepExistingMenusForUrl = false;
+    this.keepExistingMenusForProvider = false;
     this.importCoupon = false;
     this.adjustingAllPrices = false;
     this.adjustingMenuOrders = false;
   }
 
+  importMenus() {
+    this.importMenu = true;
+    this.keepExistingMenusForUrl = false;
+    this.keepExistingMenusForProvider = false;
+  }
 
   async populateProviders() {
     this.apiRequesting = true;
@@ -168,10 +177,10 @@ export class MenusComponent implements OnInit {
     this.apiRequesting = false;
   }
 
-  trimName(menus) {
-    (menus || []).forEach(menu => {
-      menu.name = Helper.shrink(menu.name);
-      (menu.mcs || []).forEach(mc => {
+  trimName(menusOrOptions) {
+    (menusOrOptions || []).forEach(x => {
+      x.name = Helper.shrink(x.name);
+      (x.mcs || []).forEach(mc => {
         mc.name = Helper.shrink(mc.name);
         (mc.mis || []).forEach(mi => {
           mi.name = Helper.shrink(mi.name);
@@ -180,12 +189,15 @@ export class MenusComponent implements OnInit {
           });
         });
       });
+      // handle menuOptions
+      (x.items || []).forEach(item => {
+        item.name = Helper.shrink(item.name);
+      });
     });
-    return menus;
+    return menusOrOptions;
   }
 
-  async crawl(synchronously) {
-    console.log(this.restaurant.googleAddress);
+  async crawl(keepExistingMenus, synchronously = false) {
     this.apiRequesting = true;
     try {
       this._global.publishAlert(AlertType.Info, 'crawling...');
@@ -198,13 +210,28 @@ export class MenusComponent implements OnInit {
           }
         }).toPromise();
         this._global.publishAlert(AlertType.Info, 'updating...');
+        let menus = this.trimName(crawledRestaurant.menus);
+        let menuOptions = this.trimName(crawledRestaurant.menuOptions);
+        if (keepExistingMenus) {
+          const importedTime = new Date().toLocaleString('en-US', {
+            timeZone: this.restaurant.googleAddress.timezone, ...Helper.FULL_DATETIME_LOCALE_OPTS
+          });
+          const timestamp = new Date().valueOf();
+          menus = [
+            ...(this.restaurant.menus || []),
+            ...(menus.map(m => ({...m, id: m.id + timestamp, disabled: true, name: m.name + ` (imported ${importedTime})`})))
+          ];
+          menuOptions = [
+            ...(this.restaurant.menuOptions || []),
+            ...(menuOptions.map(m => ({...m, id: m.id + timestamp, disabled: true, name: m.name + ` (imported ${importedTime})`})))
+          ];
+        }
         await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
           old: {
             _id: this.restaurant._id
           }, new: {
             _id: this.restaurant._id,
-            menus: this.trimName(crawledRestaurant.menus),
-            menuOptions: crawledRestaurant.menuOptions
+            menus, menuOptions
           }
         }]).toPromise();
 
@@ -221,7 +248,14 @@ export class MenusComponent implements OnInit {
         await this._api.post(environment.appApiUrl + 'events',
           [{
             queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`,
-            event: { name: 'populate-menus', params: { restaurantId: this.restaurant._id, url: this.providerUrl } }
+            event: {
+              name: 'populate-menus',
+              params: {
+                restaurantId: this.restaurant._id,
+                url: this.providerUrl,
+                keepExistingMenus
+              }
+            }
           }]
         ).toPromise();
         alert('Started in background. Refresh in about 1 minute or come back later to check if menus are crawled successfully.');

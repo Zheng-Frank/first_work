@@ -7,6 +7,8 @@ const FULL_LOCALE_OPTS = {year: 'numeric', month: 'numeric', day: 'numeric', hou
 
 export class Helper {
 
+  static FULL_DATETIME_LOCALE_OPTS = FULL_LOCALE_OPTS;
+
     static async uploadImage(files: File[], _api: ApiService, _http: HttpClient) {
         // let's take only the first file so far (possible for multiple files in future)
         const [file] = files;
