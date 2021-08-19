@@ -72,7 +72,6 @@ export class MonitoringDisabledRestaurantsComponent implements OnInit {
             restaurant.lifetime = Number((lifetime / (24 * 3600 * 1000)).toFixed(0));
             return restaurant;
         });
-        //restaurants.sort((r1, r2) => r2.createdAt.valueOf() - r1.createdAt.valueOf());
     }
     getTime(time) {
         return new Date(time);
