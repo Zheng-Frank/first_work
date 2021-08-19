@@ -48,7 +48,7 @@ export class MenusComponent implements OnInit {
 
   showAdditionalFunctions = false;
   showPromotions = false;
-
+  menuCleanHandleIDsOnly = true;
   menuJson = '';
 
 
@@ -234,6 +234,7 @@ export class MenusComponent implements OnInit {
   }
 
   async cleanup() {
+    this.menuCleanHandleIDsOnly = true;
     this.menuCleanModal.show();
     setTimeout(() => {
       this.cleanupComponent.collect();
@@ -241,6 +242,7 @@ export class MenusComponent implements OnInit {
   }
 
   cleanupCancel() {
+    this.menuCleanHandleIDsOnly = true;
     this.menuCleanModal.hide();
   }
 
