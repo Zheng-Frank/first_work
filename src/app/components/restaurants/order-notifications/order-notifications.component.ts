@@ -131,6 +131,17 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     ]
   };
 
+  languagesDescriptor = {
+    field: "languages", //
+    label: "Languages",
+    required: false,
+    inputType: "multi-select",
+    items: [
+      { object: "EN", text: "English", selected: true },
+      { object: "ZH", text: "中文", selected: false },
+    ]
+  };
+
   copiesDescriptor = {
     field: "copies", //
     label: "Copies",
@@ -162,7 +173,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     Email: [this.channelDescriptor, this.orderTypesDescriptor],
     'fei-e': [this.channelDescriptor, this.orderTypesDescriptor, this.copiesDescriptor],
     'longhorn': [this.channelDescriptor, this.orderTypesDescriptor, this.copiesDescriptor],
-    'phoenix': [this.channelDescriptor, this.orderTypesDescriptor, this.formatDescriptor, this.templateNameDescriptor, this.copiesDescriptor, this.customizedRenderingStylesDescriptor],
+    'phoenix': [this.channelDescriptor, this.orderTypesDescriptor, this.formatDescriptor, this.templateNameDescriptor, this.languagesDescriptor, this.copiesDescriptor, this.customizedRenderingStylesDescriptor],
   }
 
   menuFilters = [];
@@ -187,6 +198,10 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
 
   havingMenuFilters() {
     return this.orderNotifications.some(n => n.menuFilters && n.menuFilters.length > 0);
+  }
+
+  havingNonEnglishLanguages() {
+    return this.orderNotifications.some(n => (n.languages || []).filter(lang => lang !== 'EN').length > 0);
   }
 
   havingCopies() {

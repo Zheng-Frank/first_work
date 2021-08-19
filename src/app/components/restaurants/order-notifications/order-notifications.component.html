@@ -6,11 +6,13 @@
     <li class="list-group-item">
       <table class="table table-borderless table-sm">
         <thead>
+          <!-- we have so many columns, so let's just selectively show columns to reduce clutter -->
           <tr *ngIf="orderNotifications.length > 0">
             <th scope="col">Target Channel</th>
             <th scope="col" class="text-nowrap" *ngIf="havingOrderTypes()">Order Types</th>
             <th scope="col" *ngIf="havingTemplateName()">Template</th>
             <th scope="col" *ngIf="havingMenuFilters()">Menu Filters</th>
+            <th scope="col" *ngIf="havingNonEnglishLanguages()">Languages</th>
             <th scope="col" *ngIf="havingCopies()">Copies</th>
             <th scope="col"></th>
           </tr>
@@ -33,20 +35,16 @@
               </span>
             </td>
             <td *ngIf="havingOrderTypes()">
-              <!-- <span *ngIf="!n.orderTypes || n.orderTypes.length === 0">
-                ALL
-              </span> -->
-              <span *ngFor="let t of (n.orderTypes || [])">
-                {{t}}&nbsp;
-              </span>
+              {{n.orderTypes.join(', ')}}
             </td>
             <td *ngIf="havingTemplateName()">
               {{n.templateName}}
             </td>
             <td *ngIf="havingMenuFilters()">
-              <div *ngFor="let menu of (n.menuFilters || [])">
-                {{menu.name}}
-              </div>
+              <app-menu-filters-editor [viewOnly]="true" [menuFilters]="n.menuFilters"></app-menu-filters-editor>
+            </td>
+            <td *ngIf="havingNonEnglishLanguages()">
+              {{n.languages.join(', ')}}
             </td>
             <td *ngIf="havingCopies()">
               {{n.copies ? n.copies + 'X' : ''}}
@@ -65,6 +63,8 @@
     </li>
   </ul>
 </div>
+DEBUG: current notifications:
+{{orderNotifications | json}}
 
 <q-modal #modalNotification>
   <button type="button" class="close" data-dismiss="modal" aria-label="Close">

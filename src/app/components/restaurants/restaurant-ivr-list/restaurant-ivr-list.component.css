@@ -1,0 +1,17 @@
+.btn-status {
+    width: 16rem;
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.my-text-small {
+    font-size: 75%;
+}
+
+.float-top-right {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding-top: 1.625rem;
+    padding-right: 1rem;
+}

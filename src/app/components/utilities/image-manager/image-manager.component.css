@@ -13,3 +13,8 @@
 .transparent {
     opacity: 0.7;
 }
+
+.limit-select-width {
+    min-width: 200px;
+    max-width: 200px;
+  }
