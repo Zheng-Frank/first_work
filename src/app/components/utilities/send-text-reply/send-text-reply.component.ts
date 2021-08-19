@@ -165,7 +165,7 @@ export class SendTextReplyComponent implements OnInit {
       case 'QR promo pamphlet (Eng)':
         this.message = `Take a look at all qMenu's QR dine-in system has to offer: https://pro-bee-beepro-messages.s3.amazonaws.com/474626/454906/1210649/5936605.html`;
         break;
-      case 'QR promo pamphlet (Chn)':
+      case 'QR promo pamphlet (中)':
         this.message = '看看 qMenu 的扫码点餐系统提供的所有好处：https://pro-bee-beepro-messages.s3.amazonaws.com/474626/454906/1210649/6204156.html';
         break;
       default:
