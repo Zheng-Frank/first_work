@@ -26,8 +26,8 @@ export class DbScriptsComponent implements OnInit {
   parsePrefixNum (name) {
     // 1) A. XXX; A1. XXX; A 1. XXX A12. XXX; A1 XXX; A12 XXX; AB1 XXX; AB12 XXX; AB12. XXX; AB1. XXX;
     let regex1 = /^(?<to_rm>(?<num>([a-z]{0,2}\s?\d*))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
-    // 2) 1A XXX; 12A XXX; 11B. XXX; 1B. XXX;
-    let regex2 = /^(?<to_rm>(?<num>(\d+[a-z]{0,2}))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
+    // 2) 1. XXX; #1. XXX; 1A XXX; 12A XXX; 11B. XXX; 1B. XXX;
+    let regex2 = /^(?<to_rm>(?<num>(#?\d+[a-z]{0,2}))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
     // 3) No. 1 XXX; NO. 12 XXX;
     let regex3 = /^(?<to_rm>(?<num>(No\.\s?\d+))\s+)(?<word>\S+)\s*/i;
     // 4) 中文 A1. XXX
@@ -73,13 +73,14 @@ export class DbScriptsComponent implements OnInit {
         if (hasMeasure) {
           return /\D+/.test(num);
         } else {
-          // if no measure word
-          // if num aftered with L/l, we check the item's number
-          if (/^\d+L$/i.test(num)) {
+          // if no measure word, no dot and pure digits or digits with L/l
+          // we check the item's number property
+          if (/^\d+L?$/i.test(num)) {
             return !item.number;
+          } else {
+            // no dot and measure word, we check if num has digits
+            return /\d/.test(num);
           }
-          // no dot and measure word, we check if num has digits
-          return /\d/.test(num);
         }
       }
     }
