@@ -24,14 +24,16 @@ export class SendTextReplyComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
-    if(this.restaurant.channels){
-      this.channels = this.restaurant.channels.filter(channel => channel.type && channel.type === 'SMS');
-      if(this.channels && this.channels.length > 0){
-        this.sendToTypes = [...new Set(this.channels.map(channel=>channel.value))];
-        this.sendToTypes.unshift('All');
+    if(this.restaurant){
+      if(this.restaurant.channels){
+        this.channels = this.restaurant.channels.filter(channel => channel.type && channel.type === 'SMS');
+        if(this.channels && this.channels.length > 0){
+          this.sendToTypes = [...new Set(this.channels.map(channel=>channel.value))];
+          this.sendToTypes.unshift('All');
+        }
       }
+      this.sendToTypes.push('Other');
     }
-    this.sendToTypes.push('Other');
   }
 
   isPhoneValid(text) {
