@@ -148,15 +148,17 @@
 
   </q-modal>
 
-  <q-modal #menuCleanModal [size]="'800px'">
+  <q-modal #menuCleanModal [size]="'1000px'">
     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
       <span aria-hidden="true">×</span>
     </button>
-    <h4 class="text-center">Preview Extractions and Translations</h4>
+    <h4 class="header-title text-center">
+    Preview Extractions and Translations
+    <label class="header-checkbox"><input type="checkbox" [(ngModel)]="menuCleanHandleIDsOnly"> Only handle IDs</label>
+  </h4>
     <hr>
-    <app-menu-cleanup *ngIf="menusToClean.length > 0" [menus]="menusToClean" (cancel)="cleanupCancel()"
-      (save)="cleanupSave()"></app-menu-cleanup>
-    <div *ngIf="menusToClean.length === 0">All menus are cleaned up!</div>
+    <app-menu-cleanup #cleanupComponent [allMenus]="restaurant.menus" [translations]="restaurant.translations"
+                      (cancel)="cleanupCancel()" [handleIDsOnly]="menuCleanHandleIDsOnly" (save)="cleanupSave($event)"></app-menu-cleanup>
   </q-modal>
 
 

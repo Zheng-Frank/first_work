@@ -1,12 +1,3 @@
-.app-tab{
-    white-space: nowrap;
-    display: inline-block;
-}
-.app-tab li {
-    display: inline-block;
-    float: inherit;
-}
-
 .header-title {
   position: relative;
   width: calc(100% - 30px);
