@@ -24,13 +24,17 @@ export class DbScriptsComponent implements OnInit {
 
 
   parsePrefixNum (name) {
-    // 1) A1. XXX; A12. XXX; A1 XXX; A12 XXX; AB1 XXX; AB12 XXX; AB12. XXX; AB1. XXX;
-    let regex1 = /^(?<to_rm>(?<num>([a-z]{0,2}\d+))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
+    // 1) A. XXX; A1. XXX; A 1. XXX A12. XXX; A1 XXX; A12 XXX; AB1 XXX; AB12 XXX; AB12. XXX; AB1. XXX;
+    let regex1 = /^(?<to_rm>(?<num>([a-z]{0,2}\s?\d*))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
     // 2) 1A XXX; 12A XXX; 11B. XXX; 1B. XXX;
     let regex2 = /^(?<to_rm>(?<num>(\d+[a-z]{0,2}))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
     // 3) No. 1 XXX; NO. 12 XXX;
     let regex3 = /^(?<to_rm>(?<num>(No\.\s?\d+))\s+)(?<word>\S+)\s*/i;
-    return [regex1, regex2, regex3].reduce((a, c) => a || name.match(c), null);
+    // 4) 中文 A1. XXX
+    let regex4 = /^(?<zh>[^\x00-\xff]+\s*)(?<to_rm>(?<num>([a-z]{1,2}\s?\d+))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
+    // 5) (XL) A1. XXX
+    let regex5 = /^(?<mark>\(\w+\)\s*)(?<to_rm>(?<num>([a-z]{1,2}\s?\d+))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
+    return [regex1, regex2, regex3, regex4, regex5].reduce((a, c) => a || name.match(c), null);
   }
 
   detectNumber(item) {
@@ -50,7 +54,7 @@ export class DbScriptsComponent implements OnInit {
     ];
 
     if (numMatched) {
-      let { to_rm, num, dot, word } = numMatched.groups;
+      let { num, dot, word } = numMatched.groups;
       // if dot after number, definite number, otherwise we check if a measure word after number or not
       let hasMeasure = measureWords.includes((word || '').toLowerCase());
       if (num && /\D+$/.test(num)) {
@@ -61,16 +65,22 @@ export class DbScriptsComponent implements OnInit {
           num = num.replace(/\D+$/, '');
         }
       }
-      // if no measure word, or have dot, or num is not pure digits
-      // we think we have matched a number
-      if (!hasMeasure || !!dot || /[^\d]/.test(num)) {
-        // if no dot, no measure word, just digits, we should warn that the digits maybe is not number
-        if (!dot && /^\d+L?$/.test(num)) {
-          // if item already have a number prop under this condition
-          // we should think the extracted num is just part of name
-          return !item.number;
-        }
+      // if has a dot, we think we matched a number
+      if (!!dot) {
         return true;
+      } else {
+        // if has measure word, we check if num has non-digits character
+        if (hasMeasure) {
+          return /\D+/.test(num);
+        } else {
+          // if no measure word
+          // if num aftered with L/l, we check the item's number
+          if (/^\d+L$/i.test(num)) {
+            return !item.number;
+          }
+          // no dot and measure word, we check if num has digits
+          return /\d/.test(num);
+        }
       }
     }
     return false;
@@ -131,16 +141,10 @@ export class DbScriptsComponent implements OnInit {
   }
 
   needClean (restaurant) {
-    let { menus, translations } = restaurant;
+    let { menus } = restaurant;
 
     for (let i = 0; i < (menus || []).length; i++) {
-      if (this.detectNumber(menus[i])) {
-        return true;
-      }
       for (let j = 0; j < (menus[i].mcs || []).length; j++) {
-        if (this.detectNumber(menus[i].mcs[j])) {
-          return true;
-        }
         for (let k = 0; k < (menus[i].mcs[j].mis || []).length; k++) {
           if (this.detectNumber(menus[i].mcs[j].mis[k])) {
             return true;
@@ -234,7 +238,7 @@ export class DbScriptsComponent implements OnInit {
 
     const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: { disabled: { $ne: true }, needCleanMenu: {$ne: true} },
+      query: { disabled: { $ne: true }, menuCleaned: {$ne: true} },
       projection: { 'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, 'menus.mcs.mis.number': 1, name: 1, translations: 1 }
     }, 500);
 

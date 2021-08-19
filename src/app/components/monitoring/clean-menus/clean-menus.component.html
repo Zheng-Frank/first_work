@@ -5,7 +5,7 @@
       <tr *ngFor="let rt of restaurants">
         <td><a class="btn-link" [routerLink]="'/restaurants/' + rt._id">{{rt.name}}</a></td>
         <td>
-          <a (click)="validate(rt)" class="btn btn-link">Validate</a>
+          <a (click)="clean(rt)" class="btn btn-link">Clean</a>
         </td>
       </tr>
     </tbody>

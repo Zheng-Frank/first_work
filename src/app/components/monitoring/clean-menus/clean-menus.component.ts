@@ -38,7 +38,7 @@ export class CleanMenusComponent implements OnInit {
     this.restaurants = rts.filter(rt => needCleanMenus.has(rt._id));
   }
 
-  async validate(rt) {
+  async clean(rt) {
     let [restaurant] = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {_id: {$oid: rt._id}},

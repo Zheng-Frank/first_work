@@ -39,14 +39,18 @@ export class MenuCleanupComponent implements OnInit, OnChanges {
     this.flattened.splice(index, 1, item);
   }
 
-  parsePrefixNum(name) {
-    // 1) A1. XXX; A12. XXX; A1 XXX; A12 XXX; AB1 XXX; AB12 XXX; AB12. XXX; AB1. XXX;
-    let regex1 = /^(?<to_rm>(?<num>([a-z]{0,2}\d+))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
+  parsePrefixNum (name) {
+    // 1) A. XXX; A1. XXX; A 1. XXX A12. XXX; A1 XXX; A12 XXX; AB1 XXX; AB12 XXX; AB12. XXX; AB1. XXX;
+    let regex1 = /^(?<to_rm>(?<num>([a-z]{0,2}\s?\d*))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
     // 2) 1A XXX; 12A XXX; 11B. XXX; 1B. XXX;
     let regex2 = /^(?<to_rm>(?<num>(\d+[a-z]{0,2}))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
     // 3) No. 1 XXX; NO. 12 XXX;
     let regex3 = /^(?<to_rm>(?<num>(No\.\s?\d+))\s+)(?<word>\S+)\s*/i;
-    return [regex1, regex2, regex3].reduce((a, c) => a || name.match(c), null);
+    // 4) 中文 A1. XXX
+    let regex4 = /^(?<zh>[^\x00-\xff]+\s*)(?<to_rm>(?<num>([a-z]{1,2}\s?\d+))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
+    // 5) (XL) A1. XXX
+    let regex5 = /^(?<mark>\(\w+\)\s*)(?<to_rm>(?<num>([a-z]{1,2}\s?\d+))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
+    return [regex1, regex2, regex3, regex4, regex5].reduce((a, c) => a || name.match(c), null);
   }
 
 
@@ -78,32 +82,39 @@ export class MenuCleanupComponent implements OnInit, OnChanges {
           num = num.replace(/\D+$/, '');
         }
       }
-      if (!!dot || !hasMeasure) {
+
+      if (!!dot) {
+        number = num;
+      } else {
+        // if has measure word, we check if num has non-digits character
+        if (hasMeasure) {
+          if (/\D+/.test(num)) {
+            number = num;
+          }
+        } else {
+          // if no measure word
+          // if num aftered with L/l, we check the item's number
+          if (/^\d+L$/i.test(num)) {
+            number = num;
+            if (item.number) {
+              number = undefined;
+            } else {
+              item.warning = true;
+            }
+          }
+          // no dot and measure word, we check if num has digits
+          if (/\d/.test(num)) {
+            number = num;
+          }
+        }
+      }
+      if (number) {
         // remove leading number chars
         name = name.replace(to_rm, '');
         item.cleanedName = name;
       }
-
-      // if no measure word, or have dot, or num is not pure digits
-      // we think we have matched a number
-      if (!hasMeasure || !!dot || /[^\d]/.test(num)) {
-        number = item.number || num;
-        // if no dot
-        if (!dot) {
-          // if no measure word, just digits(or aftered with L/l), we should warn that the digits maybe is not number
-          if (/^\d+L?$/.test(num)) {
-            // if item already have a number prop under this condition
-            // we should think the extracted num is just part of name
-            if (item.number) {
-              number = undefined;
-            } else {
-              // otherwise, we should mark this item warning
-              item.warning = true;
-            }
-          }
-        }
-      }
     }
+
     item.editName = name;
     if (this.handleIDsOnly) {
       if (number) {
@@ -149,12 +160,73 @@ export class MenuCleanupComponent implements OnInit, OnChanges {
 
   }
 
+  automaticExtractNumber(mc) {
+    let numbers = [];
+    if (!mc.mis) {
+      return;
+    }
+    mc.mis.forEach((mi) => {
+      // if mi has no name or has a number, skip
+      if (!mi.name || mi.number) {
+        numbers.push(null);
+        return false;
+      }
+      let num = mi.name.split('.')[0];
+      numbers.push(num.trim());
+    });
+    // if numbers less than 5, or have empty number item,
+    // or have number includes 3+ continuous letter,
+    // or have number includes non-english characters, skip
+    if (numbers.length < 5 || numbers.some(n => !n || /[a-z]{3,}/i.test(n) || /[^\x00-\xff]/.test(n))) {
+      return;
+    }
+    let base = numbers.shift();
+    if (!base) {
+      return;
+    }
+
+
+    let baseLastCharCode = base.charCodeAt(base.length - 1);
+    let flag = numbers.every((n, i) => {
+      // make sure the extracted number is increasing
+      // check the last character
+      return baseLastCharCode + (i + 1) === n.charCodeAt(n.length - 1);
+    });
+    if (flag) {
+      // make update
+      numbers.unshift(base);
+      let mis = mc.mis.map((mi, index) => {
+        let num = numbers[index];
+        let names = mi.name.split('.');
+        names.shift();
+        // remove pure name's prefix ) or .
+        return {...mi, name: names.join('.').replace(/^\s*[).]\s*/, '').trim(), number: num};
+      });
+      // if the updated name is empty, we should skip, eg: comb1, comb2, comb3, etc... -> empty name
+      if (mis.some(x => !x.name)) {
+        return;
+      }
+      mc.mis = mis;
+    }
+  }
+
+  autoClean(menus) {
+    menus.forEach(menu => {
+      menu.mcs.forEach(mc => {
+        this.automaticExtractNumber(mc);
+      });
+    });
+  }
+
   collect() {
     $('.modal .cleanup-menus').animate({ scrollTop: 0 }, 'slow');
     this.copied = [];
     this.flattened = [];
     if (this.allMenus) {
       this.copied = JSON.parse(JSON.stringify(this.allMenus));
+      // run auto clean first
+      this.autoClean(this.copied);
+
       this.copied.forEach((menu, i) => {
         this.detect(menu, [i]);
         menu.mcs.forEach((mc, j) => {
@@ -182,6 +254,11 @@ export class MenuCleanupComponent implements OnInit, OnChanges {
         return suffixA > suffixB ? 1 : (suffixA < suffixB ? -1 : 0);
       };
       this.flattened = [...(warnings.sort(sortNumber)), ...(normals.sort(sortNumber))];
+      // if the auto clean is enough for all menus
+      // just save the cleaned menus
+      if (!this.flattened.length) {
+        this.save.emit({menus: this.copied, translations: this.translations});
+      }
     }
   }
 
