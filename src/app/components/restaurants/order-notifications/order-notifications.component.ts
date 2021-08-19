@@ -3,6 +3,10 @@ import { Restaurant } from '@qmenu/ui';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from 'src/environments/environment';
+import { Helper } from '../../../classes/helper';
+import { PrunedPatchService } from "../../../services/prunedPatch.service";
+import { GlobalService } from "../../../services/global.service";
+import { AlertType } from "../../../classes/alert-type";
 
 @Component({
   selector: 'app-order-notifications',
@@ -164,9 +168,10 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
   menuFilters = [];
   removable = false;
   originalNotification;
-  constructor(private _api: ApiService) { }
+  constructor(private _api: ApiService, private _prunedPatch: PrunedPatchService, private _global: GlobalService) { }
 
   ngOnInit() {
+    this.orderNotifications = this.restaurant.orderNotifications || [];
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -244,14 +249,16 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     uselessFields.map(f => delete this.notificationInEditing[f]);
   }
 
-  submit(event) {
+  submit() {
     const cloned = JSON.parse(JSON.stringify(this.notificationInEditing));
     const index = this.orderNotifications.indexOf(this.originalNotification);
     if (index >= 0) {
       this.orderNotifications[index] = cloned;
+
     } else {
       this.orderNotifications.push(cloned);
     }
+    this.patchDiff(this.orderNotifications)
     // reset defaults
     if (!cloned.orderTypes || cloned.orderTypes.length === 0 || cloned.orderTypes.length === this.orderTypesDescriptor.items.length) {
       delete cloned.orderTypes;
@@ -259,8 +266,42 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     if (cloned.channel.type === 'phoenix' && this.menuFilters.length > 0) {
       cloned.menuFilters = JSON.parse(JSON.stringify(this.menuFilters));
     }
-    event.acknowledge(null);
+
     this.modalNotification.hide();
+  }
+
+  async patchDiff(newOrderNotifications) {
+    if (Helper.areObjectsEqual(this.restaurant.orderNotifications, newOrderNotifications)) {
+      this._global.publishAlert(
+        AlertType.Info,
+        "Not changed"
+      );
+    } else {
+      // api update here...
+      await this._prunedPatch
+        .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+          old: {
+            _id: this.restaurant['_id'],
+            orderNotifications: this.restaurant.orderNotifications
+          }, new: {
+            _id: this.restaurant['_id'],
+            orderNotifications: newOrderNotifications
+          }
+        }])
+        .subscribe(
+          result => {
+            // let's update original, assuming everything successful
+            this.restaurant.orderNotifications = newOrderNotifications;
+            this._global.publishAlert(
+              AlertType.Success,
+              "Updated successfully"
+            );
+          },
+          error => {
+            this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+          }
+        );
+    }
   }
 
   cancel() {
@@ -269,7 +310,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
 
   remove(event) {
     this.orderNotifications = this.orderNotifications.filter(n => n !== this.originalNotification);
-    event.acknowledge(null);    
+    event.acknowledge(null);
     this.modalNotification.hide();
   }
 
