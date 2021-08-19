@@ -124,7 +124,7 @@ export class MonitoringOnboardingComponent implements OnInit {
   }
 
   isAdmin(){
-   return this._global.user.roles.indexOf('CSR') >= 0;
+   return this._global.user.roles.indexOf('ADMIN') >= 0;
   }
 
   getDaysFromId(mongoId) {
