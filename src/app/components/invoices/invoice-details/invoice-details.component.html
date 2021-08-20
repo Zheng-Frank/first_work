@@ -135,7 +135,7 @@
                     <button *ngIf="channel.type === type" class="btn btn-primary btn-sm mb-2"
                         (click)="sendInvoice(channel)"
                         [qLoading]="apiRequesting === type">{{invoice.isSent ? 'Resend ' + type : 'Send ' + type}}</button>
-                    <button *ngIf="channel.type === type" class="btn btn-primary btn-sm mb-2"
+                    <button *ngIf="channel.type === type && type === 'Fax'" class="btn btn-primary btn-sm mb-2"
                           (click)="sendInvoice(channel, true)"
                           [qLoading]="apiRequesting === type">{{invoice.isSent ? 'Resend ' + type : 'Send ' + type}} (Summary, 1 pg)</button>
                 </ng-container>
