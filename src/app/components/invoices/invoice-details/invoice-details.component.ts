@@ -449,9 +449,10 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
         case 'Fax':
         case 'Email':
         case 'SMS':
-          await this._api.post(environment.appApiUrl + 'invoices/send', {
+          const payload = {
             invoiceId: invoiceId, type: channel.type.toLowerCase(), to: channel.value, summaryOnly
-          }).toPromise();
+          };
+          await this._api.post(environment.appApiUrl + 'invoices/send', payload).toPromise();
           break;
         default:
           break;
