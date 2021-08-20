@@ -254,8 +254,8 @@
 .qr {
   position: absolute;
   top: 0.25rem;
-  right: 0.25rem;
-  font-size: 150%;
+  right: 1.25rem;
+  font-size: 100%;
   opacity: 0.75;
 }
 
@@ -266,3 +266,20 @@
   font-size: 150%;
   opacity: 0.75;
 }
+
+.order-from-container{
+  max-width: 50px;
+  display: flex;
+  flex-direction: column;
+}
+.order-from-row{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+.order-from-span{
+  font-size:0.5rem;
+}
+
+
+
