@@ -439,7 +439,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     return (this.restaurantLogs || []).filter(log => !log.resolved);
   }
 
-  async sendInvoice(channel: Channel) {
+  async sendInvoice(channel: Channel, summaryOnly = false) {
     this.apiRequesting = channel.type;
 
     try {
@@ -449,7 +449,9 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
         case 'Fax':
         case 'Email':
         case 'SMS':
-          await this._api.post(environment.appApiUrl + 'invoices/send', { invoiceId: invoiceId, type: channel.type.toLowerCase(), to: channel.value }).toPromise();
+          await this._api.post(environment.appApiUrl + 'invoices/send', {
+            invoiceId: invoiceId, type: channel.type.toLowerCase(), to: channel.value, summaryOnly
+          }).toPromise();
           break;
         default:
           break;
