@@ -323,7 +323,9 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
   }
 
   remove(event) {
+    const oldOrderNotifications = JSON.parse(JSON.stringify(this.orderNotifications));
     this.orderNotifications = this.orderNotifications.filter(n => n !== this.originalNotification);
+    this.patchDiff(this.orderNotifications, oldOrderNotifications);
     event.acknowledge(null);
     this.modalNotification.hide();
   }
