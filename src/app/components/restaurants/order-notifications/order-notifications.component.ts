@@ -17,63 +17,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
   @ViewChild('modalNotification') modalNotification: ModalComponent;
   @Input() restaurant: Restaurant;
 
-  orderNotifications: any = [
-    // {
-    //   channel: {
-    //     type: 'SMS',
-    //     value: '4075807504'
-    //   },
-    // },
-    // {
-    //   channel: {
-    //     type: 'Fax',
-    //     value: '4075807504'
-    //   },
-    //   orderTypes: [],
-    // },
-    // {
-    //   channel: {
-    //     type: 'Phone',
-    //     value: '4075807504'
-    //   },
-    //   orderTypes: ['DELIVERY', 'PICKUP'],
-    // },
-    // {
-    //   channel: {
-    //     type: 'Email',
-    //     value: 'garysui@gmail.com'
-    //   },
-    //   orderTypes: ['DINE-IN']
-    // },
-    // {
-    //   channel: {
-    //     type: 'phoenix',  // type of printClient
-    //     value: 'receipt 2', // printer name
-    //     printClientId: '5ab6',
-    //     guid: '123455',
-    //   },
-    // },
-    // {
-    //   channel: {
-    //     type: 'longhorn',  // type of printClient
-    //     value: 'receipt', // printer name
-    //   },
-    // },
-    // {
-    //   channel: {
-    //     type: 'fei-e',  // type of printClient
-    //     value: 'somesn', // sn
-    //     printClientId: '5ab6',
-    //     host: 'EU',
-    //     key: "somekey",
-    //   },
-    //   templateName: 'Chef',
-    //   menuFilters: [{
-    //     name: 'Sushi'
-    //   }],
-    //   copies: 2
-    // },
-  ];
+  orderNotifications: any = [];
 
   faClassMap = {
     SMS: 'fa-comments',
