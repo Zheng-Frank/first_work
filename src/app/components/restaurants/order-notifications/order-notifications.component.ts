@@ -132,9 +132,11 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
   }
 
-  havingOrderTypes() {
-    return this.orderNotifications.some(n => n.orderTypes && n.orderTypes.length > 0 && n.orderTypes.length < 3);
-  }
+  // order types column is always displayed, havingOrderTypes() is currently un-used
+  
+  // havingOrderTypes() {
+  //   return this.orderNotifications.some(n => n.orderTypes && n.orderTypes.length > 0 && n.orderTypes.length < 3);
+  // }
 
   havingTemplateName() {
     return this.orderNotifications.some(n => n.templateName);

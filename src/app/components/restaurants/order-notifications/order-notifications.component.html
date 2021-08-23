@@ -9,7 +9,7 @@
           <!-- we have so many columns, so let's just selectively show columns to reduce clutter -->
           <tr *ngIf="orderNotifications.length > 0">
             <th scope="col">Target Channel</th>
-            <th scope="col" class="text-nowrap" *ngIf="havingOrderTypes()">Order Types</th>
+            <th scope="col" class="text-nowrap">Order Types</th>
             <th scope="col" *ngIf="havingTemplateName()">Template</th>
             <th scope="col" *ngIf="havingMenuFilters()">Menu Filters</th>
             <th scope="col" *ngIf="havingNonEnglishLanguages()">Languages</th>
@@ -34,8 +34,8 @@
                 </div>
               </span>
             </td>
-            <td *ngIf="havingOrderTypes()">
-              {{(n.orderTypes || []).join(', ')}}
+            <td>
+              {{(n.orderTypes || []).join(', ') || "ALL"}}
             </td>
             <td *ngIf="havingTemplateName()">
               {{n.templateName}}
