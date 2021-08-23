@@ -146,11 +146,11 @@ export class MonitoringOnboardingComponent implements OnInit {
         break;
 
       case MenuTypes.NoMenu:
-        this.filteredRows = this.filteredRows.filter(r => r.agent !== 'charity' && r.noMenu);
+        this.filteredRows = this.filteredRows.filter(r => r.noMenu);
         break;
 
       case MenuTypes.HavingMenu:
-        this.filteredRows = this.filteredRows.filter(r => r.agent !== 'charity' && !r.noMenu && r.noOrder);
+        this.filteredRows = this.filteredRows.filter(r => !r.noMenu);
         break;
       default:
         break;
