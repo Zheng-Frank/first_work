@@ -18,3 +18,24 @@
   height: auto;
 
 }
+
+.cleanup-menus table .original-cell {
+  padding-left: 6px;
+}
+.cleanup-menus table .original-cell > div {
+  display: flex;
+  align-items: center;
+}
+.cleanup-menus table .original-cell .fa {
+  margin-right: 6px;
+  color: transparent;
+}
+
+.cleanup-menus table .original-cell.warning .fa {
+  color: red;
+}
+
+
+.cleanup-menus table td .btn-link {
+  cursor: pointer;
+}

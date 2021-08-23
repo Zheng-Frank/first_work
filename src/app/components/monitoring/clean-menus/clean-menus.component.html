@@ -1,0 +1,26 @@
+<div>
+  <h3 class="text-center mb-3">Clean Menus ({{restaurants.length}})</h3>
+  <table class="table table-bordered">
+    <tbody>
+      <tr *ngFor="let rt of restaurants">
+        <td><a class="btn-link" [routerLink]="'/restaurants/' + rt._id">{{rt.name}}</a></td>
+        <td>
+          <a (click)="clean(rt)" class="btn btn-link">Clean</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<q-modal #validateModal [size]="'1000px'">
+  <button type="button" (click)="cleanupCancel()" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">×</span>
+  </button>
+  <h4 class="header-title text-center">
+    Preview Extractions and Translations
+    <label class="header-checkbox"><input type="checkbox" [(ngModel)]="handleIDsOnly"> Only handle IDs</label>
+  </h4>
+  <hr>
+  <app-menu-cleanup #cleanupComponent [allMenus]="restaurant?.menus" [translations]="restaurant?.translations"
+                    [hasSkip]="true" [handleIDsOnly]="handleIDsOnly" (skip)="cleanupSkip()" (save)="cleanupSave($event)"></app-menu-cleanup>
+</q-modal>
