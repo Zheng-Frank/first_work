@@ -42,6 +42,8 @@ export class BasicTplComponent implements OnInit {
   sectionDSubtext = '';
   sectionElinkText = '';
   sectionEphone = '';
+  privacyPolicyText;
+  privacyPolicyLink;
 
   isCustomTemplate = false;
 
@@ -66,7 +68,6 @@ export class BasicTplComponent implements OnInit {
 
   ngOnInit() {
     this.refresh().then(() => {
-      this.toggleCustomTemplate(true);
       this.republishToAWS();
     });
     this.refreshTemplateList();
@@ -104,8 +105,22 @@ export class BasicTplComponent implements OnInit {
 
     this.navBarLinks = this.restaurant.web.template.navbar.links;
     this.headerSliderImages = this.restaurant.web.template.headerSlider;
-    this.specialtyImages = this.restaurant.web.template.specialties;
-    this.promoImages = this.restaurant.web.template.promos;
+    this.specialtyImages = (this.restaurant.web.template.specialties || []).map(img => {
+      if (img.startsWith('/assets')) {
+        return `https://${this.restaurant.web.qmenuWebsite.replace('http://', '').replace('https://', '').replace('/', '')}${img}`;
+      } else {
+        return img;
+      }
+    });
+
+    this.promoImages = (this.restaurant.web.template.promos || []).map(img => {
+      if (img.startsWith('/assets')) {
+        return `https://${this.restaurant.web.qmenuWebsite.replace('http://', '').replace('https://', '').replace('/', '')}${img}`;
+      } else {
+        return img;
+      }
+    });
+
     this.sectionATitle = this.desanitizeText(this.restaurant.web.template.sectionATitle);
     this.sectionAslogan = this.desanitizeText(this.restaurant.web.template.sectionAslogan);
     this.sectionBTitle = this.desanitizeText(this.restaurant.web.template.sectionBTitle);
@@ -119,6 +134,8 @@ export class BasicTplComponent implements OnInit {
     this.sectionDSubtext = this.desanitizeText(this.restaurant.web.template.sectionDSubtext);
     this.sectionElinkText = this.desanitizeText(this.restaurant.web.template.sectionElinkText);
     this.sectionEphone = this.desanitizeText(this.restaurant.web.template.sectionEphone);
+    this.privacyPolicyText = this.desanitizeText(this.restaurant.web.template.privacyPolicyText);
+    this.privacyPolicyLink = this.desanitizeText(this.restaurant.web.template.privacyPolicyLink);
   }
 
   clearLink() {
@@ -615,16 +632,41 @@ export class BasicTplComponent implements OnInit {
     }
   }
 
+  async savePartF() {
+    const oldTemplate = {...this.restaurant.web.template} || {};
+    const newTemplate = {...this.restaurant.web.template} || {};
+
+    newTemplate.privacyPolicyText = this.sanitizeText(this.privacyPolicyText);
+    newTemplate.privacyPolicyLink = this.sanitizeText(this.privacyPolicyLink);
+
+    try {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: { _id: this.restaurant._id, 'web.template': oldTemplate },
+        new: { _id: this.restaurant._id, 'web.template': newTemplate }
+      }]).toPromise();
+
+      this.restaurant.web.template = this.restaurant.web.template || {};
+      this.restaurant.web.template = newTemplate;
+
+      await this.republishToAWS();
+
+      this._global.publishAlert(AlertType.Success, 'Part F saved');
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, 'Error while saving Part F');
+      console.error(error);
+    }
+  }
+
   sanitizeText(text) {
-    return text
+    return (text || '')
       .replace(/\t/g, '')
       .replace(/\n/g, '')
       .replace(/'/g, '&apos;')
       .replace(/&/g, '&amp;');
   }
 
-  desanitizeText(text = '') {
-    return text
+  desanitizeText(text) {
+    return (text || '')
       .replace(/&apos;/g, "'")
       .replace(/&amp;/g, '&');
   }
