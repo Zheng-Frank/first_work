@@ -25,13 +25,8 @@ export class DbScriptsComponent implements OnInit {
     const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {disabled: true, disabledAt: {$exists: false}},
-      projection: {_id: 1, 'logs.time': 1}
+      projection: {_id: 1, 'logs.time': 1, createdAt: 1, disabledAt: 1}
     }, 50);
-    const apilogs = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'apilog',
-      query: {'body.0.old._id': {$in: rts.map(rt => rt._id)}},
-      projection: {time: 1, 'body.old._id': 1}
-    }, 2000);
     let zero = new Date(0).valueOf();
     const getDTValue = (datetime) => {
       let value = new Date(datetime).valueOf();
@@ -47,22 +42,38 @@ export class DbScriptsComponent implements OnInit {
         projection: {createdAt: 1},
         sort: {createdAt: -1},
         limit: 1
-      })[0];
-      let latestOrderTime = latestOrder ? getDTValue(latestOrder.createdAt) : zero;
-      let latestApiLogTime = apilogs.filter(l => l.body[0].old._id === rt._id)
-        .reduce((a, c) => Math.max(a, getDTValue(c.time)), zero);
+      }).toPromise();
+      let latestOrderTime = latestOrder.length ? getDTValue(latestOrder[0].createdAt) : zero;
+      let latestApiLog = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'apilog',
+        query: {'body.0.old._id': rt._id},
+        projection: {time: 1},
+        sort: {time: -1},
+        limit: 1
+      }).toPromise();
+
+      let latestApiLogTime = latestApiLog.length ? getDTValue(latestApiLog[0].time) : zero;
       let disabledAt = Math.max(latestLogTime, latestOrderTime);
+
+      if (disabledAt === zero) {
+        disabledAt = latestApiLogTime;
+      }
+
       if (disabledAt === zero) {
         let createdAt = new Date(rt.createdAt);
         // add one week to createdAt
         createdAt.setDate(createdAt.getDate() + 7);
         disabledAt = createdAt.valueOf();
       }
-      rt.disabledAt = new Date(disabledAt);
+      patchList.push({
+        old: { _id: rt._id },
+        new: { _id: rt._id, disabledAt: new Date(disabledAt) }
+      });
     }
-
     console.log(patchList);
-    // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+    if (patchList.length) {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+    }
   }
 
   async preferredLanguageMigrate() {
