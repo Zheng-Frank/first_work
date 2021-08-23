@@ -2,43 +2,43 @@
   <tbody>
     <tr>
       <th>Statistics</th>
-      <th>Value</th>
+      <th class="digit-align">Value</th>
     </tr>
     <tr>
       <td>{{statistics.totalLifetimeOrders.label}}</td>
-      <td>{{statistics.totalLifetimeOrders.value}}</td>
+      <td class="digit-align">{{statistics.totalLifetimeOrders.value}}</td>
     </tr>
     <tr>
       <td>{{statistics.averageDailyOrders.label}}</td>
-      <td>{{statistics.averageDailyOrders.value}}</td>
+      <td class="digit-align">{{statistics.averageDailyOrders.value}}</td>
     </tr>
     <tr>
       <td>{{statistics.totalUniqueCustomer.label}}</td>
-      <td>{{statistics.totalUniqueCustomer.value}}</td>
+      <td class="digit-align">{{statistics.totalUniqueCustomer.value}}</td>
     </tr>
     <tr>
       <td>{{statistics.newCustomerLast30DaysOrders.label}}</td>
-      <td>{{statistics.newCustomerLast30DaysOrders.value}}</td>
+      <td class="digit-align">{{statistics.newCustomerLast30DaysOrders.value}}</td>
     </tr>
     <tr>
       <td>{{statistics.totalOrdersFromRepeatCustomer.label}}</td>
-      <td>{{statistics.totalOrdersFromRepeatCustomer.value}}</td>
+      <td class="digit-align">{{statistics.totalOrdersFromRepeatCustomer.value}}</td>
     </tr>
     <tr>
       <td>{{statistics.totalOrderFromNewCustomer.label}}</td>
-      <td>{{statistics.totalOrderFromNewCustomer.value}}</td>
+      <td class="digit-align">{{statistics.totalOrderFromNewCustomer.value}}</td>
     </tr>
     <tr>
       <td>{{statistics.menusWithPicture.label}}</td>
-      <td>{{statistics.menusWithPicture.value}}</td>
+      <td class="digit-align">{{statistics.menusWithPicture.value}}</td>
     </tr>
     <tr>
       <td>{{statistics.menusWithoutPicture.label}}</td>
-      <td>{{statistics.menusWithoutPicture.value}}</td>
+      <td class="digit-align">{{statistics.menusWithoutPicture.value}}</td>
     </tr>
     <tr>
       <td>{{statistics.menusWithPictureOrderRate.label}}</td>
-      <td>{{statistics.menusWithPictureOrderRate.value}}</td>
+      <td class="digit-align">{{statistics.menusWithPictureOrderRate.value}}</td>
     </tr>
   </tbody>
 </table>
@@ -47,7 +47,7 @@
     <td>
       <i class="fa fa-mobile-alt"></i> Mobile device
     </td>
-    <td>
+    <td class="digit-align">
       {{orderFromDevice.mobileTotal}}
     </td>
   </tr>
@@ -62,7 +62,7 @@
           <td>
             <i class="fab fa-apple"></i>
           </td>
-          <td>
+          <td class="digit-align">
             {{orderFromDevice.mobile.byOS.iOS}}
           </td>
         </tr>
@@ -70,7 +70,7 @@
           <td>
             <i class="fab fa-android"></i>
           </td>
-          <td>
+          <td class="digit-align">
             {{orderFromDevice.mobile.byOS.Android}}
           </td>
         </tr>
@@ -78,7 +78,7 @@
           <td>
             Other
           </td>
-          <td>
+          <td class="digit-align">
             {{orderFromDevice.mobile.byOS.Other}}
           </td>
         </tr>
@@ -97,7 +97,7 @@
           <td>
             PWA
           </td>
-          <td>
+          <td class="digit-align">
             {{orderFromDevice.mobile.byType.PWA}}
           </td>
         </tr>
@@ -105,7 +105,7 @@
           <td>
             App
           </td>
-          <td>
+          <td class="digit-align">
             {{orderFromDevice.mobile.byType.App}}
           </td>
         </tr>
@@ -113,7 +113,7 @@
           <td>
             Other
           </td>
-          <td>
+          <td class="digit-align">
             {{orderFromDevice.mobile.byType.Other}}
           </td>
         </tr>
@@ -125,7 +125,7 @@
     <td>
       <i class="fa fa-laptop"></i> PC
     </td>
-    <td>
+    <td class="digit-align">
       {{orderFromDevice.pcTotal}}
     </td>
   </tr>
@@ -140,7 +140,7 @@
           <td>
             <i class="fab fa-windows"></i>
           </td>
-          <td>
+          <td class="digit-align">
             {{orderFromDevice.pc.byOS.Windows}}
           </td>
         </tr>
@@ -148,7 +148,7 @@
           <td>
             <i class="fab fa-apple"></i>
           </td>
-          <td>
+          <td class="digit-align">
             {{orderFromDevice.pc.byOS.Mac}}
           </td>
         </tr>
@@ -156,7 +156,7 @@
           <td>
             <i class="fab fa-linux"></i>
           </td>
-          <td>
+          <td class="digit-align">
             {{orderFromDevice.pc.byOS.Linux}}
           </td>
         </tr>
@@ -164,7 +164,7 @@
           <td>
             Other
           </td>
-          <td>
+          <td class="digit-align">
             {{orderFromDevice.pc.byOS.Other}}
           </td>
         </tr>
@@ -176,7 +176,7 @@
     <td>
       Other
     </td>
-    <td>
+    <td class="digit-align">
       {{orderFromDevice.otherTotal}}
     </td>
   </tr>
@@ -184,7 +184,7 @@
     <td>
       Browser
     </td>
-    <td>
+    <td class="digit-align">
       {{orderFromDevice.browserTotal}}
     </td>
   </tr>

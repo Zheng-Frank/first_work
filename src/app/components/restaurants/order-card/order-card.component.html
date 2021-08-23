@@ -7,7 +7,6 @@
     <i class="fa fa-clipboard" (click)="copyToClipboard(order)" style="cursor:pointer;"></i>
   </div>
   <div *ngIf="order.dineInSessionObj" class="qr">
-    <i class="fa fa-qrcode"></i> QR <span>{{order.dineInSessionObj.code}}</span>
     <div *ngIf="orderFromPC(order)" class="order-from-container">
       <div class="order-from-row">
         <i class="fa fa-laptop"></i>
@@ -30,6 +29,9 @@
         <span *ngIf="orderFromEdge(order)" class="order-from-span">{{order.runtime.browser}}</span>
         <span *ngIf="orderFromPWA(order)" class="order-from-span">PWA</span>
       </div>
+    </div>
+    <div class="order-from-row">
+      <i class="fa fa-qrcode"></i> QR <span>{{order.dineInSessionObj.code}}</span>
     </div>
   </div>
   <!-- start with pc/phone icon -->
