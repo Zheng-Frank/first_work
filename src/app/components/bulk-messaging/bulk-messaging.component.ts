@@ -6,7 +6,8 @@ import { environment } from "../../../environments/environment";
 enum languageTypes {
   All = 'ALL',
   Chinese = 'CHINESE',
-  English = 'ENGLISH'
+  English = 'ENGLISH',
+  None = 'NONE'
 }
 
 @Component({
@@ -38,7 +39,7 @@ export class BulkMessagingComponent implements OnInit {
   processedRestaurantIds = new Set();
 
   filterEPLRestaurants = [];
-  selectTypes = [languageTypes.All, languageTypes.English, languageTypes.Chinese];
+  selectTypes = [languageTypes.All, languageTypes.English, languageTypes.Chinese, languageTypes.None];
   selectType = languageTypes.All;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
@@ -63,6 +64,8 @@ export class BulkMessagingComponent implements OnInit {
       case languageTypes.Chinese:
         this.filterEPLRestaurants = this.ePLRestaurants.filter(rt => !rt.disabled ? rt.preferredLanguage === languageTypes.Chinese : false);
         break;
+      case languageTypes.None:
+        this.filterEPLRestaurants = this.ePLRestaurants.filter(rt => !rt.disabled && rt.preferredLanguage !== languageTypes.English && rt.preferredLanguage !== languageTypes.Chinese);
       default:
         break;
     }

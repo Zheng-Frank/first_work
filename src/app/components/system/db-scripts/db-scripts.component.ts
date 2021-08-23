@@ -21,6 +21,235 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
+
+
+  parsePrefixNum (name) {
+    // 1) A. XXX; A1. XXX; A 1. XXX A12. XXX; A1 XXX; A12 XXX; AB1 XXX; AB12 XXX; AB12. XXX; AB1. XXX;
+    let regex1 = /^(?<to_rm>(?<num>([a-z]{0,2}\s?\d*))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
+    // 2) 1. XXX; #1. XXX; 1A XXX; 12A XXX; 11B. XXX; 1B. XXX;
+    let regex2 = /^(?<to_rm>(?<num>(#?\d+[a-z]{0,2}))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
+    // 3) No. 1 XXX; NO. 12 XXX;
+    let regex3 = /^(?<to_rm>(?<num>(No\.\s?\d+))\s+)(?<word>\S+)\s*/i;
+    // 4) 中文 A1. XXX
+    let regex4 = /^(?<zh>[^\x00-\xff]+\s*)(?<to_rm>(?<num>([a-z]{1,2}\s?\d+))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
+    // 5) (XL) A1. XXX
+    let regex5 = /^(?<mark>\(\w+\)\s*)(?<to_rm>(?<num>([a-z]{1,2}\s?\d+))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
+    return [regex1, regex2, regex3, regex4, regex5].reduce((a, c) => a || name.match(c), null);
+  }
+
+  detectNumber(item) {
+    let { name } = item;
+    // if name is empty or item has number already, skip
+    if (!name || !!item.number) {
+      return;
+    }
+
+    name = name.trim();
+    // extract the possible number info from menu's name
+    let numMatched = this.parsePrefixNum(name);
+    // if name itself has a number, like 3 cups chicken, 4 pcs XXX etc. these will extract the measure word to judge
+    let measureWords = [
+      'piece', 'pieces', 'pc', 'pcs', 'pc.', 'pcs.', 'cups', 'cup',
+      'liter', 'liters', 'oz', 'oz.', 'ounces', 'slice', 'lb.', 'item',
+      'items', 'ingredients', 'topping', 'toppings', 'flavor', 'flavors'
+    ];
+
+    if (numMatched) {
+      let { num, dot, word } = numMatched.groups;
+      // if dot after number, definite number, otherwise we check if a measure word after number or not
+      let hasMeasure = measureWords.includes((word || '').toLowerCase());
+      if (num && /\D+$/.test(num)) {
+        let [suffix] = num.match(/\D+$/);
+        // for 20oz XXX case
+        hasMeasure = measureWords.includes((suffix || '').toLowerCase());
+        if (hasMeasure) {
+          num = num.replace(/\D+$/, '');
+        }
+      }
+      // if has a dot, we think we matched a number
+      if (!!dot) {
+        return true;
+      } else {
+        // if has measure word, we check if num has non-digits character
+        if (hasMeasure) {
+          return /\D+/.test(num);
+        } else {
+          // if no measure word, no dot and pure digits or digits with L/l
+          // we check the item's number property
+          if (/^\d+L?$/i.test(num)) {
+            return !item.number;
+          } else {
+            // no dot and measure word, we check if num has digits
+            return /\d/.test(num);
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+
+  detect (item, translations) {
+    let { name } = item;
+    if (!name) {
+      return false;
+    }
+
+    name = name.trim();
+    // extract the possible number info from menu's name
+    let numMatched = this.parsePrefixNum(name);
+    // if name itself has a number, like 3 cups chicken, 4 pcs XXX etc. these will extract the measure word to judge
+    let measureWords = [
+      'piece', 'pieces', 'pc', 'pcs', 'pc.', 'pcs.', 'cups', 'cup',
+      'liter', 'liters', 'oz', 'oz.', 'ounces', 'slice', 'lb.', 'item',
+      'items', 'ingredients', 'topping', 'toppings', 'flavor', 'flavors'
+    ];
+    let number, hasMeasure = false;
+    if (numMatched) {
+      let { to_rm, num, dot, word } = numMatched.groups;
+      // if dot after number, definite number, otherwise we check if a measure word after number or not
+      hasMeasure = measureWords.includes((word || '').toLowerCase());
+      if (num && /\D+$/.test(num)) {
+        let [suffix] = num.match(/\D+$/);
+        // for 20oz XXX case
+        hasMeasure = measureWords.includes((suffix || '').toLowerCase());
+        if (hasMeasure) {
+          num = num.replace(/\D+$/, '');
+        }
+      }
+      if (!!dot || !hasMeasure) {
+        // remove leading number chars
+        name = name.replace(to_rm, '');
+      }
+      if (!hasMeasure) {
+        number = item.number || num;
+      }
+
+    }
+
+    // if we meet 【回锅 肉】，we should be able to keep "回锅" and "肉" together with space as zh
+    let regex = /[\s\-(\[]?(\s*([^\x00-\xff]+)(\s+[^\x00-\xff]+)*\s*)[\s)\]]?/;
+    let re = name.match(regex);
+    if (re) {
+      let zh = re[1].trim(), en = name.replace(regex, '').trim().replace(/\s*-$/, '');
+      // remove brackets around name
+      en = en.replace(/^\((.+)\)$/, '$1').replace(/^\[(.+)]$/, '$1');
+      zh = zh.replace(/^（(.+)）$/, '$1').replace(/^【(.+)】$/, '$1');
+
+      let trans = (translations || []).find(x => x.EN === en);
+      return !(trans && trans.ZH === zh && !number);
+    }
+    return !!number;
+  }
+
+  needClean (restaurant) {
+    let { menus } = restaurant;
+
+    for (let i = 0; i < (menus || []).length; i++) {
+      for (let j = 0; j < (menus[i].mcs || []).length; j++) {
+        for (let k = 0; k < (menus[i].mcs[j].mis || []).length; k++) {
+          if (this.detectNumber(menus[i].mcs[j].mis[k])) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  detectNumberByMc(mc, rtId, detectedMis) {
+    let numbers = [];
+    if (!mc.mis) {
+      return false;
+    }
+    mc.mis.forEach((mi) => {
+      // if mi has no name or has a number, skip
+      if (!mi.name || mi.number) {
+        numbers.push(null);
+        return false;
+      }
+      let num = mi.name.split('.')[0];
+      numbers.push(num.trim());
+    });
+    // if numbers less than 5, or have empty number item,
+    // or have number includes 3+ continuous letter,
+    // or have number includes non-english characters, skip
+    if (numbers.length < 5 || numbers.some(n => !n || /[a-z]{3,}/i.test(n) || /[^\x00-\xff]/.test(n))) {
+      return false;
+    }
+    let base = numbers.shift();
+    if (!base) {
+      return false;
+    }
+
+
+    let baseLastCharCode = base.charCodeAt(base.length - 1);
+    let flag = numbers.every((n, i) => {
+      // make sure the extracted number is increasing
+      // check the last character
+      return baseLastCharCode + (i + 1) === n.charCodeAt(n.length - 1);
+    });
+    if (flag) {
+      let origin = mc.mis.map(x => ({number: x.number, name: x.name}));
+      // make update
+      numbers.unshift(base);
+      mc.mis.forEach((mi, index) => {
+        let num = numbers[index];
+        let names = mi.name.split('.');
+        names.shift();
+        // remove pure name's prefix ) or .
+        mi.name = names.join('.').replace(/^\s*[).]\s*/, '').trim();
+        mi.number = num;
+      });
+      // if the updated name is empty, we should skip, eg: comb1, comb2, comb3, etc... -> empty name
+      if (mc.mis.some(x => !x.name)) {
+        return false;
+      }
+      let temp = {
+        rt: rtId, origin, numbers: [base, ...numbers],
+        updated: mc.mis.map(x => ({number: x.number, name: x.name}))
+      };
+      detectedMis.push(temp);
+    }
+    return flag;
+  }
+
+  async extractMenuNumberInName() {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: { disabled: { $ne: true } },
+      projection: { 'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, 'menus.mcs.mis.number': 1, name: 1 }
+    }, 500);
+
+    let detectedMis = [];
+    let canExtract = rts.filter(rt => {
+      let flag = false;
+      (rt.menus || []).forEach(menu => {
+        (menu.mcs || []).forEach(mc => {
+          flag = this.detectNumberByMc(mc, rt._id, detectedMis) || flag;
+        });
+      });
+      return flag;
+    });
+    console.log('rt count: ', canExtract.length, ' mi count: ', detectedMis.length);
+    console.log(JSON.stringify(detectedMis));
+    console.log(JSON.stringify(canExtract.map(rt => rt._id)));
+  }
+
+  async getRTsToCleanMenu() {
+
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: { disabled: { $ne: true }, menuCleaned: {$ne: true} },
+      projection: { 'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, 'menus.mcs.mis.number': 1, name: 1, translations: 1 }
+    }, 500);
+
+    let needCleaned = rts.filter(rt => this.needClean(rt));
+    console.log(needCleaned.length);
+    console.log(JSON.stringify(needCleaned.map(rt => rt._id)));
+  }
+
+
   shrink(str) {
     let regex = /(^\s+)|(\s{2,})|(\s+$)/g;
     let changed = regex.test(str);
@@ -2843,7 +3072,7 @@ export class DbScriptsComponent implements OnInit {
         serviceSettings: 1,
         requireZipcode: 1,
         requireBillingAddress: 1
-        
+
       }
     }, 3000)
 
