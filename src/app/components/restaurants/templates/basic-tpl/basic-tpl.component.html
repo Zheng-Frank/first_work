@@ -295,6 +295,41 @@
       </div>
     </div>
   </div>
+
+  <div class="mt-4 mb-4 separator"></div>
+
+  <!-- Part F  -->
+  <div class="row mt-4 mb-4">
+    <div class="col-md-6">
+      <img src="https://chopst.s3.amazonaws.com/menuImage/1629753785780.png" class="img-fluid" alt="">
+    </div>
+
+    <div class="col-md-6">
+      <h3>Part F</h3>
+      <div class="row d-flex align-items-center">
+        <div class="col-md-4">
+          <label>Privacy Policy Text</label>
+        </div>
+        <div class="col-md-8">
+          <input type="text" class="form-control" [(ngModel)]="privacyPolicyText" placeholder="eg Privacy Policy">
+        </div>
+      </div>
+
+      <div class="row d-flex align-items-center mt-4">
+        <div class="col-md-4">
+          <label>Privacy Policy Link"</label>
+        </div>
+        <div class="col-md-8">
+          <input type="text" class="form-control" [(ngModel)]="privacyPolicyLink" placeholder="eg. http://example.com/privacy.pdf">
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end mt-4">
+        <button class="btn btn-primary btn-sm" (click)="savePartF()">Save</button>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <!-- Add Link Modal-->
