@@ -14,10 +14,11 @@
 
       <div class="small">
         {{restaurant.googleAddress.formatted_address}}
-        (<a class="google_link" href="{{googleSearchText}}" target="_blank">Google<i class="fas fa-external-link-alt"></i></a>)
+        (<a class="google_link" href="{{googleSearchText}}" target="_blank">Google<i
+            class="fas fa-external-link-alt"></i></a>)
       </div>
       <div class="small">
-          Value: {{ restaurant.score || 0 | number: "1.1-1" }}
+        Value: {{ restaurant.score || 0 | number: "1.1-1" }}
       </div>
       <h1 *ngIf="restaurant.disabled && restaurant.comebackDate === undefined" class="alert alert-danger">DISABLED</h1>
       <h1 *ngIf="restaurant.disabled && (restaurant.comebackDate === null || isDate(restaurant.comebackDate))"
@@ -34,9 +35,11 @@
   <div class="p-t-1 pt-1 p-b-1 pb-1">
     <button (click)="toggleTextReply()" class="btn btn-secondary fa fa-comments"> Send Text Message</button>
     <button (click)="toggleGooglePIN()" class="btn btn-secondary fa fa-comments"> Send Google PIN Message</button>
-    <span class="ml-2 mr-2">Show explanations</span><q-toggle [(ngModel)]="showExplanations" (change)="toggleShowExplanations()"></q-toggle>
+    <span class="ml-2 mr-2">Show explanations</span>
+    <q-toggle [(ngModel)]="showExplanations" (change)="toggleShowExplanations()"></q-toggle>
     <span class="ml-2 mr-2">Language</span>
-    <select [(ngModel)]="languageType" class="language-select mr-3 col-2" style="min-width:180px;max-width:180px;" (change)="changeLanguage()">
+    <select [(ngModel)]="languageType" class="language-select mr-3 col-2" style="min-width:180px;max-width:180px;"
+      (change)="changeLanguage()">
       <option *ngFor="let type of languageTypes" [value]="type">{{type}}</option>
     </select>
   </div>
@@ -48,7 +51,7 @@
 
   <div>
     <q-modal #textReplyModal>
-      <button type="button" class="close"  (click)="closeTextReply()">
+      <button type="button" class="close" (click)="closeTextReply()">
         <span>×</span>
       </button>
       <h4 class="text-center">Send Text Message</h4>
@@ -63,11 +66,12 @@
         <li class="nav-item" *ngFor="let tab of tabs">
           <a *ngIf="tab === 'Menus' " class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
             style="cursor: pointer;">{{tab}} ({{restaurant?.menus?.length || 0}})</a>
-          <a *ngIf="tab === 'Menu Options'" class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
-            style="cursor: pointer;">{{tab}} ({{restaurant?.menuOptions?.length || 0}})</a>
+          <a *ngIf="tab === 'Menu Options'" class="nav-link {{activeTab === tab? 'active' : ''}}"
+            (click)="setActiveTab(tab)" style="cursor: pointer;">{{tab}} ({{restaurant?.menuOptions?.length || 0}})</a>
           <a *ngIf="tab === 'Coupons'" class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
             style="cursor: pointer;">{{tab}} ({{restaurant?.promotions?.length || 0}})</a>
-          <a *ngIf="tab != 'Menus' && tab != 'Menu Options' && tab != 'Coupons' " class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
+          <a *ngIf="tab != 'Menus' && tab != 'Menu Options' && tab != 'Coupons' "
+            class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
             style="cursor: pointer;">{{tab}}</a>
         </li>
       </ul>
@@ -101,11 +105,10 @@
 
       <div class="row mt-4" *ngIf="activeTab === 'Settings'">
 
-        <div class="col-xl-6" *ngIf="isSectionVisible('orderNotifications')">
-          <app-order-notifications [restaurant]="restaurant"></app-order-notifications>
-        </div>
+
         <div class="col-xl-6" *ngIf="isSectionVisible('profile')">
-          <app-restaurant-profile [restaurant]="restaurant" #restaurantProfile [users]="knownUsers" [editable]="true"></app-restaurant-profile>
+          <app-restaurant-profile [restaurant]="restaurant" #restaurantProfile [users]="knownUsers" [editable]="true">
+          </app-restaurant-profile>
         </div>
         <div class="col-xl-6" *ngIf="isSectionVisible('webSettings')">
           <app-email-code-reader [restaurant]="restaurant"></app-email-code-reader>
@@ -115,6 +118,9 @@
         </div>
         <div class="col-xl-6" *ngIf="isSectionVisible('serviceSettings')">
           <app-restaurant-service-settings [restaurant]="restaurant"></app-restaurant-service-settings>
+        </div>
+        <div class="col-xl-6" *ngIf="isSectionVisible('orderNotifications')">
+          <app-order-notifications [restaurant]="restaurant"></app-order-notifications>
         </div>
         <div class="col-xl-6" *ngIf="isSectionVisible('qrSettings')">
           <app-restaurant-qr-settings [restaurant]="restaurant"></app-restaurant-qr-settings>
@@ -161,7 +167,7 @@
       </div>
       <!-- start with IVR -->
       <div *ngIf="activeTab === 'IVR'">
-        <app-restaurant-ivr-list [restaurant]="restaurant" ></app-restaurant-ivr-list>
+        <app-restaurant-ivr-list [restaurant]="restaurant"></app-restaurant-ivr-list>
       </div>
       <!-- end with IVR -->
       <div *ngIf="activeTab === 'Tasks'">
