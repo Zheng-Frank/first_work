@@ -56,7 +56,7 @@ export class RestaurantContactsComponent implements OnInit {
       required: false,
       inputType: "multi-select",
       items: [
-        { object: "Order", text: "Incoming Orders", selected: false },
+        // { object: "Order", text: "Incoming Orders", selected: false },
         { object: "Invoice", text: "Invoice", selected: false },
         { object: "Business", text: "Business Phone", selected: false }
       ]
