@@ -3,10 +3,10 @@ import { Restaurant } from '@qmenu/ui';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from 'src/environments/environment';
-import { Helper } from '../../../classes/helper';
-import { PrunedPatchService } from "../../../services/prunedPatch.service";
-import { GlobalService } from "../../../services/global.service";
-import { AlertType } from "../../../classes/alert-type";
+import { GlobalService } from 'src/app/services/global.service';
+import { AlertType } from 'src/app/classes/alert-type';
+import { Helper } from 'src/app/classes/helper';
+import { PrunedPatchService } from 'src/app/services/prunedPatch.service';
 
 @Component({
   selector: 'app-order-notifications',
@@ -179,10 +179,9 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
   menuFilters = [];
   removable = false;
   originalNotification;
-  constructor(private _api: ApiService, private _prunedPatch: PrunedPatchService, private _global: GlobalService) { }
+  constructor(private _api: ApiService) { }
 
   ngOnInit() {
-    this.orderNotifications = this.restaurant.orderNotifications || [];
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -253,6 +252,38 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     this.removable = !!n;
   }
 
+  async patchDiff(newTemplates) {
+    if (Helper.areObjectsEqual(this.system.templates, newTemplates)) {
+      this._global.publishAlert(
+        AlertType.Info,
+        "Not changed"
+      );
+    } else {
+      await this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=system", [{
+        old: {
+          _id: this.system._id,
+        },
+        new: {
+          _id: this.system._id,
+          templates: newTemplates
+        }
+      }])
+        .subscribe(
+          result => {
+            this.system.templates = newTemplates;
+            this.categorizeTemplates();
+            this._global.publishAlert(
+              AlertType.Success,
+              "Updated successfully"
+            );
+          },
+          error => {
+            this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+          }
+        );
+    }
+  }
+
   updateFormEditor() {
     // always having channel and order types otions
     if (this.notificationInEditing.channel) {
@@ -264,16 +295,14 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     uselessFields.map(f => delete this.notificationInEditing[f]);
   }
 
-  submit() {
+  submit(event) {
     const cloned = JSON.parse(JSON.stringify(this.notificationInEditing));
     const index = this.orderNotifications.indexOf(this.originalNotification);
     if (index >= 0) {
       this.orderNotifications[index] = cloned;
-
     } else {
       this.orderNotifications.push(cloned);
     }
-    this.patchDiff(this.orderNotifications)
     // reset defaults
     if (!cloned.orderTypes || cloned.orderTypes.length === 0 || cloned.orderTypes.length === this.orderTypesDescriptor.items.length) {
       delete cloned.orderTypes;
@@ -281,42 +310,8 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     if (cloned.channel.type === 'phoenix' && this.menuFilters.length > 0) {
       cloned.menuFilters = JSON.parse(JSON.stringify(this.menuFilters));
     }
-
+    
     this.modalNotification.hide();
-  }
-
-  async patchDiff(newOrderNotifications) {
-    if (Helper.areObjectsEqual(this.restaurant.orderNotifications, newOrderNotifications)) {
-      this._global.publishAlert(
-        AlertType.Info,
-        "Not changed"
-      );
-    } else {
-      // api update here...
-      await this._prunedPatch
-        .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
-          old: {
-            _id: this.restaurant['_id'],
-            orderNotifications: this.restaurant.orderNotifications
-          }, new: {
-            _id: this.restaurant['_id'],
-            orderNotifications: newOrderNotifications
-          }
-        }])
-        .subscribe(
-          result => {
-            // let's update original, assuming everything successful
-            this.restaurant.orderNotifications = newOrderNotifications;
-            this._global.publishAlert(
-              AlertType.Success,
-              "Updated successfully"
-            );
-          },
-          error => {
-            this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-          }
-        );
-    }
   }
 
   cancel() {
