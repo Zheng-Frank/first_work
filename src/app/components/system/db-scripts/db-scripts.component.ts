@@ -158,35 +158,57 @@ export class DbScriptsComponent implements OnInit {
   }
 
   detectNumberByMc(mc, rtId, detectedMis) {
-    let numbers = [];
     if (!mc.mis) {
       return false;
     }
-    mc.mis.forEach((mi) => {
-      // if mi has no name or has a number, skip
+    let numbers = [], names = new Set(), len = mc.mis.length;
+    for (let i = 0; i < len; i++) {
+      let mi = mc.mis[i];
       if (!mi.name || mi.number) {
-        numbers.push(null);
         return false;
       }
-      let num = mi.name.split('.')[0];
-      numbers.push(num.trim());
-    });
-    // if numbers less than 5, or have empty number item,
-    // or have number includes 3+ continuous letter,
-    // or have number includes non-english characters, skip
-    if (numbers.length < 5 || numbers.some(n => !n || /[a-z]{3,}/i.test(n) || /[^\x00-\xff]/.test(n))) {
-      return false;
+      let [num, name] = mi.name.split('.');
+      // remove pure name's prefix ) or .
+      name = name.join('.').replace(/^\s*[).]\s*/, '').trim().toLowerCase();
+      num = num.trim();
+      // cases to skip:
+      // 1. num or name is empty; eg. Soda, B-A, B-B, Combo 1, Combo 2 etc.
+      // 2. name repeat, or num repeat; eg. 2 Wings, 3 Wings, 4 Soda, 4 Egg Roll etc.
+      // 3. num includes 3+ continuous letter eg. Especial 1. Camarofongo, Especial 2. Camarofongo etc.
+      // 4. num contains non-english characters eg. 蛋花汤 S1. Egg Drop Soup, 云吞汤 S2. Wonton Soup etc.
+      if (!num || !name || names.has(name) || numbers.some(n => n.toLowerCase() === num.toLowerCase())
+        || /[a-z]{3,}/i.test(num) || /[^\x00-\xff]/.test(num)) {
+        return false;
+      }
+      names.add(name);
+      numbers.push(num);
     }
-    let base = numbers.shift();
-    if (!base) {
+    // only handle mcs with at least 5 mis
+    if (numbers.length < 5) {
       return false;
     }
 
+    let base = numbers[0], continuous = false;
+    let pureDigits = /^\d$/, pureNonDigits = /^\D+$/, digitsStart = /^\d+\D+$/, digitsEnd = /^\D+\d+$/;
+    let format = [pureDigits, pureNonDigits, digitsStart, digitsEnd].find(r => r.test(base));
+
+    const matchNext = (cur, prev) => {
+      let next;
+      if (/\d$/.test(prev)) {
+        // 1. pure number sequence
+        // 1.1 some may has a letter with same number. eg. 10, 11, 11a, 11b, 12, etc.
+        next = Number(prev.match(/\d+$/)[0]) + 1;
+        if (/\d(\D*)$/.test(cur)) {
+          return next === Number(cur.match(/\d+$/)[0]) && cur.replace(/\d+$/, '') === prev.relace(/\d+$/, '');
+        }
+        return false;
+      }
+    };
 
     let baseLastCharCode = base.charCodeAt(base.length - 1);
     let flag = numbers.every((n, i) => {
       // make sure the extracted number is increasing
-      // check the last character
+      // check the last character (todo: not enough, cannot handle over 10 steps)
       return baseLastCharCode + (i + 1) === n.charCodeAt(n.length - 1);
     });
     if (flag) {
@@ -195,10 +217,10 @@ export class DbScriptsComponent implements OnInit {
       numbers.unshift(base);
       mc.mis.forEach((mi, index) => {
         let num = numbers[index];
-        let names = mi.name.split('.');
-        names.shift();
+        let chars = mi.name.split('.');
+        chars.shift();
         // remove pure name's prefix ) or .
-        mi.name = names.join('.').replace(/^\s*[).]\s*/, '').trim();
+        mi.name = chars.join('.').replace(/^\s*[).]\s*/, '').trim();
         mi.number = num;
       });
       // if the updated name is empty, we should skip, eg: comb1, comb2, comb3, etc... -> empty name
