@@ -179,9 +179,10 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
   menuFilters = [];
   removable = false;
   originalNotification;
-  constructor(private _api: ApiService) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
 
   ngOnInit() {
+    this.orderNotifications = this.restaurant.orderNotifications || [];
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -252,38 +253,6 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     this.removable = !!n;
   }
 
-  async patchDiff(newTemplates) {
-    if (Helper.areObjectsEqual(this.system.templates, newTemplates)) {
-      this._global.publishAlert(
-        AlertType.Info,
-        "Not changed"
-      );
-    } else {
-      await this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=system", [{
-        old: {
-          _id: this.system._id,
-        },
-        new: {
-          _id: this.system._id,
-          templates: newTemplates
-        }
-      }])
-        .subscribe(
-          result => {
-            this.system.templates = newTemplates;
-            this.categorizeTemplates();
-            this._global.publishAlert(
-              AlertType.Success,
-              "Updated successfully"
-            );
-          },
-          error => {
-            this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-          }
-        );
-    }
-  }
-
   updateFormEditor() {
     // always having channel and order types otions
     if (this.notificationInEditing.channel) {
@@ -291,13 +260,13 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     }
     // let's also remove irrelevant fields
     const uselessFields = Object.keys(this.notificationInEditing).filter(k => !this.notificationFieldDescriptors.map(fd => fd.field).some(f => f === k));
-    console.log(uselessFields);
     uselessFields.map(f => delete this.notificationInEditing[f]);
   }
 
   submit(event) {
     const cloned = JSON.parse(JSON.stringify(this.notificationInEditing));
     const index = this.orderNotifications.indexOf(this.originalNotification);
+    const oldOrderNotifications = JSON.parse(JSON.stringify(this.orderNotifications));
     if (index >= 0) {
       this.orderNotifications[index] = cloned;
     } else {
@@ -310,8 +279,43 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     if (cloned.channel.type === 'phoenix' && this.menuFilters.length > 0) {
       cloned.menuFilters = JSON.parse(JSON.stringify(this.menuFilters));
     }
-    
+
+
+    this.patchDiff(this.orderNotifications, oldOrderNotifications);
     this.modalNotification.hide();
+    this.notificationInEditing = {};
+    event.acknowledge(null);
+  }
+
+  async patchDiff(newNotifications, oldNotifications) {
+    if (Helper.areObjectsEqual(newNotifications, oldNotifications)) {
+      this._global.publishAlert(
+        AlertType.Info,
+        "Not changed"
+      );
+    } else {
+      await this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+        old: {
+          _id: this.restaurant._id,
+        },
+        new: {
+          _id: this.restaurant._id,
+          orderNotifications: newNotifications
+        }
+      }])
+        .subscribe(
+          result => {
+            this.restaurant.orderNotifications = newNotifications;
+            this._global.publishAlert(
+              AlertType.Success,
+              "Updated successfully"
+            );
+          },
+          error => {
+            this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+          }
+        );
+    }
   }
 
   cancel() {

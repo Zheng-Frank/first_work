@@ -35,7 +35,7 @@
               </span>
             </td>
             <td *ngIf="havingOrderTypes()">
-              {{n.orderTypes.join(', ')}}
+              {{(n.orderTypes || []).join(', ')}}
             </td>
             <td *ngIf="havingTemplateName()">
               {{n.templateName}}
@@ -44,10 +44,10 @@
               <app-menu-filters-editor [viewOnly]="true" [menuFilters]="n.menuFilters"></app-menu-filters-editor>
             </td>
             <td *ngIf="havingNonEnglishLanguages()">
-              {{n.languages.join(', ')}}
+              {{(n.languages || []).join(', ')}}
             </td>
             <td *ngIf="havingCopies()">
-              {{n.copies ? n.copies + 'X' : ''}}
+              {{n.copies ? n.copies + 'x' : ''}}
             </td>
             <td>
               <button class="btn btn-link p-0" (click)="editNotification(n)">Edit</button>
