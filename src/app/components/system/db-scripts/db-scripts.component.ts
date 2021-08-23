@@ -21,6 +21,240 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() { }
 
+  async disableAtMigrate() {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {disabled: true, disabledAt: {$exists: false}},
+      projection: {_id: 1, 'logs.time': 1, createdAt: 1, disabledAt: 1}
+    }, 50);
+    let zero = new Date(0).valueOf();
+    const getDTValue = (datetime) => {
+      let value = new Date(datetime).valueOf();
+      return Number.isNaN(value) ? zero : value;
+    };
+    const patchList = [];
+    for (let i = 0; i < rts.length; i++) {
+      let rt = rts[i];
+      let latestLogTime = (rt.logs || []).reduce((a, c) => Math.max(a, getDTValue(c.time)), zero);
+      let latestOrder = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'order',
+        query: {restaurant: {$oid: rt._id}},
+        projection: {createdAt: 1},
+        sort: {createdAt: -1},
+        limit: 1
+      }).toPromise();
+      let latestOrderTime = latestOrder.length ? getDTValue(latestOrder[0].createdAt) : zero;
+      let latestApiLog = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'apilog',
+        query: {'body.0.old._id': rt._id},
+        projection: {time: 1},
+        sort: {time: -1},
+        limit: 1
+      }).toPromise();
+
+      let latestApiLogTime = latestApiLog.length ? getDTValue(latestApiLog[0].time) : zero;
+      let disabledAt = Math.max(latestLogTime, latestOrderTime);
+
+      if (disabledAt === zero) {
+        disabledAt = latestApiLogTime;
+      }
+
+      if (disabledAt === zero) {
+        let createdAt = new Date(rt.createdAt);
+        // add one week to createdAt
+        createdAt.setDate(createdAt.getDate() + 7);
+        disabledAt = createdAt.valueOf();
+      }
+      patchList.push({
+        old: { _id: rt._id },
+        new: { _id: rt._id, disabledAt: new Date(disabledAt) }
+      });
+    }
+    console.log(patchList);
+    if (patchList.length) {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+    }
+  }
+
+  async preferredLanguageMigrate() {
+    const users = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    resource: 'user', query: {}
+    }, 1000);
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {disabled: {$ne: true}}
+    }, 50);
+    const chineseAgents = [
+      'alan', 'alice', 'amy', 'andy', 'annie', 'anny',
+      'cara', 'carrie', 'cathy', 'cici', 'demi',
+      'emily', 'eva', 'felix', 'hayley', 'ivy',
+      'james', 'joanan', 'joy', 'julia', 'kevin', 'kk',
+      'lily.jiang', 'lucy', 'mary', 'mia', 'mo', 'nicole',
+      'sam', 'sherry.zhao', 'sisi', 'siyuan.zhang',
+      'sun', 'sunny', 'vivi', 'xuesan.li',
+      'akili', 'angel', 'angelina', 'august', 'august',
+      'carol', 'celine', 'coco', 'daisy', 'dana', 'diana',
+      'dyney', 'ella', 'eric.wang', 'gina', 'grace',
+      'huafu.hu', 'ivy.chang', 'jake', 'jane', 'jane.sui',
+      'jessie', 'jiawei.sun', 'julia.zhu', 'july', 'laurence',
+      'lemon', 'lily.he', 'lina', 'linda', 'mandy', 'max',
+      'may', 'megan', 'risa', 'rita', 'ruby', 'sacha',
+      'sadie.peng', 'sally', 'sandy', 'sera', 'sophia',
+      'stella', 'tina.zhou', 'tracy', 'vicky', 'vicky.luo',
+      'windy', 'xinxi', 'yolanda', 'yoyo', 'yoyo.wang', 'zoe.zhou', 'zora'
+    ];
+    const chineseAgentsSet = new Set(chineseAgents);
+    const getSalesAgent = (rateSchedules) => {
+      let now = Date.now();
+      const isValid = x => users.some(u => u.username === x.agent);
+      let list = (rateSchedules || []).filter(x => isValid(x) && new Date(x.date).valueOf() <= now.valueOf())
+        .sort((x, y) => new Date(x.date).valueOf() - new Date(y.date).valueOf());
+      let item = list.pop() || {};
+      return item.agent;
+    };
+    const patchList = [];
+    rts.forEach(rt => {
+      let salesAgent = getSalesAgent(rt.rateSchedules);
+      let channels = rt.channels || [];
+      let phoneOrderChannels = channels.filter(x => x.type === 'Phone' && (x.notifications || []).includes('Order'));
+      let updateOp = null;
+      // 1. has preferredLanguage
+      if (rt.preferredLanguage) {
+        // 1.1 no phone order notification -> get language depend on salesagent, set to preferredLanguage
+        if (phoneOrderChannels.length === 0) {
+          let preferredLanguage = salesAgent && chineseAgentsSet.has(salesAgent) ? 'CHINESE' : 'ENGLISH';
+          updateOp = {
+            old: { _id: rt._id },
+            new: { _id: rt._id, preferredLanguage }
+          };
+        } else {
+          // 1.2 has phone order notification -> keep preferredLanguage, and set it to channelLanguage
+          phoneOrderChannels.forEach(x => x.channelLanguage = rt.preferredLanguage);
+          updateOp = {
+            old: { _id: rt._id },
+            new: { _id: rt._id, channels }
+          };
+        }
+      } else {
+        // 2 no preferredLanguage
+        // 2.1 no phone order notification -> get language depend on salesagent and set to preferredLanguage
+        if (phoneOrderChannels.length === 0) {
+          let preferredLanguage = salesAgent && chineseAgentsSet.has(salesAgent) ? 'CHINESE' : 'ENGLISH';
+          updateOp = {
+            old: { _id: rt._id },
+            new: { _id: rt._id, preferredLanguage }
+          };
+        } else {
+          // 2.2 has phone order notification -> preferredLanguage and channelLanguage to English
+          let preferredLanguage = 'ENGLISH';
+          phoneOrderChannels.forEach(x => x.channelLanguage = preferredLanguage);
+          updateOp = {
+            old: { _id: rt._id },
+            new: { _id: rt._id, preferredLanguage, channels }
+          };
+        }
+      }
+      if (updateOp) {
+        patchList.push(updateOp);
+      }
+    });
+    console.log(JSON.stringify(patchList));
+    if (patchList.length > 0) {
+      // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+    }
+  }
+
+  async regularSpacesAroundParentheses() {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        $or: [
+          {'menus.name': {$regex: "\\S\\(|\\(\\s+|\\)\\S|\\s+\\)"}},
+          {'menus.mcs.name': {$regex: "\\S\\(|\\(\\s+|\\)\\S|\\s+\\)"}},
+          {'menus.mcs.mis.name': {$regex: "\\S\\(|\\(\\s+|\\)\\S|\\s+\\)"}}
+        ]
+      }
+    }, 50);
+
+    const clean = item => {
+      if (item.name) {
+        item.name = item.name.replace(/\s*\(\s*/g, ' (').replace(/\s*\)\s*/g, ') ').replace(/\s+/g, ' ').trim();
+      }
+    };
+    let patchList = rts.map(rt => {
+      rt.menus.forEach(menu => {
+        if (menu) {
+          clean(menu);
+          (menu.mcs || []).forEach(mc => {
+            if (mc) {
+              clean(mc);
+              (mc.mis || []).forEach(mi => {
+                if (mi) {
+                  clean(mi);
+                }
+              });
+            }
+          });
+        }
+      });
+
+      return {
+        old: { _id: rt._id },
+        new: { _id: rt._id, menus: rt.menus }
+      };
+    });
+    console.log(patchList);
+    if (patchList.length > 0) {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+    }
+  }
+
+  async unifyQuotationMarksAndParenthesesInMenuName() {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        $or: [
+          {'menus.name': {$regex: "[（）‘’“”]"}},
+          {'menus.mcs.name': {$regex: "[（）‘’“”]"}},
+          {'menus.mcs.mis.name': {$regex: "[（）‘’“”]"}}
+        ]
+      }
+    }, 50);
+
+    const clean = item => {
+      if (item.name) {
+        item.name = item.name.replace(/‘/g, "'").replace(/’/g, "'")
+          .replace(/“/g, '"').replace(/”/g, '"')
+          .replace(/（/g, '(').replace(/）/g, ')');
+      }
+    };
+    let patchList = rts.map(rt => {
+      rt.menus.forEach(menu => {
+        if (menu) {
+          clean(menu);
+          (menu.mcs || []).forEach(mc => {
+            if (mc) {
+              clean(mc);
+              (mc.mis || []).forEach(mi => {
+                if (mi) {
+                  clean(mi);
+                }
+              });
+            }
+          });
+        }
+      });
+
+      return {
+        old: { _id: rt._id },
+        new: { _id: rt._id, menus: rt.menus }
+      };
+    });
+    console.log(patchList);
+    if (patchList.length > 0) {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+    }
+  }
 
 
   parsePrefixNum (name) {
