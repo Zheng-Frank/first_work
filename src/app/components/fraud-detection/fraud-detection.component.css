@@ -319,18 +319,22 @@
   opacity: 0.75;
 }
 
-.order-number {
+.card-header {
   position: absolute;
-  top: 0.25rem;
-  left: 0.25rem;
+  left: 0;
+  top: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-header .order-number {
   font-size: 150%;
   opacity: 0.75;
 }
 
-.previous-orders-box{
-  position: absolute;
-  top: 0.5rem;
-  right: 12rem;
+.card-header a{
   font-size: 1rem;
 }
 

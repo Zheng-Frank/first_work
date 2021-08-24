@@ -31,18 +31,21 @@
     <div class="card {{order.statusEqual('CANCELED') || order.statusEqual('COMPLETED') ? '': 'app-stand-out'}}
         {{order.statusEqual('CANCELED') ? 'app-order-finished card-outline-danger' : ''}}
         {{order.statusEqual('COMPLETED') ? 'card-outline-success app-order-finished' : ''}}" style="height:100%">
-      <div class="order-number">
-        <span class="pl-1" routerLink="/order/{{order.id}}">{{order.orderNumber}}</span>
-        <i class="fa fa-clipboard" (click)="copyToClipboard(order)" style="cursor:pointer;"></i>
-      </div>
-      <div class="previous-orders-box" *ngIf="order.previousOrders?.length > 0">
-        <a href="javascript:void(0)" (click)="showPreviousOrders(order.previousOrders)">{{order.previousOrders.length}} previous
-          orders</a>
-      </div>
-      <div *ngIf="order.dineInSessionObj" class="qr">
-        <span class="">
-          <i class="fa fa-qrcode"></i> QR <span>{{order.dineInSessionObj.code}}</span>
-        </span>
+      <div class="card-header">
+        <div class="order-number">
+          <span class="pl-1" routerLink="/order/{{order.id}}">{{order.orderNumber}}</span>
+          <i class="fa fa-clipboard" (click)="copyToClipboard(order)" style="cursor:pointer;"></i>
+        </div>
+        <ng-container *ngIf="order.previousOrders?.length > 0">
+          <a href="javascript:void(0)" (click)="showPreviousOrders(order.previousOrders)">{{order.previousOrders.length}} previous
+            orders</a>
+        </ng-container>
+        <a href="javascript:void(0)" (click)="addLog(order)">Add Log</a>
+        <div *ngIf="order.dineInSessionObj" class="qr">
+          <span class="">
+            <i class="fa fa-qrcode"></i> QR <span>{{order.dineInSessionObj.code}}</span>
+          </span>
+        </div>
       </div>
       <div class="card-block">
 
@@ -203,6 +206,11 @@
       </div>
     </div>
   </ng-template>
+
+  <q-modal #logEditingModal>
+    <app-log-editor [restaurant]="restaurant" [restaurantList]="[]" [log]="logInEditing"
+                    (success)="onLogCreated($event)" (cancel)="onLogCancel()"></app-log-editor>
+  </q-modal>
 
   <q-modal #previousOrdersModal [size]="'800px'">
     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
