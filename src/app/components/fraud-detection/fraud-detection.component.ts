@@ -1,5 +1,4 @@
 import {Component, EventEmitter, NgZone, OnInit, ViewChild} from '@angular/core';
-import {OrderCardComponent} from '../restaurants/order-card/order-card.component';
 import {Order, TimezoneHelper} from '@qmenu/ui';
 import {ModalComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
 import {ApiService} from '../../services/api.service';
@@ -19,8 +18,7 @@ export class FraudDetectionComponent implements OnInit {
   @ViewChild('rejectModal') rejectModal: ModalComponent;
   @ViewChild('undoRejectModal') undoRejectModal: ModalComponent;
   @ViewChild('banModal') banModal: ModalComponent;
-
-  @ViewChild('orderCard') orderCard: OrderCardComponent;
+  @ViewChild('previousOrdersModal') previousOrdersModal: ModalComponent;
   orderForModal = new Order();
   payment = {};
   cardSpecialOrder;
@@ -35,6 +33,7 @@ export class FraudDetectionComponent implements OnInit {
   undoOrder: any;
   isPostmatesStatusDelivered = false;
   createdAt;
+  previousOrders = [];
   showTip = false;
 
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
@@ -108,18 +107,47 @@ export class FraudDetectionComponent implements OnInit {
       limit: 150
     }, 50);
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
+    const previousOrders = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: {
+        'customerObj._id': { $in: customerIds }
+      },
+      projection: {
+        _id: 1,
+        customer: 1
+      },
+      sort: {
+        createdAt: -1
+      },
+      limit: 10000,
+    }).toPromise();
+    orders.forEach(order => {
+      order.previousOrders = [];
+      previousOrders.forEach(previousOrder => {
+        if (order.customer === previousOrder.customer) {
+          order.previousOrders.push(previousOrder);
+        }
+      });
+    });
 
-    const blacklist = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    this.orders = await this.prepareOrders(orders, customerIds);
+  }
+
+  async getBlackList(customerIds) {
+    return await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'blacklist',
       query: {'value': {$in: customerIds}, disabled: {$ne: true}},
       projection: {disabled: 1, reasons: 1, value: 1, orders: 1},
       limit: 100000,
       sort: {createAt: 1}
     }).toPromise();
+  }
 
+  async prepareOrders(orders, customerIds) {
+    const blacklist = await this.getBlackList(customerIds);
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     // assemble back to order:
-    this.orders = orders.map(order => {
+    return orders.map(order => {
       order.restaurantAddress = this.restaurantAddress[order.restaurant];
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
@@ -155,6 +183,25 @@ export class FraudDetectionComponent implements OnInit {
       return order.customer.phone;
     }
     return null;
+  }
+
+  async showPreviousOrders(previousOrders) {
+    let orders = [];
+    for (let i = 0; i < previousOrders.length; i++) {
+      const previousOrder = previousOrders[i];
+      const tempOrders = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "order",
+        query: {_id: {$oid: previousOrder._id}},
+        projection: {logs: 0},
+        sort: {createdAt: -1},
+        limit: 1
+      }).toPromise();
+      orders.push(tempOrders[0]);
+    }
+    const customerIds = orders.filter(order => order.customer).map(order => order.customer);
+    // assemble back to order:
+    this.previousOrders = await this.prepareOrders(orders, customerIds);
+    this.previousOrdersModal.show();
   }
 
   handleOnDisplayCreditCard(order) {

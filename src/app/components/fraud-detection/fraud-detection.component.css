@@ -3,6 +3,61 @@
   align-items: center;
 }
 
+.filter .filter-tip {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 1rem;
+}
+
+.filter .filter-date {
+  width: 12rem;
+  display: inline-block;
+  margin-right: 1rem;
+}
+
+
+.tip-icon {
+  position: relative;
+}
+
+.tip-content:before{
+  position:absolute;
+  content:"\00a0";
+  width:0px;
+  height:0px;
+  border-width:8px 18px 8px 0;
+  border-style:solid;
+  border-color:transparent #d8d4d4 transparent transparent;
+  top:15px;
+  left:-18px;
+}
+
+.tip-content{
+  position: absolute;
+  top:-15px;
+  left: 36px;
+  border:1px;
+  min-height:45px;
+  background-color:#d8d4d4;
+  width:250px;
+  background-image:-moz-linear-gradient(hsla(0,0%,100%, 0.6), hsla(0, 0%, 100%, 0)  30px);
+  background-image:-webkit-gradient(linear, 0 0, 0 30, from(hsla(0, 0%, 100%, 0.6)), to(hsla(0, 0%, 100%, 0)));
+  word-wrap: break-word;
+  z-index: 200;
+  -moz-box-shadow:1px 1px 2px hsla(0, 0%, 0%, 0.3);
+  -webkit-box-shadow:1px 1px 2px hsla(0, 0%, 0%, 0.3);
+  box-shadow:1px 1px 2x hsla(0, 0%, 0%, 0.3);
+
+  -webkit-border-radius:10px;
+  -moz-border-radius:10px;
+  border-radius:10px;
+  padding: 10px;
+}
+
+.tip-content div {
+  line-height: 1rem;
+}
+
 .driver-thubmbnail {
   width: 3rem;
   height: 3rem;
@@ -34,7 +89,7 @@
 }
 
 .card-block {
-  padding: 1.25rem;
+  padding: 2rem 1.25rem 1.25rem;
 }
 
 .card-block::after {
@@ -272,44 +327,15 @@
   opacity: 0.75;
 }
 
-.tip-icon {
-  position: relative;
-}
-
-.tip-content:before{
-  position:absolute;
-  content:"\00a0";
-  width:0px;
-  height:0px;
-  border-width:8px 18px 8px 0;
-  border-style:solid;
-  border-color:transparent #d8d4d4 transparent transparent;
-  top:15px;
-  left:-18px;
-}
-
-.tip-content{
+.previous-orders-box{
   position: absolute;
-  top:-15px;
-  left: 36px;
-  border:1px;
-  min-height:45px;
-  background-color:#d8d4d4;
-  width:250px;
-  background-image:-moz-linear-gradient(hsla(0,0%,100%, 0.6), hsla(0, 0%, 100%, 0)  30px);
-  background-image:-webkit-gradient(linear, 0 0, 0 30, from(hsla(0, 0%, 100%, 0.6)), to(hsla(0, 0%, 100%, 0)));
-  word-wrap: break-word;
-  z-index: 200;
-  -moz-box-shadow:1px 1px 2px hsla(0, 0%, 0%, 0.3);
-  -webkit-box-shadow:1px 1px 2px hsla(0, 0%, 0%, 0.3);
-  box-shadow:1px 1px 2x hsla(0, 0%, 0%, 0.3);
-
-  -webkit-border-radius:10px;
-  -moz-border-radius:10px;
-  border-radius:10px;
-  padding: 10px;
+  top: 0.5rem;
+  right: 12rem;
+  font-size: 1rem;
 }
 
-.tip-content div {
-  line-height: 1rem;
+.order-amount {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }

@@ -3,194 +3,220 @@
     <i class="fas fa-gift"></i> Fraud Orders ({{orders?.length}})
   </h3>
   <div class="form-group">
-    <div class="row filter">
-      <div class="col-2">
+    <div class="filter">
+      <span class="filter-tip">
         Order on date:
         <i class="fa fa-info-circle tip-icon"
            (mouseover)="showTip = true" (mouseout)="showTip = false">
-          <div *ngIf="showTip" class="tip-content">
-            <div>Attention: The date search will be executed according to the US Eastern time zone. By default, this page displays potentially fraudulent orders occurring in the last 24 hours.</div>
-            <div class="mt-2 mb-2">-------------</div>
-            <div>请注意：该日期按美东时区(America/New_York)计算。如未选择该日期，页面会显示近24小时产生的潜在诈骗订单。</div>
-          </div>
-        </i>
-      </div>
-      <div class="col-4">
-        <input class="form-control" type="date" [(ngModel)]="createdAt">
-      </div>
-      <div class="col-2">
-        <button class="btn btn-primary" (click)="search()">Search</button>
-      </div>
+        <div *ngIf="showTip" class="tip-content">
+          <div>Attention: The date search will be executed according to the US Eastern time zone. By default, this page displays potentially fraudulent orders occurring in the last 24 hours.</div>
+          <div class="mt-2 mb-2">-------------</div>
+          <div>请注意：该日期按美东时区(America/New_York)计算。如未选择该日期，页面会显示近24小时产生的潜在诈骗订单。</div>
+        </div>
+      </i>
+      </span>
+      <input class="form-control filter-date" type="date" [(ngModel)]="createdAt">
+      <button class="btn btn-primary" (click)="search()">Search</button>
     </div>
   </div>
 
   <div class="row ml-0 mr-0">
     <!-- row has negative margins and we need to remove them! -->
     <div *ngFor="let order of orders" class="col-sm-12 col-md-6 col-lg-4  app-pl-025 app-pr-025 mb-1">
-      <div class="card {{order.statusEqual('CANCELED') || order.statusEqual('COMPLETED') ? '': 'app-stand-out'}}
-          {{order.statusEqual('CANCELED') ? 'app-order-finished card-outline-danger' : ''}}
-          {{order.statusEqual('COMPLETED') ? 'card-outline-success app-order-finished' : ''}}" style="height:100%">
-        <div class="order-number">
-          <span class="pl-1" routerLink="/order/{{order.id}}">{{order.orderNumber}}</span>
-          <i class="fa fa-clipboard" (click)="copyToClipboard(order)" style="cursor:pointer;"></i>
+      <ng-container *ngTemplateOutlet="orderCardTemplate; context:{order: order}"></ng-container>
+    </div>
+  </div>
+
+  <ng-template #orderCardTemplate let-order="order">
+    <div class="card {{order.statusEqual('CANCELED') || order.statusEqual('COMPLETED') ? '': 'app-stand-out'}}
+        {{order.statusEqual('CANCELED') ? 'app-order-finished card-outline-danger' : ''}}
+        {{order.statusEqual('COMPLETED') ? 'card-outline-success app-order-finished' : ''}}" style="height:100%">
+      <div class="order-number">
+        <span class="pl-1" routerLink="/order/{{order.id}}">{{order.orderNumber}}</span>
+        <i class="fa fa-clipboard" (click)="copyToClipboard(order)" style="cursor:pointer;"></i>
+      </div>
+      <div class="previous-orders-box" *ngIf="order.previousOrders?.length > 0">
+        <a href="javascript:void(0)" (click)="showPreviousOrders(order.previousOrders)">{{order.previousOrders.length}} previous
+          orders</a>
+      </div>
+      <div *ngIf="order.dineInSessionObj" class="qr">
+        <span class="">
+          <i class="fa fa-qrcode"></i> QR <span>{{order.dineInSessionObj.code}}</span>
+        </span>
+      </div>
+      <div class="card-block">
+
+        <h4 class="text-sm-center">
+          {{getCustomerName(order)}}
+        </h4>
+        <h6 class="text-center text-muted">{{order.id}}</h6>
+        <div class="text-danger text-sm-center pb-2" *ngIf="!order.customerPreviousOrderStatus">Note: New Customer</div>
+        <!-- 显示用户被禁止的理由(show the banned reson of customer if it exsits!) -->
+        <div *ngIf="order.customer?.bannedReasons" class="alert alert-danger">
+          <i class="fa fa-ban"></i> BANNED: {{getBannedReasons(order)}}
         </div>
-        <div *ngIf="order.dineInSessionObj" class="qr">
-          <span class="">
-            <i class="fa fa-qrcode"></i> QR <span>{{order.dineInSessionObj.code}}</span>
-          </span>
+
+        <!--display a checkmark to indicate it's done-->
+        <h4 *ngIf="order.statusEqual('COMPLETED')" class="app-status-done text-success">
+          &#10004;
+        </h4>
+        <!--display an x to indicate it's done-->
+        <h4 *ngIf="order.statusEqual('CANCELED')" class="app-status-done text-danger">
+          &#10008;
+        </h4>
+
+        <h5 *ngIf="getCustomerPhoneNumber(order)" class="text-sm-center">
+          <a href="tel:{{getCustomerPhoneNumber(order)}}">{{getCustomerPhoneNumber(order) | tel}}</a>
+        </h5>
+
+        <h5 *ngIf="getCustomerEmail(order)" class="text-sm-center">
+          <a href="mailto:{{getCustomerEmail(order)}}">{{getCustomerEmail(order)}}</a>
+        </h5>
+        <div class="text-sm-center card-text">
+          <span>{{getSubmittedTime(order) | adjustedDate : 'MMM d h:mm a' : order.restaurantAddress?.timezone}}</span>
+          |
+          <strong>{{order.type}}</strong> |
+          <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CC' : 'CASH'}}</strong>
+          <span *ngIf="order.payment.paymentType === 'CREDITCARD'"> | </span>
+          <strong *ngIf="order.payment.paymentType === 'CREDITCARD' && order.payment.method != 'STRIPE'">{{order.payment.method}}</strong>
+          <strong *ngIf="order.payment.paymentType === 'CREDITCARD' && order.payment.method === 'STRIPE'">RESTAURANT</strong>
+          <span *ngIf="order.payment.fattmerchantWebToken"> (FATT)</span>
+          <span *ngIf="order?.paymentObj?.stripeObject?.spreedlyGatewayToken"> (SPRE)</span>
+          <span *ngIf="order?.paymentObj?.paypalClientId"> (PAYPAL)</span>
         </div>
-        <div class="card-block">
-
-          <h4 class="text-sm-center">
-            {{getCustomerName(order)}}
-          </h4>
-          <h6 class="text-center text-muted">{{order.id}}</h6>
-          <div class="text-danger text-sm-center pb-2" *ngIf="!order.customerPreviousOrderStatus">Note: New Customer</div>
-          <!-- 显示用户被禁止的理由(show the banned reson of customer if it exsits!) -->
-          <div *ngIf="order.customer?.bannedReasons" class="alert alert-danger">
-            <i class="fa fa-ban"></i> BANNED: {{getBannedReasons(order)}}
+        <div class="text-uppercase highlight" *ngIf="order.restaurantNotice">
+          <strong>{{order.restaurantNotice}}</strong>
+        </div>
+        <div class="text-sm-center card-text" *ngIf="order.address?.apt">
+          <strong>{{order.address.apt}}</strong>
+        </div>
+        <a *ngIf="order.address" href="http://maps.google.com/?q={{order.address.formatted_address}}">
+          <div class="text-sm-center card-text">{{order.address.formatted_address}}
           </div>
+        </a>
+        <div *ngIf="order.deliveryDistance" class="text-sm-center card-text">
+          <strong>({{order.deliveryDistance.toFixed(1)}} miles)</strong>
+        </div>
 
-          <!--display a checkmark to indicate it's done-->
-          <h4 *ngIf="order.statusEqual('COMPLETED')" class="app-status-done text-success">
-            &#10004;
-          </h4>
-          <!--display an x to indicate it's done-->
-          <h4 *ngIf="order.statusEqual('CANCELED')" class="app-status-done text-danger">
-            &#10008;
-          </h4>
-
-          <h5 *ngIf="getCustomerPhoneNumber(order)" class="text-sm-center">
-            <a href="tel:{{getCustomerPhoneNumber(order)}}">{{getCustomerPhoneNumber(order) | tel}}</a>
-          </h5>
-
-          <h5 *ngIf="getCustomerEmail(order)" class="text-sm-center">
-            <a href="mailto:{{getCustomerEmail(order)}}">{{getCustomerEmail(order)}}</a>
-          </h5>
-          <div class="text-sm-center card-text">
-            <span>{{getSubmittedTime(order) | adjustedDate : 'MMM d h:mm a' : order.restaurantAddress?.timezone}}</span>
-            |
-            <strong>{{order.type}}</strong> |
-            <strong>{{order.payment.paymentType === 'CREDITCARD' ? 'CC' : 'CASH'}}</strong>
-            <span *ngIf="order.payment.paymentType === 'CREDITCARD'"> | </span>
-            <strong *ngIf="order.payment.paymentType === 'CREDITCARD' && order.payment.method != 'STRIPE'">{{order.payment.method}}</strong>
-            <strong *ngIf="order.payment.paymentType === 'CREDITCARD' && order.payment.method === 'STRIPE'">RESTAURANT</strong>
-            <span *ngIf="order.payment.fattmerchantWebToken"> (FATT)</span>
-            <span *ngIf="order?.paymentObj?.stripeObject?.spreedlyGatewayToken"> (SPRE)</span>
-            <span *ngIf="order?.paymentObj?.paypalClientId"> (PAYPAL)</span>
-          </div>
-          <div class="text-uppercase highlight" *ngIf="order.restaurantNotice">
-            <strong>{{order.restaurantNotice}}</strong>
-          </div>
-          <div class="text-sm-center card-text" *ngIf="order.address?.apt">
-            <strong>{{order.address.apt}}</strong>
-          </div>
-          <a *ngIf="order.address" href="http://maps.google.com/?q={{order.address.formatted_address}}">
-            <div class="text-sm-center card-text">{{order.address.formatted_address}}
+        <div class="text-sm-center" *ngIf="order.address?.specialInstructions">
+          Extra Instructions: {{order.address.specialInstructions}}
+        </div>
+        <div *ngIf="order.timeToDeliver" class="text-sm-center card-text alert-success">
+          <span class="fa fa-clock-o"></span>
+          <strong> scheduled:
+            {{order.timeToDeliver | adjustedDate : 'MMM d h:mm a' : order.restaurantTimezone}}</strong>
+        </div>
+        <div *ngIf="order.delivery?.courier" class="text-center">
+          <hr>
+          <div class="media mt-1 d-inline-block">
+            <div class="media-left" *ngIf="order.delivery?.courier?.img_href">
+              <img class="media-object img-rounded driver-thubmbnail" src="{{order.delivery?.courier?.img_href}}"
+                   alt="{{order.delivery?.courier?.name}}">
             </div>
-          </a>
-          <div *ngIf="order.deliveryDistance" class="text-sm-center card-text">
-            <strong>({{order.deliveryDistance.toFixed(1)}} miles)</strong>
-          </div>
-
-          <div class="text-sm-center" *ngIf="order.address?.specialInstructions">
-            Extra Instructions: {{order.address.specialInstructions}}
-          </div>
-          <div *ngIf="order.timeToDeliver" class="text-sm-center card-text alert-success">
-            <span class="fa fa-clock-o"></span>
-            <strong> scheduled:
-              {{order.timeToDeliver | adjustedDate : 'MMM d h:mm a' : order.restaurantTimezone}}</strong>
-          </div>
-          <div *ngIf="order.delivery?.courier" class="text-center">
-            <hr>
-            <div class="media mt-1 d-inline-block">
-              <div class="media-left" *ngIf="order.delivery?.courier?.img_href">
-                <img class="media-object img-rounded driver-thubmbnail" src="{{order.delivery?.courier?.img_href}}"
-                     alt="{{order.delivery?.courier?.name}}">
+            <div class="media-body pl-1 text-left">
+              <div>
+                <span class="label">Driver</span><span class="value">{{order.delivery?.courier?.name}}</span>
               </div>
-              <div class="media-body pl-1 text-left">
-                <div>
-                  <span class="label">Driver</span><span class="value">{{order.delivery?.courier?.name}}</span>
+              <!--
+              <div>
+                <span class="label">Phone</span><span
+                  class="value">{{(order.delivery?.courier?.phone_number || '').slice(1) | tel}}</span>
+              </div>
+               -->
+              <div>
+                <span class="label">Status</span><span
+                class="value text-uppercase {{order.delivery?.status === 'canceled' ? 'text-danger' : ''}}">{{order.delivery?.status}}</span>
+              </div>
+              <div>
+                <span class="label">Postmates ID </span><span class="value">{{order.delivery?.id}}</span>
+              </div>
+              <div class="text-center"><button class="btn btn-link"
+                                               (click)="displayingDeliveryDetails = !displayingDeliveryDetails">{{displayingDeliveryDetails ? 'less...' :
+                'more...'}}</button>
+              </div>
+              <div *ngIf="displayingDeliveryDetails">
+                <div *ngFor="let record of getUpdatedStatuses()">
+                  <span>{{record.created | adjustedDate : 'h:mm a' : order.restaurantTimezone}}</span>&nbsp;<span
+                  class="value">{{postmatesStatus(record.status)}}</span>
                 </div>
-                <!--
-                <div>
-                  <span class="label">Phone</span><span
-                    class="value">{{(order.delivery?.courier?.phone_number || '').slice(1) | tel}}</span>
-                </div>
-                 -->
-                <div>
-                  <span class="label">Status</span><span
-                  class="value text-uppercase {{order.delivery?.status === 'canceled' ? 'text-danger' : ''}}">{{order.delivery?.status}}</span>
-                </div>
-                <div>
-                  <span class="label">Postmates ID </span><span class="value">{{order.delivery?.id}}</span>
-                </div>
-                <div class="text-center"><button class="btn btn-link"
-                                                 (click)="displayingDeliveryDetails = !displayingDeliveryDetails">{{displayingDeliveryDetails ? 'less...' :
-                  'more...'}}</button>
-                </div>
-                <div *ngIf="displayingDeliveryDetails">
-                  <div *ngFor="let record of getUpdatedStatuses()">
-                    <span>{{record.created | adjustedDate : 'h:mm a' : order.restaurantTimezone}}</span>&nbsp;<span
-                    class="value">{{postmatesStatus(record.status)}}</span>
-                  </div>
-                  <div class="text-center"><a href="{{order.delivery.tracking_url}}" target="_blank">Map</a></div>
-                </div>
+                <div class="text-center"><a href="{{order.delivery.tracking_url}}" target="_blank">Map</a></div>
               </div>
             </div>
           </div>
-          <small>
-            <div class="text-sm-center"
-                 *ngIf="order.customerPreviousOrderStatus && order.customerPreviousOrderStatus.status=='CANCELED'">
-              Note: Customer's
-              <a href="/order/order.customerPreviousOrderStatus.order">previous order</a> was canceled. Reason:
-              <span class="text-danger">{{order.customerPreviousOrderStatus.comments}}</span>
+        </div>
+        <small>
+          <div class="text-sm-center"
+               *ngIf="order.customerPreviousOrderStatus && order.customerPreviousOrderStatus.status=='CANCELED'">
+            Note: Customer's
+            <a href="/order/order.customerPreviousOrderStatus.order">previous order</a> was canceled. Reason:
+            <span class="text-danger">{{order.customerPreviousOrderStatus.comments}}</span>
+          </div>
+        </small>
+        <div [id]="'items-'+order.id">
+          <hr>
+          <div class="order-amount"><strong>Total Amount: </strong><span class="text-right text-nowrap">{{order.getTotal() | money}}</span></div>
+          <hr>
+          <div class="distance">
+            <div>
+              <a routerLink="/restaurants/{{order.restaurantObj._id}}">
+                {{order.restaurantObj.name}} ({{order.restaurantObj._id}})
+              </a>
             </div>
-          </small>
-          <div [id]="'items-'+order.id">
-            <hr>
-            <div class="distance">
-              <div>Billing Address: {{order.ccAddress.formatted_address}}</div>
-              <div>Restaurant Address: {{order.restaurantAddress?.formatted_address}}</div>
-              <div>Distance: <span class="text-danger">{{order.ccAddress.distanceToStore | number }} miles</span></div>
+            <div><strong>Restaurant Address: </strong>{{order.restaurantAddress?.formatted_address}}</div>
+            <ng-container *ngIf="order.ccAddress">
+              <div><strong>Billing Address: </strong>{{order.ccAddress.formatted_address}}</div>
+              <div><strong>Distance: </strong><span class="text-danger">{{order.ccAddress.distanceToStore | number }} miles</span></div>
               <div>
                 <a [href]="getMapLink(order)" target="_blank" class="text-danger text-nowrap card-link">View On Google Map</a>
               </div>
-            </div>
+            </ng-container>
+          </div>
+          <div *ngIf="order.statusEqual('CANCELED')" class="alert alert-danger" role="alert">
+            Order was canceled :(<div>{{order.getCurrentStatusComments()}}</div>
+            <hr class="text-danger">
+            <span>
+              Canceled by {{whoCancelOrder(order)}} on {{getOrderCanceledTime(order) | date:'yyyy-MM-dd HH:mm:ss'}}
+            </span>
+          </div>
+          <div class="text-right">
+            <hr>
+            <a role="button" class="text-danger text-nowrap card-link" (click)="handleOnBan(order)" *ngIf="!isBanned(order)">
+              <i class="fa fa-thumbs-down"></i> Ban</a>
+            <a role="button" class="text-danger text-nowrap card-link" (click)="handleOnBan(order)" *ngIf="isBanned(order)">
+              <i class="fa fa-thumbs-up"></i> Unban</a>
 
-            <div *ngIf="order.statusEqual('CANCELED')" class="alert alert-danger" role="alert">
-              Order was canceled :(<div>{{order.getCurrentStatusComments()}}</div>
-              <hr class="text-danger">
-              <span>
-                Canceled by {{whoCancelOrder(order)}} on {{getOrderCanceledTime(order) | date:'yyyy-MM-dd HH:mm:ss'}}
-              </span>
-            </div>
-            <div class="text-right">
-              <hr>
-              <a role="button" class="text-danger text-nowrap card-link" (click)="handleOnBan(order)" *ngIf="!isBanned(order)">
-                <i class="fa fa-thumbs-down"></i> Ban</a>
-              <a role="button" class="text-danger text-nowrap card-link" (click)="handleOnBan(order)" *ngIf="isBanned(order)">
-                <i class="fa fa-thumbs-up"></i> Unban</a>
+            <a role="button" class="text-danger text-nowrap card-link" (click)="handleOnReject(order)"
+               *ngIf="canCancel(order) && !isCanceled(order)">
+              <i class="fa fa-times"></i> Cancel</a>
+            <a role="button" class="text-danger text-nowrap card-link" (click)="handleOnUndoReject(order)"
+               *ngIf="canCancel(order) && isCanceled(order)">
+              <i class="fa fa-times"></i> Undo Cancel</a>
+            <a role="button" class="text-primary text-nowrap card-link" (click)="handleOnDisplayCreditCard(order)"
+               *ngIf="canShowCreditCard(order)">
+              <i class="fa fa-credit-card"></i> View</a>
+            <a *ngIf="isViewable(order)" target="_blank" class="text-primary text-nowrap card-link"
+               href="{{getOrderLink(order)}}">
+              <i class="fa fa-eye"></i> View Order</a>
 
-              <a role="button" class="text-danger text-nowrap card-link" (click)="handleOnReject(order)"
-                 *ngIf="canCancel(order) && !isCanceled(order)">
-                <i class="fa fa-times"></i> Cancel</a>
-              <a role="button" class="text-danger text-nowrap card-link" (click)="handleOnUndoReject(order)"
-                 *ngIf="canCancel(order) && isCanceled(order)">
-                <i class="fa fa-times"></i> Undo Cancel</a>
-              <a role="button" class="text-primary text-nowrap card-link" (click)="handleOnDisplayCreditCard(order)"
-                 *ngIf="canShowCreditCard(order)">
-                <i class="fa fa-credit-card"></i> View</a>
-              <a *ngIf="isViewable(order)" target="_blank" class="text-primary text-nowrap card-link"
-                 href="{{getOrderLink(order)}}">
-                <i class="fa fa-eye"></i> View Order</a>
-
-            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </ng-template>
+
+  <q-modal #previousOrdersModal [size]="'800px'">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">Previous Orders</h4>
+    <hr>
+    <!-- row has negative margins and we need to remove them! -->
+    <div class="row mr-0 ml-0">
+      <div *ngFor="let order of previousOrders" class="col-sm-12 col-md-12 col-lg-6  app-pl-025 app-pr-025 mb-1">
+      <ng-container *ngTemplateOutlet="orderCardTemplate; context:{order: order}"></ng-container>
+    </div>
+    </div>
+  </q-modal>
 
   <q-modal #paymentModal>
     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -233,6 +259,7 @@
     </table>
     <button class="btn btn-lg btn-block btn-secondary" data-dismiss="modal">OK</button>
   </q-modal>
+
   <q-modal #rejectModal>
     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
       <span aria-hidden="true">×</span>
