@@ -27,7 +27,7 @@
     </div>
   </div>
 
-  <ng-template #orderCardTemplate let-order="order">
+  <ng-template #orderCardTemplate let-order="order" let-prev="prev">
     <div class="card {{order.statusEqual('CANCELED') || order.statusEqual('COMPLETED') ? '': 'app-stand-out'}}
         {{order.statusEqual('CANCELED') ? 'app-order-finished card-outline-danger' : ''}}
         {{order.statusEqual('COMPLETED') ? 'card-outline-success app-order-finished' : ''}}" style="height:100%">
@@ -36,11 +36,11 @@
           <span class="pl-1" routerLink="/order/{{order.id}}">{{order.orderNumber}}</span>
           <i class="fa fa-clipboard" (click)="copyToClipboard(order)" style="cursor:pointer;"></i>
         </div>
-        <ng-container *ngIf="order.previousOrders?.length > 0">
+        <ng-container *ngIf="!prev && order.previousOrders?.length > 0">
           <a href="javascript:void(0)" (click)="showPreviousOrders(order.previousOrders)">{{order.previousOrders.length}} previous
             orders</a>
         </ng-container>
-        <a href="javascript:void(0)" (click)="addLog(order)">Add Log</a>
+        <a *ngIf="!prev" href="javascript:void(0)" (click)="addLog(order)">Add Log</a>
         <div *ngIf="order.dineInSessionObj" class="qr">
           <span class="">
             <i class="fa fa-qrcode"></i> QR <span>{{order.dineInSessionObj.code}}</span>
@@ -181,7 +181,7 @@
               Canceled by {{whoCancelOrder(order)}} on {{getOrderCanceledTime(order) | date:'yyyy-MM-dd HH:mm:ss'}}
             </span>
           </div>
-          <div class="text-right">
+          <div class="text-right" *ngIf="!prev">
             <hr>
             <a role="button" class="text-danger text-nowrap card-link" (click)="handleOnBan(order)" *ngIf="!isBanned(order)">
               <i class="fa fa-thumbs-down"></i> Ban</a>
@@ -221,7 +221,7 @@
     <!-- row has negative margins and we need to remove them! -->
     <div class="row mr-0 ml-0">
       <div *ngFor="let order of previousOrders" class="col-sm-12 col-md-12 col-lg-6  app-pl-025 app-pr-025 mb-1">
-      <ng-container *ngTemplateOutlet="orderCardTemplate; context:{order: order}"></ng-container>
+      <ng-container *ngTemplateOutlet="orderCardTemplate; context:{order: order, prev: true}"></ng-container>
     </div>
     </div>
   </q-modal>
