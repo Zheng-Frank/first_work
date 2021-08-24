@@ -174,9 +174,9 @@ export class RestaurantStatsComponent implements OnInit {
     let fromPWA = orders.filter(order => this.orderFromPWA(order)).length;
     let fromApp = orders.filter(order => this.orderFromApp(order)).length;
     let fromPhoneBrowser = orders.filter(order => this.orderFromPhoneBrowser(order)).length;
-    console.log(JSON.stringify(orders.filter(order => this.orderFromPWA(order)).map(order=>order.runtime)));
-    console.log(JSON.stringify(orders.filter(order => this.orderFromApp(order)).map(order=>order.runtime)));
-    console.log(JSON.stringify(orders.filter(order => this.orderFromPhoneBrowser(order)).map(order=>order.runtime)));
+    // console.log(JSON.stringify(orders.filter(order => this.orderFromPWA(order)).map(order=>order.runtime)));
+    // console.log(JSON.stringify(orders.filter(order => this.orderFromApp(order)).map(order=>order.runtime)));
+    // console.log(JSON.stringify(orders.filter(order => this.orderFromPhoneBrowser(order)).map(order=>order.runtime)));
     let fromWindows = orders.filter(order => this.orderFromWindows(order)).length;
     let fromLinux = orders.filter(order => this.orderFromLinux(order)).length;
     let fromMac = orders.filter(order => this.orderFromMac(order)).length;
@@ -184,7 +184,7 @@ export class RestaurantStatsComponent implements OnInit {
     let fromPCSafari = orders.filter(order => this.orderFromPCSafari(order)).length;
     let fromPCFirefox = orders.filter(order => this.orderFromPCFirefox(order)).length;
     let fromPCIE = orders.filter(order => this.orderFromPCIE(order)).length;
-
+    console.log(JSON.stringify(orders.filter(order => this.orderFromOthers(order)).map(order=>order.runtime)));
     // calculate phone take up rate.
     fromPhone > 0 ? this.orderFromDevice.mobileTotal = fromPhone + " " + this.calcRate(fromPhone / orders.length) : "(0 0%)";
     // count by os
@@ -215,7 +215,12 @@ export class RestaurantStatsComponent implements OnInit {
     // calculate browser and other device take up rate.
     // orders.length > 0 ? this.orderFromDevice.browserTotal = fromEdge + " " + this.calcRate(fromEdge / orders.length):"(0 0%)";
     fromPC > 0 || fromPhone > 0 ? this.orderFromDevice.otherTotal = (orders.length - fromPhone - fromPC) + " " + this.calcRate((orders.length - fromPhone - fromPC) / orders.length):"(0 0%)";
+    
     console.log(JSON.stringify(this.orderFromDevice));
+  }
+
+  orderFromOthers(order){
+     return !this.orderFromPC(order) && !this.orderFromPhone(order);
   }
 
   calcRate(rate: number): string {
