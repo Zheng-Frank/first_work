@@ -65,9 +65,26 @@ export class OrderCardComponent implements OnInit {
   // judge order whether is from Edge by order.runtime.browser.
   // the type of browser:
   // Chrome, FireFox, Safari, IE
-  orderFromEdge(order) {
-    return order.runtime && order.runtime.browser;
+  orderFromChrome(order){
+    return order.runtime && order.runtime.browser.toLowerCase() === 'chrome';
   }
+
+  orderFromFirefox(order){
+    return order.runtime && order.runtime.browser.toLowerCase() === 'firefox';
+  }
+
+  orderFromSafari(order){
+    return order.runtime && order.runtime.browser.toLowerCase() === 'safari';
+  }
+
+  orderFromIE(order){
+    return order.runtime && order.runtime.browser.toLowerCase() === 'ie';
+  }
+
+  orderFromBrowserUnknown(order){
+    return order.runtime && order.runtime.browser && !this.orderFromChrome(order) && !this.orderFromSafari(order) && !this.orderFromFirefox(order) && !this.orderFromIE(order);
+  }
+
   // judge order whether is from Edge by order.runtime.isApp.
   orderFromApp(order) {
     return order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os === 'iOS') && order.runtime.isApp;

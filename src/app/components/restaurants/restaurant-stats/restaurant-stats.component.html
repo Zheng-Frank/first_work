@@ -76,10 +76,10 @@
         </tr>
         <tr>
           <td>
-            Other
+            Others
           </td>
           <td class="digit-align">
-            {{orderFromDevice.mobile.byOS.Other}}
+            {{orderFromDevice.mobile.byOS.Others}}
           </td>
         </tr>
       </table>
@@ -111,10 +111,18 @@
         </tr>
         <tr>
           <td>
-            Other
+            Browser
           </td>
           <td class="digit-align">
-            {{orderFromDevice.mobile.byType.Other}}
+            {{orderFromDevice.mobile.byType.Browser}}
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Others
+          </td>
+          <td class="digit-align">
+            {{orderFromDevice.mobile.byType.Others}}
           </td>
         </tr>
       </table>
@@ -162,30 +170,73 @@
         </tr>
         <tr>
           <td>
-            Other
+            Others
           </td>
           <td class="digit-align">
-            {{orderFromDevice.pc.byOS.Other}}
+            {{orderFromDevice.pc.byOS.Others}}
           </td>
         </tr>
       </table>
     </td>
   </tr>
   <!-- end with by PC os -->
-  <tr class="bg-warning">
+  <!-- start with by pc browser -->
+  <tr>
     <td>
-      Other
+      By Browser
+    </td>
+    <td>
+      <table class="table">
+        <tr>
+          <td>
+            <i class="fab fa-chrome"></i>
+          </td>
+          <td class="digit-align">
+            {{orderFromDevice.pc.byBrowser.Chrome}}
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <i class="fab fa-safari"></i>
+          </td>
+          <td class="digit-align">
+            {{orderFromDevice.pc.byBrowser.Safari}}
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <i class="fab fa-firefox"></i>
+          </td>
+          <td class="digit-align">
+            {{orderFromDevice.pc.byBrowser.Firefox}}
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <i class="fab fa-internet-explorer"></i>
+          </td>
+          <td class="digit-align">
+            {{orderFromDevice.pc.byBrowser.IE}}
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Others
+          </td>
+          <td class="digit-align">
+            {{orderFromDevice.pc.byBrowser.Others}}
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <!-- end with by pc browser -->
+  <tr>
+    <td>
+      Others
     </td>
     <td class="digit-align">
       {{orderFromDevice.otherTotal}}
-    </td>
-  </tr>
-  <tr class="bg-warning">
-    <td>
-      Browser
-    </td>
-    <td class="digit-align">
-      {{orderFromDevice.browserTotal}}
     </td>
   </tr>
 </table>
