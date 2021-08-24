@@ -42,11 +42,10 @@ export class MonitoringDisabledRestaurantsComponent implements OnInit {
     restaurants = [];
 
     ngOnInit() {
-        this.refreshOrders();
+        this.refreshRestaurant();
     }
 
-    async refreshOrders() {
-
+    async refreshRestaurant() {
         this.restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
             resource: 'restaurant',
             query: {
