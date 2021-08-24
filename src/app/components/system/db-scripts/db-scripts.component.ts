@@ -391,83 +391,55 @@ export class DbScriptsComponent implements OnInit {
     return false;
   }
 
-  detectNumberByMc(mc, rtId, detectedMis) {
+  detectNumberByMc(mc, rtId, detectedMcs) {
     if (!mc.mis) {
       return false;
     }
-    let numbers = [], names = new Set(), len = mc.mis.length;
+    let numbers = [], names = [], len = mc.mis.length, repeatNums = [];
     for (let i = 0; i < len; i++) {
       let mi = mc.mis[i];
       if (!mi.name || mi.number) {
         return false;
       }
-      let [num, name] = mi.name.split('.');
-      // remove pure name's prefix ) or .
-      name = name.join('.').replace(/^\s*[).]\s*/, '').trim().toLowerCase();
+      let [num, ...rest] = mi.name.split('.');
+      // remove pure name's prefix ) or . or -
+      let name = rest.join('.').replace(/^\s*[-).]\s*/, '').trim();
       num = num.trim();
       // cases to skip:
       // 1. num or name is empty; eg. Soda, B-A, B-B, Combo 1, Combo 2 etc.
-      // 2. name repeat, or num repeat; eg. 2 Wings, 3 Wings, 4 Soda, 4 Egg Roll etc.
+      // 2. name repeat; eg. 2 Wings, 3 Wings, 4 Wings, etc.
       // 3. num includes 3+ continuous letter eg. Especial 1. Camarofongo, Especial 2. Camarofongo etc.
       // 4. num contains non-english characters eg. 蛋花汤 S1. Egg Drop Soup, 云吞汤 S2. Wonton Soup etc.
-      if (!num || !name || names.has(name) || numbers.some(n => n.toLowerCase() === num.toLowerCase())
+      if (!num || !name || names.some(n => n.toLowerCase() === name.toLowerCase())
         || /[a-z]{3,}/i.test(num) || /[^\x00-\xff]/.test(num)) {
-        return false;
+        continue;
       }
-      names.add(name);
-      numbers.push(num);
+      names[i] = name;
+      // if or num repeat, we save the repeat num and index for later use
+      if (numbers.some(n => n.toLowerCase() === num.toLowerCase())) {
+        repeatNums[i] = num;
+        continue;
+      }
+      // if num has (), we should extract the () and set to name
+      let [remark] = num.match(/\(.*\)/) || [""];
+      if (remark) {
+        names[i] = remark + names[i];
+      }
+      numbers[i] = num;
     }
     // only handle mcs with at least 5 mis
     if (numbers.length < 5) {
       return false;
     }
 
-    let base = numbers[0], continuous = false;
-    let pureDigits = /^\d$/, pureNonDigits = /^\D+$/, digitsStart = /^\d+\D+$/, digitsEnd = /^\D+\d+$/;
-    let format = [pureDigits, pureNonDigits, digitsStart, digitsEnd].find(r => r.test(base));
-
-    const matchNext = (cur, prev) => {
-      let next;
-      if (/\d$/.test(prev)) {
-        // 1. pure number sequence
-        // 1.1 some may has a letter with same number. eg. 10, 11, 11a, 11b, 12, etc.
-        next = Number(prev.match(/\d+$/)[0]) + 1;
-        if (/\d(\D*)$/.test(cur)) {
-          return next === Number(cur.match(/\d+$/)[0]) && cur.replace(/\d+$/, '') === prev.relace(/\d+$/, '');
-        }
-        return false;
-      }
-    };
-
-    let baseLastCharCode = base.charCodeAt(base.length - 1);
-    let flag = numbers.every((n, i) => {
-      // make sure the extracted number is increasing
-      // check the last character (todo: not enough, cannot handle over 10 steps)
-      return baseLastCharCode + (i + 1) === n.charCodeAt(n.length - 1);
-    });
-    if (flag) {
-      let origin = mc.mis.map(x => ({number: x.number, name: x.name}));
-      // make update
-      numbers.unshift(base);
-      mc.mis.forEach((mi, index) => {
-        let num = numbers[index];
-        let chars = mi.name.split('.');
-        chars.shift();
-        // remove pure name's prefix ) or .
-        mi.name = chars.join('.').replace(/^\s*[).]\s*/, '').trim();
-        mi.number = num;
-      });
-      // if the updated name is empty, we should skip, eg: comb1, comb2, comb3, etc... -> empty name
-      if (mc.mis.some(x => !x.name)) {
-        return false;
-      }
-      let temp = {
-        rt: rtId, origin, numbers: [base, ...numbers],
-        updated: mc.mis.map(x => ({number: x.number, name: x.name}))
-      };
-      detectedMis.push(temp);
+    // calculate exception ratio , skip lower then 0.8 (4 of 5)
+    if (numbers.filter(n => !!n).length / len < 0.8) {
+      return false;
     }
-    return flag;
+    detectedMcs.push({
+      mc: mc.name, mis: mc.mis.map((mi, i) => (numbers[i] || repeatNums[i]) + ' | ' + mi.name + '      |      ' + names[i])
+    });
+    return true;
   }
 
   async extractMenuNumberInName() {
@@ -477,18 +449,26 @@ export class DbScriptsComponent implements OnInit {
       projection: { 'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, 'menus.mcs.mis.number': 1, name: 1 }
     }, 500);
 
-    let detectedMis = [];
+    let detectedMcs = [];
     let canExtract = rts.filter(rt => {
       let flag = false;
       (rt.menus || []).forEach(menu => {
         (menu.mcs || []).forEach(mc => {
-          flag = this.detectNumberByMc(mc, rt._id, detectedMis) || flag;
+          flag = this.detectNumberByMc(mc, rt._id, detectedMcs) || flag;
         });
       });
       return flag;
     });
-    console.log('rt count: ', canExtract.length, ' mi count: ', detectedMis.length);
-    console.log(JSON.stringify(detectedMis));
+    console.log('rt count: ', canExtract.length, ' mc count: ', detectedMcs.length,
+      ' mi count: ', detectedMcs.reduce((a, c) => a + c.mis.length, 0));
+    let str = "";
+    detectedMcs.forEach(mc => {
+      str += mc.mc;
+      str += '\n\t';
+      str += mc.mis.join('\n\t');
+      str += '\n\n';
+    });
+    console.log(str);
     console.log(JSON.stringify(canExtract.map(rt => rt._id)));
   }
 
