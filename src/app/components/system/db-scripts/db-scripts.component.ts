@@ -410,7 +410,13 @@ export class DbScriptsComponent implements OnInit {
       // 2. name repeat; eg. 2 Wings, 3 Wings, 4 Wings, etc.
       // 3. num includes 3+ continuous letter eg. Especial 1. Camarofongo, Especial 2. Camarofongo etc.
       // 4. num contains non-english characters eg. 蛋花汤 S1. Egg Drop Soup, 云吞汤 S2. Wonton Soup etc.
-      if (!num || !name || names.some(n => n.toLowerCase() === name.toLowerCase())
+      // 5. num contains parentheses aka (), as we don't know if the () thing is related to the menu name
+      // 6. original name startsWith 805 B.B.+ etc
+      // 7. original name startsWith 12 oz. etc
+      if (!num || !name || /\(.*\)/.test(num)
+        || /^(\d+\s+)*([a-zA-Z]+\.){2,}/.test(mi.name)
+        || /^(\d+\.?)+\s+[a-zA-Z]{2,}\./.test(mi.name)
+        || names.some(n => n.toLowerCase() === name.toLowerCase())
         || /[a-z]{3,}/i.test(num) || /[^\x00-\xff]/.test(num)) {
         continue;
       }
@@ -437,7 +443,13 @@ export class DbScriptsComponent implements OnInit {
       return false;
     }
     detectedMcs.push({
-      mc: mc.name, mis: mc.mis.map((mi, i) => (numbers[i] || repeatNums[i]) + ' | ' + mi.name + '      |      ' + names[i])
+      rt: rtId, mc: mc.name, mis: mc.mis.map((mi, i) => (numbers[i] || repeatNums[i]) + ' | ' + mi.name + '      |      ' + names[i])
+    });
+    mc.mis.forEach((mi, i) => {
+      if (numbers[i]) {
+        mi.number = numbers[i];
+        mi.name = names[i];
+      }
     });
     return true;
   }
@@ -449,7 +461,7 @@ export class DbScriptsComponent implements OnInit {
       projection: { 'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, 'menus.mcs.mis.number': 1, name: 1 }
     }, 500);
 
-    let detectedMcs = [];
+    let detectedMcs = [], patchList = [];
     let canExtract = rts.filter(rt => {
       let flag = false;
       (rt.menus || []).forEach(menu => {
@@ -457,19 +469,29 @@ export class DbScriptsComponent implements OnInit {
           flag = this.detectNumberByMc(mc, rt._id, detectedMcs) || flag;
         });
       });
+      if (flag) {
+        patchList.push({
+          old: {_id: rt._id},
+          new: {_id: rt._id, menus: rt.menus}
+        });
+      }
       return flag;
     });
     console.log('rt count: ', canExtract.length, ' mc count: ', detectedMcs.length,
       ' mi count: ', detectedMcs.reduce((a, c) => a + c.mis.length, 0));
     let str = "";
     detectedMcs.forEach(mc => {
-      str += mc.mc;
+      str += mc.rt + " " + mc.mc;
       str += '\n\t';
       str += mc.mis.join('\n\t');
       str += '\n\n';
     });
     console.log(str);
+    console.log(JSON.stringify(patchList.slice(0, 100)));
     console.log(JSON.stringify(canExtract.map(rt => rt._id)));
+    // if (patchList.length > 0) {
+    //   await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+    // }
   }
 
   async getRTsToCleanMenu() {
