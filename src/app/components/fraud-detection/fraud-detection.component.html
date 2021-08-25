@@ -162,8 +162,9 @@
           <div class="distance">
             <div>
               <a target="_blank" routerLink="/restaurants/{{order.restaurantObj._id}}">
-                {{order.restaurantObj.name}} ({{order.restaurantObj._id}})
+                {{order.restaurantObj.name}}
               </a>
+              ({{order.restaurantObj._id}})
             </div>
             <div><strong>Restaurant Address: </strong>{{order.restaurantAddress?.formatted_address}}</div>
             <ng-container *ngIf="order.ccAddress">
