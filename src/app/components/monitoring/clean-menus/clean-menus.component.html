@@ -5,6 +5,9 @@
       <tr *ngFor="let rt of restaurants">
         <td><a class="btn-link" [routerLink]="'/restaurants/' + rt._id">{{rt.name}}</a></td>
         <td>
+          <a (click)="previewAuto(rt)" class="btn btn-link">Preview Auto Extracted Numbers</a>
+        </td>
+        <td>
           <a (click)="clean(rt)" class="btn btn-link">Clean</a>
         </td>
       </tr>
@@ -23,4 +26,43 @@
   <hr>
   <app-menu-cleanup #cleanupComponent [allMenus]="restaurant?.menus" [translations]="restaurant?.translations"
                     [hasSkip]="true" [handleIDsOnly]="handleIDsOnly" (skip)="cleanupSkip()" (save)="cleanupSave($event)"></app-menu-cleanup>
+</q-modal>
+
+
+<q-modal #previewAutoModal [size]="'1000px'">
+  <button type="button" (click)="previewClose()" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">×</span>
+  </button>
+  <h4 class="header-title text-center">
+    Preview Auto Extracted Numbers
+  </h4>
+  <hr>
+  <table class="table table-bordered table-sm">
+    <thead>
+      <tr>
+        <th>Mc</th>
+        <th>Confidence</th>
+        <th>Mis</th>
+        <th>Extracted Number</th>
+      </tr>
+    </thead>
+    <tbody>
+      <ng-container *ngFor="let mc of extractedMcs">
+        <tr>
+          <td [rowSpan]="mc.mis.length">{{mc.menu + ' -> ' + mc.name}}</td>
+          <td [rowSpan]="mc.mis.length">{{mc.confidence | number}}</td>
+          <td>
+            {{mc.mis[0].name}} <ng-container *ngIf="mc.mis[0].number">---{{mc.mis[0].number}}</ng-container>
+          </td>
+          <td>{{mc.numbers[0]}}</td>
+        </tr>
+        <tr *ngFor="let mi of mc.mis.slice(1); let miIndex = index;">
+          <td>
+            {{mi.name}} <ng-container *ngIf="mi.number">---{{mi.number}}</ng-container>
+          </td>
+          <td>{{mc.numbers[miIndex + 1]}}</td>
+        </tr>
+      </ng-container>
+    </tbody>
+  </table>
 </q-modal>
