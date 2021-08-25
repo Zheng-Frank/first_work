@@ -227,9 +227,10 @@ export class MenuCleanupComponent implements OnInit, OnChanges {
     if (numbers.length < 5) {
       return;
     }
-    // calculate exception ratio , skip lower then 0.8 (4 of 5)
-    if (numbers.filter(n => !!n).length / len < 0.8) {
-      return;
+    let confidence = numbers.filter(n => !!n).length / len;
+    // calculate exception ratio , skip lower then 0.79 (4 of 5)
+    if (Math.ceil(confidence * 100) < 80) {
+      return false;
     }
     mc.mis.forEach((mi, i) => {
       if (numbers[i] || repeatNums[i]) {

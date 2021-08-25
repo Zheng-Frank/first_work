@@ -127,8 +127,8 @@ export class CleanMenusComponent implements OnInit {
     }
     let confidence = numbers.filter(n => !!n).length / len;
     console.log(mc.name, confidence, numbers, repeatNums);
-    // calculate exception ratio , skip lower then 0.8 (4 of 5)
-    if (Math.round(confidence * 10) < 8) {
+    // calculate exception ratio , skip lower then 0.79 (4 of 5)
+    if (Math.ceil(confidence * 100) < 80) {
       return false;
     }
     return {numbers: mc.mis.map((x, i) => numbers[i] || repeatNums[i]), confidence};

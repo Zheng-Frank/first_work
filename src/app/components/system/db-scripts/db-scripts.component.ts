@@ -18,7 +18,6 @@ import * as FileSaver from 'file-saver';
 export class DbScriptsComponent implements OnInit {
   removingOrphanPhones = false;
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) { }
-
   ngOnInit() { }
 
   async disableAtMigrate() {
@@ -438,16 +437,17 @@ export class DbScriptsComponent implements OnInit {
       return false;
     }
 
-    // calculate exception ratio , skip lower then 0.8 (4 of 5)
-    if (numbers.filter(n => !!n).length / len < 0.8) {
+    let confidence = numbers.filter(n => !!n).length / len;
+    // calculate exception ratio , skip lower then 0.79 (4 of 5)
+    if (Math.ceil(confidence * 100) < 80) {
       return false;
     }
     detectedMcs.push({
       rt: rtId, mc: mc.name, mis: mc.mis.map((mi, i) => (numbers[i] || repeatNums[i]) + ' | ' + mi.name + '      |      ' + names[i])
     });
     mc.mis.forEach((mi, i) => {
-      if (numbers[i]) {
-        mi.number = numbers[i];
+      if (numbers[i] || repeatNums[i]) {
+        mi.number = numbers[i] || repeatNums[i];
         mi.name = names[i];
       }
     });
@@ -460,7 +460,6 @@ export class DbScriptsComponent implements OnInit {
       query: { disabled: { $ne: true } },
       projection: { 'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, 'menus.mcs.mis.number': 1, name: 1 }
     }, 500);
-
     let detectedMcs = [], patchList = [];
     let canExtract = rts.filter(rt => {
       let flag = false;
@@ -489,9 +488,6 @@ export class DbScriptsComponent implements OnInit {
     console.log(str);
     console.log(JSON.stringify(patchList.slice(0, 100)));
     console.log(JSON.stringify(canExtract.map(rt => rt._id)));
-    // if (patchList.length > 0) {
-    //   await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
-    // }
   }
 
   async getRTsToCleanMenu() {
