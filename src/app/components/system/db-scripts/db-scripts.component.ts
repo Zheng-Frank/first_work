@@ -3506,29 +3506,38 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async migrateOrderNotifications() {
-    console.log("you're doing the thing!")
-    
+    const updatedOldNewPairs = [];
     const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query: {
         disabled: { $ne: true },
-        orderNotifiations: { $in: [null, []] }
+        orderNotifications: null
       },
       projection: {
         channels: 1
       },
       limit: 10000
     }).toPromise();
-    console.log(restaurants);
-    restaurants.forEach(rt => {
+
+    restaurants.forEach(r => {
       const orderNotifications = [];
-      const channels = rt.channels || [];
+      const channels = r.channels || [];
       channels.forEach(channel => {
-        if (channel.notifications.includes("Order")) {
-          
+        if ((channel.notifications || []).includes("Order")) {
+          orderNotifications.push({
+            type: channel.type,
+            value: channel.value
+          });
         }
-      })
+      });
+
+      updatedOldNewPairs.push({
+        old: { _id: r._id },
+        new: { _id: r._id, orderNotifications: orderNotifications }
+      });
     });
+
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', updatedOldNewPairs).toPromise();
   }
 
   async deletePastClosedHours() {
