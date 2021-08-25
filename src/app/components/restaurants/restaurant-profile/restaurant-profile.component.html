@@ -222,18 +222,18 @@
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Preferred Language' : '用于机器人调用的语言' }}
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Standard Language' : '标准语言' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('PreferredLanguage')" (mouseout)="translating = ''">
                       <div *ngIf="translating === 'PreferredLanguage'" class="left talk radius">
-                        <p>Preferred Language:{{Explanations.EnglishExplanations.PreferredLanguage}}</p>
+                        <p>Standard Language:{{Explanations.EnglishExplanations.PreferredLanguage}}</p>
                         -------------<br>
-                        <p>用于机器人调用的语言:{{Explanations.ChineseExplanations.PreferredLanguage}}</p>
+                        <p>标准语言:{{Explanations.ChineseExplanations.PreferredLanguage}}</p>
                       </div>
                     </i>
                   </div>
                   <div class="col-7 pl-1" style="font-weight: 600;">
-                    {{restaurant.preferredLanguage}}
+                    {{Languages[restaurant.preferredLanguage]}}
                   </div>
                 </div>
               </th>
@@ -972,13 +972,13 @@
           </div>
           <div class="form-group row">
             <label
-              class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Order Call Language' : '用于机器人调用的语言' }}
+              class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Standard Language' : '标准语言' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
-                (mouseover)="showCorrespondingTranslation('OrderCallLanguage')" (mouseout)="translating = ''">
-                <div *ngIf="translating === 'OrderCallLanguage'" class="left edit-talk radius">
-                  <p>Order Call Language:{{Explanations.EnglishExplanations.OrderCallLanguage}}</p>
+                (mouseover)="showCorrespondingTranslation('PreferredLanguage')" (mouseout)="translating = ''">
+                <div *ngIf="translating === 'PreferredLanguage'" class="left edit-talk radius">
+                  <p>Standard Language:{{Explanations.EnglishExplanations.PreferredLanguage}}</p>
                   -------------<br>
-                  <p>用于机器人调用的语言:{{Explanations.ChineseExplanations.OrderCallLanguage}}</p>
+                  <p>标准语言:{{Explanations.ChineseExplanations.PreferredLanguage}}</p>
                 </div>
               </i>
             </label>
