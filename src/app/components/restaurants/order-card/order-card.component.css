@@ -254,7 +254,7 @@
 .qr {
   position: absolute;
   top: 0.25rem;
-  right: 1.25rem;
+  right: 0.25rem;
   font-size: 100%;
   opacity: 0.75;
   display: flex;
@@ -278,6 +278,24 @@
 .order-from-span{
   font-size:0.5rem;
 }
+
+.order-from-border{
+  border:1px solid gray;
+  border-radius: 4px;
+  padding: 2px 5px;
+}
+.order-from-border-active{
+  border:1px solid #32909f;
+  border-radius: 4px;
+  padding: 2px 5px;
+}
+
+.qr-layout{
+  display:flex;
+  align-items: center;
+  font-size: 150%;
+}
+
 
 
 

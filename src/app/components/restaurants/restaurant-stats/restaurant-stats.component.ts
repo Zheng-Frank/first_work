@@ -36,24 +36,25 @@ export class RestaurantStatsComponent implements OnInit {
       byType: {
         PWA: "",
         App: "",
-        Browser:"",
+        Browser: "",
         Others: ""
       }
     },
     pc: {
-     byOS:{
-      Windows: "",
-      Linux: "",
-      Mac: "",
-      Others: ""
-     },
-     byBrowser:{
-       Chrome:"",
-       Safari:"",
-       Firefox:"",
-       IE:"",
-       Others:"" 
-     }
+      byOS: {
+        Windows: "",
+        Linux: "",
+        Mac: "",
+        Others: ""
+      },
+      byBrowser: {
+        Chrome: "",
+        Safari: "",
+        Firefox: "",
+        IE: "",
+        Edge:"",
+        Others: ""
+      }
     }
   }
   constructor(private _api: ApiService) { }
@@ -61,6 +62,11 @@ export class RestaurantStatsComponent implements OnInit {
   ngOnInit() {
     this.statisticRestaurantStats();
   }
+  // if count of the order's type is 0 (0.00%), needn't show it.
+  isVisiabled(count:string): boolean{
+    return count !== "0 (0.00%)";
+  }
+
   // use this method to statistic the restaurant order stats since it was sigin in our system 
   async statisticRestaurantStats() {
     const query = {
@@ -174,9 +180,6 @@ export class RestaurantStatsComponent implements OnInit {
     let fromPWA = orders.filter(order => this.orderFromPWA(order)).length;
     let fromApp = orders.filter(order => this.orderFromApp(order)).length;
     let fromPhoneBrowser = orders.filter(order => this.orderFromPhoneBrowser(order)).length;
-    // console.log(JSON.stringify(orders.filter(order => this.orderFromPWA(order)).map(order=>order.runtime)));
-    // console.log(JSON.stringify(orders.filter(order => this.orderFromApp(order)).map(order=>order.runtime)));
-    // console.log(JSON.stringify(orders.filter(order => this.orderFromPhoneBrowser(order)).map(order=>order.runtime)));
     let fromWindows = orders.filter(order => this.orderFromWindows(order)).length;
     let fromLinux = orders.filter(order => this.orderFromLinux(order)).length;
     let fromMac = orders.filter(order => this.orderFromMac(order)).length;
@@ -184,47 +187,45 @@ export class RestaurantStatsComponent implements OnInit {
     let fromPCSafari = orders.filter(order => this.orderFromPCSafari(order)).length;
     let fromPCFirefox = orders.filter(order => this.orderFromPCFirefox(order)).length;
     let fromPCIE = orders.filter(order => this.orderFromPCIE(order)).length;
-    console.log(JSON.stringify(orders.filter(order => this.orderFromOthers(order)).map(order=>order.runtime)));
+    let fromPCEdge = orders.filter(order => this.orderFromPCEdge(order)).length;
     // calculate phone take up rate.
-    fromPhone > 0 ? this.orderFromDevice.mobileTotal = fromPhone + " " + this.calcRate(fromPhone / orders.length) : "(0 0%)";
+    this.orderFromDevice.mobileTotal = fromPhone > 0 ? fromPhone + " " + this.calcRate(fromPhone / orders.length) : "0 (0.00%)";
     // count by os
-    fromPhone > 0 ? this.orderFromDevice.mobile.byOS.Android = fromAndroid + " " + this.calcRate(fromAndroid / fromPhone) : "(0 0%)";
-    fromPhone > 0 ? this.orderFromDevice.mobile.byOS.iOS = fromiOS + " " + this.calcRate(fromiOS / fromPhone) : "(0 0%)";
-    fromPhone > 0 ? this.orderFromDevice.mobile.byOS.Others = (fromPhone - fromAndroid - fromiOS) +" "+ this.calcRate((fromPhone - fromAndroid - fromiOS) / fromPhone):"(0 0%)";
+    this.orderFromDevice.mobile.byOS.Android = fromPhone > 0 ? fromAndroid + " " + this.calcRate(fromAndroid / fromPhone) : "0 (0.00%)";
+    this.orderFromDevice.mobile.byOS.iOS = fromPhone > 0 ? fromiOS + " " + this.calcRate(fromiOS / fromPhone) : "0 (0.00%)";
+    this.orderFromDevice.mobile.byOS.Others = fromPhone > 0 ? (fromPhone - fromAndroid - fromiOS) + " " + this.calcRate((fromPhone - fromAndroid - fromiOS) / fromPhone) : "0 (0.00%)";
     // count by type
-    fromPhone > 0 ? this.orderFromDevice.mobile.byType.PWA = fromPWA + " " + this.calcRate(fromPWA / fromPhone) : "(0 0%)";
-    fromPhone > 0 ? this.orderFromDevice.mobile.byType.App = fromApp + " " + this.calcRate(fromApp / fromPhone) : "(0 0%)";
-    fromPhone > 0 ? this.orderFromDevice.mobile.byType.Browser = fromPhoneBrowser + " " +this.calcRate(fromPhoneBrowser/fromPhone):"(0 0%)";
-    fromPhone > 0 ? this.orderFromDevice.mobile.byType.Others = (fromPhone - fromPWA - fromApp - fromPhoneBrowser) + " " + this.calcRate((fromPhone - fromPWA - fromApp - fromPhoneBrowser) / fromPhone) : "(0 0%)";
+    this.orderFromDevice.mobile.byType.PWA = fromPhone > 0 ? fromPWA + " " + this.calcRate(fromPWA / fromPhone) : "0 (0.00%)";
+    this.orderFromDevice.mobile.byType.App = fromPhone > 0 ? fromApp + " " + this.calcRate(fromApp / fromPhone) : "0 (0.00%)";
+    this.orderFromDevice.mobile.byType.Browser = fromPhone > 0 ? fromPhoneBrowser + " " + this.calcRate(fromPhoneBrowser / fromPhone) : "0 (0.00%)";
+    this.orderFromDevice.mobile.byType.Others = fromPhone > 0 ? (fromPhone - fromPWA - fromApp - fromPhoneBrowser) + " " + this.calcRate((fromPhone - fromPWA - fromApp - fromPhoneBrowser) / fromPhone) : "0 (0.00%)";
 
     // calculate PC take up rate.
-    fromPC > 0 ? this.orderFromDevice.pcTotal = fromPC + " " + this.calcRate(fromPC / orders.length) : "(0 0%)";
+    this.orderFromDevice.pcTotal = fromPC > 0 ? fromPC + " " + this.calcRate(fromPC / orders.length) : "0 (0.00%)";
     // by os
-    fromPC > 0 ? this.orderFromDevice.pc.byOS.Windows = fromWindows + " " + this.calcRate(fromWindows / fromPC) : "(0 0%)";
-    fromPC > 0 ? this.orderFromDevice.pc.byOS.Linux = fromLinux + " " + this.calcRate(fromLinux / fromPC) : "(0 0%)";
-    fromPC > 0 ? this.orderFromDevice.pc.byOS.Mac = fromMac + " " + this.calcRate(fromMac / fromPC) : "(0 0%)";
-    fromPC > 0 ? this.orderFromDevice.pc.byOS.Others = (fromPC - fromWindows - fromLinux - fromMac) + " " + this.calcRate((fromPC - fromWindows - fromLinux - fromMac) / fromPC) : "(0 0%)";
-    
+    this.orderFromDevice.pc.byOS.Windows = fromPC > 0 ? fromWindows + " " + this.calcRate(fromWindows / fromPC) : "0 (0.00%)";
+    this.orderFromDevice.pc.byOS.Linux = fromPC > 0 ? fromLinux + " " + this.calcRate(fromLinux / fromPC) : "0 (0.00%)";
+    this.orderFromDevice.pc.byOS.Mac = fromPC > 0 ? fromMac + " " + this.calcRate(fromMac / fromPC) : "0 (0.00%)";
+    this.orderFromDevice.pc.byOS.Others = fromPC > 0 ? (fromPC - fromWindows - fromLinux - fromMac) + " " + this.calcRate((fromPC - fromWindows - fromLinux - fromMac) / fromPC) : "0 (0.00%)";
     // by browser
-    fromPC > 0 ? this.orderFromDevice.pc.byBrowser.Chrome = fromPCChrome+ " "+this.calcRate(fromPCChrome/fromPC):"(0 0%)";
-    fromPC > 0 ? this.orderFromDevice.pc.byBrowser.Firefox = fromPCFirefox+ " "+this.calcRate(fromPCFirefox/fromPC):"(0 0%)";
-    fromPC > 0 ? this.orderFromDevice.pc.byBrowser.Safari = fromPCSafari+ " "+this.calcRate(fromPCSafari/fromPC):"(0 0%)";
-    fromPC > 0 ? this.orderFromDevice.pc.byBrowser.IE = fromPCIE+ " "+this.calcRate(fromPCIE/fromPC):"(0 0%)";
-    fromPC > 0 ? this.orderFromDevice.pc.byBrowser.Others = (fromPC - fromPCChrome - fromPCFirefox - fromPCSafari - fromPCIE) + " " + this.calcRate((fromPC - fromPCChrome - fromPCFirefox - fromPCSafari - fromPCIE) / fromPC) : "(0 0%)";
+    this.orderFromDevice.pc.byBrowser.Chrome = fromPC > 0 ? fromPCChrome + " " + this.calcRate(fromPCChrome / fromPC) : "0 (0.00%)";
+    this.orderFromDevice.pc.byBrowser.Firefox = fromPC > 0 ? fromPCFirefox + " " + this.calcRate(fromPCFirefox / fromPC) : "0 (0.00%)";
+    this.orderFromDevice.pc.byBrowser.Safari = fromPC > 0 ? fromPCSafari + " " + this.calcRate(fromPCSafari / fromPC) : "0 (0.00%)";
+    this.orderFromDevice.pc.byBrowser.IE = fromPC > 0 ? fromPCIE + " " + this.calcRate(fromPCIE / fromPC) : "0 (0.00%)";
+    this.orderFromDevice.pc.byBrowser.Edge = fromPC > 0 ? fromPCEdge + " " + this.calcRate(fromPCEdge / fromPC) : "0 (0.00%)";
+    this.orderFromDevice.pc.byBrowser.Others = fromPC > 0 ? (fromPC - fromPCChrome - fromPCFirefox - fromPCSafari - fromPCIE - fromPCEdge) + " " + this.calcRate((fromPC - fromPCChrome - fromPCFirefox - fromPCSafari - fromPCIE - fromPCEdge) / fromPC) : "0 (0.00%)";
 
     // calculate browser and other device take up rate.
-    // orders.length > 0 ? this.orderFromDevice.browserTotal = fromEdge + " " + this.calcRate(fromEdge / orders.length):"(0 0%)";
-    fromPC > 0 || fromPhone > 0 ? this.orderFromDevice.otherTotal = (orders.length - fromPhone - fromPC) + " " + this.calcRate((orders.length - fromPhone - fromPC) / orders.length):"(0 0%)";
-    
-    console.log(JSON.stringify(this.orderFromDevice));
+    this.orderFromDevice.otherTotal = fromPC > 0 || fromPhone > 0 ? (orders.length - fromPhone - fromPC) + " " + this.calcRate((orders.length - fromPhone - fromPC) / orders.length) : "0 (0.00%)";
+
   }
 
-  orderFromOthers(order){
-     return !this.orderFromPC(order) && !this.orderFromPhone(order);
+  orderFromOthers(order) {
+    return !this.orderFromPC(order) && !this.orderFromPhone(order);
   }
 
   calcRate(rate: number): string {
-    return "("+((rate) * 100).toFixed(2) + "%)";
+    return "(" + ((rate) * 100).toFixed(2) + "%)";
   }
 
   orderFromMac(order) {
@@ -236,7 +237,7 @@ export class RestaurantStatsComponent implements OnInit {
   }
 
   orderFromWindows(order) {
-    return order.runtime && order.runtime.os && order.runtime.os.indexOf('Windows')>=0;
+    return order.runtime && order.runtime.os && order.runtime.os.indexOf('Windows') >= 0;
   }
   // order is from Android, judging by order.runtime.os
   orderFromAndroid(order) {
@@ -253,20 +254,24 @@ export class RestaurantStatsComponent implements OnInit {
     return this.orderFromPhone(order) && !this.orderFromApp(order) && !this.orderFromPWA(order) && order.runtime && order.runtime.browser;
   }
 
-  orderFromPCChrome(order){
-    return this.orderFromPC(order) && order.runtime &&order.runtime.browser.toLowerCase() === 'chrome';
+  orderFromPCChrome(order) {
+    return this.orderFromPC(order) && order.runtime && order.runtime.browser.toLowerCase() === 'chrome';
   }
 
-  orderFromPCFirefox(order){
+  orderFromPCFirefox(order) {
     return this.orderFromPC(order) && order.runtime && order.runtime.browser.toLowerCase() === 'firefox';
   }
 
-  orderFromPCSafari(order){
+  orderFromPCSafari(order) {
     return this.orderFromPC(order) && order.runtime && order.runtime.browser.toLowerCase() === 'safari';
   }
 
-  orderFromPCIE(order){
+  orderFromPCIE(order) {
     return this.orderFromPC(order) && order.runtime && order.runtime.browser.toLowerCase() === 'ie';
+  }
+
+  orderFromPCEdge(order){
+    return this.orderFromPC(order) && order.runtime && order.runtime.browser.toLowerCase() === 'edge';
   }
 
   // judge order whether is from Edge by order.runtime.isApp.
@@ -284,7 +289,7 @@ export class RestaurantStatsComponent implements OnInit {
   }
   // judge order whether is from computer. 
   orderFromPC(order) {
-    return order.runtime && order.runtime.os && (order.runtime.os.indexOf('Mac') >= 0 || order.runtime.os.indexOf('Linux')>=0 || order.runtime.os.indexOf('Windows')>=0);
+    return order.runtime && order.runtime.os && (order.runtime.os.indexOf('Mac') >= 0 || order.runtime.os.indexOf('Linux') >= 0 || order.runtime.os.indexOf('Windows') >= 0);
   }
 
 

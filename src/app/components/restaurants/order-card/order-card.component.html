@@ -7,7 +7,7 @@
     <i class="fa fa-clipboard" (click)="copyToClipboard(order)" style="cursor:pointer;"></i>
   </div>
   <div *ngIf="order.dineInSessionObj" class="qr order-from-row">
-    <div *ngIf="orderFromPC(order)">
+    <div *ngIf="orderFromPC(order)" class="order-from-border">
       <i class="fa fa-laptop"></i>
       <i class="fab fa-windows" *ngIf="orderFromWindows(order)"></i>
       <i class="fab fa-apple" *ngIf="orderFromMac(order)"></i>
@@ -16,22 +16,24 @@
       <i class="fab fa-safari" *ngIf="orderFromSafari(order)"></i>
       <i class="fab fa-firefox" *ngIf="orderFromFirefox(order)"></i>
       <i class="fab fa-internet-explorer" *ngIf="orderFromIE(order)"></i>
+      <i class="fab fa-edge" *ngIf="orderFromEdge(order)"></i>
       <i class="fas fa-question-circle" *ngIf="orderFromBrowserUnknown(order)"></i>
     </div>
-    <div *ngIf="orderFromPhone(order)">
+    <div *ngIf="orderFromPhone(order)" [ngClass]="{'order-from-border-active': orerFromAppOrPWA(order),'order-from-border':!orerFromAppOrPWA(order)}">
       <i class="fa fa-mobile-alt"></i>
       <i class="fab fa-android" *ngIf="orderFromAndroid(order)"></i>
       <i class="fab fa-apple" *ngIf="orderFromiOS(order)"></i>
       <span *ngIf="orderFromApp(order)" class="order-from-span">App</span>
-      <span *ngIf="orderFromPWA(order)">PWA</span>
+      <span *ngIf="orderFromPWA(order)" class="order-from-span">PWA</span>
       <i class="fab fa-chrome" *ngIf="orderFromChrome(order)"></i>
       <i class="fab fa-safari" *ngIf="orderFromSafari(order)"></i>
       <i class="fab fa-firefox" *ngIf="orderFromFirefox(order)"></i>
       <i class="fab fa-internet-explorer" *ngIf="orderFromIE(order)"></i>
+      <i class="fab fa-edge" *ngIf="orderFromEdge(order)"></i>
       <i class="fas fa-question-circle" *ngIf="orderFromBrowserUnknown(order)"></i>
     </div>
-    <div>
-      <i style="font-size:150%;" class="fa fa-qrcode ml-2"></i> QR <span>{{order.dineInSessionObj.code}}</span>
+    <div class="qr-layout">
+      <i class="fa fa-qrcode ml-2"></i><span class="ml-1">QR {{order.dineInSessionObj.code}}</span>
     </div>
     <!--display a checkmark to indicate it's done-->
     <h4 *ngIf="order.statusEqual('COMPLETED')" class="text-success">
@@ -44,7 +46,7 @@
   </div>
   <!-- start with pc/phone icon -->
   <div *ngIf="!order.dineInSessionObj" class="qr order-from-row">
-    <div *ngIf="orderFromPC(order)">
+    <div *ngIf="orderFromPC(order)" class="order-from-border">
       <i class="fa fa-laptop"></i>
       <i class="fab fa-windows" *ngIf="orderFromWindows(order)"></i>
       <i class="fab fa-apple" *ngIf="orderFromMac(order)"></i>
@@ -53,9 +55,10 @@
       <i class="fab fa-safari" *ngIf="orderFromSafari(order)"></i>
       <i class="fab fa-firefox" *ngIf="orderFromFirefox(order)"></i>
       <i class="fab fa-internet-explorer" *ngIf="orderFromIE(order)"></i>
+      <i class="fab fa-edge" *ngIf="orderFromEdge(order)"></i>
       <i class="fas fa-question-circle" *ngIf="orderFromBrowserUnknown(order)"></i>
     </div>
-    <div *ngIf="orderFromPhone(order)">
+    <div *ngIf="orderFromPhone(order)" [ngClass]="{'order-from-border-active':orerFromAppOrPWA(order),'order-from-border':!orerFromAppOrPWA(order)}">
       <i class="fa fa-mobile-alt"></i>
       <i class="fab fa-android" *ngIf="orderFromAndroid(order)"></i>
       <i class="fab fa-apple" *ngIf="orderFromiOS(order)"></i>
@@ -65,6 +68,7 @@
       <i class="fab fa-safari" *ngIf="orderFromSafari(order)"></i>
       <i class="fab fa-firefox" *ngIf="orderFromFirefox(order)"></i>
       <i class="fab fa-internet-explorer" *ngIf="orderFromIE(order)"></i>
+      <i class="fab fa-edge" *ngIf="orderFromEdge(order)"></i>
       <i class="fas fa-question-circle" *ngIf="orderFromBrowserUnknown(order)"></i>
     </div>
     <!--display a checkmark to indicate it's done-->

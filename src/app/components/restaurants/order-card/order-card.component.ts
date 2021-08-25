@@ -43,6 +43,10 @@ export class OrderCardComponent implements OnInit {
   ngOnInit() {
   }
 
+  orerFromAppOrPWA(order){
+    return this.orderFromApp(order) || this.orderFromPWA(order);
+  }
+
   orderFromMac(order) {
     return order.runtime && order.runtime.os && order.runtime.os.indexOf('Mac') >= 0;
   }
@@ -76,6 +80,10 @@ export class OrderCardComponent implements OnInit {
   orderFromSafari(order){
     return order.runtime && order.runtime.browser.toLowerCase() === 'safari';
   }
+  
+  orderFromEdge(order){
+    return order.runtime && order.runtime.browser.toLowerCase() === 'edge';
+  }
 
   orderFromIE(order){
     return order.runtime && order.runtime.browser.toLowerCase() === 'ie';
@@ -91,6 +99,9 @@ export class OrderCardComponent implements OnInit {
   }
   // judge order whether is from Edge by order.runtime.standalone.
   orderFromPWA(order) {
+    if(order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os === 'iOS') && order.runtime.standalone){
+      console.log(order.orderNumber);
+    }
     return order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os === 'iOS') && order.runtime.standalone;
   }
   // judge order whether is from phone. 
