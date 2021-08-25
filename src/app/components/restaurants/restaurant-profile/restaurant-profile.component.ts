@@ -68,6 +68,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'comebackDate',
     'serviceSettings',
     "doNotHideUselessMenuItems",
+    "notificationExpiry",
   ];
   controlExpiry = false; // a flag to contorl broadcast expiry date input showing or not.
   notificationExpiry: string; // this value is needed to decide when shows the broadcast on customer pwa.
@@ -454,16 +455,15 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       } else {
         // if user open controlExpiry but not set expiration, we should ask user to confirm the behavor;
         if (confirm('Broadcast expiration is empty, do you want to keep the broadcast permanently?')) {
-          newObj.notificationExpiry = null;
+          newObj.notificationExpiry = undefined;
           this.controlExpiry = false;
         } else {
           return;
         }
       }
     } else {
-      newObj.notificationExpiry = null;
+      newObj.notificationExpiry = undefined;
     }
-
     this._prunedPatch
       .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
         {
