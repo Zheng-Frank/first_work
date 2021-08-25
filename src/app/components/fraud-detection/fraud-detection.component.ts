@@ -128,7 +128,7 @@ export class FraudDetectionComponent implements OnInit {
     orders.forEach(order => {
       order.previousOrders = [];
       previousOrders.forEach(previousOrder => {
-        if (order.customer === previousOrder.customer) {
+        if (order.customer === previousOrder.customer && order._id !== previousOrder._id) {
           order.previousOrders.push(previousOrder);
         }
       });

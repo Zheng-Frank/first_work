@@ -130,19 +130,9 @@
 }
 
 .card-header {
-  padding: 0.75rem 1.25rem;
+  padding: 0.75rem 2.5rem 0.75rem 1.25rem;
   background-color: #f5f5f5;
   border-bottom: 1px solid rgba(0, 0, 0, 0.125);
-}
-
-.card-header::after {
-  content: "";
-  display: table;
-  clear: both;
-}
-
-.card-header:first-child {
-  border-radius: 0.25rem 0.25rem 0 0;
 }
 
 .card-footer {
