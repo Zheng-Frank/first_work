@@ -3522,11 +3522,13 @@ export class DbScriptsComponent implements OnInit {
     restaurants.forEach(r => {
       const orderNotifications = [];
       const channels = r.channels || [];
+      const preferredLanguage = r.preferredLanguage || "ENGLISH";
       channels.forEach(channel => {
         if ((channel.notifications || []).includes("Order")) {
           orderNotifications.push({
             type: channel.type,
-            value: channel.value
+            value: channel.value,
+            language: preferredLanguage
           });
         }
       });
