@@ -23,7 +23,7 @@ export class DbScriptsComponent implements OnInit {
 
 
 
-  parsePrefixNum (name) {
+  parsePrefixNum(name) {
     // 1) A. XXX; A1. XXX; A 1. XXX A12. XXX; A1 XXX; A12 XXX; AB1 XXX; AB12 XXX; AB12. XXX; AB1. XXX;
     let regex1 = /^(?<to_rm>(?<num>([a-z]{0,2}\s?\d*))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
     // 2) 1. XXX; #1. XXX; 1A XXX; 12A XXX; 11B. XXX; 1B. XXX;
@@ -89,7 +89,7 @@ export class DbScriptsComponent implements OnInit {
   }
 
 
-  detect (item, translations) {
+  detect(item, translations) {
     let { name } = item;
     if (!name) {
       return false;
@@ -142,7 +142,7 @@ export class DbScriptsComponent implements OnInit {
     return !!number;
   }
 
-  needClean (restaurant) {
+  needClean(restaurant) {
     let { menus } = restaurant;
 
     for (let i = 0; i < (menus || []).length; i++) {
@@ -190,7 +190,7 @@ export class DbScriptsComponent implements OnInit {
       return baseLastCharCode + (i + 1) === n.charCodeAt(n.length - 1);
     });
     if (flag) {
-      let origin = mc.mis.map(x => ({number: x.number, name: x.name}));
+      let origin = mc.mis.map(x => ({ number: x.number, name: x.name }));
       // make update
       numbers.unshift(base);
       mc.mis.forEach((mi, index) => {
@@ -207,7 +207,7 @@ export class DbScriptsComponent implements OnInit {
       }
       let temp = {
         rt: rtId, origin, numbers: [base, ...numbers],
-        updated: mc.mis.map(x => ({number: x.number, name: x.name}))
+        updated: mc.mis.map(x => ({ number: x.number, name: x.name }))
       };
       detectedMis.push(temp);
     }
@@ -240,7 +240,7 @@ export class DbScriptsComponent implements OnInit {
 
     const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: { disabled: { $ne: true }, menuCleaned: {$ne: true} },
+      query: { disabled: { $ne: true }, menuCleaned: { $ne: true } },
       projection: { 'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, 'menus.mcs.mis.number': 1, name: 1, translations: 1 }
     }, 500);
 
@@ -3065,7 +3065,7 @@ export class DbScriptsComponent implements OnInit {
   async injectRequireZipBillingAddress() {
     const serviceSettings = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {disabled: { $ne: true }},
+      query: { disabled: { $ne: true } },
       projection: {
         name: 1,
         googleListing: 1,
@@ -3503,6 +3503,32 @@ export class DbScriptsComponent implements OnInit {
 
     });
     console.log('closedRT', closedRT)
+  }
+
+  async migrateOrderNotifications() {
+    console.log("you're doing the thing!")
+    
+    const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "restaurant",
+      query: {
+        disabled: { $ne: true },
+        orderNotifiations: { $in: [null, []] }
+      },
+      projection: {
+        channels: 1
+      },
+      limit: 10000
+    }).toPromise();
+    console.log(restaurants);
+    restaurants.forEach(rt => {
+      const orderNotifications = [];
+      const channels = rt.channels || [];
+      channels.forEach(channel => {
+        if (channel.notifications.includes("Order")) {
+          
+        }
+      })
+    });
   }
 
   async deletePastClosedHours() {
