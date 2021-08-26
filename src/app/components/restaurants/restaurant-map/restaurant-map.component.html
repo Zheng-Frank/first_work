@@ -43,7 +43,7 @@
   <div class="map-list">
     <div class="map" id="rt-map"></div>
     <ul class="list">
-      <li *ngFor="let rt of myRTs">
+      <li *ngFor="let rt of filteredRTs">
         <a class="btn-link" (click)="centerToRT(rt)">{{rt.name}}</a>
         <a target="_blank" routerLink="/restaurants/{{rt._id}}">(Link)</a>
       </li>

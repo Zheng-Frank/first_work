@@ -34,6 +34,7 @@ export class RestaurantMapComponent implements OnInit {
   searchedMarkers = [];
   cuisine = '';
   markerRTDict = new Map();
+  filteredRTs: Restaurant[] = [];
 
   constructor(private _router: Router, private _api: ApiService, private _global: GlobalService) {
   }
@@ -44,11 +45,11 @@ export class RestaurantMapComponent implements OnInit {
     await this.getRTs();
     this.placeService = new google.maps.places.PlacesService(this.map);
     this.drawMarkers();
-    const autocomplete = new google.maps.places.Autocomplete(document.getElementById("address-input"), {
+    const autocomplete = new google.maps.places.Autocomplete(document.getElementById('address-input'), {
       placeholder: undefined, types: ['geocode'],
-      fields: ["geometry.location", "place_id", "formatted_address", "address_components", "utc_offset_minutes", "vicinity"]
+      fields: ['geometry.location', 'place_id', 'formatted_address', 'address_components', 'utc_offset_minutes', 'vicinity']
     });
-    autocomplete.bindTo("bounds", this.map);
+    autocomplete.bindTo('bounds', this.map);
     autocomplete.addListener('place_changed', () => {
       const place = autocomplete.getPlace();
       this.map.setCenter(place.geometry.location);
@@ -97,12 +98,6 @@ export class RestaurantMapComponent implements OnInit {
     return list;
   }
 
-  get myRTs(): Restaurant[] {
-    let rts = this.restaurants.filter(rt => !this.agent || Helper.getSalesAgent(rt.rateSchedules, this.agents) === this.agent);
-    rts.sort((x, y) => x.name > y.name ? 1 : -1);
-    return rts;
-  }
-
   initMap() {
     this.geocoder = new google.maps.Geocoder();
     this.map = new google.maps.Map(
@@ -130,14 +125,15 @@ export class RestaurantMapComponent implements OnInit {
   }
 
   centerToRT(rt) {
-    this.map.setCenter(rt.googleAddress);
-    this.infoWindow.setContent(`<div><h3>${rt.name}</h3><div>${rt.googleAddress.formatted_address}</div></div>`);
+    let {googleAddress: {formatted_address, lat, lng}} = rt;
+    this.map.setCenter({lat, lng});
+    this.infoWindow.setContent(`<div><h3>${rt.name}</h3><div>${formatted_address}</div></div>`);
     this.infoWindow.open({anchor: this.markerRTDict.get(rt._id), map: this.map});
   }
 
   drawMarkers() {
-
     this.clearMap(this.markers);
+    this.markerRTDict.clear();
     this.centerTo(this.state);
 
     let rts = this.restaurants.filter(x => {
@@ -146,6 +142,8 @@ export class RestaurantMapComponent implements OnInit {
         && (!this.agent || Helper.getSalesAgent(x.rateSchedules, this.agents) === this.agent)
         && (!this.cuisine || x.googleListing && x.googleListing.cuisine === this.cuisine);
     });
+    rts.sort((x, y) => x.name > y.name ? 1 : -1);
+    this.filteredRTs = rts;
 
     rts.forEach(rt => {
       // @ts-ignore
@@ -205,7 +203,6 @@ export class RestaurantMapComponent implements OnInit {
     }
     markers.forEach(m => m.setMap(null));
     markers.length = 0;
-    this.markerRTDict = new Map();
   }
 
   search() {
