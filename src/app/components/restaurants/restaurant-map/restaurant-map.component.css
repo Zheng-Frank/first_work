@@ -1,7 +1,13 @@
+.icons .icons-container {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
 .icons span {
   display: inline-flex;
   align-items: center;
-  margin-right: 2rem;
+  margin-right: 1rem;
 }
 .icons img {
   width: 24px;
@@ -30,4 +36,8 @@
 .map-list .list li {
   margin: 0;
   padding: 2px 15px;
+}
+
+.map-list .list li a:first-child {
+  margin-right: 0.25rem;
 }

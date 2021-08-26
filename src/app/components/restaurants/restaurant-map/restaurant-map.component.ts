@@ -51,6 +51,7 @@ export class RestaurantMapComponent implements OnInit {
     autocomplete.bindTo("bounds", this.map);
     autocomplete.addListener('place_changed', () => {
       const place = autocomplete.getPlace();
+      this.map.setCenter(place.geometry.location);
       this.searchByAddress(place.geometry.location);
     });
   }
@@ -66,6 +67,7 @@ export class RestaurantMapComponent implements OnInit {
     }, 500);
 
     this.agents = users.filter(u => u.roles && u.roles.includes('MARKETER'));
+    this.agents.sort((x, y) => x.username > y.username ? 1 : -1);
   }
 
   async getRTs() {
@@ -85,12 +87,14 @@ export class RestaurantMapComponent implements OnInit {
   }
 
   get cuisines(): string[] {
-    return this.restaurants.reduce((a, c) => {
+    let list = this.restaurants.reduce((a, c) => {
       if (c.googleListing && c.googleListing.cuisine && !a.includes(c.googleListing.cuisine)) {
         return [...a, c.googleListing.cuisine];
       }
       return a;
     }, []);
+    list.sort((x, y) => x > y ? 1 : -1);
+    return list;
   }
 
   get myRTs(): Restaurant[] {
@@ -222,7 +226,7 @@ export class RestaurantMapComponent implements OnInit {
   searchByAddress(location) {
     this.clearMap(this.searchedMarkers);
     this.placeService.nearbySearch({
-      location, radius: '5000', type: ['restaurant']
+      location, radius: '50000', type: ['restaurant']
     }, (results, status) => {
       if (status === google.maps.places.PlacesServiceStatus.OK) {
         this.markSearched(results);

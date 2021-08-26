@@ -1,33 +1,24 @@
 <div>
   <div class="row mb-3">
-    <div class="col-3 row">
-      <label class="col-3 col-form-label">State</label>
-      <div class="col-9">
-        <select class="form-control" [(ngModel)]="state" (change)="drawMarkers()">
-          <option value="">All</option>
-          <option *ngFor="let s of states" [value]="s">{{s}}</option>
-        </select>
-      </div>
+    <div class="col-2">
+      <select class="form-control" [(ngModel)]="state" (change)="drawMarkers()">
+        <option value="">States...</option>
+        <option *ngFor="let s of states" [value]="s">{{s}}</option>
+      </select>
     </div>
-    <div class="col-3 row">
-      <label class="col-3 col-form-label">Agent</label>
-      <div class="col-9">
-        <select class="form-control" [(ngModel)]="agent" (change)="drawMarkers()">
-          <option value="">All</option>
-          <option *ngFor="let user of agents" [value]="user.username">{{user.username}}</option>
-        </select>
-      </div>
+    <div class="col-2">
+      <select class="form-control" [(ngModel)]="agent" (change)="drawMarkers()">
+        <option value="">Agents...</option>
+        <option *ngFor="let user of agents" [value]="user.username">{{user.username}}</option>
+      </select>
     </div>
-    <div class="col-3 row">
-      <label class="col-3 col-form-label">Cuisine</label>
-      <div class="col-9">
-        <select class="form-control" [(ngModel)]="cuisine" (change)="drawMarkers()">
-          <option value="">All</option>
-          <option *ngFor="let cuisine of cuisines" [value]="cuisine">{{cuisine}}</option>
-        </select>
-      </div>
+    <div class="col-3">
+      <select class="form-control" [(ngModel)]="cuisine" (change)="drawMarkers()">
+        <option value="">Cuisines...</option>
+        <option *ngFor="let cuisine of cuisines" [value]="cuisine">{{cuisine}}</option>
+      </select>
     </div>
-    <div class="col-3 row">
+    <div class="col-4 row">
       <label class="col-3 col-form-label">Address</label>
       <div class="col-9">
         <input type="text" id="address-input" class="form-control" placeholder="Input an address" >
@@ -35,16 +26,18 @@
     </div>
   </div>
   <div class="mb-3 icons row">
-    <div class="col-6">
-      <span><img src="./assets/icons/marker-cyan.svg" />Your Sales</span>
-      <span><img src="./assets/icons/marker-blue.svg" />QMenu RTs</span>
-      <span><img src="./assets/icons/marker-red.svg" />Any RTs</span>
-    </div>
-    <div class="col-3 row">
+    <div class="col-6 row">
       <div class="col-9">
         <input type="text" class="form-control" placeholder="Input keyword" [(ngModel)]="keyword" >
       </div>
       <button type="button" (click)="search()" class="col-3 btn btn-primary">Search</button>
+    </div>
+    <div class="col-6">
+      <div class="icons-container">
+        <span><img src="./assets/icons/marker-cyan.svg" />Your Sales</span>
+        <span><img src="./assets/icons/marker-blue.svg" />QMenu RTs</span>
+        <span><img src="./assets/icons/marker-red.svg" />Any RTs</span>
+      </div>
     </div>
   </div>
   <div class="map-list">
@@ -52,6 +45,7 @@
     <ul class="list">
       <li *ngFor="let rt of myRTs">
         <a class="btn-link" (click)="centerToRT(rt)">{{rt.name}}</a>
+        <a target="_blank" routerLink="/restaurants/{{rt._id}}">(Link)</a>
       </li>
     </ul>
   </div>
