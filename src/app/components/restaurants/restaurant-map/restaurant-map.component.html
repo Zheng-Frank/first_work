@@ -28,16 +28,24 @@
       </div>
     </div>
     <div class="col-3 row">
+      <label class="col-3 col-form-label">Address</label>
+      <div class="col-9">
+        <input type="text" id="address-input" class="form-control" placeholder="Input an address" >
+      </div>
+    </div>
+  </div>
+  <div class="mb-3 icons row">
+    <div class="col-6">
+      <span><img src="./assets/icons/marker-cyan.svg" />Your Sales</span>
+      <span><img src="./assets/icons/marker-blue.svg" />QMenu RTs</span>
+      <span><img src="./assets/icons/marker-red.svg" />Any RTs</span>
+    </div>
+    <div class="col-3 row">
       <div class="col-9">
         <input type="text" class="form-control" placeholder="Input keyword" [(ngModel)]="keyword" >
       </div>
       <button type="button" (click)="search()" class="col-3 btn btn-primary">Search</button>
     </div>
-  </div>
-  <div class="mb-3 icons rows">
-    <span><img src="./assets/icons/marker-cyan.svg" />Your Sales</span>
-    <span><img src="./assets/icons/marker-blue.svg" />QMenu RTs</span>
-    <span><img src="./assets/icons/marker-red.svg" />Any RTs</span>
   </div>
   <div class="map-list">
     <div class="map" id="rt-map"></div>

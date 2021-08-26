@@ -44,6 +44,15 @@ export class RestaurantMapComponent implements OnInit {
     await this.getRTs();
     this.placeService = new google.maps.places.PlacesService(this.map);
     this.drawMarkers();
+    const autocomplete = new google.maps.places.Autocomplete(document.getElementById("address-input"), {
+      placeholder: undefined, types: ['geocode'],
+      fields: ["geometry.location", "place_id", "formatted_address", "address_components", "utc_offset_minutes", "vicinity"]
+    });
+    autocomplete.bindTo("bounds", this.map);
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      this.searchByAddress(place.geometry.location);
+    });
   }
 
   async initAgents() {
@@ -203,6 +212,17 @@ export class RestaurantMapComponent implements OnInit {
     this.clearMap(this.searchedMarkers);
     this.placeService.nearbySearch({
       query: this.keyword, bounds: this.map.getBounds(), type: ['restaurant']
+    }, (results, status) => {
+      if (status === google.maps.places.PlacesServiceStatus.OK) {
+        this.markSearched(results);
+      }
+    });
+  }
+
+  searchByAddress(location) {
+    this.clearMap(this.searchedMarkers);
+    this.placeService.nearbySearch({
+      location, radius: '5000', type: ['restaurant']
     }, (results, status) => {
       if (status === google.maps.places.PlacesServiceStatus.OK) {
         this.markSearched(results);
