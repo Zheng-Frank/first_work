@@ -18,7 +18,16 @@
         </select>
       </div>
     </div>
-    <div class="col-4 row">
+    <div class="col-3 row">
+      <label class="col-3 col-form-label">Cuisine</label>
+      <div class="col-9">
+        <select class="form-control" [(ngModel)]="cuisine" (change)="drawMarkers()">
+          <option value="">All</option>
+          <option *ngFor="let cuisine of cuisines" [value]="cuisine">{{cuisine}}</option>
+        </select>
+      </div>
+    </div>
+    <div class="col-3 row">
       <div class="col-9">
         <input type="text" class="form-control" placeholder="Input keyword" [(ngModel)]="keyword" >
       </div>
@@ -30,5 +39,12 @@
     <span><img src="./assets/icons/marker-blue.svg" />QMenu RTs</span>
     <span><img src="./assets/icons/marker-red.svg" />Any RTs</span>
   </div>
-  <div id="rt-map"></div>
+  <div class="map-list">
+    <div class="map" id="rt-map"></div>
+    <ul class="list">
+      <li *ngFor="let rt of myRTs">
+        <a class="btn-link" (click)="centerToRT(rt)">{{rt.name}}</a>
+      </li>
+    </ul>
+  </div>
 </div>

@@ -16,7 +16,7 @@ declare var google: any;
 })
 export class RestaurantMapComponent implements OnInit {
 
-  restaurants: Restaurant[];
+  restaurants: Restaurant[] = [];
   map = null;
   markers = [];
   infoWindow = null;
@@ -32,6 +32,8 @@ export class RestaurantMapComponent implements OnInit {
   keyword = '';
   placeService = null;
   searchedMarkers = [];
+  cuisine = '';
+  markerRTDict = new Map();
 
   constructor(private _router: Router, private _api: ApiService, private _global: GlobalService) {
   }
@@ -68,8 +70,24 @@ export class RestaurantMapComponent implements OnInit {
         'googleAddress.administrative_area_level_1': 1,
         'googleAddress.lat': 1,
         'googleAddress.lng': 1,
+        'googleListing.cuisine': 1
       }
     }, 10000);
+  }
+
+  get cuisines(): string[] {
+    return this.restaurants.reduce((a, c) => {
+      if (c.googleListing && c.googleListing.cuisine && !a.includes(c.googleListing.cuisine)) {
+        return [...a, c.googleListing.cuisine];
+      }
+      return a;
+    }, []);
+  }
+
+  get myRTs(): Restaurant[] {
+    let rts = this.restaurants.filter(rt => !this.agent || Helper.getSalesAgent(rt.rateSchedules, this.agents) === this.agent);
+    rts.sort((x, y) => x.name > y.name ? 1 : -1);
+    return rts;
   }
 
   initMap() {
@@ -98,6 +116,12 @@ export class RestaurantMapComponent implements OnInit {
     });
   }
 
+  centerToRT(rt) {
+    this.map.setCenter(rt.googleAddress);
+    this.infoWindow.setContent(`<div><h3>${rt.name}</h3><div>${rt.googleAddress.formatted_address}</div></div>`);
+    this.infoWindow.open({anchor: this.markerRTDict.get(rt._id), map: this.map});
+  }
+
   drawMarkers() {
 
     this.clearMap(this.markers);
@@ -106,7 +130,8 @@ export class RestaurantMapComponent implements OnInit {
     let rts = this.restaurants.filter(x => {
       // @ts-ignore
       return (!this.state || x.googleAddress && x.googleAddress.administrative_area_level_1 === this.state)
-        && (!this.agent || Helper.getSalesAgent(x.rateSchedules, this.agents) === this.agent);
+        && (!this.agent || Helper.getSalesAgent(x.rateSchedules, this.agents) === this.agent)
+        && (!this.cuisine || x.googleListing && x.googleListing.cuisine === this.cuisine);
     });
 
     rts.forEach(rt => {
@@ -131,6 +156,7 @@ export class RestaurantMapComponent implements OnInit {
         });
       });
       this.markers.push(marker);
+      this.markerRTDict.set(rt._id, marker);
     });
   }
 
@@ -166,6 +192,7 @@ export class RestaurantMapComponent implements OnInit {
     }
     markers.forEach(m => m.setMap(null));
     markers.length = 0;
+    this.markerRTDict = new Map();
   }
 
   search() {
