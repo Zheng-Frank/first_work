@@ -9,6 +9,7 @@
             <th scope="col">Channel</th>
             <th scope="col">Type</th>
             <th scope="col">Notifications / Purpose</th>
+            <th scope="col">Channel Language</th>
             <th scope="col"></th>
           </tr>
         </thead>
@@ -20,6 +21,7 @@
               <i class="{{channelTypeToFaClassMap[channel.type]}}"></i>
             </td>
             <td>{{join(channel.notifications)}}</td>
+            <td>{{Languages[channel.language]}}</td>
             <td>
               <button class="btn btn-link p0" (click)="editChannel(channel)" *ngIf="!viewOnly">Edit</button>
             </td>
@@ -59,7 +61,7 @@
             <td colspan="3">
               <button class="btn btn-link px-0" (click)="editPerson()">+ Add A Person</button>
             </td>
-          </tr>       
+          </tr>
         </tbody>
       </table>
     </li>
@@ -80,7 +82,7 @@
   </button>
 
   <q-form-builder [object]="channelInEditing" [showDelete]="channelInEditing.index >= 0" [fieldDescriptors]="channelFieldDescriptors"
-    (submit)="submitChannel($event)" (cancel)="cancelChannel($event)" (remove)="removeChannel($event)">
+    (submit)="submitChannel($event)" (change)="channelFormChange()" (cancel)="cancelChannel($event)" (remove)="removeChannel($event)">
   </q-form-builder>
 </q-modal>
 
