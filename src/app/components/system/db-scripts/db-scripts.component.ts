@@ -3530,7 +3530,7 @@ export class DbScriptsComponent implements OnInit {
               channel: {
                 type: channel.type,
                 value: channel.value,
-                language: preferredLanguage
+                // language: preferredLanguage
               }
             }
           );
