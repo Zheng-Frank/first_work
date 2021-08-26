@@ -3525,11 +3525,15 @@ export class DbScriptsComponent implements OnInit {
       const preferredLanguage = r.preferredLanguage || "ENGLISH";
       channels.forEach(channel => {
         if ((channel.notifications || []).includes("Order")) {
-          orderNotifications.push({
-            type: channel.type,
-            value: channel.value,
-            language: preferredLanguage
-          });
+          orderNotifications.push(
+            {
+              channel: {
+                type: channel.type,
+                value: channel.value,
+                language: preferredLanguage
+              }
+            }
+          );
         }
       });
 
@@ -3538,8 +3542,20 @@ export class DbScriptsComponent implements OnInit {
         new: { _id: r._id, orderNotifications: orderNotifications }
       });
     });
+    try {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', updatedOldNewPairs).toPromise();
+      this._global.publishAlert(
+        AlertType.Success,
+        `Settings updated for ${updatedOldNewPairs.length} restaurants.`
+      );
+    } catch (error) {
+      this._global.publishAlert(
+        AlertType.Danger,
+        `Error in updating database:`
+      );
+      console.log(error);
+    }
 
-    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', updatedOldNewPairs).toPromise();
   }
 
   async deletePastClosedHours() {
