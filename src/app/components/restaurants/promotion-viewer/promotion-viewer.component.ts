@@ -7,7 +7,6 @@ import { Promotion } from '@qmenu/ui';
   styleUrls: ['./promotion-viewer.component.css']
 })
 export class PromotionViewerComponent implements OnInit, OnChanges {
-  today = new Date();
   @Input() hideEditButton = false;
   @Input() promotionType: string;
   @Input() useFreeItemList: boolean;
@@ -29,6 +28,11 @@ export class PromotionViewerComponent implements OnInit, OnChanges {
       const excludedPlatforms = this.promotion.excludedPlatforms || [];
       this.excludedString = [...excludedMenuNames, ...excludedOrderTypes, ...excludedPlatforms].join(', ');
     }
+  }
+
+  expired() {
+    // todo: expiry check may need to optimize (23:59:59.999)
+    return this.promotion.expiry && this.promotion.expiry < new Date();
   }
 
   renderItemFromFlatList(freeItem) {

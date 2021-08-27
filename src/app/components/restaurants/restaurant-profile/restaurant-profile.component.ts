@@ -1,6 +1,5 @@
-import { ViewChild } from '@angular/core';
-import { Component, Input, OnChanges, OnInit } from '@angular/core';
-import { Address, Restaurant } from '@qmenu/ui';
+import { Component, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
+import { Address, TimezoneHelper } from '@qmenu/ui';
 import { Helper } from '../../../classes/helper';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
@@ -10,7 +9,6 @@ import { AlertType } from '../../../classes/alert-type';
 import { HttpClient } from '@angular/common/http';
 import { formatNumber } from '@angular/common';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-import { LanguageType } from 'src/app/classes/language-type';
 
 @Component({
   selector: 'app-restaurant-profile',
@@ -18,7 +16,7 @@ import { LanguageType } from 'src/app/classes/language-type';
   styleUrls: ['./restaurant-profile.component.css']
 })
 export class RestaurantProfileComponent implements OnInit, OnChanges {
-  @Input() restaurant: Restaurant;
+  @Input() restaurant;
   @Input() editable;
   @Input() users = [];
   uploadImageError: string;
@@ -50,6 +48,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'ccMinimumCharge',
     'disableScheduling',
     'disabled',
+    'disabledAt',
     'notification',
     'ccProcessingRate',
     'ccProcessingFlatFee',
@@ -67,9 +66,11 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'notes',
     'insistedPrintCCInfo',
     'comebackDate',
-    'serviceSettings'
+    'serviceSettings',
+    "doNotHideUselessMenuItems",
   ];
-
+  controlExpiry = false; // a flag to contorl broadcast expiry date input showing or not.
+  notificationExpiry: string; // this value is needed to decide when shows the broadcast on customer pwa.
   uploadError: string;
 
   tipSettings = {
@@ -156,9 +157,9 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       "Showorderreadyestimate":"给客人看订单预计预计准备时间信息",
       "Domain":"标注:“域”字段不再位于“配置文件”部分下，因为现在，所有与网站相关的信息都已移至此处。",
       "DisableOrderingAhead":"如果选中此复选框，就不能产生预订单。",
-      "OrderCallLanguage":"确定用于机器人调用的语言，以通知新的传入订单（英文或中文）.",
       "Logo":"（菜单编辑会处理这个问题，CSR+销售人员可以忽略）：这里上传的任何徽标都会出现在餐厅的qMenu订购网站的这两个地方。",
-      "Photos":"(菜单编辑负责这一点，客服+销售可以忽略) 此处上传的图片将是餐厅qMenu订购网站上的网站背景图片。"
+      "Photos":"(菜单编辑负责这一点，客服+销售可以忽略) 此处上传的图片将是餐厅qMenu订购网站上的网站背景图片。",
+      "DoNotHideUselessMenuItems": "默认情况下，在客户APP上，在每个菜单类别中，我们将显示按订购频率排序的菜单项，并隐藏以前从未订购过的菜单项。 可以关闭此设置以简单地按原始顺序显示所有菜单项。"
     },
     EnglishExplanations:{
       "Name":"Name of restaurant",
@@ -198,10 +199,9 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       "Showorderreadyestimate":"If turned on, the order ready time estimate will be shown to the customer",
       "Domain":" NOTE: The “Domain” field is no longer under the “Profile” section, because now, all website-related information has been moved here.", // Editable field.
       "DisableOrderingAhead":"If turned on, customers won't be able to schedule orders for future point in time ahead of time.",
-      "OrderCallLanguage":"Determines the language to use for robo-calls to notify restaurants of new, incoming orders (Options: English or Chinese).",
       "Logo":" (Menu editors take care of this, CSR + sales can ignore): Any logo uploaded here will appear in these two places on the qMenu ordering site for the restaurant: 1. The qmenu.us/alias page of the restaurant, 2. ...",
       "Photos":" (Menu editors take care of this, CSR + sales can ignore): Image uploaded here will appear as the website background image on the qMenu ordering site for the restaurant.",
-
+      "DoNotHideUselessMenuItems": "By default, on the customer app, in each menu category, we will show menu items sorted by ordering frequency, and hide menu items that have never been ordered before. This setting can be turned off to simply show all menu items in their original order."
     }
   }
 
@@ -210,6 +210,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     { value: 'ENGLISH', text: 'English' },
     { value: 'CHINESE', text: 'Chinese' }
   ];
+  Languages = { ENGLISH: 'English', CHINESE: 'Chinese' };
 
   comebackDate = null;
   isComebackDateCorrectlySet = false;
@@ -229,6 +230,12 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       this.isTemporarilyDisabled = 'Yes';
     }
     this.tipSettingsInit();
+  }
+   // when q-toggle is checked, the notificationExpiry should be setted null
+  toggleNotificationExpiry(){
+    if(!this.controlExpiry){
+      this.notificationExpiry = null;
+    }
   }
 
   // a small function we can preview website when we edit it.
@@ -287,6 +294,19 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     // special fields
     this.images = this.restaurant.images || [];
     this.preferredLanguage = this.preferredLanguages.filter(z => z.value === (this.restaurant.preferredLanguage || 'ENGLISH'))[0];
+
+    // website broadcast expiration field
+    // 2021-07-15T04:00:00.000Z
+    if(this.restaurant.notificationExpiry){
+      this.controlExpiry = true; // contorls whether the switch is turned on
+      if(typeof this.restaurant.notificationExpiry === "string"){ // when this.restaurant.notificationExpiry comes from api call, it is data type of string
+        this.notificationExpiry = this.restaurant.notificationExpiry.split('T')[0];
+      }else{ // this.restaurant.notificationExpiry is type of date
+        this.notificationExpiry = this.restaurant.notificationExpiry.toISOString().split('T')[0];
+      }
+    }else{
+      this.controlExpiry = false;
+    }
   }
 
   isEmailValid() {
@@ -405,6 +425,12 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
     if (!this.disabled) {
       delete newObj.comebackDate;
+      delete newObj.disabledAt;
+    } else {
+      // if from enabled to disabled, update disabledAt field
+      if (!oldObj.disabled) {
+        newObj.disabledAt = new Date();
+      }
     }
 
     newObj.preferredLanguage = (this.preferredLanguage && this.preferredLanguage.value) || undefined;
@@ -416,6 +442,26 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       oldObj.selfSignup = {};
       newObj.selfSignup = { registered: this.selfSignupRegistered }
       // newObj.selfSignup.registered = this.selfSignupRegistered
+    }
+    // turn 2020-09-01 to timezone form
+    const getTransformedDate = (dateString) => {
+      return TimezoneHelper.parse(dateString, this.restaurant.googleAddress.timezone );
+    };
+
+    if (this.controlExpiry) {
+      if (this.notificationExpiry) {
+        newObj.notificationExpiry = getTransformedDate(this.notificationExpiry);
+      } else {
+        // if user open controlExpiry but not set expiration, we should ask user to confirm the behavor;
+        if (confirm('Broadcast expiration is empty, do you want to keep the broadcast permanently?')) {
+          newObj.notificationExpiry = null;
+          this.controlExpiry = false;
+        } else {
+          return;
+        }
+      }
+    } else {
+      newObj.notificationExpiry = null;
     }
 
     this._prunedPatch
@@ -435,9 +481,9 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
           // assign new values to restaurant
           this.fields.map(f => this.restaurant[f] = newObj[f]);
           if (this.restaurant.selfSignup) {
-            this.restaurant.selfSignup.registered = this.selfSignupRegistered
-          };
-
+            this.restaurant.selfSignup.registered = this.selfSignupRegistered;
+          }
+          this.restaurant.notificationExpiry = newObj.notificationExpiry;
           this.editing = false;
         },
         error => {

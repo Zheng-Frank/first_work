@@ -1,58 +1,90 @@
-<label>Send to: </label>
-<select (change)="onChangeSendTo()" [(ngModel)]="sendToType" class="form-control">
-  <ng-container *ngFor="let type of sendToTypes">
-    <option *ngIf="type === 'All SMS numbers'">{{type}}</option>
-    <ng-container *ngIf="type === 'All Emails'">
-      <option>{{type}}</option>
-      <hr>
+<ng-container *ngIf="restaurant">
+  <label>Send to: </label>
+  <select (change)="onChangeSendTo()" [(ngModel)]="sendToType" class="form-control">
+    <ng-container *ngFor="let type of sendToTypes">
+      <option *ngIf="type === 'All SMS numbers'">{{type}}</option>
+      <ng-container *ngIf="type === 'All Emails'">
+        <option>{{type}}</option>
+        <hr>
+      </ng-container>
+      <option *ngIf="isPhoneValid(type)">{{type | tel}}</option>
+      <ng-container *ngIf="isEmailValid(type)">
+        <option>{{type}}</option>
+        <hr>
+      </ng-container>
+      <option *ngIf="type === 'Other SMS number'">{{type}}</option>
+      <ng-container *ngIf="type === 'Other email'">
+        <option>{{type}}</option>
+        <hr>
+      </ng-container>
+      <option *ngIf="type === 'Use Old Send Google PIN'">{{type}}</option>
     </ng-container>
-    <option *ngIf="isPhoneValid(type)">{{type | tel}}</option>
-    <ng-container *ngIf="isEmailValid(type)">
-      <option>{{type}}</option>
-      <hr>
-    </ng-container>
-    <option *ngIf="type === 'Other SMS number'">{{type}}</option>
-    <ng-container *ngIf="type === 'Other email'">
-      <option>{{type}}</option>
-      <hr>
-    </ng-container>
-    <option *ngIf="type === 'Use Old Send Google PIN'">{{type}}</option>
-  </ng-container>
-</select>
-<div *ngIf="sendToType === 'Other SMS number'" class="form-group {{isPhoneValid(phoneNumber)? '' : 'is-invalid'}} mt-3">
-  <input id="profile-phone-number" [(ngModel)]="phoneNumber" type="tel" class="form-control mt-1"
-    placeholder="Enter another phone #">
-</div>
-<div *ngIf="sendToType === 'Other email'" class="form-group {{isEmailValid(email)? '' : 'is-invalid'}} mt-3">
-  <input id="profile-phone-number" [(ngModel)]="email" type="email" class="form-control mt-1"
-    placeholder="Enter another email @">
-</div>
-<div class="mt-3" *qIf="!displayGooglePIN">
-  <label>Send what: </label>
-  <select (change)="onChangeSendWhat()" [(ngModel)]="sendWhatType" class="form-control">
-    <option>Custom</option>
-    <option>QR Biz link</option>
-    <option>QR promo vid (中)</option>
-    <option>QR promo vid (Eng)</option>
-    <option>QR tutorial vid (中)</option>
-    <option>QR tutorial vid (Eng)</option>
-    <option>5x7 Signholder link</option>
-    <option>QR promo pamphlet (Chn)</option>
-    <option>QR promo pamphlet (Eng)</option>
-    <option>First Notice (Chinese)</option>
-    <option>First Notice (English)</option>
-    <option>First Notice (Chinese/English)</option>
-    <option>Follow up Notice (Chinese)</option>
-    <option>Follow up Notice (English)</option>
-    <option>Follow up Notice (Chinese/English)</option>
   </select>
-</div>
-<div *qIf="!displayGooglePIN">
-  <textarea rows="10" class="form-control mt-3 white-space: pre-wrap" type="text" [(ngModel)]="message">
-  </textarea>
+  <div *ngIf="sendToType === 'Other SMS number'"
+    class="form-group {{isPhoneValid(phoneNumber)? '' : 'is-invalid'}} mt-3">
+    <input id="profile-phone-number" [(ngModel)]="phoneNumber" type="tel" class="form-control mt-1"
+      placeholder="Enter another phone #">
+  </div>
+  <div *ngIf="sendToType === 'Other email'" class="form-group {{isEmailValid(email)? '' : 'is-invalid'}} mt-3">
+    <input id="profile-phone-number" [(ngModel)]="email" type="email" class="form-control mt-1"
+      placeholder="Enter another email @">
+  </div>
+  <div class="mt-3" *qIf="!displayGooglePIN">
+    <label>Send what: </label>
+    <select (change)="onChangeSendWhat()" [(ngModel)]="sendWhatType" class="form-control">
+      <option>Custom</option>
+      <option>QR Biz link</option>
+      <option>QR promo vid (中)</option>
+      <option>QR promo vid (Eng)</option>
+      <option>QR tutorial vid (中)</option>
+      <option>QR tutorial vid (Eng)</option>
+      <option>5x7 Signholder link</option>
+      <option>QR promo pamphlet (中)</option>
+      <option>QR promo pamphlet (Eng)</option>
+      <option>First Notice (Chinese)</option>
+      <option>First Notice (English)</option>
+      <option>First Notice (Chinese/English)</option>
+      <option>Follow up Notice (Chinese)</option>
+      <option>Follow up Notice (English)</option>
+      <option>Follow up Notice (Chinese/English)</option>
+    </select>
+  </div>
+  <div *qIf="!displayGooglePIN">
+    <textarea rows="10" class="form-control mt-3 white-space: pre-wrap" type="text" [(ngModel)]="message">
+    </textarea>
+    <button (click)="sendText()" [disabled]="!isValid()" class="btn btn-primary btn-block mt-3">Send</button>
+  </div>
+  <div *qIf="displayGooglePIN">
+    <send-google-pin [restaurantId]="restaurant._id"></send-google-pin>
+  </div>
+  <hr>
+</ng-container>
+
+<ng-container *ngIf="!restaurant">
+  <label>Send to: </label>
+  <div class="form-group mt-3">
+    <input id="profile-phone-number" [(ngModel)]="phoneNumber" type="tel" class="form-control {{isPhoneValid(phoneNumber)? '' : 'is-invalid'}} mt-1"
+      placeholder="SMS number">
+  </div>
+  <div class="mt-3">
+    <label>Send what: </label>
+    <select (change)="onChangeSendWhat()" [(ngModel)]="sendWhatType" class="form-control">
+      <option>Custom</option>
+      <option>QR Biz link</option>
+      <option>QR promo vid (中)</option>
+      <option>QR promo vid (Eng)</option>
+      <option>QR tutorial vid (中)</option>
+      <option>QR tutorial vid (Eng)</option>
+      <option>5x7 Signholder link</option>
+      <option>QR promo pamphlet (中)</option>
+      <option>QR promo pamphlet (Eng)</option>
+    </select>
+  </div>
+
+  <textarea rows="4" class="form-control mt-3" type="text" [(ngModel)]="message"></textarea>
   <button (click)="sendText()" [disabled]="!isValid()" class="btn btn-primary btn-block mt-3">Send</button>
-</div>
-<div *qIf="displayGooglePIN">
-    <send-google-pin [restaurantId]="restaurant._id" ></send-google-pin>
-</div>
-<hr>
+  <div class="mt-1 alert-success" *ngIf="textedPhoneNumber">
+    <small>Text was sent to {{textedPhoneNumber | tel}}. Thank you!</small>
+  </div>
+  <hr>
+</ng-container>

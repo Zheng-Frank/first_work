@@ -1,19 +1,68 @@
 .app-input-xs {
-    width: 3rem;
-}
-.app-input-sm {
-    width: 5rem;
-}
-.app-input-md {
-    width: 10rem;
-}
-.app-input-100 {
-    width: 100%;
+  width: 3rem;
 }
 
-.form-control{
-    display: initial !important;
+.app-input-sm {
+  width: 5rem;
 }
+
+.app-input-md {
+  width: 10rem;
+}
+
+.app-input-100 {
+  width: 100%;
+}
+
+.form-control {
+  display: initial !important;
+}
+
+/* it is the css of the bubble cloud.*/
+.talk {
+  position: absolute;
+  top: 277px;
+  left: 550px;
+  border: 1px;
+  min-height: 45px;
+  background-color: #d8d4d4;
+  width: 250px;
+  background-image: -moz-linear-gradient(hsla(0, 0%, 100%, 0.6), hsla(0, 0%, 100%, 0) 30px);
+  background-image: -webkit-gradient(linear, 0 0, 0 30, from(hsla(0, 0%, 100%, 0.6)), to(hsla(0, 0%, 100%, 0)));
+  word-wrap: break-word;
+  z-index: 200;
+  -moz-box-shadow: 1px 1px 2px hsla(0, 0%, 0%, 0.3);
+  -webkit-box-shadow: 1px 1px 2px hsla(0, 0%, 0%, 0.3);
+  box-shadow: 1px 1px 2x hsla(0, 0%, 0%, 0.3);
+}
+
+.talk p {
+  padding: 8px 8px 0px 8px;
+}
+
+.radius {
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+}
+
+.left:before {
+  position: absolute;
+  content: "\00a0";
+  width: 0px;
+  height: 0px;
+  border-width: 8px 18px 8px 0;
+  border-style: solid;
+  border-color: transparent #d8d4d4 transparent transparent;
+  top: 15px;
+  left: -18px;
+}
+
+.left {
+  margin-right: 20px;
+  float: right;
+}
+
 .mi-translation {
   margin-top: 0.5rem;
 }
@@ -24,13 +73,18 @@
   font-size: 0.5rem;
   word-break: break-word;
 }
+
 .mi-translation label.zh {
   white-space: nowrap;
   word-break: keep-all;
 }
+
 .mi-translation input {
   font-size: 0.75rem;
   width: calc(100% - 3.76rem);
   min-width: 3rem;
 }
 
+.mouse-pointer{
+  cursor: pointer !important;
+}

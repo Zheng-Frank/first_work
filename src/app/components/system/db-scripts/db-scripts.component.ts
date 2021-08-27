@@ -18,8 +18,491 @@ import * as FileSaver from 'file-saver';
 export class DbScriptsComponent implements OnInit {
   removingOrphanPhones = false;
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) { }
-
   ngOnInit() { }
+
+  async disableAtMigrate() {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {disabled: true, disabledAt: {$exists: false}},
+      projection: {_id: 1, 'logs.time': 1, createdAt: 1, disabledAt: 1}
+    }, 50);
+    let zero = new Date(0).valueOf();
+    const getDTValue = (datetime) => {
+      let value = new Date(datetime).valueOf();
+      return Number.isNaN(value) ? zero : value;
+    };
+    const patchList = [];
+    for (let i = 0; i < rts.length; i++) {
+      let rt = rts[i];
+      let latestLogTime = (rt.logs || []).reduce((a, c) => Math.max(a, getDTValue(c.time)), zero);
+      let latestOrder = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'order',
+        query: {restaurant: {$oid: rt._id}},
+        projection: {createdAt: 1},
+        sort: {createdAt: -1},
+        limit: 1
+      }).toPromise();
+      let latestOrderTime = latestOrder.length ? getDTValue(latestOrder[0].createdAt) : zero;
+      let latestApiLog = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'apilog',
+        query: {'body.0.old._id': rt._id},
+        projection: {time: 1},
+        sort: {time: -1},
+        limit: 1
+      }).toPromise();
+
+      let latestApiLogTime = latestApiLog.length ? getDTValue(latestApiLog[0].time) : zero;
+      let disabledAt = Math.max(latestLogTime, latestOrderTime);
+
+      if (disabledAt === zero) {
+        disabledAt = latestApiLogTime;
+      }
+
+      if (disabledAt === zero) {
+        let createdAt = new Date(rt.createdAt);
+        // add one week to createdAt
+        createdAt.setDate(createdAt.getDate() + 7);
+        disabledAt = createdAt.valueOf();
+      }
+      patchList.push({
+        old: { _id: rt._id },
+        new: { _id: rt._id, disabledAt: new Date(disabledAt) }
+      });
+    }
+    console.log(patchList);
+    if (patchList.length) {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+    }
+  }
+
+  async preferredLanguageMigrate() {
+    const users = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    resource: 'user', query: {}
+    }, 1000);
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {disabled: {$ne: true}}
+    }, 50);
+    const chineseAgents = [
+      'alan', 'alice', 'amy', 'andy', 'annie', 'anny',
+      'cara', 'carrie', 'cathy', 'cici', 'demi',
+      'emily', 'eva', 'felix', 'hayley', 'ivy',
+      'james', 'joanan', 'joy', 'julia', 'kevin', 'kk',
+      'lily.jiang', 'lucy', 'mary', 'mia', 'mo', 'nicole',
+      'sam', 'sherry.zhao', 'sisi', 'siyuan.zhang',
+      'sun', 'sunny', 'vivi', 'xuesan.li',
+      'akili', 'angel', 'angelina', 'august', 'august',
+      'carol', 'celine', 'coco', 'daisy', 'dana', 'diana',
+      'dyney', 'ella', 'eric.wang', 'gina', 'grace',
+      'huafu.hu', 'ivy.chang', 'jake', 'jane', 'jane.sui',
+      'jessie', 'jiawei.sun', 'julia.zhu', 'july', 'laurence',
+      'lemon', 'lily.he', 'lina', 'linda', 'mandy', 'max',
+      'may', 'megan', 'risa', 'rita', 'ruby', 'sacha',
+      'sadie.peng', 'sally', 'sandy', 'sera', 'sophia',
+      'stella', 'tina.zhou', 'tracy', 'vicky', 'vicky.luo',
+      'windy', 'xinxi', 'yolanda', 'yoyo', 'yoyo.wang', 'zoe.zhou', 'zora'
+    ];
+    const chineseAgentsSet = new Set(chineseAgents);
+    const getSalesAgent = (rateSchedules) => {
+      let now = Date.now();
+      const isValid = x => users.some(u => u.username === x.agent);
+      let list = (rateSchedules || []).filter(x => isValid(x) && new Date(x.date).valueOf() <= now.valueOf())
+        .sort((x, y) => new Date(x.date).valueOf() - new Date(y.date).valueOf());
+      let item = list.pop() || {};
+      return item.agent;
+    };
+    const patchList = [];
+    rts.forEach(rt => {
+      let salesAgent = getSalesAgent(rt.rateSchedules);
+      let channels = rt.channels || [];
+      let phoneOrderChannels = channels.filter(x => x.type === 'Phone' && (x.notifications || []).includes('Order'));
+      let updateOp = null;
+      // 1. has preferredLanguage
+      if (rt.preferredLanguage) {
+        // 1.1 no phone order notification -> get language depend on salesagent, set to preferredLanguage
+        if (phoneOrderChannels.length === 0) {
+          let preferredLanguage = salesAgent && chineseAgentsSet.has(salesAgent) ? 'CHINESE' : 'ENGLISH';
+          updateOp = {
+            old: { _id: rt._id },
+            new: { _id: rt._id, preferredLanguage }
+          };
+        } else {
+          // 1.2 has phone order notification -> keep preferredLanguage, and set it to channelLanguage
+          phoneOrderChannels.forEach(x => x.channelLanguage = rt.preferredLanguage);
+          updateOp = {
+            old: { _id: rt._id },
+            new: { _id: rt._id, channels }
+          };
+        }
+      } else {
+        // 2 no preferredLanguage
+        // 2.1 no phone order notification -> get language depend on salesagent and set to preferredLanguage
+        if (phoneOrderChannels.length === 0) {
+          let preferredLanguage = salesAgent && chineseAgentsSet.has(salesAgent) ? 'CHINESE' : 'ENGLISH';
+          updateOp = {
+            old: { _id: rt._id },
+            new: { _id: rt._id, preferredLanguage }
+          };
+        } else {
+          // 2.2 has phone order notification -> preferredLanguage and channelLanguage to English
+          let preferredLanguage = 'ENGLISH';
+          phoneOrderChannels.forEach(x => x.channelLanguage = preferredLanguage);
+          updateOp = {
+            old: { _id: rt._id },
+            new: { _id: rt._id, preferredLanguage, channels }
+          };
+        }
+      }
+      if (updateOp) {
+        patchList.push(updateOp);
+      }
+    });
+    console.log(JSON.stringify(patchList));
+    if (patchList.length > 0) {
+      // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+    }
+  }
+
+  async regularSpacesAroundParentheses() {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        $or: [
+          {'menus.name': {$regex: "\\S\\(|\\(\\s+|\\)\\S|\\s+\\)"}},
+          {'menus.mcs.name': {$regex: "\\S\\(|\\(\\s+|\\)\\S|\\s+\\)"}},
+          {'menus.mcs.mis.name': {$regex: "\\S\\(|\\(\\s+|\\)\\S|\\s+\\)"}}
+        ]
+      }
+    }, 50);
+
+    const clean = item => {
+      if (item.name) {
+        item.name = item.name.replace(/\s*\(\s*/g, ' (').replace(/\s*\)\s*/g, ') ').replace(/\s+/g, ' ').trim();
+      }
+    };
+    let patchList = rts.map(rt => {
+      rt.menus.forEach(menu => {
+        if (menu) {
+          clean(menu);
+          (menu.mcs || []).forEach(mc => {
+            if (mc) {
+              clean(mc);
+              (mc.mis || []).forEach(mi => {
+                if (mi) {
+                  clean(mi);
+                }
+              });
+            }
+          });
+        }
+      });
+
+      return {
+        old: { _id: rt._id },
+        new: { _id: rt._id, menus: rt.menus }
+      };
+    });
+    console.log(patchList);
+    if (patchList.length > 0) {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+    }
+  }
+
+  async unifyQuotationMarksAndParenthesesInMenuName() {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        $or: [
+          {'menus.name': {$regex: "[（）‘’“”]"}},
+          {'menus.mcs.name': {$regex: "[（）‘’“”]"}},
+          {'menus.mcs.mis.name': {$regex: "[（）‘’“”]"}}
+        ]
+      }
+    }, 50);
+
+    const clean = item => {
+      if (item.name) {
+        item.name = item.name.replace(/‘/g, "'").replace(/’/g, "'")
+          .replace(/“/g, '"').replace(/”/g, '"')
+          .replace(/（/g, '(').replace(/）/g, ')');
+      }
+    };
+    let patchList = rts.map(rt => {
+      rt.menus.forEach(menu => {
+        if (menu) {
+          clean(menu);
+          (menu.mcs || []).forEach(mc => {
+            if (mc) {
+              clean(mc);
+              (mc.mis || []).forEach(mi => {
+                if (mi) {
+                  clean(mi);
+                }
+              });
+            }
+          });
+        }
+      });
+
+      return {
+        old: { _id: rt._id },
+        new: { _id: rt._id, menus: rt.menus }
+      };
+    });
+    console.log(patchList);
+    if (patchList.length > 0) {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+    }
+  }
+
+
+  parsePrefixNum (name) {
+    // 1) A. XXX; A1. XXX; A 1. XXX A12. XXX; A1 XXX; A12 XXX; AB1 XXX; AB12 XXX; AB12. XXX; AB1. XXX;
+    let regex1 = /^(?<to_rm>(?<num>([a-z]{0,2}\s?\d*))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
+    // 2) 1. XXX; #1. XXX; 1A XXX; 12A XXX; 11B. XXX; 1B. XXX;
+    let regex2 = /^(?<to_rm>(?<num>(#?\d+[a-z]{0,2}))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
+    // 3) No. 1 XXX; NO. 12 XXX;
+    let regex3 = /^(?<to_rm>(?<num>(No\.\s?\d+))\s+)(?<word>\S+)\s*/i;
+    // 4) 中文 A1. XXX
+    let regex4 = /^(?<zh>[^\x00-\xff]+\s*)(?<to_rm>(?<num>([a-z]{1,2}\s?\d+))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
+    // 5) (XL) A1. XXX
+    let regex5 = /^(?<mark>\(\w+\)\s*)(?<to_rm>(?<num>([a-z]{1,2}\s?\d+))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
+    return [regex1, regex2, regex3, regex4, regex5].reduce((a, c) => a || name.match(c), null);
+  }
+
+  detectNumber(item) {
+    let { name } = item;
+    // if name is empty or item has number already, skip
+    if (!name || !!item.number) {
+      return;
+    }
+
+    name = name.trim();
+    // extract the possible number info from menu's name
+    let numMatched = this.parsePrefixNum(name);
+    // if name itself has a number, like 3 cups chicken, 4 pcs XXX etc. these will extract the measure word to judge
+    let measureWords = [
+      'piece', 'pieces', 'pc', 'pcs', 'pc.', 'pcs.', 'cups', 'cup',
+      'liter', 'liters', 'oz', 'oz.', 'ounces', 'slice', 'lb.', 'item',
+      'items', 'ingredients', 'topping', 'toppings', 'flavor', 'flavors'
+    ];
+
+    if (numMatched) {
+      let { num, dot, word } = numMatched.groups;
+      // if dot after number, definite number, otherwise we check if a measure word after number or not
+      let hasMeasure = measureWords.includes((word || '').toLowerCase());
+      if (num && /\D+$/.test(num)) {
+        let [suffix] = num.match(/\D+$/);
+        // for 20oz XXX case
+        hasMeasure = measureWords.includes((suffix || '').toLowerCase());
+        if (hasMeasure) {
+          num = num.replace(/\D+$/, '');
+        }
+      }
+      // if has a dot, we think we matched a number
+      if (!!dot) {
+        return true;
+      } else {
+        // if has measure word, we check if num has non-digits character
+        if (hasMeasure) {
+          return /\D+/.test(num);
+        } else {
+          // if no measure word, no dot and pure digits or digits with L/l
+          // we check the item's number property
+          if (/^\d+L?$/i.test(num)) {
+            return !item.number;
+          } else {
+            // no dot and measure word, we check if num has digits
+            return /\d/.test(num);
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+
+  detect (item, translations) {
+    let { name } = item;
+    if (!name) {
+      return false;
+    }
+
+    name = name.trim();
+    // extract the possible number info from menu's name
+    let numMatched = this.parsePrefixNum(name);
+    // if name itself has a number, like 3 cups chicken, 4 pcs XXX etc. these will extract the measure word to judge
+    let measureWords = [
+      'piece', 'pieces', 'pc', 'pcs', 'pc.', 'pcs.', 'cups', 'cup',
+      'liter', 'liters', 'oz', 'oz.', 'ounces', 'slice', 'lb.', 'item',
+      'items', 'ingredients', 'topping', 'toppings', 'flavor', 'flavors'
+    ];
+    let number, hasMeasure = false;
+    if (numMatched) {
+      let { to_rm, num, dot, word } = numMatched.groups;
+      // if dot after number, definite number, otherwise we check if a measure word after number or not
+      hasMeasure = measureWords.includes((word || '').toLowerCase());
+      if (num && /\D+$/.test(num)) {
+        let [suffix] = num.match(/\D+$/);
+        // for 20oz XXX case
+        hasMeasure = measureWords.includes((suffix || '').toLowerCase());
+        if (hasMeasure) {
+          num = num.replace(/\D+$/, '');
+        }
+      }
+      if (!!dot || !hasMeasure) {
+        // remove leading number chars
+        name = name.replace(to_rm, '');
+      }
+      if (!hasMeasure) {
+        number = item.number || num;
+      }
+
+    }
+
+    // if we meet 【回锅 肉】，we should be able to keep "回锅" and "肉" together with space as zh
+    let regex = /[\s\-(\[]?(\s*([^\x00-\xff]+)(\s+[^\x00-\xff]+)*\s*)[\s)\]]?/;
+    let re = name.match(regex);
+    if (re) {
+      let zh = re[1].trim(), en = name.replace(regex, '').trim().replace(/\s*-$/, '');
+      // remove brackets around name
+      en = en.replace(/^\((.+)\)$/, '$1').replace(/^\[(.+)]$/, '$1');
+      zh = zh.replace(/^（(.+)）$/, '$1').replace(/^【(.+)】$/, '$1');
+
+      let trans = (translations || []).find(x => x.EN === en);
+      return !(trans && trans.ZH === zh && !number);
+    }
+    return !!number;
+  }
+
+  needClean (restaurant) {
+    let { menus } = restaurant;
+
+    for (let i = 0; i < (menus || []).length; i++) {
+      for (let j = 0; j < (menus[i].mcs || []).length; j++) {
+        for (let k = 0; k < (menus[i].mcs[j].mis || []).length; k++) {
+          if (this.detectNumber(menus[i].mcs[j].mis[k])) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  detectNumberByMc(mc, rtId, detectedMcs) {
+    if (!mc.mis) {
+      return false;
+    }
+    let numbers = [], names = [], len = mc.mis.length, repeatNums = [];
+    for (let i = 0; i < len; i++) {
+      let mi = mc.mis[i];
+      if (!mi.name || mi.number) {
+        return false;
+      }
+      let [num, ...rest] = mi.name.split('.');
+      // remove pure name's prefix ) or . or -
+      let name = rest.join('.').replace(/^\s*[-).]\s*/, '').trim();
+      num = num.trim();
+      // cases to skip:
+      // 1. num or name is empty; eg. Soda, B-A, B-B, Combo 1, Combo 2 etc.
+      // 2. name repeat; eg. 2 Wings, 3 Wings, 4 Wings, etc.
+      // 3. num includes 3+ continuous letter eg. Especial 1. Camarofongo, Especial 2. Camarofongo etc.
+      // 4. num contains non-english characters eg. 蛋花汤 S1. Egg Drop Soup, 云吞汤 S2. Wonton Soup etc.
+      // 5. num contains parentheses aka (), as we don't know if the () thing is related to the menu name
+      // 6. original name startsWith 805 B.B.+ etc
+      // 7. original name startsWith 12 oz. etc
+      if (!num || !name || /\(.*\)/.test(num)
+        || /^(\d+\s+)*([a-zA-Z]+\.){2,}/.test(mi.name)
+        || /^(\d+\.?)+\s+[a-zA-Z]{2,}\./.test(mi.name)
+        || names.some(n => n.toLowerCase() === name.toLowerCase())
+        || /[a-z]{3,}/i.test(num) || /[^\x00-\xff]/.test(num)) {
+        continue;
+      }
+      names[i] = name;
+      // if or num repeat, we save the repeat num and index for later use
+      if (numbers.some(n => n.toLowerCase() === num.toLowerCase())) {
+        repeatNums[i] = num;
+        continue;
+      }
+      // if num has (), we should extract the () and set to name
+      let [remark] = num.match(/\(.*\)/) || [""];
+      if (remark) {
+        names[i] = remark + names[i];
+      }
+      numbers[i] = num;
+    }
+    // only handle mcs with at least 5 mis
+    if (numbers.length < 5) {
+      return false;
+    }
+
+    let confidence = numbers.filter(n => !!n).length / len;
+    // calculate exception ratio , skip lower then 0.79 (4 of 5)
+    if (Math.ceil(confidence * 100) < 80) {
+      return false;
+    }
+    detectedMcs.push({
+      rt: rtId, mc: mc.name, mis: mc.mis.map((mi, i) => (numbers[i] || repeatNums[i]) + ' | ' + mi.name + '      |      ' + names[i])
+    });
+    mc.mis.forEach((mi, i) => {
+      if (numbers[i] || repeatNums[i]) {
+        mi.number = numbers[i] || repeatNums[i];
+        mi.name = names[i];
+      }
+    });
+    return true;
+  }
+
+  async extractMenuNumberInName() {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: { disabled: { $ne: true } },
+      projection: { 'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, 'menus.mcs.mis.number': 1, name: 1 }
+    }, 500);
+    let detectedMcs = [], patchList = [];
+    let canExtract = rts.filter(rt => {
+      let flag = false;
+      (rt.menus || []).forEach(menu => {
+        (menu.mcs || []).forEach(mc => {
+          flag = this.detectNumberByMc(mc, rt._id, detectedMcs) || flag;
+        });
+      });
+      if (flag) {
+        patchList.push({
+          old: {_id: rt._id},
+          new: {_id: rt._id, menus: rt.menus}
+        });
+      }
+      return flag;
+    });
+    console.log('rt count: ', canExtract.length, ' mc count: ', detectedMcs.length,
+      ' mi count: ', detectedMcs.reduce((a, c) => a + c.mis.length, 0));
+    let str = "";
+    detectedMcs.forEach(mc => {
+      str += mc.rt + " " + mc.mc;
+      str += '\n\t';
+      str += mc.mis.join('\n\t');
+      str += '\n\n';
+    });
+    console.log(str);
+    console.log(JSON.stringify(patchList.slice(0, 100)));
+    console.log(JSON.stringify(canExtract.map(rt => rt._id)));
+  }
+
+  async getRTsToCleanMenu() {
+
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: { disabled: { $ne: true }, menuCleaned: {$ne: true} },
+      projection: { 'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, 'menus.mcs.mis.number': 1, name: 1, translations: 1 }
+    }, 500);
+
+    let needCleaned = rts.filter(rt => this.needClean(rt));
+    console.log(needCleaned.length);
+    console.log(JSON.stringify(needCleaned.map(rt => rt._id)));
+  }
+
 
   shrink(str) {
     let regex = /(^\s+)|(\s{2,})|(\s+$)/g;
@@ -2843,7 +3326,7 @@ export class DbScriptsComponent implements OnInit {
         serviceSettings: 1,
         requireZipcode: 1,
         requireBillingAddress: 1
-        
+
       }
     }, 3000)
 

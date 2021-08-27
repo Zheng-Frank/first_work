@@ -81,6 +81,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     deliverySettings: 1,
     deliveryTimeEstimate: 1,
     disabled: 1,
+    disabledAt: 1,
     disableScheduling: 1,
     excludeAmex: 1,
     excludeDiscover: 1,
@@ -150,7 +151,10 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     ccHandler: 1,
     comebackDate: 1,
     ccMinimumCharge: 1,
-    hideOrderReadyEstimate: 1
+    hideOrderReadyEstimate: 1,
+    disableOrderCancelation: 1, // add a new prperty and it will control whether the restaurant can cancel order.
+    notificationExpiry: 1, // this value is needed to decide when shows the broadcast on customer pwa.
+    doNotHideUselessMenuItems: 1,
   };
 
   showExplanations = false; // a flag to decide whether show English/Chinese translations,and the switch is closed by default.
@@ -167,6 +171,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "Orders": ['ADMIN', 'CSR'],
       "Invoices": ['ADMIN', 'ACCOUNTANT', 'CSR'],
       "Logs": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
+      "IVR": ['ADMIN','CSR'],
       "Tasks": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
       "Diagnostics": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
       "Others":['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'] // make a superset and reorder authority in restaurant other page.

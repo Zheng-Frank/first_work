@@ -1,3 +1,4 @@
+/* tslint:disable:max-line-length */
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -162,6 +163,7 @@ import { CyclesComponent } from './components/invoices/cycles/cycles.component';
 import { CycleDetailsComponent } from './components/invoices/cycle-details/cycle-details.component';
 import { GmbPinsComponent } from './components/gmbs2/gmb-pins/gmb-pins.component';
 import { GmbTasksComponent } from './components/gmbs2/gmb-tasks/gmb-tasks.component';
+import { DefendGmbTasksComponent } from './components/gmbs2/defend-gmb-tasks/defend-gmb-tasks.component';
 import { ChangeOwnershipComponent } from './components/change-ownership/change-ownership.component';
 
 import { BulkMessagingComponent } from './components/bulk-messaging/bulk-messaging.component';
@@ -234,6 +236,11 @@ import { MenuCleanupComponent } from './components/restaurants/menu-cleanup/menu
 import { ApiLogsDashboardComponent } from './components/monitoring/api-logs-dashboard/api-logs-dashboard.component';
 import { SeoTrackingComponent } from './components/monitoring/seo-tracking/seo-tracking.component';
 import { RestaurantSeoTrackingComponent } from './components/restaurants/restaurant-seo-tracking/restaurant-seo-tracking.component';
+import { FraudDetectionComponent } from './components/fraud-detection/fraud-detection.component';
+import { MonitoringPromotionCellComponent } from './components/monitoring/monitoring-promotion-cell/monitoring-promotion-cell.component';
+import { RestaurantMapComponent } from './components/restaurants/restaurant-map/restaurant-map.component';
+import { CleanMenusComponent } from './components/monitoring/clean-menus/clean-menus.component';
+import { RestaurantIvrListComponent } from './components/restaurants/restaurant-ivr-list/restaurant-ivr-list.component';
 
 
 
@@ -378,6 +385,7 @@ import { RestaurantSeoTrackingComponent } from './components/restaurants/restaur
     CycleDetailsComponent,
     GmbPinsComponent,
     GmbTasksComponent,
+    DefendGmbTasksComponent,
     ChangeOwnershipComponent,
     BulkMessagingComponent,
     RestaurantTasksComponent,
@@ -438,7 +446,12 @@ import { RestaurantSeoTrackingComponent } from './components/restaurants/restaur
     RoutineListComponent,
     RoutineInstanceListComponent,
     SeoTrackingComponent,
-    RestaurantSeoTrackingComponent
+    RestaurantSeoTrackingComponent,
+    FraudDetectionComponent,
+    CleanMenusComponent,
+    MonitoringPromotionCellComponent,
+    RestaurantMapComponent,
+    RestaurantIvrListComponent
   ],
   imports: [
     BrowserModule,

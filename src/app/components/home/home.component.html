@@ -33,7 +33,8 @@
           </div>
 
           <div class="row mt-3">
-            <button class="btn btn-link py-0 mr-3" (click)="checkPostmatesAvailability()" [qLoading]="checkingPostmatesAvailability">Check Postmates availability</button>
+            <button class="btn btn-link py-0 mr-3" (click)="checkPostmatesAvailability()"
+              [qLoading]="checkingPostmatesAvailability">Check Postmates availability</button>
             <div *ngIf="postmatesAvailability; else notAvailable">
               <i class="fa fa-check fg--green" aria-hidden="true"></i>
               <span>Available</span>
@@ -50,7 +51,17 @@
       </div>
     </div>
   </div>
+  <!-- start with text tool in portal -->
+  <div class="card" *ngIf="isVisible('send-text-message')">
+    <div class="card-body">
+      <h5 class="card-title">
+        <i class="fa fa-comments"></i> Send Text Message</h5>
+      <app-send-text-reply #textMessageCard></app-send-text-reply>
+    </div>
+  </div>
+  <!-- end with text tool in portal -->
 </div>
+
 <div class="card-group m-1">
   <div class="card" *ngIf="isVisible('gmb-campaign')">
     <div class="card-body">
@@ -66,7 +77,8 @@
     <div class="card-body">
       <h5 class="card-title">
         <i class="far fa-comment-dots"></i> Bulk Messaging</h5>
-      <app-bulk-messaging></app-bulk-messaging>
+      <!-- enable prefer language restaurants -->
+      <app-bulk-messaging [ePLRestaurants]="restaurantList"></app-bulk-messaging>
     </div>
   </div>
 </div>
@@ -87,7 +99,7 @@
     <div class="card-body">
       <h5 class="card-title">
         <i class="fa fa-th"></i> Other Modules</h5>
-        <app-other-modules></app-other-modules>
+      <app-other-modules></app-other-modules>
     </div>
   </div>
 </div>

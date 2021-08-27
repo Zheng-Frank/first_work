@@ -161,7 +161,7 @@
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('Disabled')" (mouseout)="translating = ''">
                       <div *ngIf="translating === 'Disabled'" class="left talk radius">
-                        <p>Disabled:{{Explanations.EnglishExplanations.Disabled}}</p>
+                        <p>Disabled:{{Explanations.EnglishExplanations.Disabled}}}}</p>
                         -------------<br>
                         <p>终止合作:{{Explanations.ChineseExplanations.Disabled}}</p>
                       </div>
@@ -169,6 +169,7 @@
                   </div>
                   <div class="col-7 pl-1" style="font-weight: 600;">
                     {{!!restaurant.disabled}}
+                    <ng-container *ngIf="!!restaurant.disabled">(At {{restaurant.disabledAt | adjustedDate: "yyyy-MM-dd HH:mm:ss" }})</ng-container>
                   </div>
                 </div>
               </th>
@@ -183,8 +184,7 @@
                 <div class="row">
                   <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Time Estimate for Pickup' : '预估取餐时间' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
-                      (mouseover)="showCorrespondingTranslation('TimeEstimateforPickup')"
-                      (mouseout)="translating = ''">
+                      (mouseover)="showCorrespondingTranslation('TimeEstimateforPickup')" (mouseout)="translating = ''">
                       <div *ngIf="translating === 'TimeEstimateforPickup'" class="left talk radius">
                         <p>Time Estimate for Pickup:{{Explanations.EnglishExplanations.TimeEstimateforPickup}}</p>
                         -------------<br>
@@ -222,18 +222,18 @@
             <tr>
               <th colspan="2">
                 <div class="row">
-                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Preferred Language' : '用于机器人调用的语言' }}
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Standard Language' : '标准语言' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('PreferredLanguage')" (mouseout)="translating = ''">
                       <div *ngIf="translating === 'PreferredLanguage'" class="left talk radius">
-                        <p>Preferred Language:{{Explanations.EnglishExplanations.PreferredLanguage}}</p>
+                        <p>Standard Language:{{Explanations.EnglishExplanations.PreferredLanguage}}</p>
                         -------------<br>
-                        <p>用于机器人调用的语言:{{Explanations.ChineseExplanations.PreferredLanguage}}</p>
+                        <p>标准语言:{{Explanations.ChineseExplanations.PreferredLanguage}}</p>
                       </div>
                     </i>
                   </div>
                   <div class="col-7 pl-1" style="font-weight: 600;">
-                    {{restaurant.preferredLanguage}}
+                    {{Languages[restaurant.preferredLanguage]}}
                   </div>
                 </div>
               </th>
@@ -253,6 +253,25 @@
                   </div>
                   <div class="col-7 pl-1" style="font-weight: 600;">
                     {{restaurant.notification || 'N/A'}}
+                  </div>
+                </div>
+              </th>
+            </tr>
+            <tr *ngIf="restaurant.notificationExpiry">
+              <th colspan="2">
+                <div class="row">
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Broadcast Expiration' : '广播过期时间' }}
+                    <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
+                      (mouseover)="showCorrespondingTranslation('BroadcastExpiration')" (mouseout)="translating = ''">
+                      <div *ngIf="translating === 'BroadcastExpiration'" class="left talk radius">
+                        <p>Broadcast Expiration:{{Explanations.EnglishExplanations.BroadcastExpiration}}</p>
+                        -------------<br>
+                        <p>广播过期时间:{{Explanations.ChineseExplanations.BroadcastExpiration}}</p>
+                      </div>
+                    </i>
+                  </div>
+                  <div class="col-7 pl-1" style="font-weight: 600;">
+                    {{restaurant.notificationExpiry | date: 'shortDate' || ''}}
                   </div>
                 </div>
               </th>
@@ -329,8 +348,7 @@
                     <div class="col-4 pl-5">
                       {{changeLanguageFlag === 'English' ? 'CC Processing Flat Fee' : '信用卡付款固定服务费' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
-                        (mouseover)="showCorrespondingTranslation('CCProcessingFlatFee')"
-                        (mouseout)="translating = ''">
+                        (mouseover)="showCorrespondingTranslation('CCProcessingFlatFee')" (mouseout)="translating = ''">
                         <div *ngIf="translating === 'CCProcessingFlatFee'" class="left talk radius">
                           <p>CC Processing Flat Fee:{{Explanations.EnglishExplanations.CCProcessingFlatFee}}</p>
                           -------------<br>
@@ -555,8 +573,7 @@
               <td class="pl-1" style="white-space: pre-wrap">{{restaurant.notes}}</td> -->
             </tr>
             <tr>
-              <button class="btn btn-link" (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More
-                details...'}}
+              <button class="btn btn-link" (click)="showDetails = !showDetails">{{showDetails ? 'Hide details' : 'More details...'}}
               </button>
             </tr>
             <ng-container *ngIf="showDetails">
@@ -742,6 +759,27 @@
                     </div>
                     <div class="col-7 pl-1" style="font-weight: 600;">
                       {{!restaurant.hideOrderReadyEstimate}}
+                    </div>
+                  </div>
+                </th>
+              </tr>
+              <tr>
+                <th colspan="2">
+                  <div class="row">
+                    <div class="col-4 pl-5">
+                      {{changeLanguageFlag === 'English' ? 'Do not hide useless menu items' : '显示冷门菜单项' }}
+                      <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
+                         (mouseover)="showCorrespondingTranslation('DoNotHideUselessMenuItems')"
+                         (mouseout)="translating = ''">
+                        <div *ngIf="translating === 'DoNotHideUselessMenuItems'" class="left talk radius">
+                          <p>Do not hide useless menu items:{{Explanations.EnglishExplanations.DoNotHideUselessMenuItems}}</p>
+                          -------------<br>
+                          <p>显示冷门菜单项:{{Explanations.ChineseExplanations.DoNotHideUselessMenuItems}}</p>
+                        </div>
+                      </i>
+                    </div>
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{!!restaurant.doNotHideUselessMenuItems}}
                     </div>
                   </div>
                 </th>
@@ -934,13 +972,13 @@
           </div>
           <div class="form-group row">
             <label
-              class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Order Call Language' : '用于机器人调用的语言' }}
+              class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Standard Language' : '标准语言' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
-                (mouseover)="showCorrespondingTranslation('OrderCallLanguage')" (mouseout)="translating = ''">
-                <div *ngIf="translating === 'OrderCallLanguage'" class="left edit-talk radius">
-                  <p>Order Call Language:{{Explanations.EnglishExplanations.OrderCallLanguage}}</p>
+                (mouseover)="showCorrespondingTranslation('PreferredLanguage')" (mouseout)="translating = ''">
+                <div *ngIf="translating === 'PreferredLanguage'" class="left edit-talk radius">
+                  <p>Standard Language:{{Explanations.EnglishExplanations.PreferredLanguage}}</p>
                   -------------<br>
-                  <p>用于机器人调用的语言:{{Explanations.ChineseExplanations.OrderCallLanguage}}</p>
+                  <p>标准语言:{{Explanations.ChineseExplanations.PreferredLanguage}}</p>
                 </div>
               </i>
             </label>
@@ -976,9 +1014,17 @@
                 </button>
                 <h4 class="text-center">Preview Website Broadcast</h4>
                 <hr>
-                <div  [innerHTML]="notification">
+                <div [innerHTML]="notification">
                 </div>
               </q-modal>
+              <!-- start with website broadcast expiration -->
+              <div class="form-group form-inline">
+                <label class="col-form-label pt-0 mt-3 ml-1">{{changeLanguageFlag === 'English' ? 'Broadcast Expiration' : '广播过期时间' }}
+                </label>
+                <q-toggle class="pt-3 ml-2" [(ngModel)]="controlExpiry" (change)="toggleNotificationExpiry()"></q-toggle>
+                <input type="date" class="form-control ml-2 mt-2" *ngIf="controlExpiry" [(ngModel)]="notificationExpiry">
+              </div>
+              <!-- end with website broadcast expiration -->
             </div>
           </div>
 
@@ -1519,6 +1565,23 @@
             <div class="pl-1 col-7">
               <input type="checkbox" [checked]="!hideOrderReadyEstimate"
                 (change)="hideOrderReadyEstimate=!$event.target.checked">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label
+              class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Do not hide useless menu items' : '不隐藏无用的菜单项' }}
+              <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
+                 (mouseover)="showCorrespondingTranslation('DoNotHideUselessMenuItems')" (mouseout)="translating = ''">
+                <div *ngIf="translating === 'DoNotHideUselessMenuItems'" class="left edit-talk radius">
+                  <p>Do not hide useless menu items:{{Explanations.EnglishExplanations.DoNotHideUselessMenuItems}}</p>
+                  -------------<br>
+                  <p>不隐藏无用的菜单项:{{Explanations.ChineseExplanations.DoNotHideUselessMenuItems}}</p>
+                </div>
+              </i>
+            </label>
+            <div class="pl-1 col-7">
+              <input type="checkbox" [checked]="!!doNotHideUselessMenuItems"
+                     (change)="doNotHideUselessMenuItems=$event.target.checked">
             </div>
           </div>
         </ng-container>

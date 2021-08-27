@@ -42,6 +42,8 @@ export class BasicTplComponent implements OnInit {
   sectionDSubtext = '';
   sectionElinkText = '';
   sectionEphone = '';
+  privacyPolicyText;
+  privacyPolicyLink;
 
   isCustomTemplate = false;
 
@@ -66,7 +68,6 @@ export class BasicTplComponent implements OnInit {
 
   ngOnInit() {
     this.refresh().then(() => {
-      this.toggleCustomTemplate(true);
       this.republishToAWS();
     });
     this.refreshTemplateList();
@@ -104,8 +105,22 @@ export class BasicTplComponent implements OnInit {
 
     this.navBarLinks = this.restaurant.web.template.navbar.links;
     this.headerSliderImages = this.restaurant.web.template.headerSlider;
-    this.specialtyImages = this.restaurant.web.template.specialties;
-    this.promoImages = this.restaurant.web.template.promos;
+    this.specialtyImages = (this.restaurant.web.template.specialties || []).map(img => {
+      if (img.startsWith('/assets')) {
+        return `https://${this.restaurant.web.qmenuWebsite.replace('http://', '').replace('https://', '').replace('/', '')}${img}`;
+      } else {
+        return img;
+      }
+    });
+
+    this.promoImages = (this.restaurant.web.template.promos || []).map(img => {
+      if (img.startsWith('/assets')) {
+        return `https://${this.restaurant.web.qmenuWebsite.replace('http://', '').replace('https://', '').replace('/', '')}${img}`;
+      } else {
+        return img;
+      }
+    });
+
     this.sectionATitle = this.desanitizeText(this.restaurant.web.template.sectionATitle);
     this.sectionAslogan = this.desanitizeText(this.restaurant.web.template.sectionAslogan);
     this.sectionBTitle = this.desanitizeText(this.restaurant.web.template.sectionBTitle);
@@ -119,6 +134,8 @@ export class BasicTplComponent implements OnInit {
     this.sectionDSubtext = this.desanitizeText(this.restaurant.web.template.sectionDSubtext);
     this.sectionElinkText = this.desanitizeText(this.restaurant.web.template.sectionElinkText);
     this.sectionEphone = this.desanitizeText(this.restaurant.web.template.sectionEphone);
+    this.privacyPolicyText = this.desanitizeText(this.restaurant.web.template.privacyPolicyText);
+    this.privacyPolicyLink = this.desanitizeText(this.restaurant.web.template.privacyPolicyLink);
   }
 
   clearLink() {
@@ -204,42 +221,71 @@ export class BasicTplComponent implements OnInit {
         new: newRestaurant
       }]).toPromise();
 
-      this._global.publishAlert(AlertType.Success, 'Image uploaded suceesfuly. Publishing to AWS now...');
+      this._global.publishAlert(AlertType.Success, 'Image uploaded successfully. Publishing to AWS now...');
 
+      await this.republishToAWS();
 
-      // --- Re publish changes
-      const domain = Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
-      const templateName = this.restaurant.web.templateName;
-      const restaurantId = this.restaurant._id;
-
-      if (!templateName || !domain) {
-        return this._global.publishAlert(AlertType.Danger, 'Missing template name or website');
-      }
-
-      if (domain.indexOf('qmenu.us') >= 0) {
-        return this._global.publishAlert(AlertType.Danger, 'Failed. Can not inject qmenu');
-      }
-
-      await this._api.post(environment.qmenuApiUrl + 'utils/publish-website-s3', {
-        domain,
-        templateName,
-        restaurantId
-      }).toPromise();
-
-      // --- Invalidate domain
-      const result = await this._api.post(environment.appApiUrl + 'events',
-        [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'invalidate-domain', params: { domain: domain } } }]
-      ).toPromise();
-
-      console.log('uploadHeaderImage() nvalidation result:', result);
-
-      this._global.publishAlert(AlertType.Success, 'Header Image(s) published to AWS successfully');
+      this._global.publishAlert(AlertType.Success, 'Header Slider Image(s) published to AWS successfully');
 
     } catch (error) {
       await this.refresh();
       this._global.publishAlert(AlertType.Danger, 'Error uploading image');
       console.error(error);
     }
+
+    // try {
+    //   // --- Upload Image
+    //   this.headerImage = event;
+    //
+    //   const { Location: url }: any = await Helper.uploadImage(this.headerImage, this._api, this._http);
+    //   this.headerSliderImages[index] = url;
+    //
+    //   // --- Save to DB
+    //   const newRestaurant = JSON.parse(JSON.stringify(this.restaurant));
+    //
+    //   newRestaurant.web.template.headerSlider = this.headerSliderImages;
+    //
+    //   await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+    //     old: { _id: this.restaurant['_id'] },
+    //     new: newRestaurant
+    //   }]).toPromise();
+    //
+    //   this._global.publishAlert(AlertType.Success, 'Image uploaded suceesfuly. Publishing to AWS now...');
+    //
+    //
+    //   // --- Re publish changes
+    //   const domain = Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
+    //   const templateName = this.restaurant.web.templateName;
+    //   const restaurantId = this.restaurant._id;
+    //
+    //   if (!templateName || !domain) {
+    //     return this._global.publishAlert(AlertType.Danger, 'Missing template name or website');
+    //   }
+    //
+    //   if (domain.indexOf('qmenu.us') >= 0) {
+    //     return this._global.publishAlert(AlertType.Danger, 'Failed. Can not inject qmenu');
+    //   }
+    //
+    //   await this._api.post(environment.qmenuApiUrl + 'utils/publish-website-s3', {
+    //     domain,
+    //     templateName,
+    //     restaurantId
+    //   }).toPromise();
+    //
+    //   // --- Invalidate domain
+    //   const result = await this._api.post(environment.appApiUrl + 'events',
+    //     [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'invalidate-domain', params: { domain: domain } } }]
+    //   ).toPromise();
+    //
+    //   console.log('uploadHeaderImage() nvalidation result:', result);
+    //
+    //   this._global.publishAlert(AlertType.Success, 'Header Image(s) published to AWS successfully');
+    //
+    // } catch (error) {
+    //   await this.refresh();
+    //   this._global.publishAlert(AlertType.Danger, 'Error uploading image');
+    //   console.error(error);
+    // }
   }
 
   async deleteHeaderSliderImage() {
@@ -351,34 +397,9 @@ export class BasicTplComponent implements OnInit {
         new: newRestaurant
       }]).toPromise();
 
-      this._global.publishAlert(AlertType.Success, 'Order/Promo image uploaded suceesfuly. Publishing to AWS now...');
+      this._global.publishAlert(AlertType.Success, 'Order/Promo image uploaded successfully. Publishing to AWS now...');
 
-
-      // --- Re publish changes
-      const domain = Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
-      const templateName = this.restaurant.web.templateName;
-      const restaurantId = this.restaurant._id;
-
-      if (!templateName || !domain) {
-        return this._global.publishAlert(AlertType.Danger, 'Missing template name or website');
-      }
-
-      if (domain.indexOf('qmenu.us') >= 0) {
-        return this._global.publishAlert(AlertType.Danger, 'Failed. Can not inject qmenu');
-      }
-
-      await this._api.post(environment.qmenuApiUrl + 'utils/publish-website-s3', {
-        domain,
-        templateName,
-        restaurantId
-      }).toPromise();
-
-      // --- Invalidate domain
-      const result = await this._api.post(environment.appApiUrl + 'events',
-        [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'invalidate-domain', params: { domain: domain } } }]
-      ).toPromise();
-
-      console.log('uploadPromoImage() nvalidation result:', result);
+      await this.republishToAWS();
 
       this._global.publishAlert(AlertType.Success, 'Order/Promo Image(s) published to AWS successfully');
 
@@ -611,8 +632,33 @@ export class BasicTplComponent implements OnInit {
     }
   }
 
+  async savePartF() {
+    const oldTemplate = {...this.restaurant.web.template} || {};
+    const newTemplate = {...this.restaurant.web.template} || {};
+
+    newTemplate.privacyPolicyText = this.sanitizeText(this.privacyPolicyText);
+    newTemplate.privacyPolicyLink = this.sanitizeText(this.privacyPolicyLink);
+
+    try {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: { _id: this.restaurant._id, 'web.template': oldTemplate },
+        new: { _id: this.restaurant._id, 'web.template': newTemplate }
+      }]).toPromise();
+
+      this.restaurant.web.template = this.restaurant.web.template || {};
+      this.restaurant.web.template = newTemplate;
+
+      await this.republishToAWS();
+
+      this._global.publishAlert(AlertType.Success, 'Part F saved');
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, 'Error while saving Part F');
+      console.error(error);
+    }
+  }
+
   sanitizeText(text) {
-    return text
+    return (text || '')
       .replace(/\t/g, '')
       .replace(/\n/g, '')
       .replace(/'/g, '&apos;')
@@ -620,7 +666,7 @@ export class BasicTplComponent implements OnInit {
   }
 
   desanitizeText(text) {
-    return text
+    return (text || '')
       .replace(/&apos;/g, "'")
       .replace(/&amp;/g, '&');
   }

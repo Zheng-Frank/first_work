@@ -48,7 +48,7 @@
       Choose from menu
     </div>
     <div *ngIf="useFreeItemList; else genericFreeItem">
-      Use dropdown menus to add free item options to this list. Customer gets to add <strong>one of</strong> these items to their order for free. 
+      Use dropdown menus to add free item options to this list. Customer gets to add <strong>one of</strong> these items to their order for free.
       <app-menu-filters-editor [menus]="menus" [requireFullItem]="true" [menuFilters]="freeItemList"
         ></app-menu-filters-editor>
       <div *ngIf="promotion.freeItemList.length === freeItemListMaxLength" class="text-danger font-weight-bold">
@@ -69,25 +69,25 @@
 
   <label class="mt-1"> <u>Applicable items:</u></label>
   <div>
- By default, discount will apply to entire order. 
- If you want the discount to only apply to certain menus, categories, or items, you can add them to this list. 
+ By default, discount will apply to entire order.
+ If you want the discount to only apply to certain menus, categories, or items, you can add them to this list.
  Only items in the list will count toward the minimum order amount.
   </div>
   <app-menu-filters-editor [menus]="menus" [requireFullItem]="false"
   [menuFilters]="applicableItems"></app-menu-filters-editor>
 
   <div>
-   
+
     <label class="mt-1"><u> Minimum Order ($) </u></label><br>
-  
+
     <input type="number" class="form-control" [(ngModel)]="promotion.orderMinimum" placeholder="eg. 50">
   </div>
 
 
 
-  <label class="mt-1">Expiration Date:</label>
+  <label class="mt-1"><input type="checkbox" [(ngModel)]="hasExpiry" (change)="toggleHasExpiry()"> Expiration Date:</label>
   <div>
-    <input type="date" class="form-control" [(ngModel)]="promotion.expiry">
+    <input type="date" class="form-control" [disabled]="!hasExpiry" [(ngModel)]="expiry">
   </div>
   <div>
     <label class="mt-1">

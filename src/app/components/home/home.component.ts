@@ -1,4 +1,5 @@
-import { Component, OnInit } from "@angular/core";
+import { SendTextReplyComponent } from './../utilities/send-text-reply/send-text-reply.component';
+import { Component, OnInit, ViewChild } from "@angular/core";
 import { ApiService } from "../../services/api.service";
 import { environment } from "../../../environments/environment";
 import { GlobalService } from "../../services/global.service";
@@ -9,6 +10,8 @@ import { Router } from '@angular/router';
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit {
+
+  @ViewChild('textMessageCard')textMessageCard:SendTextReplyComponent;
 
   restaurantList = [];
   searchTerm = '';
@@ -55,12 +58,15 @@ export class HomeComponent implements OnInit {
       "gmb-campaign": ['ADMIN'],
       "bulk-messaging": ['ADMIN'],
       "courier-availability": ['ADMIN', 'CSR', 'MARKETER'],
+      "send-text-message": ['ADMIN', 'CSR', 'MENU_EDITOR', 'MARKETER'],
       "broadcasting": ['ADMIN', 'CSR'],
       "awaiting-onboarding": ['ADMIN', 'MENU_EDITOR'],
       //"disabled-restaurants": ['ADMIN'],
       //"monitoring-hours": ['ADMIN', 'CSR']
     }
-
+    if(section === 'send-text-message' && this.textMessageCard){
+      this.textMessageCard.sendToType = 'Other';
+    }
     return this._global.user.roles.some(r => sectionRolesMap[section].indexOf(r) >= 0);
   }
 
