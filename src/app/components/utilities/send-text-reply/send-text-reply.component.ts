@@ -22,7 +22,6 @@ export class SendTextReplyComponent implements OnChanges {
   sendWhatType = 'Custom';
   sendToTypes = [];
   channels;
-  displayGooglePIN = false;
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnChanges() {
@@ -191,15 +190,8 @@ export class SendTextReplyComponent implements OnChanges {
       case 'Other email':
         this.phoneNumber = '';
         this.email = '';
-        this.displayGooglePIN = false;
-        break;
-      case 'Use Old Send Google PIN':
-        this.phoneNumber = '';
-        this.email = '';
-        this.displayGooglePIN = true;
         break;
       default:
-        this.displayGooglePIN = false;
         if (this.isPhoneValid(this.sendToType)) {
           this.email = '';
           this.phoneNumber = this.sendToType;
@@ -252,21 +244,21 @@ export class SendTextReplyComponent implements OnChanges {
       case 'QR promo pamphlet (中)':
         this.message = '看看 qMenu 的扫码点餐系统提供的所有好处：https://pro-bee-beepro-messages.s3.amazonaws.com/474626/454906/1210649/6204156.html';
         break;
-      case 'First Notice (Chinese)':
+      case 'First GMB Notice (中)':
         if (this.sendToType === 'All SMS numbers' || (this.phoneNumber != '' && this.isPhoneValid(this.phoneNumber)) || (this.sendToType === 'Other SMS number')) {
           this.message = `你好,这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片), 或者给我们的客服打电话 404-382-9768. 多谢!`;
         } else if (this.sendToType === 'All Emails' || (this.email != '' && this.isEmailValid(this.email)) || (this.sendToType === 'Other email')) {
           this.message = `你好,\n这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码, 或者发短信到855-759-2648或者给我们的客服打电话 404-382-9768. 多谢!`;
         }
         break;
-      case 'First Notice (English)':
+      case 'First GMB Notice (Eng)':
         if (this.sendToType === 'All SMS numbers' || (this.phoneNumber != '' && this.isPhoneValid(this.phoneNumber)) || (this.sendToType === 'Other SMS number')) {
           this.message = `This is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks`;
         } else if (this.sendToType === 'All Emails' || (this.email != '' && this.isEmailValid(this.email)) || (this.sendToType === 'Other email')) {
           this.message = `Hi, \nThis is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at 855-759-2648 or call us at 404-382-9768.\n Thanks`;
         }
         break;
-      case 'First Notice (Chinese/English)':
+      case 'First GMB Notice (中/Eng)':
         if (this.sendToType === 'All SMS numbers' || (this.phoneNumber != '' && this.isPhoneValid(this.phoneNumber)) || (this.sendToType === 'Other SMS number')) {
           this.message = `你好,这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片). 或者给我们的客服打电话 404-382-9768. 多谢!
           This is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard or call us at 404-382-9768. Thanks`;
@@ -275,21 +267,21 @@ export class SendTextReplyComponent implements OnChanges {
           Hi, \nThis is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at 855-759-2648 or call us at 404-382-9768.\n Thanks`;
         }
         break;
-      case 'Follow up Notice (Chinese)':
+      case 'Second GMB Notice (中)':
         if (this.sendToType === 'All SMS numbers' || (this.phoneNumber != '' && this.isPhoneValid(this.phoneNumber)) || (this.sendToType === 'Other SMS number')) {
           this.message = `你好,这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片), 或者给我们的客服打电话 404-382-9768. 多谢!`;
         } else if (this.sendToType === 'All Emails' || (this.email != '' && this.isEmailValid(this.email)) || (this.sendToType === 'Other email')) {
           this.message = `你好,\n这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码, 或者发短信到855-759-2648或者给我们的客服打电话 404-382-9768. 多谢!`;
         }
         break;
-      case 'Follow up Notice (English)':
+      case 'Second GMB Notice (Eng)':
         if (this.sendToType === 'All SMS numbers' || (this.phoneNumber != '' && this.isPhoneValid(this.phoneNumber)) || (this.sendToType === 'Other SMS number')) {
           this.message = `This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks`;
         } else if (this.sendToType === 'All Emails' || (this.email != '' && this.isEmailValid(this.email)) || (this.sendToType === 'Other email')) {
           this.message = `Hi, \nThis is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at 855-759-2648 or call us at 404-382-9768.\n Thanks`;
         }
         break;
-      case 'Follow up Notice (Chinese/English)':
+      case 'Second GMB Notice (中/Eng)':
         if (this.sendToType === 'All SMS numbers' || (this.phoneNumber != '' && this.isPhoneValid(this.phoneNumber)) || (this.sendToType === 'Other SMS number')) {
           this.message = `你好,这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片)或者给我们的客服打电话 404-382-9768. 多谢!
           This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard (Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks`;
