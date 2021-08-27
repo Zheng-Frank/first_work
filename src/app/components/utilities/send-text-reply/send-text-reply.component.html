@@ -8,11 +8,11 @@
         <hr>
       </ng-container>
       <option *ngIf="isPhoneValid(type)">{{type | tel}}</option>
-      <ng-container *ngIf="isEmailValid(type)">
-        <option>{{type}}</option>
+      <option *ngIf="isEmailValid(type)">{{type}}</option>
+      <ng-container *ngIf="type === 'Other SMS number'">
         <hr>
+        <option>{{type}}</option>
       </ng-container>
-      <option *ngIf="type === 'Other SMS number'">{{type}}</option>
       <ng-container *ngIf="type === 'Other email'">
         <option>{{type}}</option>
         <hr>
@@ -63,8 +63,8 @@
 <ng-container *ngIf="!restaurant">
   <label>Send to: </label>
   <div class="form-group mt-3">
-    <input id="profile-phone-number" [(ngModel)]="phoneNumber" type="tel" class="form-control {{isPhoneValid(phoneNumber)? '' : 'is-invalid'}} mt-1"
-      placeholder="SMS number">
+    <input id="profile-phone-number" [(ngModel)]="phoneNumber" type="tel"
+      class="form-control {{isPhoneValid(phoneNumber)? '' : 'is-invalid'}} mt-1" placeholder="SMS number">
   </div>
   <div class="mt-3">
     <label>Send what: </label>

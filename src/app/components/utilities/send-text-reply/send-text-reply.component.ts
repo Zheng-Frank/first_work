@@ -1,4 +1,4 @@
-import { EventEmitter } from '@angular/core';
+import { EventEmitter, OnChanges } from '@angular/core';
 import { filter } from 'rxjs/operators';
 import { AlertType } from './../../../classes/alert-type';
 import { Input, Output } from '@angular/core';
@@ -12,7 +12,7 @@ import { Component, OnInit } from '@angular/core';
   templateUrl: './send-text-reply.component.html',
   styleUrls: ['./send-text-reply.component.css']
 })
-export class SendTextReplyComponent implements OnInit {
+export class SendTextReplyComponent implements OnChanges {
 
   @Input() restaurant;
   phoneNumber = '';
@@ -25,8 +25,9 @@ export class SendTextReplyComponent implements OnInit {
   displayGooglePIN = false;
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
-  ngOnInit() {
+  ngOnChanges() {
     if(this.restaurant){
+      this.sendToTypes = [];
       if (this.restaurant.channels) {
         this.channels = this.restaurant.channels.filter(channel => channel.type && (channel.type === 'SMS' || (channel.type === 'Email' && channel.notifications && channel.notifications.includes('Order'))));
         if (this.channels && this.channels.length > 0) {
@@ -34,14 +35,11 @@ export class SendTextReplyComponent implements OnInit {
           this.sendToTypes.unshift('All Emails');
           this.sendToTypes.unshift('All SMS numbers');
         }
-        this.sendToTypes.push('Other');
       }
       this.sendToTypes.push('Other SMS number');
       this.sendToTypes.push('Other email');
       this.sendToTypes.push('Use Old Send Google PIN');
     }
-   
-    
   }
   
   isPhoneValid(text) {
