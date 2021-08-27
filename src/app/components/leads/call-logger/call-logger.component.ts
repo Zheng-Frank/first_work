@@ -61,9 +61,9 @@ export class CallLoggerComponent implements OnInit, OnChanges {
 
   othersItems = [];
 
-  constructor(private _api: ApiService, private _global: GlobalService) {}
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
-  ngOnInit() {}
+  ngOnInit() { }
 
   ngOnChanges(changes: SimpleChanges) {
     // changes.prop contains the old and the new value...
@@ -275,20 +275,33 @@ export class CallLoggerComponent implements OnInit, OnChanges {
     this.remove.emit(event);
   }
 
-  addNewContact() {
+  async addNewContact() {
     this.lead.contacts = this.lead.contacts || [];
+    const newContactName = (this.newContactName || '').trim();
     if (
-      this.newContactName &&
-      this.newContactName.trim() &&
-      this.lead.contacts.indexOf(this.newContactName.trim()) < 0
+      newContactName &&
+      this.lead.contacts.indexOf(newContactName) < 0
     ) {
       const newLead = new Lead(this.lead);
-      newLead.contacts.push(this.newContactName.trim());
-      this.patchDiff(this.lead, newLead);
+      newLead.contacts.push(newContactName);
+
+      // push to DB!
+      await this._api
+        .post(environment.appApiUrl + "smart-restaurant/api", {
+          method: 'push',
+          resource: 'raw-lead',
+          query: {
+            _id: { $oid: this.lead._id },
+          },
+          payload: {
+            contacts: newContactName
+          }
+        })
+        .toPromise();
 
       this.contactItems.push({
-        text: this.newContactName.trim(),
-        object: this.newContactName.trim(),
+        text: newContactName,
+        object: newContactName,
         selected: true
       });
 
@@ -304,7 +317,7 @@ export class CallLoggerComponent implements OnInit, OnChanges {
       this._global.publishAlert(AlertType.Info, "Nothing to update");
     } else {
       // api update here...
-      this._api.patch(environment.qmenuApiUrl + "generic?resource=lead", [{old: originalLead, new: newLead}]).subscribe(
+      this._api.patch(environment.qmenuApiUrl + "generic?resource=lead", [{ old: originalLead, new: newLead }]).subscribe(
         result => {
           // let's update original, assuming everything successful
           Object.assign(originalLead, newLead);
