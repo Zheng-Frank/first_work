@@ -70,12 +70,12 @@ export class ChangeOwnershipComponent implements OnInit {
     delete clone.logs;
     delete clone.people;
     delete clone.salesThreeMonthAverage;
-    delete clone.web.bizManagedWebsite;    
+    delete clone.web.bizManagedWebsite;
     delete clone.web.useBizMenuUrl;
     delete clone.web.useBizOrderAheadUrl;
     delete clone.web.useBizReservationUrl;
     delete clone.web.useBizWebsiteForAll;
-    
+
     clone.channels = clone.channels.filter(e => (e.type === 'Phone' && e.notifications && e.notifications.some(n => n === 'Business')) || e.type === 'Fax');
 
     clone.name = this.newName;
@@ -97,7 +97,8 @@ export class ChangeOwnershipComponent implements OnInit {
       new:
       {
         _id: oldRestaurant._id,
-        disabled: true
+        disabled: true,
+        disabledAt: new Date()
       }
     };
 
