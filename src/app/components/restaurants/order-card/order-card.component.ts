@@ -42,14 +42,73 @@ export class OrderCardComponent implements OnInit {
 
   ngOnInit() {
   }
+
+  orerFromAppOrPWA(order){
+    return this.orderFromApp(order) || this.orderFromPWA(order);
+  }
+
+  orderFromMac(order) {
+    return order.runtime && order.runtime.os && order.runtime.os.indexOf('Mac') >= 0;
+  }
+
+  orderFromLinux(order) {
+    return order.runtime && order.runtime.os && order.runtime.os.indexOf('Linux') >= 0;
+  }
+
+  orderFromWindows(order) {
+    return order.runtime && order.runtime.os && order.runtime.os.indexOf('Windows')>=0;
+  }
+  // order is from Android, judging by order.runtime.os
+  orderFromAndroid(order) {
+    return order.runtime && order.runtime.os && order.runtime.os.indexOf('Android') >= 0;
+  }
+  // order is from is iOS, judging by order.runtime.os
+  orderFromiOS(order) {
+    return order.runtime && order.runtime.os && order.runtime.os.indexOf('iOS') >=0;
+  }
+  // judge order whether is from Edge by order.runtime.browser.
+  // the type of browser:
+  // Chrome, FireFox, Safari, IE
+  orderFromChrome(order){
+    return order.runtime && order.runtime.browser.toLowerCase() === 'chrome';
+  }
+
+  orderFromFirefox(order){
+    return order.runtime && order.runtime.browser.toLowerCase() === 'firefox';
+  }
+
+  orderFromSafari(order){
+    return order.runtime && order.runtime.browser.toLowerCase() === 'safari';
+  }
+  
+  orderFromEdge(order){
+    return order.runtime && order.runtime.browser.toLowerCase() === 'edge';
+  }
+
+  orderFromIE(order){
+    return order.runtime && order.runtime.browser.toLowerCase() === 'ie';
+  }
+
+  orderFromBrowserUnknown(order){
+    return order.runtime && order.runtime.browser && !this.orderFromChrome(order) && !this.orderFromSafari(order) && !this.orderFromFirefox(order) && !this.orderFromIE(order);
+  }
+
+  // judge order whether is from Edge by order.runtime.isApp.
+  orderFromApp(order) {
+    return order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os.indexOf('iOS') >=0) && order.runtime.isApp;
+  }
+  // judge order whether is from Edge by order.runtime.standalone.
+  orderFromPWA(order) {
+    return order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os.indexOf('iOS') >=0) && order.runtime.standalone && !order.runtime.isApp;
+  }
   // judge order whether is from phone. 
   orderFromPhone(order) {
     return order.runtime && order.runtime.isApp ||
-      (order.runtime && order.runtime.os && (order.runtime.os === 'Android' || order.runtime.os === 'iOS'));
+      (order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os.indexOf('iOS') >=0));
   }
   // judge order whether is from computer. 
   orderFromPC(order) {
-    return order.runtime && order.runtime.os && (order.runtime.os === 'Mac' || order.runtime.os === 'Linux' || order.runtime.os === 'Windows');
+    return order.runtime && order.runtime.os && (order.runtime.os.indexOf('Mac') >= 0 || order.runtime.os.indexOf('Linux')>=0 || order.runtime.os.indexOf('Windows')>=0);
   }
 
   openPreviousCanceledOrderModal(order_id) {
