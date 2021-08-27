@@ -64,7 +64,7 @@ export class OrderCardComponent implements OnInit {
   }
   // order is from is iOS, judging by order.runtime.os
   orderFromiOS(order) {
-    return order.runtime && order.runtime.os === 'iOS';
+    return order.runtime && order.runtime.os && order.runtime.os.indexOf('iOS') >=0;
   }
   // judge order whether is from Edge by order.runtime.browser.
   // the type of browser:
@@ -95,16 +95,16 @@ export class OrderCardComponent implements OnInit {
 
   // judge order whether is from Edge by order.runtime.isApp.
   orderFromApp(order) {
-    return order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os === 'iOS') && order.runtime.isApp;
+    return order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os.indexOf('iOS') >=0) && order.runtime.isApp;
   }
   // judge order whether is from Edge by order.runtime.standalone.
   orderFromPWA(order) {
-    return order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os === 'iOS') && order.runtime.standalone && !order.runtime.isApp;
+    return order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os.indexOf('iOS') >=0) && order.runtime.standalone && !order.runtime.isApp;
   }
   // judge order whether is from phone. 
   orderFromPhone(order) {
     return order.runtime && order.runtime.isApp ||
-      (order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os === 'iOS'));
+      (order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os.indexOf('iOS') >=0));
   }
   // judge order whether is from computer. 
   orderFromPC(order) {
