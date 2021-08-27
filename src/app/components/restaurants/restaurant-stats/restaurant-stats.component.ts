@@ -272,7 +272,7 @@ export class RestaurantStatsComponent implements OnInit {
   // judge order whether is from Edge by order.runtime.isApp.
   // order comes from app judged by both isApp and standalone is true. 
   orderFromApp(order) {
-    return order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os === 'iOS') && order.runtime.standalone && order.runtime.isApp;
+    return order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os === 'iOS') && order.runtime.isApp;
   }
   // judge order whether is from Edge by order.runtime.standalone.
   orderFromPWA(order) {

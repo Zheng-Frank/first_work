@@ -95,7 +95,7 @@ export class OrderCardComponent implements OnInit {
 
   // judge order whether is from Edge by order.runtime.isApp.
   orderFromApp(order) {
-    return order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os === 'iOS') && order.runtime.isApp && order.runtime.standalone;
+    return order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os === 'iOS') && order.runtime.isApp;
   }
   // judge order whether is from Edge by order.runtime.standalone.
   orderFromPWA(order) {
