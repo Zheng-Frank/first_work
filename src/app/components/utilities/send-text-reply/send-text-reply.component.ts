@@ -28,7 +28,12 @@ export class SendTextReplyComponent implements OnChanges {
     if(this.restaurant){
       this.sendToTypes = [];
       if (this.restaurant.channels) {
-        this.channels = this.restaurant.channels.filter(channel => channel.type && (channel.type === 'SMS' || (channel.type === 'Email' && channel.notifications && channel.notifications.includes('Order'))));
+        //this.channels = this.restaurant.channels.filter(channel => channel.type && (channel.type === 'SMS' || (channel.type === 'Email' && channel.notifications && channel.notifications.includes('Order'))));
+        let SMSChannels = this.restaurant.channels.filter(channel => channel.type && channel.type === 'SMS');
+        SMSChannels.sort((a,b)=>(a.value || '').localeCompare(b.value));
+        let emailChannels = this.restaurant.channels.filter(channel => channel.type && channel.type === 'Email' && channel.notifications && channel.notifications.includes('Order'));
+        emailChannels.sort((a,b)=>(a.value || '').localeCompare(b.value));
+        this.channels = [...new Set(SMSChannels),...new Set(emailChannels)];
         if (this.channels && this.channels.length > 0) {
           this.sendToTypes = [...new Set(this.channels.map(channel => channel.value))];
           this.sendToTypes.unshift('All Emails');
