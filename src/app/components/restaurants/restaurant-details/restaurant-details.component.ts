@@ -22,7 +22,10 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('restaurantProfile')restaurantProfile:RestaurantProfileComponent;
   @ViewChild('textReplyModal')textReplyModal:ModalComponent;
   @ViewChild('textReplyComponent')textReplyComponent: SendTextReplyComponent;
-  languageTypes = [LanguageType.ENGLISH,LanguageType.CHINESE];
+  languageTypes = [
+    {value: LanguageType.ENGLISH, text: "Show English"},
+    {value: LanguageType.CHINESE, text: "显示中文"}
+  ];
   languageType = this._global.languageType;
   restaurant: Restaurant;
   

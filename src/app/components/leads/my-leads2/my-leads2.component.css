@@ -1,0 +1,46 @@
+.funnel-name {
+    font-weight: 500;
+    font-size: larger;
+}
+
+.my-text-small {
+    font-size: 75%;
+}
+
+.h-fit {
+    height: fit-content;
+}
+
+.my-text-b {
+    font-size: 125%;
+}
+
+.my-legends {
+    display: flex;
+    justify-content: space-between;
+}
+
+/* for piercing modal */
+::ng-deep .modal-dialog {
+    max-width: 75%;
+}
+
+.my-text-tiny {
+    font-size: 75%;
+}
+
+.log-outcome {
+    display: inline-block;
+    width: 1rem;
+}
+.log-time {
+    display: inline-block;
+    width: 3rem;
+}
+.log-comments {
+    display: inline-block;
+}
+
+::ng-deep th {
+    white-space: nowrap;
+}
