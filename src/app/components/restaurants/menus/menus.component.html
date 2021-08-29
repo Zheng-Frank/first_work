@@ -123,10 +123,10 @@
               {{menu.targetCustomer ? "("+menu.targetCustomer+")" : ''}}
             </ng-container>
             <ng-container *ngIf="menu.targetCustomer === 'DINE_IN_ONLY'">
-              <i class="far fa-utensils"></i>
+              <i class="fas fa-utensils"  style="color:#467bca;"></i>
             </ng-container>
             <ng-container *ngIf="isMissingHoursMenu(menu)">
-              <i class="far fa-exclamation-triangle" style="color:red;"></i>
+              <i class="fas fa-exclamation-triangle"></i>
             </ng-container>
           </a>
         </li>

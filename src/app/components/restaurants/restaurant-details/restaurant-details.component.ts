@@ -207,7 +207,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
         this.lastRefreshed = this.now;
         // judge whether open
         let flag = false;
-        this.restaurant.menus.forEach(menu=>{
+        (this.restaurant.menus||[]).forEach(menu=>{
           (menu.hours||[]).forEach(hour=>{
            flag = hour.isOpenAtTime(this.lastRefreshed, this.restaurant.googleAddress.timezone);
           });
