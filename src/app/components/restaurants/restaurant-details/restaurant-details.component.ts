@@ -313,7 +313,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     this.textReplyComponent.message = '';
     this.textReplyComponent.sendToType = 'All SMS numbers';
     this.textReplyComponent.sendWhatType = 'Custom';
-    this.textReplyComponent.displayGooglePIN = false;
     this.textReplyComponent.ngOnChanges();
     this.textReplyModal.show();
   }
