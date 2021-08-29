@@ -18,7 +18,8 @@ export class MenuEditorComponent implements OnInit {
   @Output() onCancel = new EventEmitter();
   @Input() enableDelete = true;
   @Input() restaurant: Restaurant;
-
+  
+  viewMenuText = ''; // it's text of href of <a></a> link to go to corresponding menu of custom PWA
   clickedAddHour = false;
   clickedDelete = false;
   selectedOption = 'New Menu';

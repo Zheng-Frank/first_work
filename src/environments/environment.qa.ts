@@ -20,5 +20,6 @@ export const environment = {
   stripePublishableKey: 'pk_test_PbXsKYfVeKPV4wlQP4wpQYfg',
   fattmerchantWebToken: 'qMenu-8c21919909a7',
   testOrderId: "5af213f552d5d11400e35550",
-  shortUrlBase: "https://2vevc851r7.execute-api.us-east-1.amazonaws.com/dev/"
+  shortUrlBase: "https://2vevc851r7.execute-api.us-east-1.amazonaws.com/dev/",
+  customPWAUrl: "https://qa.qmenu.us/#/"
 };

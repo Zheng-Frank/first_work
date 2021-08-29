@@ -286,7 +286,6 @@ export class MenuCleanupComponent implements OnInit, OnChanges {
       this.flattened = [...(warnings.sort(sortNumber)), ...(normals.sort(sortNumber))];
       // if the auto clean is enough for all menus
       // just save the cleaned menus
-      console.log(JSON.stringify(this.flattened));
       if (!this.flattened.length) {
         this.save.emit({menus: this.copied, translations: this.translations});
       }

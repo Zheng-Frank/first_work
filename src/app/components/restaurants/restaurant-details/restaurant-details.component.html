@@ -17,7 +17,8 @@
         (<a class="google_link" href="{{googleSearchText}}" target="_blank">Google<i class="fas fa-external-link-alt"></i></a>)
       </div>
       <div class="small">
-          Value: {{ restaurant.score || 0 | number: "1.1-1" }}
+          Time: {{lastRefreshed| adjustedDate: 'h:mm a':restaurant.googleAddress.timezone}}, {{openOrNot?'Open':'Close'}} 
+          <ng-container *ngIf="getBizContacts()"> ,{{getBizContacts()| tel}}</ng-container> (Value: {{ restaurant.score || 0 | number: "1.1-1" }})
       </div>
       <h1 *ngIf="restaurant.disabled && restaurant.comebackDate === undefined" class="alert alert-danger">DISABLED</h1>
       <h1 *ngIf="restaurant.disabled && (restaurant.comebackDate === null || isDate(restaurant.comebackDate))" class="alert alert-danger">TEMPORARILY DISABLED</h1>
@@ -66,7 +67,7 @@
           <a *ngIf="tab === 'Coupons'" class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
             style="cursor: pointer;">{{tab}} ({{restaurant?.promotions?.length || 0}})</a>
           <a *ngIf="tab != 'Menus' && tab != 'Menu Options' && tab != 'Coupons' " class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
-            style="cursor: pointer;">{{tab}}</a>
+            style="cursor: pointer;">{{tab}} <ng-container *ngIf="tab === 'Logs'">({{restaurant?.logs?.length || 0}})</ng-container></a>
         </li>
       </ul>
     </div>
