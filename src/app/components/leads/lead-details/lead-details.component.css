@@ -1,0 +1,28 @@
+.my-text-small {
+    font-size: 75%;
+}
+
+li {
+    padding-bottom: 0.5rem;
+}
+
+.my-legends {
+    display: flex;
+    justify-content: space-between;
+}
+
+.my-th {
+    font-weight: bold;
+    width: 14rem;
+    display: inline-block;
+}
+
+.my-text-big {
+    font-size: 125%;
+}
+
+.my-schedule-input {
+    width: auto;
+    font-size: 125%;
+    display: inline-block;
+}

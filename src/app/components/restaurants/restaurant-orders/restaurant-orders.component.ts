@@ -189,7 +189,9 @@ export class RestaurantOrdersComponent implements OnInit {
     } else if (this.type == 'Order Number' && this.searchText) {
       query['orderNumber'] = +this.searchText.trim();// + let searchText convert from string to number.
     } else if (this.type == 'Postmates ID' && this.searchText) {
-      query['delivery.id'] = this.searchText.trim();
+      query['delivery.id'] = {
+        $regex: this.searchText.trim()
+      }
     } else if (this.type == 'Customer Phone' && this.searchText) {
       if (this.searchText.indexOf('-') != -1) { //to make  it support query order with phone number using - to split
         let str_arr = this.searchText.trim().split('-');
@@ -307,7 +309,9 @@ export class RestaurantOrdersComponent implements OnInit {
     } else if (this.type == 'Order Number' && this.searchText) {
       query['orderNumber'] = +this.searchText.trim();
     } else if (this.type == 'Postmates ID' && this.searchText) {
-      query['delivery.id'] = this.searchText.trim()
+      query['delivery.id'] = {
+        $regex: this.searchText.trim()
+      }
     } else if (this.type == 'Customer Phone' && this.searchText) {
       if (this.searchText.indexOf('-') != -1) { //to make  it support query order with phone number using - to split
         let str_arr = this.searchText.trim().split('-');

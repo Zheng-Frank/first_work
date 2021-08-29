@@ -16,7 +16,7 @@ declare var google: any;
 })
 export class RestaurantMapComponent implements OnInit {
 
-  restaurants: Restaurant[];
+  restaurants: Restaurant[] = [];
   map = null;
   markers = [];
   infoWindow = null;
@@ -32,6 +32,9 @@ export class RestaurantMapComponent implements OnInit {
   keyword = '';
   placeService = null;
   searchedMarkers = [];
+  cuisine = '';
+  markerRTDict = new Map();
+  filteredRTs: Restaurant[] = [];
 
   constructor(private _router: Router, private _api: ApiService, private _global: GlobalService) {
   }
@@ -42,6 +45,16 @@ export class RestaurantMapComponent implements OnInit {
     await this.getRTs();
     this.placeService = new google.maps.places.PlacesService(this.map);
     this.drawMarkers();
+    const autocomplete = new google.maps.places.Autocomplete(document.getElementById('address-input'), {
+      placeholder: undefined, types: ['geocode'],
+      fields: ['geometry.location', 'place_id', 'formatted_address', 'address_components', 'utc_offset_minutes', 'vicinity']
+    });
+    autocomplete.bindTo('bounds', this.map);
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      this.map.setCenter(place.geometry.location);
+      this.searchByAddress(place.geometry.location);
+    });
   }
 
   async initAgents() {
@@ -55,6 +68,7 @@ export class RestaurantMapComponent implements OnInit {
     }, 500);
 
     this.agents = users.filter(u => u.roles && u.roles.includes('MARKETER'));
+    this.agents.sort((x, y) => x.username > y.username ? 1 : -1);
   }
 
   async getRTs() {
@@ -68,8 +82,20 @@ export class RestaurantMapComponent implements OnInit {
         'googleAddress.administrative_area_level_1': 1,
         'googleAddress.lat': 1,
         'googleAddress.lng': 1,
+        'googleListing.cuisine': 1
       }
     }, 10000);
+  }
+
+  get cuisines(): string[] {
+    let list = this.restaurants.reduce((a, c) => {
+      if (c.googleListing && c.googleListing.cuisine && !a.includes(c.googleListing.cuisine)) {
+        return [...a, c.googleListing.cuisine];
+      }
+      return a;
+    }, []);
+    list.sort((x, y) => x > y ? 1 : -1);
+    return list;
   }
 
   initMap() {
@@ -98,16 +124,26 @@ export class RestaurantMapComponent implements OnInit {
     });
   }
 
-  drawMarkers() {
+  centerToRT(rt) {
+    let {googleAddress: {formatted_address, lat, lng}} = rt;
+    this.map.setCenter({lat, lng});
+    this.infoWindow.setContent(`<div><h3>${rt.name}</h3><div>${formatted_address}</div></div>`);
+    this.infoWindow.open({anchor: this.markerRTDict.get(rt._id), map: this.map});
+  }
 
+  drawMarkers() {
     this.clearMap(this.markers);
+    this.markerRTDict.clear();
     this.centerTo(this.state);
 
     let rts = this.restaurants.filter(x => {
       // @ts-ignore
       return (!this.state || x.googleAddress && x.googleAddress.administrative_area_level_1 === this.state)
-        && (!this.agent || Helper.getSalesAgent(x.rateSchedules, this.agents) === this.agent);
+        && (!this.agent || Helper.getSalesAgent(x.rateSchedules, this.agents) === this.agent)
+        && (!this.cuisine || x.googleListing && x.googleListing.cuisine === this.cuisine);
     });
+    rts.sort((x, y) => x.name > y.name ? 1 : -1);
+    this.filteredRTs = rts;
 
     rts.forEach(rt => {
       // @ts-ignore
@@ -131,6 +167,7 @@ export class RestaurantMapComponent implements OnInit {
         });
       });
       this.markers.push(marker);
+      this.markerRTDict.set(rt._id, marker);
     });
   }
 
@@ -176,6 +213,17 @@ export class RestaurantMapComponent implements OnInit {
     this.clearMap(this.searchedMarkers);
     this.placeService.nearbySearch({
       query: this.keyword, bounds: this.map.getBounds(), type: ['restaurant']
+    }, (results, status) => {
+      if (status === google.maps.places.PlacesServiceStatus.OK) {
+        this.markSearched(results);
+      }
+    });
+  }
+
+  searchByAddress(location) {
+    this.clearMap(this.searchedMarkers);
+    this.placeService.nearbySearch({
+      location, radius: '50000', type: ['restaurant']
     }, (results, status) => {
       if (status === google.maps.places.PlacesServiceStatus.OK) {
         this.markSearched(results);

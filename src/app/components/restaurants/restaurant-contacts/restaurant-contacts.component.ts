@@ -63,6 +63,17 @@ export class RestaurantContactsComponent implements OnInit {
     }
   ];
 
+  languageDescriptor = {
+      field: "language",
+      label: "Language",
+      required: false,
+      inputType: "single-select",
+      items: [
+        { object: "ENGLISH", text: "English", selected: false },
+        { object: "CHINESE", text: "Chinese", selected: false }
+      ]
+  };
+
   personFieldDescriptors = [
     {
       field: "title", //
@@ -113,11 +124,13 @@ export class RestaurantContactsComponent implements OnInit {
   crm = "";
   crms = [];
 
+  Languages = { ENGLISH: 'English', CHINESE: 'Chinese' };
+
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
 
   ngOnInit() {
     this.resetPersonFieldDescriptors();
-    this.notes=this.restaurant.notes;
+    this.notes = this.restaurant.notes;
     this.getCrms();
     this.crm = this.restaurant.crm;
   }
@@ -128,13 +141,13 @@ export class RestaurantContactsComponent implements OnInit {
         fd.items = (this.restaurant.channels || []).map(channel => ({
           text: channel.type + ': ' + channel.value,
           object: { type: channel.type, value: channel.value }
-        }))
+        }));
       }
     });
   }
 
   // get all CRM users
-  getCrms(){
+  getCrms() {
         this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'user', query: '{"roles": "CRM"}', limit: 1000,  }).subscribe(
           result => {
               this.crms = result.sort((r1, r2) => r1.username > r2.username ? 1 : -1);
@@ -149,7 +162,7 @@ export class RestaurantContactsComponent implements OnInit {
   }
 
   join(values) {
-    return (values || []).join(', ')
+    return (values || []).join(', ');
   }
 
   editChannel(channel?: any) {
@@ -161,6 +174,8 @@ export class RestaurantContactsComponent implements OnInit {
       this.channelInEditing = JSON.parse(JSON.stringify(channel));
       this.channelInEditing.index = this.restaurant.channels.indexOf(channel);
     }
+    this.languageDescriptor.items.forEach(x => x.selected = false);
+    this.channelFormChange();
     this.modalChannel.show();
   }
 
@@ -206,13 +221,28 @@ export class RestaurantContactsComponent implements OnInit {
     this.modalPerson.hide();
   }
 
+  channelFormChange() {
+    if (this.channelInEditing.type === 'Phone') {
+      if (!this.channelFieldDescriptors.some(x => x.field === 'language')) {
+        this.channelFieldDescriptors.push(this.languageDescriptor);
+      }
+    } else {
+      this.channelFieldDescriptors = this.channelFieldDescriptors.filter(x => x.field !== 'language');
+    }
+  }
+
+
   submitChannel(event: FormSubmit) {
 
     // keep only digits for phone/sms/fax
-    if(['Phone', 'SMS', 'Fax'].indexOf(this.channelInEditing.type) >= 0) {
-      this.channelInEditing.value = this.channelInEditing.value.replace(/\D/g,'');
+    if (['Phone', 'SMS', 'Fax'].indexOf(this.channelInEditing.type) >= 0) {
+      this.channelInEditing.value = this.channelInEditing.value.replace(/\D/g, '');
     }
-    this.channelInEditing
+
+    // currently language only support for Phone
+    if (this.channelInEditing.type !== 'Phone') {
+      this.channelInEditing.language = undefined;
+    }
 
 
     const newChannels = (this.restaurant.channels || []).slice(0);
@@ -271,7 +301,7 @@ export class RestaurantContactsComponent implements OnInit {
       });
 
       if (affected) {
-        this.patchDiff('people', newPeople)
+        this.patchDiff('people', newPeople);
       }
     }
 
@@ -281,7 +311,7 @@ export class RestaurantContactsComponent implements OnInit {
     this.modalChannel.hide();
   }
 
-  updateCrm(event){
+  updateCrm(event) {
 
     // console.log("updateCrm " + this.restaurant['crm']);
     this.patchDiff('crm', this.crm);

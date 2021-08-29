@@ -1,0 +1,191 @@
+<div *ngIf="lead" class="text-center">
+  <h3>{{lead.name}}</h3>
+  <div class="text-small">
+    <i class="fa fa-clock"></i> {{getTimeZoneTime(lead.state)}}
+  </div>
+  <div class="my-text-small">
+    <a href="https://www.google.com/search?q={{getQ(lead)}}" target="_blank">{{lead.googleListing?.address}} <i
+        class="fas fa-external-link-alt"></i></a>
+    <div>
+      <button class="btn btn-link btn-sm" (click)="refreshGmb()"><i class="fas fa-sync-alt"></i> Refresh GMB</button>
+    </div>
+  </div>
+
+  <div class="alert alert-success" *ngIf="lead.restaurant">
+    <h4>成功 (Succeeded): {{lead.restaurant.createdAt | date : 'shortDate'}}</h4>
+    <a href="#/restaurants/{{lead.restaurant._id}}" target="_blank">qMenu Link <i
+        class="fas fa-external-link-alt"></i></a>
+  </div>
+  <hr>
+
+  <div class="p-3 text-center mt-3 d-block" *ngIf="lead.campaigns[0] && !lead.restaurant">
+    <h4>跟进时间 (Scheduled At)</h4>
+    <span class="badge badge-{{getScheduledAtStatusClass(lead)}} my-text-big">{{(lead.campaigns[0].scheduledAt|| 0) |
+      ago: now}}
+    </span>
+
+    <div class="pt-3 text-center">
+      <input class="form-control text-center my-schedule-input" [owlDateTimeTrigger]="dt" [owlDateTime]="dt"
+        placeholder="scheduled time" [(ngModel)]="lead.campaigns[0].scheduledAt">
+      <owl-date-time #dt [hour12Timer]="true"></owl-date-time>
+    </div>
+  </div>
+  <hr>
+
+  <div class="p-3 text-left mt-3">
+    <h4 class="text-center">关键信息 (Key Insights)</h4>
+    <ul>
+      <li *ngIf="lead.campaigns && lead.campaigns[0].funnel">
+        <span class="my-th">来源 (Funnel)</span>: {{lead.campaigns[0].funnel.name}}
+        ({{getFunnelComments(lead.campaigns[0].funnel)}})
+      </li>
+      <li *ngIf="lead.googleListing">
+        <span class="my-th">谷歌上网站 (Website)</span>:
+        <span *ngIf="lead.googleListing.gmbWebsite">
+          <a href="{{lead.googleListing.gmbWebsite}}" target="_blank">
+            {{lead.googleListing.gmbWebsite}} <i class="fas fa-external-link-alt"></i>
+          </a>
+        </span>
+        <span *ngIf="!lead.googleListing.gmbWebsite">
+          没找到 (Not found)
+        </span>
+      </li>
+      <li *ngIf="lead.googleListing?.gmbOwner">
+        <span class="my-th">谷歌GMB权限 (GMB Owner)</span>: {{lead.googleListing.gmbOwner}}
+      </li>
+      <li *ngIf="lead.googleListing?.serviceOptions">
+        <span class="my-th">服务 (Services)</span>: {{lead.googleListing.serviceOptions.join(', ')}}
+      </li>
+      <li *ngIf="lead.hours">
+        <span class="my-th">时间 (Hours)</span>: {{lead.hours}}
+      </li>
+      <li *ngIf="lead.googleListing?.totalReviews">
+        <span class="my-th">评论 (Reviews)</span>:
+        <ng-container *ngFor="let rating of [0.5, 1.5, 2.5, 3.5, 4.5]">
+          <i class="fas fa-star text-warning" *ngIf="lead.googleListing.rating > rating"></i>
+          <i class="fas fa-star-half-alt text-warning"
+            *ngIf="lead.googleListing.rating <= rating && lead.googleListing.rating > rating - 0.5"></i>
+          <i class="far fa-star text-warning"
+            *ngIf="lead.googleListing.rating <= rating && lead.googleListing.rating <= rating - 0.5"></i>
+        </ng-container>
+        {{lead.googleListing?.totalReviews}}
+      </li>
+      <li *ngIf="lead.density > 100">
+        <span class="my-th">附近餐馆 (Nearby)</span>: 稠密 (High density) ~ {{lead.density}}
+      </li>
+      <li *ngIf="lead.density < 20">
+        <span class="my-th">附近餐馆 (Nearby)</span>: 稀疏 (Low density) ~ {{lead.density}}
+      </li>
+      <li>
+        <span class="my-th">附近的qMenu客户</span>:
+        <span *ngIf="neighborQmenuLeads.length === 0">未找到 (None)</span>
+        <div *ngIf="neighborQmenuLeads.length > 0" class="pt-3">
+          <ul>
+            <li *ngFor="let lead of neighborQmenuLeads">
+              {{lead.name}} <span>(距离 {{lead.distance | number : '1.0-1'}} mi,
+                {{lead.restaurant?.score > 5 ? '价值高' : '价值一般'}})</span>
+              <div class="my-text-small">
+                <a href="https://www.google.com/search?q={{getQ(lead)}}" target="_blank">{{lead.googleListing?.address}}
+                  <i class="fas fa-external-link-alt"></i></a>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <hr>
+
+  <div class="p-3 text-left mt-3">
+    <h4 class="text-center">通话记录 (Call Logs)</h4>
+    <div class="pb-2 text-right">
+      <button class="btn btn-primary" (click)="editCallLog(null)">
+        <i class="fas fa-phone"></i> Add New Log</button>
+    </div>
+
+
+    <div class="bg-light" *qIf="logInEditing">
+      <div class="card-body">
+        <app-call-logger [lead]="lead" [callLog]="logInEditing" (cancel)="logInEditing = null"
+          (submit)="submitCallLog($event)"></app-call-logger>
+      </div>
+    </div>
+
+    <div class="" *ngIf="getCallLogs().length === 0">
+      尚未有通话记录 (No calls found)
+    </div>
+
+    <div class="table-responsive text-left" *ngIf="getCallLogs().length > 0">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th class="border-0 text-center">Line</th>
+            <th class="border-0">Result</th>
+            <th class="border-0">Date</th>
+            <th class="border-0">Caller</th>
+            <th class="border-0">Callees</th>
+
+            <th class="border-0">Comments</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let log of getCallLogs()">
+            <tr>
+              <td class="text-center">
+                <!-- <i class="fas fa-check text-success" *ngIf="log.lineStatus === 'connected'"></i>
+                <i class="fas fa-exclamation text-warning" *ngIf="log.lineStatus === 'busy'"></i>
+                <i class="fas fa-cloud-upload-alt" *ngIf="log.lineStatus === 'voicemail'"></i> -->
+                {{log.lineStatus}}
+              </td>
+              <td>
+                <span *ngIf="log.salesOutcome==='rejected'" class="text-danger">■</span>
+                <span *ngIf="log.salesOutcome==='interested'" class="text-warning">■</span>
+                <span *ngIf="log.salesOutcome==='success' || log.salesOutcome==='qmenuCustomer'"
+                  class="text-success">■</span>
+                <span *ngIf="log.askedMoreInfo" class="text-info">
+                  <i class="fas fa-info-circle"></i>
+                </span>
+                <span *ngIf="log.callbackTime" class="text-info">
+                  <i class="fas fa-history"></i>
+                </span>
+              </td>
+              <td>
+                <small>{{log.time | date:'short'}}</small>
+              </td>
+              <td>{{log.caller}}</td>
+              <td>{{log.callees}}</td>
+
+              <td>
+                <app-lead-call-log [callLog]="log"></app-lead-call-log>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+      <hr>
+      <div class="my-legends">
+        <span class="legend text-danger">■ Rejected</span>
+        <span class="legend text-warning">■ Interested</span>
+        <span class="legend text-success">■ Success</span>
+        <span class="legend text-info">
+          <i class="fas fa-info-circle"></i> Asked More Info </span>
+        <span class="legend text-warning">
+          <i class="fas fa-exclamation"></i> Busy</span>
+        <span class="legend">
+          <i class="fas fa-cloud-upload-alt"></i> Voicemail</span>
+        <span class="legend text-success">
+          <i class="fas fa-check"></i> Connected</span>
+        <span class="text-info">
+          <i class="fas fa-history"></i> Callback</span>
+      </div>
+    </div>
+  </div>
+</div>
+<hr>
+
+<div class="text-right pt-3">
+  <button class="btn btn-link" (click)="showingJson = !showingJson">Show JSON</button>
+</div>
+<pre *ngIf="showingJson">
+{{lead | json}}
+</pre>

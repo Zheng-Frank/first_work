@@ -68,6 +68,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'comebackDate',
     'serviceSettings',
     "doNotHideUselessMenuItems",
+    "notificationExpiry",
   ];
   controlExpiry = false; // a flag to contorl broadcast expiry date input showing or not.
   notificationExpiry: string; // this value is needed to decide when shows the broadcast on customer pwa.
@@ -157,7 +158,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       "Showorderreadyestimate":"给客人看订单预计预计准备时间信息",
       "Domain":"标注:“域”字段不再位于“配置文件”部分下，因为现在，所有与网站相关的信息都已移至此处。",
       "DisableOrderingAhead":"如果选中此复选框，就不能产生预订单。",
-      "OrderCallLanguage":"确定用于机器人调用的语言，以通知新的传入订单（英文或中文）.",
       "Logo":"（菜单编辑会处理这个问题，CSR+销售人员可以忽略）：这里上传的任何徽标都会出现在餐厅的qMenu订购网站的这两个地方。",
       "Photos":"(菜单编辑负责这一点，客服+销售可以忽略) 此处上传的图片将是餐厅qMenu订购网站上的网站背景图片。",
       "DoNotHideUselessMenuItems": "默认情况下，在客户APP上，在每个菜单类别中，我们将显示按订购频率排序的菜单项，并隐藏以前从未订购过的菜单项。 可以关闭此设置以简单地按原始顺序显示所有菜单项。"
@@ -200,7 +200,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       "Showorderreadyestimate":"If turned on, the order ready time estimate will be shown to the customer",
       "Domain":" NOTE: The “Domain” field is no longer under the “Profile” section, because now, all website-related information has been moved here.", // Editable field.
       "DisableOrderingAhead":"If turned on, customers won't be able to schedule orders for future point in time ahead of time.",
-      "OrderCallLanguage":"Determines the language to use for robo-calls to notify restaurants of new, incoming orders (Options: English or Chinese).",
       "Logo":" (Menu editors take care of this, CSR + sales can ignore): Any logo uploaded here will appear in these two places on the qMenu ordering site for the restaurant: 1. The qmenu.us/alias page of the restaurant, 2. ...",
       "Photos":" (Menu editors take care of this, CSR + sales can ignore): Image uploaded here will appear as the website background image on the qMenu ordering site for the restaurant.",
       "DoNotHideUselessMenuItems": "By default, on the customer app, in each menu category, we will show menu items sorted by ordering frequency, and hide menu items that have never been ordered before. This setting can be turned off to simply show all menu items in their original order."
@@ -212,6 +211,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     { value: 'ENGLISH', text: 'English' },
     { value: 'CHINESE', text: 'Chinese' }
   ];
+  Languages = { ENGLISH: 'English', CHINESE: 'Chinese' };
 
   comebackDate = null;
   isComebackDateCorrectlySet = false;
@@ -455,16 +455,15 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       } else {
         // if user open controlExpiry but not set expiration, we should ask user to confirm the behavor;
         if (confirm('Broadcast expiration is empty, do you want to keep the broadcast permanently?')) {
-          newObj.notificationExpiry = null;
+          newObj.notificationExpiry = undefined;
           this.controlExpiry = false;
         } else {
           return;
         }
       }
     } else {
-      newObj.notificationExpiry = null;
+      newObj.notificationExpiry = undefined;
     }
-
     this._prunedPatch
       .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
         {

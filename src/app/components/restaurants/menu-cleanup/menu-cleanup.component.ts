@@ -57,10 +57,15 @@ export class MenuCleanupComponent implements OnInit, OnChanges {
   detect(item, indices) {
     let { name } = item;
     // if name is empty or item has number already, skip
-    if (!name || !!item.number) {
+    if (!name) {
       return;
     }
     name = name.trim();
+
+    // skip continuous letter+dot, eg. 805 B.B.Q  etc
+    if (/^(\d+\s+)*([a-zA-Z]+\.){2,}/.test(name)) {
+      return;
+    }
 
     // extract the possible number info from menu's name
     let numMatched = this.parsePrefixNum(name);
@@ -163,53 +168,76 @@ export class MenuCleanupComponent implements OnInit, OnChanges {
   }
 
   automaticExtractNumber(mc) {
-    let numbers = [];
     if (!mc.mis) {
       return;
     }
-    mc.mis.forEach((mi) => {
-      // if mi has no name or has a number, skip
+    let numbers = [], names = [], len = mc.mis.length, repeatNums = [];
+    for (let i = 0; i < len; i++) {
+      let mi = mc.mis[i];
       if (!mi.name || mi.number) {
-        numbers.push(null);
-        return false;
-      }
-      let num = mi.name.split('.')[0];
-      numbers.push(num.trim());
-    });
-    // if numbers less than 5, or have empty number item,
-    // or have number includes 3+ continuous letter,
-    // or have number includes non-english characters, skip
-    if (numbers.length < 5 || numbers.some(n => !n || /[a-z]{3,}/i.test(n) || /[^\x00-\xff]/.test(n))) {
-      return;
-    }
-    let base = numbers.shift();
-    if (!base) {
-      return;
-    }
-
-
-    let baseLastCharCode = base.charCodeAt(base.length - 1);
-    let flag = numbers.every((n, i) => {
-      // make sure the extracted number is increasing
-      // check the last character
-      return baseLastCharCode + (i + 1) === n.charCodeAt(n.length - 1);
-    });
-    if (flag) {
-      // make update
-      numbers.unshift(base);
-      let mis = mc.mis.map((mi, index) => {
-        let num = numbers[index];
-        let names = mi.name.split('.');
-        names.shift();
-        // remove pure name's prefix ) or .
-        return {...mi, name: names.join('.').replace(/^\s*[).]\s*/, '').trim(), number: num};
-      });
-      // if the updated name is empty, we should skip, eg: comb1, comb2, comb3, etc... -> empty name
-      if (mis.some(x => !x.name)) {
         return;
       }
-      mc.mis = mis;
+      let [num, ...rest] = mi.name.split('.');
+      // remove pure name's prefix ) or . or -
+      let name = rest.join('.').replace(/^\s*[-).]\s*/, '').trim();
+      num = num.trim();
+      // cases to skip:
+      // 1. num or name is empty; eg. Soda, B-A, B-B, Combo 1, Combo 2 etc.
+      if (!num || !name) {
+        continue;
+      }
+      // 2. name repeat; eg. 2 Wings, 3 Wings, 4 Wings, etc.
+      if (names.some(n => n.toLowerCase() === name.toLowerCase())) {
+        continue;
+      }
+      // 3. num includes 3+ continuous letter eg. Especial 1. Camarofongo, Especial 2. Camarofongo etc.
+      if (/[a-z]{3,}/i.test(num)) {
+        continue;
+      }
+      // 4. num contains non-english characters eg. 蛋花汤 S1. Egg Drop Soup, 云吞汤 S2. Wonton Soup etc.
+      if (/[^\x00-\xff]/.test(num)) {
+        continue;
+      }
+      // 5. num contains parentheses aka (), as we don't know if the () thing is related to the menu name
+      if (/\(.*\)/.test(num)) {
+        continue;
+      }
+      // 6. original name startsWith 805 B.B.+ etc
+      if (/^(\d+\s+)*([a-zA-Z]+\.){2,}/.test(mi.name)) {
+        continue;
+      }
+      // 7. original name startsWith 12 oz. etc
+      if (/^(\d+\.?)+\s+[a-zA-Z]{2,}\./.test(mi.name)) {
+        continue;
+      }
+      names[i] = name;
+      // if or num repeat, we save the repeat num and index for later use
+      if (numbers.some(n => n.toLowerCase() === num.toLowerCase())) {
+        repeatNums[i] = num;
+        continue;
+      }
+      // if num has (), we should extract the () and set to name
+      let [remark] = num.match(/\(.*\)/) || [""];
+      if (remark) {
+        names[i] = remark + names[i];
+      }
+      numbers[i] = num;
     }
+    // only handle mcs with at least 5 mis
+    if (numbers.length < 5) {
+      return;
+    }
+    let confidence = numbers.filter(n => !!n).length / len;
+    // calculate exception ratio , skip lower then 0.79 (4 of 5)
+    if (Math.ceil(confidence * 100) < 80) {
+      return false;
+    }
+    mc.mis.forEach((mi, i) => {
+      if (numbers[i] || repeatNums[i]) {
+        mi.number = numbers[i] || repeatNums[i];
+        mi.name = names[i];
+      }
+    });
   }
 
   autoClean(menus) {
@@ -258,6 +286,7 @@ export class MenuCleanupComponent implements OnInit, OnChanges {
       this.flattened = [...(warnings.sort(sortNumber)), ...(normals.sort(sortNumber))];
       // if the auto clean is enough for all menus
       // just save the cleaned menus
+      console.log(JSON.stringify(this.flattened));
       if (!this.flattened.length) {
         this.save.emit({menus: this.copied, translations: this.translations});
       }
