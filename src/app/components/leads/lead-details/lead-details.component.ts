@@ -108,6 +108,21 @@ export class LeadDetailsComponent implements OnInit {
     }
   }
 
+  async scheduledAtUpdated(event) {
+    await this._api
+      .post(environment.appApiUrl + "smart-restaurant/api", {
+        method: 'set',
+        resource: 'raw-lead',
+        query: {
+          _id: { $oid: this.lead._id },
+        },
+        payload: {
+          'campaigns.0.scheduledAt': { $date: event }
+        }
+      })
+      .toPromise();
+    // no need to update existing object since it's bound to event automatically. but DB should be updated
+  }
   async copyToClipboard(text) {
     this.copiedText = '';
     // wait a very short moment to cause a flickering of UI so that user knows something happened

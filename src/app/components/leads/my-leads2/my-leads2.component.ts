@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { LeadFunnel } from 'src/app/classes/lead-funnel';
 import { RawLead } from 'src/app/classes/raw-lead';
 import { ApiService } from 'src/app/services/api.service';
@@ -11,7 +11,7 @@ import { AlertType } from 'src/app/classes/alert-type';
   templateUrl: './my-leads2.component.html',
   styleUrls: ['./my-leads2.component.css']
 })
-export class MyLeads2Component implements OnInit {
+export class MyLeads2Component implements OnInit, OnDestroy {
 
   @ViewChild("leadModal") leadModal: ModalComponent;
 
@@ -89,7 +89,7 @@ export class MyLeads2Component implements OnInit {
   ];
 
   copiedText;
-
+  timer;
   constructor(private _global: GlobalService, private _api: ApiService) {
     this.username = _global.user.username;
     this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
@@ -98,12 +98,19 @@ export class MyLeads2Component implements OnInit {
     }
     this.loadLeads();
 
-
+    // let's update value of now every minute because the sales agent will work with the list for long time!
+    this.timer = setInterval(() => this.now = new Date(), 60000);
     // clean up scheduledAt === createdAt
     this.cleanup();
   }
 
   ngOnInit() {
+  }
+
+  ngOnDestroy() {
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
   }
 
   // TEMP function and scripts to clean up. Should be removed once the code base is stable
