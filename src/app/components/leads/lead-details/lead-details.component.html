@@ -98,6 +98,7 @@
 
   <div class="p-3 text-left mt-3">
     <h4 class="text-center">通话记录 (Call Logs)</h4>
+    <h5 class="text-center" (click)="copyToClipboard(lead.phone)" style="cursor:pointer;">{{lead.phone | phone}} <span class="text-success my-text-small" *ngIf="lead.phone === copiedText">✓ copied</span></h5>
     <div class="pb-2 text-right">
       <button class="btn btn-primary" (click)="editCallLog(null)">
         <i class="fas fa-phone"></i> Add New Log</button>
