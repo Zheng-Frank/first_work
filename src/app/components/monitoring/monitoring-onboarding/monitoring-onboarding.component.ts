@@ -116,15 +116,8 @@ export class MonitoringOnboardingComponent implements OnInit {
       }
     });
     this.salespeople.sort((a,b)=> (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0));
-    if(!this.isAdmin()){
-      this.salesperson = this.salespeople.filter(agent=>agent === this._global.user.username)[0]||'Nothing';
-      this.rows = this.rows.filter(r =>r.agent === this.salesperson);
-    }
+   
     this.filter();
-  }
-
-  isAdmin(){
-   return this._global.user.roles.indexOf('ADMIN') >= 0;
   }
 
   getDaysFromId(mongoId) {
