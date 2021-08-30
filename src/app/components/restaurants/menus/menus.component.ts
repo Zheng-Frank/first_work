@@ -524,7 +524,7 @@ export class MenusComponent implements OnInit {
 
   edit(menu) {
     this.menuEditor.setMenu(new Menu(menu));
-    this.menuEditor.viewMenuText = environment.customPWAUrl+this.restaurant.name+'/menu/'+menu.id;
+    this.menuEditor.viewMenuLink = environment.customerPWAUrl+this.restaurant.alias+'/menu/'+menu.id;
     this.menuEditingModal.show();
   }
 

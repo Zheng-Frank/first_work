@@ -201,23 +201,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.activeTab = this._global.storeGet('restaurantDetailsTab') || 'Settings';
-    this.timer = setInterval(() => {
-      if (!this.lastRefreshed || this.now.valueOf() - this.lastRefreshed.valueOf() > this.refreshDataInterval) {
-        // refresh time clock
-        this.lastRefreshed = this.now;
-        // judge whether open
-        let flag = false;
-        (this.restaurant.menus||[]).forEach(menu=>{
-          (menu.hours||[]).forEach(hour=>{
-           flag = hour.isOpenAtTime(this.lastRefreshed, this.restaurant.googleAddress.timezone);
-          });
-        });
-        if(flag){
-          this.openOrNot = true;
-        }
-        this.now = new Date();
-      }
-    }, this.timerInterval);
   }
 
   ngOnDestroy() {
@@ -308,6 +291,27 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           let formatted_address = this.restaurant.googleAddress.formatted_address || '';
           let name = this.restaurant.name || '';
           this.googleSearchText = "https://www.google.com/search?q=" + encodeURIComponent(name + " " + formatted_address);
+          // set timer of rt portal  
+          this.timer = setInterval(() => {
+            if (!this.lastRefreshed || this.now.valueOf() - this.lastRefreshed.valueOf() > this.refreshDataInterval) {
+              // refresh time clock
+              this.lastRefreshed = this.now;
+              // judge whether open
+              let flag = false;
+              for (let i = 0; i < (this.restaurant.menus||[]).length; i++) {
+                const menu = (this.restaurant.menus||[])[i];
+                if((menu.hours||[]).some(hour=>hour.isOpenAtTime(this.now, this.restaurant.googleAddress.timezone))){
+                  flag = true;
+                  break;
+                }
+              }
+              if(flag){
+                this.openOrNot = true;
+              }
+              this.now = new Date();
+            }
+          
+         }, this.timerInterval);
         },
         error => {
           this.apiRequesting = false;
