@@ -625,12 +625,12 @@ export class GlobalService {
           fa: "fab fa-google",
           accessibleRoles: ['ADMIN', 'GMB', 'GMB_SPECIALIST', 'GMB_ADMIN', 'MARKETER_INTERNAL']
         },
-        {
-          name: "Leads",
-          href: "#/leads",
-          fa: "fas fa-lightbulb",
-          accessibleRoles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'GMB']
-        },
+        // {
+        //   name: "Leads",
+        //   href: "#/leads",
+        //   fa: "fas fa-lightbulb",
+        //   accessibleRoles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'GMB']
+        // },
         {
           name: "My Leads",
           href: "#/my-leads",

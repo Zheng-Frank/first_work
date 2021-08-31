@@ -16,7 +16,36 @@ import { Address } from '@qmenu/ui';
   styleUrls: ["./system-dashboard.component.scss"]
 })
 export class SystemDashboardComponent implements OnInit {
-  removingOrphanPhones = false;
+  adminLinks = [
+    {
+      route: 'couriers',
+      text: 'Couriers'
+    },
+    // {
+    //   route: 'payments',
+    //   text: 'Payment Means'
+    // },
+    // {
+    //   route: 'transaction',
+    //   text: 'Transactions'
+    // },
+    {
+      route: 'messaging',
+      text: 'Messaging'
+    },
+    {
+      route: 'orders',
+      text: 'Orders'
+    },
+    {
+      route: 'users',
+      text: 'Users'
+    },
+    {
+      route: 'routines-admin',
+      text: 'Routines Admin'
+    },
+  ];
 
   system: any;
 
