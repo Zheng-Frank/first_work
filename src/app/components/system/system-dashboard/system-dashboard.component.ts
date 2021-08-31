@@ -45,6 +45,10 @@ export class SystemDashboardComponent implements OnInit {
       route: 'routines-admin',
       text: 'Routines Admin'
     },
+    {
+      route: 'leads',
+      text: 'Lead Funnels'
+    },
   ];
 
   system: any;
