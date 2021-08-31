@@ -3,7 +3,7 @@ import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { LanguageType } from './../../../classes/language-type';
 import { Component, OnInit, Input, OnDestroy, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { Restaurant, Address, Hour } from '@qmenu/ui';
+import { Restaurant, Address, Hour, TimezoneHelper } from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
@@ -167,8 +167,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   // use now time to compared with lastRefreshed to refresh time value 
   now = new Date();
   timer;
-  timerInterval = 5000;
-  lastRefreshed: Date;
   refreshDataInterval = 60 * 1000;
   openOrNot = false;
 
@@ -257,8 +255,36 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
+  refreshTime() {
+    // judge whether open
+    // 1. by menu hours
+    let flag = false;
+    for (let i = 0; i < (this.restaurant.menus||[]).length; i++) {
+      const menu = (this.restaurant.menus||[])[i];
+      if((menu.hours||[]).some(hour=>hour.isOpenAtTime(this.now, this.restaurant.googleAddress.timezone))){
+        flag = true;
+        break;
+      }
+    }
+    // 2. by restaurant closed hours
+    let closedHours = (this.restaurant.closedHours || []).filter(hour=>!(hour.toTime && this.now > hour.toTime));
+     
+    if(closedHours.some(hour=>{
+      let nowTime = TimezoneHelper.getTimezoneDateFromBrowserDate(this.now, this.restaurant.googleAddress.timezone);
+      return nowTime >=hour.fromTime && nowTime<=hour.toTime;
+    })){
+      flag = false;
+    }
+
+    if(flag){
+      this.openOrNot = true;
+    }
+    this.now = new Date();
+  }
+
   async loadDetails() {
     this.readonly = true;
+   
     if (this.id) {
       this.apiRequesting = true;
       const query = { _id: { $oid: this.id } };
@@ -292,26 +318,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           let name = this.restaurant.name || '';
           this.googleSearchText = "https://www.google.com/search?q=" + encodeURIComponent(name + " " + formatted_address);
           // set timer of rt portal  
-          this.timer = setInterval(() => {
-            if (!this.lastRefreshed || this.now.valueOf() - this.lastRefreshed.valueOf() > this.refreshDataInterval) {
-              // refresh time clock
-              this.lastRefreshed = this.now;
-              // judge whether open
-              let flag = false;
-              for (let i = 0; i < (this.restaurant.menus||[]).length; i++) {
-                const menu = (this.restaurant.menus||[])[i];
-                if((menu.hours||[]).some(hour=>hour.isOpenAtTime(this.now, this.restaurant.googleAddress.timezone))){
-                  flag = true;
-                  break;
-                }
-              }
-              if(flag){
-                this.openOrNot = true;
-              }
-              this.now = new Date();
-            }
-          
-         }, this.timerInterval);
+          this.refreshTime();
+          this.timer = setInterval(()=>this.refreshTime(), this.refreshDataInterval);
         },
         error => {
           this.apiRequesting = false;
