@@ -133,8 +133,6 @@ export class LeadDashboard2Component implements OnInit {
   }
 
   addFilter() {
-    console.log(JSON.stringify(this.filterInEditing));
-
     this.funnelInEditing.filters = this.funnelInEditing.filters || [];
     this.funnelInEditing.filters.push(this.filterInEditing);
     // also, convert: "null" => null, "20" => 20, "false" => false
@@ -150,8 +148,6 @@ export class LeadDashboard2Component implements OnInit {
     } else if (this.filterInEditing.value === undefined) {
       this.filterInEditing.value = '';
     }
-
-    console.log(JSON.stringify(this.filterInEditing));
 
     // reset for next reuse
     this.filterInEditing = {} as LeadFilter;

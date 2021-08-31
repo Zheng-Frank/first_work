@@ -14,12 +14,10 @@
     <option>No Menu</option>
     <option>Having Menu</option>
   </select>
-  <ng-container *ngIf="isAdmin()">
-    <select class="form-control mr-2 mb-1 ml-2" [(ngModel)]="salesperson" (change)="filter()">
-      <option>Salesperson...</option>
-      <option *ngFor="let person of salespeople">{{person}}</option>
-    </select>
-  </ng-container>
+  <select class="form-control mr-2 mb-1 ml-2" [(ngModel)]="salesperson" (change)="filter()">
+    <option>Salesperson...</option>
+    <option *ngFor="let person of salespeople">{{person}}</option>
+  </select>
   <div class="ml-2">
     <input type="checkbox" [(ngModel)]="isWarning" (change)="filter()">
     <i class="fas fa-square text-warning"></i> Need Action Immediately!
