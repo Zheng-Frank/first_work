@@ -20,7 +20,7 @@ export class LeadDetailsComponent implements OnInit {
   showingJson = false;
   now = new Date();
   constructor(private _api: ApiService, private _global: GlobalService) { }
-
+  copiedText;
   ngOnInit() {
   }
 
@@ -31,7 +31,6 @@ export class LeadDetailsComponent implements OnInit {
     this.now = new Date();
 
     if (this.lead) {
-      console.log('load lead details')
       const projectedFields = [
         'name',
         'address',
@@ -100,7 +99,6 @@ export class LeadDetailsComponent implements OnInit {
         .toPromise();
 
       // inject a distance!
-      console.log()
       neighborQmenuLeads.map(l => l.distance = this.getDistanceFromGeometry(l.latitude, l.longitude, detailedLead.latitude, detailedLead.longitude));
       neighborQmenuLeads.sort((l1, l2) => l1.distance - l2.distance);
       if (neighborQmenuLeads.length > 10) {
@@ -110,6 +108,36 @@ export class LeadDetailsComponent implements OnInit {
     }
   }
 
+  async scheduledAtUpdated(event) {
+    await this._api
+      .post(environment.appApiUrl + "smart-restaurant/api", {
+        method: 'set',
+        resource: 'raw-lead',
+        query: {
+          _id: { $oid: this.lead._id },
+        },
+        payload: {
+          'campaigns.0.scheduledAt': { $date: event }
+        }
+      })
+      .toPromise();
+    // no need to update existing object since it's bound to event automatically. but DB should be updated
+  }
+  async copyToClipboard(text) {
+    this.copiedText = '';
+    // wait a very short moment to cause a flickering of UI so that user knows something happened
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const handleCopy = (e: ClipboardEvent) => {
+      // clipboardData 可能是 null
+      e.clipboardData && e.clipboardData.setData('text/plain', text);
+      e.preventDefault();
+      // removeEventListener 要传入第二个参数
+      document.removeEventListener('copy', handleCopy);
+      this.copiedText = text;
+    };
+    document.addEventListener('copy', handleCopy);
+    document.execCommand('copy');
+  }
   getScheduledAtStatusClass(lead) {
     const scheduledAt = lead.campaigns.map(c => c.scheduledAt)[0] || Date.now();
     const day = 24 * 3600 * 1000;
@@ -220,7 +248,7 @@ export class LeadDetailsComponent implements OnInit {
   }
 
   getFunnelComments(funnel) {
-    return funnel.filters.map(f => f.comment).filter(c => c).join(", ");
+    return (funnel.filters || []).map(f => f.comment).filter(c => c).join(", ");
   }
 
   getTimeZoneTime(state) {
