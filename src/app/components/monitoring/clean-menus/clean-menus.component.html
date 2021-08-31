@@ -21,7 +21,9 @@
   </button>
   <h4 class="header-title text-center">
     Preview Extractions and Translations
-    <label class="header-checkbox"><input type="checkbox" [(ngModel)]="handleIDsOnly"> Only handle IDs</label>
+    <label class="header-checkbox">
+      <input type="checkbox" (click)="cleanupComponent.collect()" [(ngModel)]="handleIDsOnly"> Only handle IDs
+    </label>
   </h4>
   <hr>
   <app-menu-cleanup #cleanupComponent [allMenus]="restaurant?.menus" [translations]="restaurant?.translations"

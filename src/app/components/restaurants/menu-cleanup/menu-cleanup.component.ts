@@ -7,7 +7,7 @@ declare var $;
   templateUrl: './menu-cleanup.component.html',
   styleUrls: ['./menu-cleanup.component.css']
 })
-export class MenuCleanupComponent implements OnInit, OnChanges {
+export class MenuCleanupComponent implements OnInit {
 
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
@@ -24,12 +24,6 @@ export class MenuCleanupComponent implements OnInit, OnChanges {
   copied = [];
 
   ngOnInit() {
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.handleIDsOnly && changes.handleIDsOnly.currentValue !== changes.handleIDsOnly.previousValue) {
-      this.collect();
-    }
   }
 
   restore(item, index) {
