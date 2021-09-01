@@ -26,7 +26,8 @@ export class DefendGmbTasksComponent implements OnInit {
                 "relatedMap.restaurantId": 1,
                 "relatedMap.restaurantName": 1,
                 "relatedMap.place_id": 1,
-                "requests": 1
+                "requests": 1,
+                "result": 1
             }
         }, 10000);
 
@@ -38,7 +39,6 @@ export class DefendGmbTasksComponent implements OnInit {
     @ViewChild('taskModal') taskModal: ModalComponent;
     apiLoading = false;
     activeTabLabel = "All";
-    currentAction;
     tasks = [];
     filteredTasks = [];
 
@@ -48,26 +48,16 @@ export class DefendGmbTasksComponent implements OnInit {
     restaurantDict = {};
 
     now = new Date();
-    user;
-    myUsername;
-    myUserRoles;
-    //tasks query criteria based on user roles
-    query_or;
-
-
 
     taskScheduledAt = new Date();
-    comments = '';
     pin;
-    verifyingOption;
     pagination = true;
-    //help display postcardID
-    postcardIds = new Map();
 
     tabs = [
         { label: 'All', rows: [] },
         { label: 'Defended', rows: [] },
-        { label: 'Errors', rows: [] }
+        { label: 'Errors', rows: [] },
+        { label: 'Closed', rows: [] }
     ];
 
     myColumnDescriptors = [
@@ -216,8 +206,9 @@ export class DefendGmbTasksComponent implements OnInit {
         this.tabs.map(tab => {
             const filterMap = {
                 "All": t => t,
-                "Defended": t => this.isDefenseCompleted(t) && !this.doesTaskHaveError(t),
-                "Errors": t => this.doesTaskHaveError(t)
+                "Defended": t => this.isDefenseCompleted(t) && !this.doesTaskHaveError(t) && !this.isTaskClosed(t),
+                "Errors": t => this.doesTaskHaveError(t),
+                "Closed": t => this.isTaskClosed(t) && !this.doesTaskHaveError(t)
             };
             tab.rows = this.filteredTasks.filter(filterMap[tab.label]).map((task, index) => {
 
@@ -235,6 +226,10 @@ export class DefendGmbTasksComponent implements OnInit {
         return task.error || (task.requests || []).some(req => req.result === "ERROR")
     }
 
+    isTaskClosed(task) {
+        return task.result === 'CLOSED';
+    }
+
     findTimeOfLatestUpdate(row) {
         const sortedRequests = (row.requests || []).sort((b, a) => new Date(a.updatedAt).valueOf() - new Date(b.updatedAt).valueOf());
         if (sortedRequests.length) {
@@ -243,7 +238,7 @@ export class DefendGmbTasksComponent implements OnInit {
         return row.createdAt;
     }
 
-    closeModal(){
+    closeModal() {
         this.modalTask = null;
         this.taskModal.hide();
     }

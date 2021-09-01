@@ -16,7 +16,7 @@
 </div>
 
 <!-- Tabs -->
-<div class="card text-center mb-4" *ngIf="currentAction !== 'ADD'">
+<div class="card text-center mb-4" >
   <div class="card-header">
     <ul class="nav nav-tabs card-header-tabs">
       <li class="nav-item" *ngFor="let tab of tabs" style="cursor: pointer;">
@@ -76,6 +76,7 @@
         <tr>
           <th>Email</th>
           <th>Result</th>
+          <th>Updated</th>
         </tr>
 
       </thead>
@@ -84,13 +85,14 @@
         <tr *ngFor="let req of modalTask.requests">
           <td>{{req.email}}</td>
           <td>{{req.result}}</td>
+          <td> {{req.updatedAt | date : 'short'}}</td>
         </tr>
       </tbody>
     </table>
 
     <div class="clearfix float-right">
       <button class="btn btn-secondary" (click)="closeModal()">Close</button>
-      <button class="btn btn-primary" (click)="hardRefresh(modalTask)" [disabled]="isDefenseCompleted(modalTask)">Retry Task</button>
+      <button class="btn btn-primary" (click)="hardRefresh(modalTask)" [disabled]="isDefenseCompleted(modalTask) || isTaskClosed(modalTask)">Retry Task</button>
     </div>
   </div>
 </q-modal>
