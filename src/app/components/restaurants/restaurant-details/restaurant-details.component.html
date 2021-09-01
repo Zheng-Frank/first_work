@@ -32,18 +32,11 @@
 <div *ngIf="restaurant && !readonly">
   <div class="p-t-1 pt-1 p-b-1 pb-1">
     <button (click)="toggleTextReply()" class="btn btn-secondary fa fa-comments"> Send Text Message</button>
-    <button (click)="toggleGooglePIN()" class="btn btn-secondary fa fa-comments"> Send Google PIN Message</button>
     <select [(ngModel)]="languageType" class="language-select mr-3 col-2" style="min-width:180px;max-width:180px;" (change)="changeLanguage()">
       <option *ngFor="let type of languageTypes" [value]="type.value">{{type.text}}</option>
     </select>
     <span class="ml-2 mr-2">Explanations</span><q-toggle [(ngModel)]="showExplanations" (change)="toggleShowExplanations()"></q-toggle>
   </div>
-
-
-  <div *qIf="displayGooglePIN">
-    <send-google-pin [restaurantId]="restaurant._id" (sendToLog)="toggleGooglePIN()"></send-google-pin>
-  </div>
-
   <div>
     <q-modal #textReplyModal>
       <button type="button" class="close"  (click)="closeTextReply()">

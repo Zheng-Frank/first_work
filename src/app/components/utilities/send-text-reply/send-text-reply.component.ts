@@ -1,6 +1,7 @@
+import { EventEmitter, OnChanges } from '@angular/core';
 import { filter } from 'rxjs/operators';
 import { AlertType } from './../../../classes/alert-type';
-import { Input } from '@angular/core';
+import { Input, Output } from '@angular/core';
 import { GlobalService } from 'src/app/services/global.service';
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from './../../../../environments/environment.qa';
@@ -11,31 +12,40 @@ import { Component, OnInit } from '@angular/core';
   templateUrl: './send-text-reply.component.html',
   styleUrls: ['./send-text-reply.component.css']
 })
-export class SendTextReplyComponent implements OnInit {
+export class SendTextReplyComponent implements OnChanges {
 
   @Input() restaurant;
   phoneNumber = '';
+  email = '';
   message = '';
-  textedPhoneNumber;
-  sendToType = 'All';
+  sendToType = 'All SMS numbers';
   sendWhatType = 'Custom';
   sendToTypes = [];
   channels;
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
-  ngOnInit() {
+  ngOnChanges() {
     if(this.restaurant){
-      if(this.restaurant.channels){
-        this.channels = this.restaurant.channels.filter(channel => channel.type && channel.type === 'SMS');
-        if(this.channels && this.channels.length > 0){
-          this.sendToTypes = [...new Set(this.channels.map(channel=>channel.value))];
-          this.sendToTypes.unshift('All');
+      this.sendToTypes = [];
+      if (this.restaurant.channels) {
+        //this.channels = this.restaurant.channels.filter(channel => channel.type && (channel.type === 'SMS' || (channel.type === 'Email' && channel.notifications && channel.notifications.includes('Order'))));
+        let SMSChannels = this.restaurant.channels.filter(channel => channel.type && channel.type === 'SMS');
+        SMSChannels.sort((a,b)=>(a.value || '').localeCompare(b.value));
+        let emailChannels = this.restaurant.channels.filter(channel => channel.type && channel.type === 'Email' && channel.notifications && channel.notifications.includes('Order'));
+        emailChannels.sort((a,b)=>(a.value || '').localeCompare(b.value));
+        this.channels = [...new Set(SMSChannels),...new Set(emailChannels)];
+        if (this.channels && this.channels.length > 0) {
+          this.sendToTypes = [...new Set(this.channels.map(channel => channel.value))];
+          this.sendToTypes.unshift('All Emails');
+          this.sendToTypes.unshift('All SMS numbers');
         }
       }
-      this.sendToTypes.push('Other');
+      this.sendToTypes.push('Other SMS number');
+      this.sendToTypes.push('Other email');
+      this.sendToTypes.push('Use Old Send Google PIN');
     }
   }
-
+  
   isPhoneValid(text) {
     if (!text) {
       return false;
@@ -50,42 +60,85 @@ export class SendTextReplyComponent implements OnInit {
     }
     return false;
   }
+  isEmailValid(text) {
+    if (!text) {
+      return false;
+    }
 
+    let emailRe = /^[a-zA-Z0-9]+([-_.][a-zA-Z0-9]+)*@[a-zA-Z0-9]+([-_.][a-zA-Z0-9]+)*\.[a-z]{2,}$/;
+    if (text.match(emailRe)) {
+      return true;
+    }
+    return false;
+  }
+  
   sendText() {
-    if (this.sendToType === 'All') {
+    if (this.sendToType === 'All SMS numbers') {
       if (this.channels && this.channels.length > 0) {
-        let error;
-        this.channels.forEach(channel => {
-          this.phoneNumber = channel.value;
-          this._api.post(environment.qmenuApiUrl + "events/add-jobs", [{
-            "name": "send-sms",
-            "params": {
-              "to": this.phoneNumber,
-              "from": "8557592648",
-              "providerName": "plivo",
-              "message": this.message
-            }
-          }])
-            .subscribe(
-              result => {
-                // let's update original, assuming everything successful
-                this.textedPhoneNumber = this.phoneNumber;
-              },
-              error => {
-                error = error;
+        let jobs = this.channels.map(channel => {
+          if (channel.type === 'SMS') {
+            return {
+              "name": "send-sms",
+              "params": {
+                "to": channel.value,
+                "from": "8557592648",
+                "providerName": "plivo",
+                "message": this.message
               }
-            );
-        });
-        if(error){
-          this._global.publishAlert(AlertType.Danger, "Failed to send successfully!" + JSON.stringify(error));
-        }
+            };
+          }
+        }).filter(job =>job);
+        this._api.post(environment.qmenuApiUrl + "events/add-jobs", jobs)
+          .subscribe(
+            result => {
+              // let's update original, assuming everything successful
+              this._global.publishAlert(
+                AlertType.Success,
+                "Text Message Sent successfully"
+              );
+            },
+            error => {
+              console.log(JSON.stringify(error));
+              this._global.publishAlert(AlertType.Danger, "Failed to send successfully!");
+            }
+          );
       } else {
         this._global.publishAlert(AlertType.Danger, "Please set the restaurant's contact , if you need to send SMS.");
       }
 
-    } else {
-      this.textedPhoneNumber = this.phoneNumber;
-     
+    } else if (this.sendToType === 'All Emails') {
+      if (this.channels && this.channels.length > 0) {
+        let emailMessage = this.message.replace(/(\r\n)|(\n)/g,'<br>');
+        let jobs = this.channels.map(channel => {
+          if (channel.type === 'Email') {
+            return {
+              "name": "send-email",
+              "params": {
+                "to": channel.value,
+                "subject": "QMenu Google PIN",
+                "html": emailMessage
+              }
+            }
+          }
+        }).filter(job =>job);
+        this._api.post(environment.qmenuApiUrl + "events/add-jobs", jobs)
+          .subscribe(
+            result => {
+              // let's update original, assuming everything successful
+              this._global.publishAlert(
+                AlertType.Success,
+                "Text Message Sent successfully"
+              );
+            },
+            error => {
+              console.log(JSON.stringify(error));
+              this._global.publishAlert(AlertType.Danger, "Failed to send successfully!");
+            }
+          );
+      } else {
+        this._global.publishAlert(AlertType.Danger, "Please set the restaurant's contact , if you need to send email.");
+      }
+    } else if (this.isPhoneValid(this.phoneNumber)) {
       this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
         "name": "send-sms",
         "params": {
@@ -102,30 +155,58 @@ export class SendTextReplyComponent implements OnInit {
               AlertType.Success,
               "Text Message Sent successfully"
             );
-
           },
           error => {
-            this._global.publishAlert(AlertType.Danger, "Failed to send successfully!"+JSON.stringify(error));
+            this._global.publishAlert(AlertType.Danger, "Failed to send successfully!" + JSON.stringify(error));
+          }
+        );
+    } else if (this.isEmailValid(this.email)) {
+      let emailMessage = this.message.replace(/(\r\n)|(\n)/g,'<br>');
+      this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+        "name": "send-email",
+        "params": {
+          "to": this.email,
+          "subject": "QMenu Google PIN",
+          "html": emailMessage
+        }
+      }])
+        .subscribe(
+          result => {
+            // let's update original, assuming everything successful
+            this._global.publishAlert(
+              AlertType.Success,
+              "Text Message Sent successfully"
+            );
+          },
+          error => {
+            this._global.publishAlert(AlertType.Danger, "Failed to send successfully!" + JSON.stringify(error));
           }
         );
     }
-
   }
   /**
    * All show send to all phone number which the restaurant has.
    */
   onChangeSendTo() {
     switch (this.sendToType) {
-      case 'All':
+      case 'All SMS number':
+      case 'All Emails':
+      case 'Other SMS number':
+      case 'Other email':
         this.phoneNumber = '';
-        break;
-      case 'Other':
-        this.phoneNumber = '';
+        this.email = '';
         break;
       default:
-      this.phoneNumber = this.sendToType;
+        if (this.isPhoneValid(this.sendToType)) {
+          this.email = '';
+          this.phoneNumber = this.sendToType;
+        } else if (this.isEmailValid(this.sendToType)) {
+          this.phoneNumber = '';
+          this.email = this.sendToType;
+        }
         break;
     }
+    this.onChangeSendWhat();
   }
   /**
    * It has follow types:
@@ -144,7 +225,7 @@ export class SendTextReplyComponent implements OnInit {
       case 'Custom':
         this.message = '';
         break;
-      case 'QR Biz link':
+        case 'QR Biz link':
         this.message = 'http://qrbiz.qmenu.com';
         break;
       case 'QR promo vid (中)':
@@ -168,15 +249,64 @@ export class SendTextReplyComponent implements OnInit {
       case 'QR promo pamphlet (中)':
         this.message = '看看 qMenu 的扫码点餐系统提供的所有好处：https://pro-bee-beepro-messages.s3.amazonaws.com/474626/454906/1210649/6204156.html';
         break;
+      case 'First GMB Notice (中)':
+        if (this.sendToType === 'All SMS numbers' || (this.phoneNumber != '' && this.isPhoneValid(this.phoneNumber)) || (this.sendToType === 'Other SMS number')) {
+          this.message = `你好,这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片), 或者给我们的客服打电话 404-382-9768. 多谢!`;
+        } else if (this.sendToType === 'All Emails' || (this.email != '' && this.isEmailValid(this.email)) || (this.sendToType === 'Other email')) {
+          this.message = `你好,\n这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码, 或者发短信到855-759-2648或者给我们的客服打电话 404-382-9768. 多谢!`;
+        }
+        break;
+      case 'First GMB Notice (Eng)':
+        if (this.sendToType === 'All SMS numbers' || (this.phoneNumber != '' && this.isPhoneValid(this.phoneNumber)) || (this.sendToType === 'Other SMS number')) {
+          this.message = `This is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks`;
+        } else if (this.sendToType === 'All Emails' || (this.email != '' && this.isEmailValid(this.email)) || (this.sendToType === 'Other email')) {
+          this.message = `Hi, \nThis is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at 855-759-2648 or call us at 404-382-9768.\n Thanks`;
+        }
+        break;
+      case 'First GMB Notice (中/Eng)':
+        if (this.sendToType === 'All SMS numbers' || (this.phoneNumber != '' && this.isPhoneValid(this.phoneNumber)) || (this.sendToType === 'Other SMS number')) {
+          this.message = `你好,这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片). 或者给我们的客服打电话 404-382-9768. 多谢!
+          This is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard or call us at 404-382-9768. Thanks`;
+        } else if (this.sendToType === 'All Emails' || (this.email != '' && this.isEmailValid(this.email)) || (this.sendToType === 'Other email')) {
+          this.message = `你好,\n这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码, 或者发短信到855-759-2648或者给我们的客服打电话 404-382-9768. 多谢!\n
+          Hi, \nThis is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at 855-759-2648 or call us at 404-382-9768.\n Thanks`;
+        }
+        break;
+      case 'Second GMB Notice (中)':
+        if (this.sendToType === 'All SMS numbers' || (this.phoneNumber != '' && this.isPhoneValid(this.phoneNumber)) || (this.sendToType === 'Other SMS number')) {
+          this.message = `你好,这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片), 或者给我们的客服打电话 404-382-9768. 多谢!`;
+        } else if (this.sendToType === 'All Emails' || (this.email != '' && this.isEmailValid(this.email)) || (this.sendToType === 'Other email')) {
+          this.message = `你好,\n这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码, 或者发短信到855-759-2648或者给我们的客服打电话 404-382-9768. 多谢!`;
+        }
+        break;
+      case 'Second GMB Notice (Eng)':
+        if (this.sendToType === 'All SMS numbers' || (this.phoneNumber != '' && this.isPhoneValid(this.phoneNumber)) || (this.sendToType === 'Other SMS number')) {
+          this.message = `This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks`;
+        } else if (this.sendToType === 'All Emails' || (this.email != '' && this.isEmailValid(this.email)) || (this.sendToType === 'Other email')) {
+          this.message = `Hi, \nThis is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at 855-759-2648 or call us at 404-382-9768.\n Thanks`;
+        }
+        break;
+      case 'Second GMB Notice (中/Eng)':
+        if (this.sendToType === 'All SMS numbers' || (this.phoneNumber != '' && this.isPhoneValid(this.phoneNumber)) || (this.sendToType === 'Other SMS number')) {
+          this.message = `你好,这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片)或者给我们的客服打电话 404-382-9768. 多谢!
+          This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard (Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks`;
+        } else if (this.sendToType === 'All Emails' || (this.email != '' && this.isEmailValid(this.email)) || (this.sendToType === 'Other email')) {
+          this.message = `你好,\n这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码, 或者发短信到855-759-2648或者给我们的客服打电话 404-382-9768. 多谢!\n
+          Hi, \nThis is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at 855-759-2648, or call us at 404-382-9768.\n Thanks`;
+        }
+        break;
       default:
         break;
     }
   }
+
   // when we can send message ? these is two cases.
   isValid() {
-    if (this.sendToType === 'All' && this.message != '') {
+    if ((this.sendToType === 'All Emails' || this.sendToType === 'All SMS numbers') && this.message != '') {
       return true;
     } else if (this.isPhoneValid(this.phoneNumber) && this.message != '') {
+      return true;
+    } else if (this.isEmailValid(this.email) && this.message != '') {
       return true;
     }
     return false;
