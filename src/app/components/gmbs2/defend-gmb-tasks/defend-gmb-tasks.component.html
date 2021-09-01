@@ -76,6 +76,7 @@
         <tr>
           <th>Email</th>
           <th>Result</th>
+          <th>Updated</th>
         </tr>
 
       </thead>
@@ -84,6 +85,7 @@
         <tr *ngFor="let req of modalTask.requests">
           <td>{{req.email}}</td>
           <td>{{req.result}}</td>
+          <td> {{req.updatedAt | date : 'short'}}</td>
         </tr>
       </tbody>
     </table>
