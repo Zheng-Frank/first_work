@@ -48,11 +48,8 @@ export class DefendGmbTasksComponent implements OnInit {
 
     now = new Date();
 
-
     taskScheduledAt = new Date();
-    comments = '';
     pin;
-    verifyingOption;
     pagination = true;
 
     tabs = [
