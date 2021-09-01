@@ -47,7 +47,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     items: [
       { object: "PICKUP", text: "PICKUP", selected: false },
       { object: "DELIVERY", text: "DELIVERY", selected: false },
-      { object: "DINE-INE", text: "DINE-IN", selected: false },
+      { object: "DINE-IN", text: "DINE-IN", selected: false },
     ]
   };
 
