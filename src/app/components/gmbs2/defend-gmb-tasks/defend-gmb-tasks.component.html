@@ -92,7 +92,7 @@
 
     <div class="clearfix float-right">
       <button class="btn btn-secondary" (click)="closeModal()">Close</button>
-      <button class="btn btn-primary" (click)="hardRefresh(modalTask)" [disabled]="isDefenseCompleted(modalTask)">Retry Task</button>
+      <button class="btn btn-primary" (click)="hardRefresh(modalTask)" [disabled]="isDefenseCompleted(modalTask) || isTaskClosed(modalTask)">Retry Task</button>
     </div>
   </div>
 </q-modal>
