@@ -67,7 +67,8 @@ export class DefendGmbTasksComponent implements OnInit {
     tabs = [
         { label: 'All', rows: [] },
         { label: 'Defended', rows: [] },
-        { label: 'Errors', rows: [] }
+        { label: 'Errors', rows: [] },
+        { label: 'Closed', rows: [] }
     ];
 
     myColumnDescriptors = [
@@ -243,7 +244,7 @@ export class DefendGmbTasksComponent implements OnInit {
         return row.createdAt;
     }
 
-    closeModal(){
+    closeModal() {
         this.modalTask = null;
         this.taskModal.hide();
     }
