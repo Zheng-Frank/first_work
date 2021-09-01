@@ -511,26 +511,29 @@ export class RestaurantGmbComponent implements OnInit {
     if (!target.website) {
       return this._global.publishAlert(AlertType.Info, 'No qMenu website found to inject');
     }
-    for (let al of row.accountLocationPairs) {
-      console.log(al);
-      if (al.location.status === 'Published') {
 
-        try {
-          const result = await this._api.post(environment.appApiUrl + 'utils/inject-gmb-urls', {
-            email: al.account.email,
-            locationName: al.location.locationName,
-            websiteUrl: target.website,
-            menuUrl: target.menuUrl,
-            orderAheadUrl: target.orderAheadUrl,
-            reservationsUrl: target.reservation
-          }).toPromise();
-          this._global.publishAlert(AlertType.Success, "API Called");
-          console.log(result);
-        } catch (error) {
-          console.log(error);
-          this._global.publishAlert(AlertType.Danger, JSON.stringify(error));
-        }
+    // preference: qmenu06 => everything else
+    const [pickedAl] = row.accountLocationPairs
+      .filter(al => al.location.status === 'Published' && ["PRIMARY_OWNER", "OWNER", "CO_OWNER", "MANAGER"].indexOf(al.location.role) >= 0)
+      .sort((a1, a2) => a1.account.email === 'qmenu06@gmail.com' ? -1 : 1);
+    if (pickedAl) {
+      try {
+        const result = await this._api.post(environment.appApiUrl + 'utils/inject-gmb-urls', {
+          email: pickedAl.account.email,
+          locationName: pickedAl.location.locationName,
+          websiteUrl: target.website,
+          menuUrl: target.menuUrl,
+          orderAheadUrl: target.orderAheadUrl,
+          reservationsUrl: target.reservation
+        }).toPromise();
+        this._global.publishAlert(AlertType.Success, "API Called");
+        console.log(result);
+      } catch (error) {
+        console.log(error);
+        this._global.publishAlert(AlertType.Danger, JSON.stringify(error));
       }
+    } else {
+      this._global.publishAlert(AlertType.Danger, 'No account found to inject!');
     }
 
   }
