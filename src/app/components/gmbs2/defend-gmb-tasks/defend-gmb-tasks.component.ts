@@ -26,7 +26,8 @@ export class DefendGmbTasksComponent implements OnInit {
                 "relatedMap.restaurantId": 1,
                 "relatedMap.restaurantName": 1,
                 "relatedMap.place_id": 1,
-                "requests": 1
+                "requests": 1,
+                "result": 1
             }
         }, 10000);
 
@@ -205,8 +206,9 @@ export class DefendGmbTasksComponent implements OnInit {
         this.tabs.map(tab => {
             const filterMap = {
                 "All": t => t,
-                "Defended": t => this.isDefenseCompleted(t) && !this.doesTaskHaveError(t),
-                "Errors": t => this.doesTaskHaveError(t)
+                "Defended": t => this.isDefenseCompleted(t) && !this.doesTaskHaveError(t) && !this.isTaskClosed(t),
+                "Errors": t => this.doesTaskHaveError(t),
+                "Closed": t => this.isTaskClosed(t) && !this.doesTaskHaveError(t)
             };
             tab.rows = this.filteredTasks.filter(filterMap[tab.label]).map((task, index) => {
 
@@ -222,6 +224,10 @@ export class DefendGmbTasksComponent implements OnInit {
 
     doesTaskHaveError(task) {
         return task.error || (task.requests || []).some(req => req.result === "ERROR")
+    }
+
+    isTaskClosed(task) {
+        return task.result === 'CLOSED';
     }
 
     findTimeOfLatestUpdate(row) {
