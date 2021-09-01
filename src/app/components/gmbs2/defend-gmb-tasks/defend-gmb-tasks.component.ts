@@ -38,7 +38,6 @@ export class DefendGmbTasksComponent implements OnInit {
     @ViewChild('taskModal') taskModal: ModalComponent;
     apiLoading = false;
     activeTabLabel = "All";
-    currentAction;
     tasks = [];
     filteredTasks = [];
 
@@ -48,12 +47,6 @@ export class DefendGmbTasksComponent implements OnInit {
     restaurantDict = {};
 
     now = new Date();
-    user;
-    myUsername;
-    myUserRoles;
-    //tasks query criteria based on user roles
-    query_or;
-
 
 
     taskScheduledAt = new Date();
@@ -61,8 +54,6 @@ export class DefendGmbTasksComponent implements OnInit {
     pin;
     verifyingOption;
     pagination = true;
-    //help display postcardID
-    postcardIds = new Map();
 
     tabs = [
         { label: 'All', rows: [] },
