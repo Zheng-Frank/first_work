@@ -17,5 +17,6 @@ export const environment = {
   stripePublishableKey: 'pk_live_uSs2MVVyG0vn6TICsTIyXG6Y',
   fattmerchantWebToken: 'qMenu-Inc-71e10ca6d824',
   testOrderId: "5c720fd092edbd4b28883ee1",
-  shortUrlBase: "https://qmenu.biz/"
+  shortUrlBase: "https://qmenu.biz/",
+  customerPWAUrl: "https://qmenu.us/#/"
 };

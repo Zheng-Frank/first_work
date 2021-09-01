@@ -1,15 +1,16 @@
+import { filter, map } from 'rxjs/operators';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { LanguageType } from './../../../classes/language-type';
 import { Component, OnInit, Input, OnDestroy, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { Restaurant, Address } from '@qmenu/ui';
+import { Restaurant, Address, Hour, TimezoneHelper } from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 import { RestaurantProfileComponent } from '../restaurant-profile/restaurant-profile.component';
 import { SendTextReplyComponent } from '../../utilities/send-text-reply/send-text-reply.component';
-import {Helper} from '../../../classes/helper';
+import { Helper } from '../../../classes/helper';
 
 declare var $: any;
 
@@ -19,12 +20,12 @@ declare var $: any;
   styleUrls: ['./restaurant-details.component.css']
 })
 export class RestaurantDetailsComponent implements OnInit, OnDestroy {
-  @ViewChild('restaurantProfile')restaurantProfile:RestaurantProfileComponent;
-  @ViewChild('textReplyModal')textReplyModal:ModalComponent;
-  @ViewChild('textReplyComponent')textReplyComponent: SendTextReplyComponent;
+  @ViewChild('restaurantProfile') restaurantProfile: RestaurantProfileComponent;
+  @ViewChild('textReplyModal') textReplyModal: ModalComponent;
+  @ViewChild('textReplyComponent') textReplyComponent: SendTextReplyComponent;
   languageTypes = [
-    {value: LanguageType.ENGLISH, text: "Show English"},
-    {value: LanguageType.CHINESE, text: "显示中文"}
+    { value: LanguageType.ENGLISH, text: "Show English" },
+    { value: LanguageType.CHINESE, text: "显示中文" }
   ];
   languageType = this._global.languageType;
   restaurant: Restaurant;
@@ -163,6 +164,11 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   showExplanations = false; // a flag to decide whether show English/Chinese translations,and the switch is closed by default.
   googleSearchText; // using redirect google search.
   knownUsers = [];
+  // use now time to compared with lastRefreshed to refresh time value 
+  now = new Date();
+  timer;
+  refreshDataInterval = 60 * 1000;
+  openOrNot = false;
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
     const tabVisibilityRolesMap = {
@@ -174,10 +180,10 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "Orders": ['ADMIN', 'CSR'],
       "Invoices": ['ADMIN', 'ACCOUNTANT', 'CSR'],
       "Logs": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
-      "IVR": ['ADMIN','CSR'],
+      "IVR": ['ADMIN', 'CSR'],
       "Tasks": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
       "Diagnostics": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
-      "Others":['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'] // make a superset and reorder authority in restaurant other page.
+      "Others": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'] // make a superset and reorder authority in restaurant other page.
     }
 
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
@@ -197,10 +203,18 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this._global.storeSet('restaurantDetailsTab', this.activeTab);
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
+  }
+
+  // filter the biz of restaurant's contacts to show on rt portal
+  getBizContacts() {
+    return (this.restaurant.channels || []).filter(channel => channel.type === 'Phone' && (channel.notifications || []).includes('Business')).map(c=>c.value).join(', ');
   }
 
   async reload(callback: (rt: Restaurant) => any) {
-    const query = {_id: { $oid: this.id }};
+    const query = { _id: { $oid: this.id } };
     this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: query,
@@ -215,7 +229,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
         if (!this.restaurant) {
           return this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');
         }
-        if(callback){
+        if (callback) {
           callback(this.restaurant);
         }
       }, error => {
@@ -224,28 +238,56 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     );
   }
   // select html element change invoke it , and its function is change restaurant profile field into Chinese or English
-  changeLanguage(){
-    if(this.languageType === LanguageType.ENGLISH){
+  changeLanguage() {
+    if (this.languageType === LanguageType.ENGLISH) {
       this.restaurantProfile.changeLanguageFlag = this._global.languageType = LanguageType.ENGLISH;
-    }else if(this.languageType === LanguageType.CHINESE){
+    } else if (this.languageType === LanguageType.CHINESE) {
       this.restaurantProfile.changeLanguageFlag = this._global.languageType = LanguageType.CHINESE;
     }
   }
 
   // if the switch is open,we show i button and show Chinese and English explanations
-  toggleShowExplanations(){
-    if(this.showExplanations){
+  toggleShowExplanations() {
+    if (this.showExplanations) {
       this.restaurantProfile.showExplanationsIcon = this._global.showExplanationsIcon = true;
-    }else{
+    } else {
       this.restaurantProfile.showExplanationsIcon = this._global.showExplanationsIcon = false;
     }
   }
 
+  refreshTime() {
+    // judge whether open
+    // 1. by menu hours
+    let flag = false;
+    for (let i = 0; i < (this.restaurant.menus||[]).length; i++) {
+      const menu = (this.restaurant.menus||[])[i];
+      if((menu.hours||[]).some(hour=>hour.isOpenAtTime(this.now, this.restaurant.googleAddress.timezone))){
+        flag = true;
+        break;
+      }
+    }
+    // 2. by restaurant closed hours
+    let closedHours = (this.restaurant.closedHours || []).filter(hour=>!(hour.toTime && this.now > hour.toTime));
+     
+    if(closedHours.some(hour=>{
+      let nowTime = TimezoneHelper.getTimezoneDateFromBrowserDate(this.now, this.restaurant.googleAddress.timezone);
+      return nowTime >=hour.fromTime && nowTime<=hour.toTime;
+    })){
+      flag = false;
+    }
+
+    if(flag){
+      this.openOrNot = true;
+    }
+    this.now = new Date();
+  }
+
   async loadDetails() {
     this.readonly = true;
+   
     if (this.id) {
       this.apiRequesting = true;
-      const query = {_id: { $oid: this.id }};
+      const query = { _id: { $oid: this.id } };
 
       this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'restaurant',
@@ -257,24 +299,27 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           this.apiRequesting = false;
           const rt = results[0];
 
-        (rt.gmbOwnerHistory || []).reverse();
+          (rt.gmbOwnerHistory || []).reverse();
 
-        (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi && mi.name)));
-        this.restaurant = rt ? new Restaurant(rt) : undefined;
-        if (!this.restaurant) {
-          return this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');
-        }
+          (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi && mi.name)));
+          this.restaurant = rt ? new Restaurant(rt) : undefined;
+          if (!this.restaurant) {
+            return this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');
+          }
 
-        const canEdit = this._global.user.roles.some(r =>
-          ['ADMIN', 'MENU_EDITOR', 'CSR', 'ACCOUNTANT'].indexOf(r) >= 0) ||
-          (rt.rateSchedules).some(rs => rs.agent === 'invalid') ||
-          (rt.rateSchedules || []).some(rs => rs.agent === this._global.user.username);
-        this.readonly = !canEdit;
-        // use encodeURLComponment to reformat the href of a link.
-        // https://www.google.com/search?q={{restaurant.name}} {{restaurant.googleAddress.formatted_address}}
-          let formatted_address = this.restaurant.googleAddress.formatted_address||'';
+          const canEdit = this._global.user.roles.some(r =>
+            ['ADMIN', 'MENU_EDITOR', 'CSR', 'ACCOUNTANT'].indexOf(r) >= 0) ||
+            (rt.rateSchedules).some(rs => rs.agent === 'invalid') ||
+            (rt.rateSchedules || []).some(rs => rs.agent === this._global.user.username);
+          this.readonly = !canEdit;
+          // use encodeURLComponment to reformat the href of a link.
+          // https://www.google.com/search?q={{restaurant.name}} {{restaurant.googleAddress.formatted_address}}
+          let formatted_address = this.restaurant.googleAddress.formatted_address || '';
           let name = this.restaurant.name || '';
-          this.googleSearchText = "https://www.google.com/search?q="+encodeURIComponent(name+" "+formatted_address);
+          this.googleSearchText = "https://www.google.com/search?q=" + encodeURIComponent(name + " " + formatted_address);
+          // set timer of rt portal  
+          this.refreshTime();
+          this.timer = setInterval(()=>this.refreshTime(), this.refreshDataInterval);
         },
         error => {
           this.apiRequesting = false;
@@ -316,7 +361,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     this.textReplyModal.show();
   }
 
-  closeTextReply(){
+  closeTextReply() {
     this.textReplyModal.hide();
   }
 

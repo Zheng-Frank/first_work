@@ -118,7 +118,17 @@
       <ul class="nav nav-tabs app-tab" role="tablist">
         <li *ngFor="let menu of getMenus()" class="nav-item">
           <a (click)=setActiveId(menu.id) class="nav-link {{getActiveId() == menu.id ? 'active' : 'text-primary'}}"
-            data-toggle="tab" role="button">{{menu.name}} {{menu.targetCustomer ? "("+menu.targetCustomer+")" : ''}}</a>
+            data-toggle="tab" role="button">{{menu.name}} 
+            <ng-container *ngIf="menu.targetCustomer !== 'DINE_IN_ONLY'">
+              {{menu.targetCustomer ? "("+menu.targetCustomer+")" : ''}}
+            </ng-container>
+            <ng-container *ngIf="menu.targetCustomer === 'DINE_IN_ONLY'">
+              <i class="fas fa-utensils"></i>
+            </ng-container>
+            <ng-container *ngIf="isMissingHoursMenu(menu)">
+              <i class="fas fa-exclamation-triangle"></i>
+            </ng-container>
+          </a>
         </li>
         <li class="nav-item" *ngIf="getMenus().length > 0">
           <a class="nav-link text-primary {{!getActiveId() ? 'active' : 'text-primary'}}" (click)="clickNew()"

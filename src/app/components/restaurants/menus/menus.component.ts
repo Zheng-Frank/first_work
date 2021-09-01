@@ -517,8 +517,14 @@ export class MenusComponent implements OnInit {
     this.menuEditingModal.show();
   }
 
+  // judge menu missing menu hours 
+  isMissingHoursMenu(menu){
+    return !menu.hours || (menu.hours && menu.hours.length === 0);
+  }
+
   edit(menu) {
     this.menuEditor.setMenu(new Menu(menu));
+    this.menuEditor.viewMenuLink = environment.customerPWAUrl+this.restaurant.alias+'/menu/'+menu.id;
     this.menuEditingModal.show();
   }
 

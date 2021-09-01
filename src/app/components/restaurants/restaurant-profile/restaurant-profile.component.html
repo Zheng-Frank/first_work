@@ -404,7 +404,17 @@
             <!-- Tip Settings -->
             <tr>
               <th colspan="2" class="text-left" style="font-weight:bold;font-size:1.2rem;">
-                {{changeLanguageFlag === 'English' ? 'Tip Settings' : '小费设置' }}</th>
+                {{changeLanguageFlag === 'English' ? 'Tip Settings' : '小费设置' }}
+                <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
+                  (mouseover)="showCorrespondingTranslation('TipSettings')"
+                  (mouseout)="translating = ''" style="font-size:15px;">
+                  <div *ngIf="translating === 'TipSettings'" class="left tip-talk radius">
+                    <p>Tip Settings: {{Explanations.EnglishExplanations.TipSettings}}</p>
+                    -------------<br>
+                    <p>小费设置: {{Explanations.ChineseExplanations.TipSettings}}</p>
+                  </div>
+                </i>
+              </th>
             </tr>
             <tr>
               <td colspan="2">
@@ -497,13 +507,6 @@
                         <td>{{!tipSettings.Delivery.tipHide}}</td>
                       </tr>
                     </tbody>
-                    <tfoot>
-                      <tr>
-                        <th class="pl-5 tip-explain" colspan="4">* If tip settings are not specified at restaurant
-                          level, system default tip will be 15% for pickup and dine-in, and 20% for delivery. Tips
-                          cannot exceed the maximum of $1000 or 100%.</th>
-                      </tr>
-                    </tfoot>
                   </table>
                 </div>
               </td>
@@ -1201,6 +1204,15 @@
               <i class="fa fa-angle-right" *ngIf="!isShowTipSettings"></i>
               <i class="fa fa-angle-down" *ngIf="isShowTipSettings"></i>
             </button>
+            <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
+              (mouseover)="showCorrespondingTranslation('TipSettings')"
+                (mouseout)="translating = ''" style="font-size:15px;">
+              <div *ngIf="translating === 'TipSettings'" class="left tip-talk radius" style="right:30%;">
+                <p>Tip Settings: {{Explanations.EnglishExplanations.TipSettings}}</p>
+                  -------------<br>
+                <p>小费设置: {{Explanations.ChineseExplanations.TipSettings}}</p>
+              </div>
+            </i>
           </h4>
         </div>
         <ng-container *ngIf="isShowTipSettings">
@@ -1281,8 +1293,8 @@
                       class="col-form-label">{{changeLanguageFlag === 'English' ? 'Default Amount ($)' : '默认金额 ($)' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('DefaultAmount')"
-                        (mouseout)="showExplanations = false">
-                        <div *ngIf="showExplanations && translating === 'DefaultAmount'"
+                        (mouseout)="translating = ''">
+                        <div *ngIf="translating === 'DefaultAmount'"
                           class="left tip-edit-talk radius">
                           <p>Default Amount ($):{{Explanations.EnglishExplanations.DefaultAmount}}</p>
                           -------------<br>
@@ -1313,8 +1325,8 @@
                       class="col-form-label">{{changeLanguageFlag === 'English' ? 'Minimum Amount ($)' : '最小金额 ($)' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('MinimumAmount')"
-                        (mouseout)="showExplanations = false">
-                        <div *ngIf="showExplanations && translating === 'MinimumAmount'"
+                        (mouseout)="translating = ''">
+                        <div *ngIf="translating === 'MinimumAmount'"
                           class="left tip-edit-talk radius">
                           <p>Minimum Amount ($):{{Explanations.EnglishExplanations.MinimumAmount}}</p>
                           -------------<br>
@@ -1375,16 +1387,6 @@
                   </td>
                 </tr>
               </tbody>
-              <tfoot>
-                <tr>
-                  <td class="pl-5 tip-explain" colspan="4">
-                    <label class="col-form-label">
-                      * If tip settings are not specified at restaurant level, system default tip will be 15% for pickup
-                      and dine-in, and 20% for delivery. Tips cannot exceed the maximum of $1000 or 100%.
-                    </label>
-                  </td>
-                </tr>
-              </tfoot>
             </table>
           </div>
         </ng-container>
@@ -1590,9 +1592,9 @@
           <h4>{{changeLanguageFlag === 'English' ? 'Notes' : '注意事项' }}
             <label class="col-4 col-form-label pt-0">
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
-                (mouseover)="showCorrespondingTranslation('Notes')" (mouseout)="showExplanations = false"
+                (mouseover)="showCorrespondingTranslation('Notes')" (mouseout)="translating = ''"
                 style="font-size:15px;">
-                <div *ngIf="showExplanations && translating === 'Notes'" class="left edit-talk radius">
+                <div *ngIf="translating === 'Notes'" class="left edit-talk radius">
                   <p>Notes:{{Explanations.EnglishExplanations.Notes}}</p>
                   -------------<br>
                   <p>注意事项:{{Explanations.ChineseExplanations.Notes}}</p>
