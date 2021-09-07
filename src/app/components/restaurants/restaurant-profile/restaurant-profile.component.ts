@@ -69,7 +69,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'serviceSettings',
     "doNotHideUselessMenuItems",
     "notificationExpiry",
-    "showMenuNumber"
   ];
   controlExpiry = false; // a flag to contorl broadcast expiry date input showing or not.
   notificationExpiry: string; // this value is needed to decide when shows the broadcast on customer pwa.
@@ -162,8 +161,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       "Logo":"（菜单编辑会处理这个问题，CSR+销售人员可以忽略）：这里上传的任何徽标都会出现在餐厅的qMenu订购网站的这两个地方。",
       "Photos":"(菜单编辑负责这一点，客服+销售可以忽略) 此处上传的图片将是餐厅qMenu订购网站上的网站背景图片。",
       "DoNotHideUselessMenuItems": "默认情况下，在客户APP上，在每个菜单类别中，我们将显示按订购频率排序的菜单项，并隐藏以前从未订购过的菜单项。 可以关闭此设置以简单地按原始顺序显示所有菜单项。",
-      "TipSettings": "如果餐厅级别未指定小费设置，pickup和dine-in的系统小费默认值为 15%，delivery默认值为20%。 无论如何，小费不能超过 1000 美元或 100% 的最大值",
-      "ShowMenuNumber": "默认情况下，在客户APP和餐馆APP上，我们不显示菜单的编号，可以打开此设置以显示菜单编号在菜单名称前面。"
+      "TipSettings": "如果餐厅级别未指定小费设置，pickup和dine-in的系统小费默认值为 15%，delivery默认值为20%。 无论如何，小费不能超过 1000 美元或 100% 的最大值"
     },
     EnglishExplanations:{
       "Name":"Name of restaurant",
@@ -206,8 +204,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       "Logo":" (Menu editors take care of this, CSR + sales can ignore): Any logo uploaded here will appear in these two places on the qMenu ordering site for the restaurant: 1. The qmenu.us/alias page of the restaurant, 2. ...",
       "Photos":" (Menu editors take care of this, CSR + sales can ignore): Image uploaded here will appear as the website background image on the qMenu ordering site for the restaurant.",
       "DoNotHideUselessMenuItems": "By default, on the customer app, in each menu category, we will show menu items sorted by ordering frequency, and hide menu items that have never been ordered before. This setting can be turned off to simply show all menu items in their original order.",
-      "TipSettings": "If tip settings are not specified at restaurant level, system default tip will be 15% for pickup and dine-in, and 20% for delivery. Tips cannot exceed the maximum of $1000 or 100%.",
-      "ShowMenuNumber": "By default, on the customer app and restaurant app, we do not show the menu number. This setting can be turned on to show menu number before menu name."
+      "TipSettings": "If tip settings are not specified at restaurant level, system default tip will be 15% for pickup and dine-in, and 20% for delivery. Tips cannot exceed the maximum of $1000 or 100%."
     }
   }
 

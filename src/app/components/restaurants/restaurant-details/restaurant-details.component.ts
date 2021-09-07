@@ -159,7 +159,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     disableOrderCancelation: 1, // add a new prperty and it will control whether the restaurant can cancel order.
     notificationExpiry: 1, // this value is needed to decide when shows the broadcast on customer pwa.
     doNotHideUselessMenuItems: 1,
-    showMenuNumber: 1,
   };
 
   showExplanations = false; // a flag to decide whether show English/Chinese translations,and the switch is closed by default.
