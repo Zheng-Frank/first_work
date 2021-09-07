@@ -35,6 +35,7 @@ export class RestaurantMapComponent implements OnInit {
   cuisine = '';
   markerRTDict = new Map();
   filteredRTs: Restaurant[] = [];
+  loading = false;
 
   constructor(private _router: Router, private _api: ApiService, private _global: GlobalService) {
   }
@@ -134,7 +135,6 @@ export class RestaurantMapComponent implements OnInit {
   drawMarkers() {
     this.clearMap(this.markers);
     this.markerRTDict.clear();
-    this.centerTo(this.state);
 
     let rts = this.restaurants.filter(x => {
       // @ts-ignore
@@ -173,25 +173,16 @@ export class RestaurantMapComponent implements OnInit {
 
   markSearched(items) {
     items.forEach(item => {
-      this.placeService.getDetails({
-        placeId: item.place_id,
-        fields: ['formatted_address']
-      }, (place, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
-          const marker = new google.maps.Marker({
-            position: item.geometry.location,
-            title: item.name, map: this.map,
-            icon: './assets/icons/marker-red.svg'
-          });
-          marker.addListener('click', () => {
-            this.infoWindow.setContent(`<div><h3>${item.name}</h3><div>${place.formatted_address}</div></div>`);
-            this.infoWindow.open({
-              anchor: marker, map: this.map
-            });
-          });
-          this.searchedMarkers.push(marker);
-        }
+      const marker = new google.maps.Marker({
+        position: item.geometry.location,
+        title: item.name, map: this.map,
+        icon: './assets/icons/marker-red.svg'
       });
+      marker.addListener('click', () => {
+        this.infoWindow.setContent(`<div><h3>${item.name}</h3><div>${item.formatted_address}</div></div>`);
+        this.infoWindow.open({anchor: marker, map: this.map});
+      });
+      this.searchedMarkers.push(marker);
     });
 
   }
@@ -205,30 +196,51 @@ export class RestaurantMapComponent implements OnInit {
     markers.length = 0;
   }
 
+  sameRT(rt, searched) {
+    if (!rt.googleAddress) {
+      return false;
+    }
+    return rt.name === searched.name
+      && rt.googleAddress.lat === searched.geometry.location.lat()
+      && rt.googleAddress.lng === searched.geometry.location.lng();
+  }
+
+  searchCallback(results, status, pagination, list) {
+    if (status === google.maps.places.PlacesServiceStatus.OK) {
+      list.push(...results);
+      if (pagination.hasNextPage) {
+        pagination.nextPage((r, s, p) => this.searchCallback(r, s, p, list));
+        return;
+      }
+    }
+    this.loading = false;
+    // filter out RTs belongs to qmenu
+    list = list.filter(x => !this.restaurants.some(rt => this.sameRT(rt, x)));
+    this.markSearched(list);
+  }
+
   search() {
     if (!this.keyword) {
       this._global.publishAlert(AlertType.Warning, 'Please input a keyword to search');
       return;
     }
     this.clearMap(this.searchedMarkers);
-    this.placeService.nearbySearch({
-      query: this.keyword, bounds: this.map.getBounds(), type: ['restaurant']
-    }, (results, status) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK) {
-        this.markSearched(results);
-      }
-    });
+    this.loading = true;
+    let list = [];
+    this.placeService.textSearch({
+      location: this.map.getCenter(), radius: 5000,
+      query: this.keyword, type: ['restaurant']
+    }, (r, s, p) => this.searchCallback(r, s, p, list));
   }
 
   searchByAddress(location) {
     this.clearMap(this.searchedMarkers);
-    this.placeService.nearbySearch({
-      location, radius: '50000', type: ['restaurant']
-    }, (results, status) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK) {
-        this.markSearched(results);
-      }
-    });
+    let list = [];
+    this.loading = true;
+    this.placeService.textSearch({
+      query: 'restaurant',
+      location, radius: 5000, type: ['restaurant']
+    }, (r, s, p) => this.searchCallback(r, s, p, list));
   }
 
 }

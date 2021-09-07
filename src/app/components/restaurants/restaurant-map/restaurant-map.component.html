@@ -18,26 +18,29 @@
         <option *ngFor="let cuisine of cuisines" [value]="cuisine">{{cuisine}}</option>
       </select>
     </div>
+    <div class="col-4 icons">
+      <div class="icons-container">
+        <span><img src="./assets/icons/marker-cyan.svg" />Your Sales</span>
+        <span><img src="./assets/icons/marker-blue.svg" />QMenu RTs</span>
+        <span><img src="./assets/icons/marker-red.svg" />Any RTs</span>
+      </div>
+    </div>
+  </div>
+  <div class="mb-3 row">
     <div class="col-4 row">
       <label class="col-3 col-form-label">Address</label>
       <div class="col-9">
         <input type="text" id="address-input" class="form-control" placeholder="Input an address" >
       </div>
     </div>
-  </div>
-  <div class="mb-3 icons row">
     <div class="col-6 row">
       <div class="col-9">
         <input type="text" class="form-control" placeholder="Input keyword" [(ngModel)]="keyword" >
       </div>
-      <button type="button" (click)="search()" class="col-3 btn btn-primary">Search</button>
-    </div>
-    <div class="col-6">
-      <div class="icons-container">
-        <span><img src="./assets/icons/marker-cyan.svg" />Your Sales</span>
-        <span><img src="./assets/icons/marker-blue.svg" />QMenu RTs</span>
-        <span><img src="./assets/icons/marker-red.svg" />Any RTs</span>
-      </div>
+      <button type="button" [disabled]="loading" (click)="search()" class="col-3 btn btn-primary">
+        Search
+        <i *ngIf="loading" class="fas fa-spinner fa-spin"></i>
+      </button>
     </div>
   </div>
   <div class="map-list">
