@@ -1,3 +1,5 @@
+import { environment } from 'src/environments/environment';
+import { ApiService } from './../../../services/api.service';
 import { filter } from 'rxjs/operators';
 import { Component, OnInit } from '@angular/core';
 
@@ -50,9 +52,24 @@ export class SeoTrackingComponent implements OnInit {
   filterSummaryRankingRows = [];
   specificRankingRows = [];
   filterSpecificRankingRows = [];
-  constructor() { }
+
+  constructor(private _api: ApiService) { }
 
   ngOnInit() {
+    // this.populateGoogleRanks();
+  }
+
+  async populateGoogleRanks(){
+    this.summaryRankingRows = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+      resource: "google-ranks",
+      query:{
+      },
+      projection: {
+        
+      }
+    },10000);
+    this.summaryRankingRows.sort((a, b)=>new Date(a.createdAt).valueOf() - new Date(b.createdAt).valueOf());
+    
   }
 
   prvoiderFilter(){

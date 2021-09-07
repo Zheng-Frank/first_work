@@ -37,7 +37,7 @@
       </div>
       <!-- end with statistics card -->
       <!-- start with statistics table -->
-      <div *ngIf="!qrRestaurantListRows || qrRestaurantListRows.length === 0">
+      <div *ngIf="!summaryRankingRows || summaryRankingRows.length === 0">
         Summary Ranking list is empty.
       </div>
       <q-table [rows]="filterSummaryRankingRows" [tableColumnDescriptors]="summaryColumnDescriptors" [compact]="true"
