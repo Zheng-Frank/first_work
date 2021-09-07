@@ -12,7 +12,10 @@ import { OrderCardComponent } from '../order-card/order-card.component';
 
 
 declare var $: any;
-declare var io: any;
+enum NotificationTargets {
+  Restaurant = "Restaurant",
+  Customer = "Customer"
+}
 
 @Component({
   selector: 'app-restaurant-orders',
@@ -29,7 +32,7 @@ export class RestaurantOrdersComponent implements OnInit {
   @ViewChild('adjustInvoiceModal') adjustInvoiceModal: ModalComponent;
   @ViewChild('adjustInvoiceComponment') adjustInvoiceComponment: ModalComponent;
   @ViewChild('previousCanceledOrderModal') previousCanceledOrderModal: ModalComponent; // this modal is in order to show customer previous canceled order detail
-
+  @ViewChild('notificationHistoryModal') notificationHistoryModal: ModalComponent;
   previousCanceledOrder: any; // previous canceled order object of one customer
   @ViewChild('changeOrderTypeModal') changeOrderTypeModal: ModalComponent;
   @ViewChild('orderCard') orderCard: OrderCardComponent;
@@ -60,6 +63,7 @@ export class RestaurantOrdersComponent implements OnInit {
   changeOrderType = 'Restaurant self-deliver';
   searchQROrder = false;
   showExplanation = false;
+  notificationHistory = [];
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
   /**
@@ -178,7 +182,7 @@ export class RestaurantOrdersComponent implements OnInit {
       }
       ]
     } as any;
-    // only show qr orders has some interactions with date range search. 
+    // only show qr orders has some interactions with date range search.
     if (this.searchQROrder) {
       query['dineInSessionObj._id'] = {
         $exists: true
@@ -860,4 +864,92 @@ export class RestaurantOrdersComponent implements OnInit {
     }
   }
 
+  async showNotificationHistory(orderId) {
+    this.notificationHistory = await this._api.get(environment.qmenuApiUrl +  "generic", {
+      resource: "job",
+      query: {"params.orderId": orderId, 'logs.0': {$exists: true}},
+      projection: {
+        name: 1, params: 1, createdAt: 1, logs: 1, endStatuses: 1
+      },
+      sort: {createdAt: -1},
+      limit: 100
+    }).toPromise();
+    this.notificationHistory.sort((x, y) => new Date(y.createdAt).valueOf() - new Date(x.createdAt).valueOf());
+    this.notificationHistoryModal.show();
+  }
+
+  hideNotificationHistory() {
+    this.notificationHistoryModal.hide();
+    this.notificationHistory.length = 0;
+  }
+
+  normalizeNotifyTarget(target) {
+    if (target === NotificationTargets.Customer.toLowerCase()) {
+      return "user";
+    }
+    return "building";
+  }
+
+  normalizeNotifyStatus(notify) {
+    let { endStatuses, logs } = notify;
+    logs.sort((x, y) => new Date(y.time).valueOf() - new Date(x).valueOf());
+    let status = logs[0].status;
+    if (endStatuses && endStatuses.length) {
+      status = endStatuses[endStatuses.length - 1];
+    }
+    return status ? '[' + status + '] ' : '';
+  }
+
+  normalizeNotifyTail(notify) {
+    let { name, params } = notify;
+    let copies = params.copies || (params.data && params.data.data && params.data.data.copies) || '';
+    if (copies) {
+      copies = `copies: ${copies}`;
+    }
+    let array = ['sn', 'key', 'host'].map(k => params[k] ? k + ': ' + params[k] : '').filter(x => !!x);
+    const printTail = [...array, copies].join(' ,');
+    let tail = {
+      "new-order": "(new order)",
+      "send-order-reminder-voice": "(order reminder)",
+      "send-order-cancelation-voice": "(order cancellation)",
+      "send-order-start-cooking-voice": "(order start cook notice)",
+      "send-order-fei-e": printTail,
+      "send-order-longhorn": printTail,
+      "send-phoenix": printTail
+    }[name];
+    return tail ? " " + tail : "";
+  }
+
+  normalizeNotifyProvider(notify) {
+    let { logs } = notify;
+    logs.sort((x, y) => new Date(y.time).valueOf() - new Date(x).valueOf());
+    let providers = new Set(logs.map(x => x.providerName || (x.result && x.result.providerName)).filter(x => !!x));
+    let provider = "";
+    if (providers.size > 0) {
+      provider = "by " + [...providers].join(',');
+    }
+    return provider || "";
+  }
+
+  normalizeNotifyDesc(notify) {
+    let { name, params } = notify;
+    let to = params.to || "";
+    if (to) {
+      to = "to " + to;
+    }
+    const formatLine = prefix => `${prefix} ${to}`;
+    return {
+      "new-order": formatLine("Call made"),
+      "send-order-email" : formatLine("Email sent"),
+      "send-order-sms": formatLine("SMS sent"),
+      "send-order-fax": formatLine("Fax sent"),
+      "send-order-voice": formatLine("Call made"),
+      "send-order-reminder-voice": formatLine("Call made"),
+      "send-order-cancelation-voice": formatLine("Call made"),
+      "send-order-start-cooking-voice": formatLine("Call made"),
+      "send-order-fei-e": "Printout sent (fei-e)",
+      "send-order-longhorn": "Printout sent (longhorn)",
+      "send-phoenix": "Printout sent (phoenix)"
+    }[name] || name;
+  }
 }

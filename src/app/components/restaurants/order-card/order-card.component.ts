@@ -27,6 +27,7 @@ export class OrderCardComponent implements OnInit {
   @Output() onBan = new EventEmitter();
   @Output() onOpenChangeOrderTypesModal = new EventEmitter();
   @Output() onOpenPreviousCanceledOrderModal = new EventEmitter();
+  @Output() onViewNotificationHistory = new EventEmitter();
 
   @ViewChild('toggleButton') toggleButton;
   @ViewChild('confirmModal') confirmModal: ConfirmComponent;
@@ -80,7 +81,7 @@ export class OrderCardComponent implements OnInit {
   orderFromSafari(order){
     return order.runtime && order.runtime.browser.toLowerCase() === 'safari';
   }
-  
+
   orderFromEdge(order){
     return order.runtime && order.runtime.browser.toLowerCase() === 'edge';
   }
@@ -101,12 +102,12 @@ export class OrderCardComponent implements OnInit {
   orderFromPWA(order) {
     return order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os.indexOf('iOS') >=0) && order.runtime.standalone && !order.runtime.isApp;
   }
-  // judge order whether is from phone. 
+  // judge order whether is from phone.
   orderFromPhone(order) {
     return order.runtime && order.runtime.isApp ||
       (order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os.indexOf('iOS') >=0));
   }
-  // judge order whether is from computer. 
+  // judge order whether is from computer.
   orderFromPC(order) {
     return order.runtime && order.runtime.os && (order.runtime.os.indexOf('Mac') >= 0 || order.runtime.os.indexOf('Linux')>=0 || order.runtime.os.indexOf('Windows')>=0);
   }
@@ -562,5 +563,9 @@ export class OrderCardComponent implements OnInit {
       case 'pending':
         return 'Pending';
     }
+  }
+
+  viewNotificationHistory(order: Order) {
+    this.onViewNotificationHistory.emit(order.id);
   }
 }
