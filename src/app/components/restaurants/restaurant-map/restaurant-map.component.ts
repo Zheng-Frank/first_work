@@ -161,7 +161,17 @@ export class RestaurantMapComponent implements OnInit {
         position: {lat, lng}, title: rt.name, map: this.map, icon
       });
       marker.addListener('click', () => {
-        this.infoWindow.setContent(`<div><h3>${rt.name}</h3><div>${rt.googleAddress.formatted_address}</div></div>`);
+        this.infoWindow.setContent(`
+          <div>
+            <h3>${rt.name}</h3>
+            <div>
+              ${rt.googleAddress.formatted_address}
+               <a class="ml-1" href="https://www.google.com/search?q=${this.getQ(rt.name, rt.googleAddress.formatted_address)}" target="_blank">
+                 Open on Google<i class="fas fa-external-link-alt"></i>
+              </a>
+            </div>
+          </div>
+        `);
         this.infoWindow.open({
           anchor: marker, map: this.map
         });
@@ -169,6 +179,10 @@ export class RestaurantMapComponent implements OnInit {
       this.markers.push(marker);
       this.markerRTDict.set(rt._id, marker);
     });
+  }
+
+  getQ(name, address) {
+    return encodeURIComponent([name, address].join(', '));
   }
 
   markSearched(items) {
@@ -179,7 +193,17 @@ export class RestaurantMapComponent implements OnInit {
         icon: './assets/icons/marker-red.svg'
       });
       marker.addListener('click', () => {
-        this.infoWindow.setContent(`<div><h3>${item.name}</h3><div>${item.formatted_address}</div></div>`);
+        this.infoWindow.setContent(`
+          <div>
+            <h3>${item.name}</h3>
+            <div>
+              ${item.formatted_address}
+               <a class="ml-1" href="https://www.google.com/search?q=${this.getQ(item.name, item.formatted_address)}" target="_blank">
+                 Open on Google<i class="fas fa-external-link-alt"></i>
+              </a>
+            </div>
+          </div>
+        `);
         this.infoWindow.open({anchor: marker, map: this.map});
       });
       this.searchedMarkers.push(marker);

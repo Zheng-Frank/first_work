@@ -27,3 +27,17 @@ li {
     font-size: 125%;
     display: inline-block;
 }
+
+.nearby-qmenu-leads {
+  display: flex;
+  justify-content: space-between;
+  height: auto;
+  position: relative;
+}
+.nearby-qmenu-leads .map {
+  width: 48%;
+  height: 400px;
+}
+.nearby-qmenu-leads ul {
+  width: 48%;
+}

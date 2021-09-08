@@ -79,17 +79,18 @@
       <li>
         <span class="my-th">附近的qMenu客户</span>:
         <span *ngIf="neighborQmenuLeads.length === 0">未找到 (None)</span>
-        <div *ngIf="neighborQmenuLeads.length > 0" class="pt-3">
+        <div *ngIf="neighborQmenuLeads.length > 0" class="nearby-qmenu-leads pt-3">
           <ul>
             <li *ngFor="let lead of neighborQmenuLeads">
               {{lead.name}} <span>(距离 {{lead.distance | number : '1.0-1'}} mi,
-                {{lead.restaurant?.score > 5 ? '价值高' : '价值一般'}})</span>
+              {{lead.restaurant?.score > 5 ? '价值高' : '价值一般'}})</span>
               <div class="my-text-small">
                 <a href="https://www.google.com/search?q={{getQ(lead)}}" target="_blank">{{lead.googleListing?.address}}
                   <i class="fas fa-external-link-alt"></i></a>
               </div>
             </li>
           </ul>
+          <div class="map" id="nearby-rts-map"></div>
         </div>
       </li>
     </ul>

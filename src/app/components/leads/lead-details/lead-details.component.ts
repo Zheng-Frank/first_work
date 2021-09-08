@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, SimpleChanges } from '@angular/core';
+import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import { AlertType } from 'src/app/classes/alert-type';
 import { CallLog } from 'src/app/classes/call-log';
 import { RawLead } from 'src/app/classes/raw-lead';
@@ -6,12 +6,14 @@ import { ApiService } from 'src/app/services/api.service';
 import { GlobalService } from 'src/app/services/global.service';
 import { environment } from 'src/environments/environment';
 
+declare var google: any;
+
 @Component({
   selector: 'app-lead-details',
   templateUrl: './lead-details.component.html',
   styleUrls: ['./lead-details.component.css']
 })
-export class LeadDetailsComponent implements OnInit {
+export class LeadDetailsComponent implements OnInit, OnChanges {
 
   @Input() lead: RawLead;
 
@@ -21,7 +23,54 @@ export class LeadDetailsComponent implements OnInit {
   now = new Date();
   constructor(private _api: ApiService, private _global: GlobalService) { }
   copiedText;
+  map = null;
+  markers = [];
+  infoWindow = null;
   ngOnInit() {
+  }
+
+  drawMap(bound) {
+    this.map = new google.maps.Map(
+      document.getElementById('nearby-rts-map') as HTMLElement,
+      {
+        zoom: 12, center: {lat: this.lead.latitude, lng: this.lead.longitude}
+      }
+    );
+    this.markers = [];
+    this.map.panToBounds({east: bound.lngMax, west: bound.lngMin, north: bound.latMax, south: bound.latMin});
+    this.infoWindow = new google.maps.InfoWindow();
+    this.map.addListener('click', () => {
+      this.infoWindow.close();
+      this.infoWindow.setContent('');
+    });
+    this.drawMarker(this.lead, 'red');
+    this.neighborQmenuLeads.forEach(neighbor => {
+      this.drawMarker(neighbor);
+    });
+  }
+
+  drawMarker(lead, color = 'green') {
+    const marker = new google.maps.Marker({
+      position: {lat: lead.latitude, lng: lead.longitude},
+      title: lead.name, map: this.map, icon: `./assets/icons/marker-${color}.svg`
+    });
+    marker.addListener('click', () => {
+      this.infoWindow.setContent(`
+        <div>
+            <h3>${lead.name}</h3>
+            <div>
+                ${lead.googleListing ? lead.googleListing.address : ''}
+                <a class="ml-1" href="https://www.google.com/search?q=${this.getQ(lead)}" target="_blank">
+                  Open on Google<i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+        </div>
+      `);
+      this.infoWindow.open({
+        anchor: marker, map: this.map
+      });
+    });
+    this.markers.push(marker);
   }
 
   async ngOnChanges(changes: SimpleChanges) {
@@ -105,6 +154,15 @@ export class LeadDetailsComponent implements OnInit {
         neighborQmenuLeads.length = 10;
       }
       this.neighborQmenuLeads = neighborQmenuLeads;
+      if (changes.lead.currentValue !== changes.lead.previousValue) {
+        this.map = null;
+        this.infoWindow = null;
+        this.markers.forEach(m => m.setMap(null));
+        this.markers = [];
+        if (neighborQmenuLeads.length > 0) {
+          setTimeout(() => this.drawMap(bound), 0);
+        }
+      }
     }
   }
 
@@ -244,7 +302,7 @@ export class LeadDetailsComponent implements OnInit {
   }
 
   getQ(lead) {
-    return encodeURIComponent([lead.name, lead.address, lead.city, lead.state].join(', '))
+    return encodeURIComponent([lead.name, lead.address, lead.city, lead.state].join(', '));
   }
 
   getFunnelComments(funnel) {
