@@ -45,7 +45,7 @@ export class SendTextReplyComponent implements OnChanges {
       this.sendToTypes.push('Use Old Send Google PIN');
     }
   }
-  
+
   isPhoneValid(text) {
     if (!text) {
       return false;
@@ -71,7 +71,7 @@ export class SendTextReplyComponent implements OnChanges {
     }
     return false;
   }
-  
+
   sendText() {
     if (this.sendToType === 'All SMS numbers') {
       if (this.channels && this.channels.length > 0) {
@@ -83,11 +83,17 @@ export class SendTextReplyComponent implements OnChanges {
                 "to": channel.value,
                 "from": "8557592648",
                 "providerName": "plivo",
-                "message": this.message
+                "message": this.message,
+                "trigger": {
+                  "id": this._global.user._id,
+                  "name": this._global.user.username,
+                  "source": "CSR",
+                  "module": "Send Text Message"
+                }
               }
             };
           }
-        }).filter(job =>job);
+        }).filter(job => job);
         this._api.post(environment.qmenuApiUrl + "events/add-jobs", jobs)
           .subscribe(
             result => {
@@ -116,11 +122,17 @@ export class SendTextReplyComponent implements OnChanges {
               "params": {
                 "to": channel.value,
                 "subject": "QMenu Google PIN",
-                "html": emailMessage
+                "html": emailMessage,
+                "trigger": {
+                  "id": this._global.user._id,
+                  "name": this._global.user.username,
+                  "source": "CSR",
+                  "module": "Send Text Message"
+                }
               }
-            }
+            };
           }
-        }).filter(job =>job);
+        }).filter(job => job);
         this._api.post(environment.qmenuApiUrl + "events/add-jobs", jobs)
           .subscribe(
             result => {
@@ -145,7 +157,13 @@ export class SendTextReplyComponent implements OnChanges {
           "to": this.phoneNumber,
           "from": "8557592648",
           "providerName": "plivo",
-          "message": this.message
+          "message": this.message,
+          "trigger": {
+            "id": this._global.user._id,
+            "name": this._global.user.username,
+            "source": "CSR",
+            "module": "Send Text Message"
+          }
         }
       }])
         .subscribe(
@@ -167,7 +185,13 @@ export class SendTextReplyComponent implements OnChanges {
         "params": {
           "to": this.email,
           "subject": "QMenu Google PIN",
-          "html": emailMessage
+          "html": emailMessage,
+          "trigger": {
+            "id": this._global.user._id,
+            "name": this._global.user.username,
+            "source": "CSR",
+            "module": "Send Text Message"
+          }
         }
       }])
         .subscribe(

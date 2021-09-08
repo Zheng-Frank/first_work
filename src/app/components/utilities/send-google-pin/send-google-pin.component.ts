@@ -221,7 +221,9 @@ export class SendGooglePINComponent implements OnChanges {
                             "to": messageInfo.messageTo.value,
                             "from": "8557592648",
                             "providerName": "plivo",
-                            "message": messageInfo.noticeContent
+                            "message": messageInfo.noticeContent,
+                            "operator": this._global.user.username,
+                            "source": "admin - send google pin "
                         }
                     };
                 } else if (messageInfo.messageTo.type === 'email') {
@@ -230,7 +232,13 @@ export class SendGooglePINComponent implements OnChanges {
                         "params": {
                             "to": messageInfo.messageTo.value,
                             "subject": "QMenu Google PIN",
-                            "html": messageInfo.noticeContent
+                            "html": messageInfo.noticeContent,
+                            "trigger": {
+                              "id": this._global.user._id,
+                              "name": this._global.user.username,
+                              "source": "CSR",
+                              "module": "send Google PIN"
+                            }
                         }
                     };
                 }

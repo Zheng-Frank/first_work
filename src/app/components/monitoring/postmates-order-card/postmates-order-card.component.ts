@@ -62,7 +62,7 @@ export class PostmatesOrderCardComponent implements OnInit {
     }
     return false;
   }
-  
+
   openPreviousCanceledOrderModal(order_id) {
     this.onOpenPreviousCanceledOrderModal.emit(order_id);
   }
@@ -109,7 +109,7 @@ export class PostmatesOrderCardComponent implements OnInit {
   getOrderComingTime(order) {
     let createdAtValue = this.now.valueOf() - new Date(order.createdAt).valueOf();// milliseconds
     // we only need the Integer,toFixed(0) will directly carry the decimal point in the background.
-    // so should use parseInt() method. 
+    // so should use parseInt() method.
     let hours = parseInt((createdAtValue / (3600 * 1000))+"");
     // in this place,we need the minutes after the decimal point.
     let minutes = Number(((createdAtValue - hours * 3600 * 1000) / (60 * 1000)).toFixed(0));
@@ -359,6 +359,12 @@ export class PostmatesOrderCardComponent implements OnInit {
                           url: orderRenderingUrl,
                           copies: printer.copies || 1 // default to 1
                         }
+                      },
+                      trigger: {
+                        id: this._global.user._id,
+                        name: this._global.user.username,
+                        source: "CSR",
+                        module: "postmates order - print"
                       }
                     }
                   }]).toPromise();
@@ -409,6 +415,12 @@ export class PostmatesOrderCardComponent implements OnInit {
                       url: orderRenderingUrl,
                       copies: printer.settings && printer.settings.copies || 1 // default to 1
                     }
+                  },
+                  trigger: {
+                    id: this._global.user._id,
+                    name: this._global.user.username,
+                    source: "CSR",
+                    module: "postmates order - print"
                   }
                 }
               }]).toPromise();

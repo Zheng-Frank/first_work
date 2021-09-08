@@ -385,6 +385,12 @@ export class OrderCardComponent implements OnInit {
                           url: orderRenderingUrl,
                           copies: printer.copies || 1 // default to 1
                         }
+                      },
+                      trigger: {
+                        id: this._global.user._id,
+                        name: this._global.user.username,
+                        source: "CSR",
+                        module: "order - print"
                       }
                     }
                   }]).toPromise();
@@ -435,6 +441,12 @@ export class OrderCardComponent implements OnInit {
                       url: orderRenderingUrl,
                       copies: printer.settings && printer.settings.copies || 1 // default to 1
                     }
+                  },
+                  trigger: {
+                    id: this._global.user._id,
+                    name: this._global.user.username,
+                    source: "CSR",
+                    module: "order - print"
                   }
                 }
               }]).toPromise();

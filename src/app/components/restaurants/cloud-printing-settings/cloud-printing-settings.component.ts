@@ -203,6 +203,12 @@ export class CloudPrintingSettingsComponent implements OnInit {
     //           url: url,
     //           copies: this.orderView.copies || 1 // default to 1
     //         }
+    //       },
+    //       trigger: {
+    //         id: this._global.user._id,
+    //         name: this._global.user.username,
+    //         source: "CSR",
+    //         module: "cloud print - print test order"
     //       }
     //     }
     //   }]).toPromise();
@@ -221,7 +227,13 @@ export class CloudPrintingSettingsComponent implements OnInit {
               sn: this.printer.name,
               key: this.printer.key,
               orderId: environment.testOrderId,
-              copies: this.printer.autoPrintCopies || 1
+              copies: this.printer.autoPrintCopies || 1,
+              trigger: {
+                id: this._global.user._id,
+                name: this._global.user.username,
+                source: 'CSR',
+                module: "cloud print - print test order"
+              }
             }
           }]).toPromise();
           this._global.publishAlert(AlertType.Info, "Print job sent");
@@ -234,7 +246,13 @@ export class CloudPrintingSettingsComponent implements OnInit {
               printerName: this.printer.name,
               orderId: environment.testOrderId,
               copies: this.printer.autoPrintCopies || 1,
-              format: this.printer.settings.DefaultPageSettings.PrintableArea.Width > 480 ? 'pdf' : 'png'
+              format: this.printer.settings.DefaultPageSettings.PrintableArea.Width > 480 ? 'pdf' : 'png',
+              trigger: {
+                id: this._global.user._id,
+                name: this._global.user.username,
+                source: "CSR",
+                module: "cloud print - print test order"
+              }
             }
           }]).toPromise();
           this._global.publishAlert(AlertType.Info, "Print job sent");
@@ -256,6 +274,12 @@ export class CloudPrintingSettingsComponent implements OnInit {
                   url: url,
                   copies: this.orderView.copies || 1 // default to 1
                 }
+              },
+              trigger: {
+                id: this._global.user._id,
+                name: this._global.user.username,
+                source: "CSR",
+                module: "cloud print - print test order"
               }
             }
           }]).toPromise();
@@ -532,6 +556,12 @@ export class CloudPrintingSettingsComponent implements OnInit {
               data: {
                 "fake": "id"
               }
+            },
+            trigger: {
+              id: this._global.user._id,
+              name: this._global.user.username,
+              source: "CSR",
+              module: "cloud print - pull printer"
             }
           }
         }]).toPromise();

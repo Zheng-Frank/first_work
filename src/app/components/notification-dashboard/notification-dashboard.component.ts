@@ -104,7 +104,7 @@ export class NotificationDashboardComponent implements OnInit {
     "qMenu Login Code": {
       description: "The message containing a 3-digit code sent to users so they can login to qMenu.",
       category: "misc"
-    }, 
+    },
     "CC Auth Failure": {
       description: "The warning message sent to a customer when their credit card fails to authorize on checkout",
       category: "misc"
@@ -141,7 +141,7 @@ export class NotificationDashboardComponent implements OnInit {
   editNotification(s) {
     this.notificationModal.show();
     this.notificationModal.title = 'Edit Notification';
-    // temporarily add a description to the object when we open it in the editor. This description will be deleted before saving to the db again. 
+    // temporarily add a description to the object when we open it in the editor. This description will be deleted before saving to the db again.
     this.notificationInEditor = JSON.parse(JSON.stringify(s));
     this.notificationInEditor.description = this.templateDetails[s.name].description;
     this.notificationInEditor.category = this.templateDetails[s.name].category;
@@ -210,7 +210,13 @@ export class NotificationDashboardComponent implements OnInit {
         "to": this.smsNumber.toString(),
         "from": "8557592648",
         "providerName": "plivo",
-        "message": this.replaceMergeFields(this.testMessageTemplate.content)
+        "message": this.replaceMergeFields(this.testMessageTemplate.content),
+        "trigger": {
+          "id": this._global.user._id,
+          "name": this._global.user.username,
+          "source": "CSR",
+          "module": "notification dashboard - send message"
+        }
       }
     }]).toPromise();
 

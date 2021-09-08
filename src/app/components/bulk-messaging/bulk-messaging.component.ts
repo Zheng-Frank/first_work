@@ -132,7 +132,13 @@ export class BulkMessagingComponent implements OnInit {
                 "to": rtSMS.value,
                 "from": "8557592648",
                 "providerName": "plivo",
-                "message": this.smsMsgContents
+                "message": this.smsMsgContents,
+                "trigger": {
+                  "id": this._global.user._id,
+                  "name": this._global.user.username,
+                  "source": "CSR",
+                  "module": "bulk messaging"
+                }
               }
             }]).toPromise();
           }
@@ -145,12 +151,18 @@ export class BulkMessagingComponent implements OnInit {
           for (let rtEmail of currentRestaurantEmailList) {
             console.log('Sending Email to ', rtEmail.value, this.emailMsgContents);
 
-            this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+            await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
               "name": "send-email",
               "params": {
                 "to": rtEmail.value,
                 "subject": "qMenu Newsletter",
-                "html": this.emailMsgContents
+                "html": this.emailMsgContents,
+                "trigger": {
+                  "id": this._global.user._id,
+                  "name": this._global.user.username,
+                  "source": "CSR",
+                  "module": "bulk messaging"
+                }
               }
             }]).toPromise();
           }
@@ -163,13 +175,19 @@ export class BulkMessagingComponent implements OnInit {
           for (let rtFax of currentRestaurantFaxList) {
             console.log('Sending Fax to ', rtFax.value, this.faxMsgContents);
 
-            this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+            await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
               "name": "send-fax",
               "params": {
                 "from": "8555582558",
                 "to": rtFax.value,
                 "mediaUrl": this.faxMsgContents,
-                "providerName": "twilio"
+                "providerName": "twilio",
+                "trigger": {
+                  "id": this._global.user._id,
+                  "name": this._global.user.username,
+                  "source": "CSR",
+                  "module": "bulk messaging"
+                }
               }
             }]).toPromise();
           }

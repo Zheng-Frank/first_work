@@ -2636,8 +2636,14 @@ export class DbScriptsComponent implements OnInit {
     //       params: {
     //         to: email,
     //         subject: emailSubject,
-    //         html: emailContent
-    //       }
+    //         html: emailContent,
+    //         trigger: {
+    //           id: this._global.user._id,
+    //             name: this._global.user.username,
+    //             source: "CSR",
+    //             module: "db script - handle holiday"
+    //         }
+    //       },
     //     });
     //   });
 
@@ -2650,7 +2656,13 @@ export class DbScriptsComponent implements OnInit {
     //         to: phone,
     //         from: "8447935942",
     //         providerName: "plivo",
-    //         message: smsMessage
+    //         message: smsMessage,
+    //         trigger: {
+    //           id: this._global.user._id,
+    //             name: this._global.user.username,
+    //             source: "CSR",
+    //             module: "db script - handle holiday"
+    //         }
     //       }
     //     });
     //   });
