@@ -19,6 +19,7 @@
           <button class="btn btn-link" (click)="deleteImages()">Delete Image (删除图片)</button>
           <button class="btn btn-link" (click)="disableNotes()">{{ !disableNotesFlag ? 'Enable Notes(打开注释)': 'Disable Notes(取消客人注释)' }}</button>
           <button class="btn btn-link" (click)="copyMenu = !copyMenu">Copy Menu to (拷贝菜单到)</button>
+          <button class="btn btn-link" (click)="republishToAWS()">Re-Publish Website to AWS</button>
           <button class="btn btn-link" (click)="adjustingAllPrices = !adjustingAllPrices">Adjust All Prices
             (整体提价)</button>
           <button class="btn btn-link" (click)="adjustingMenuOrders = !adjustingMenuOrders">Adjust Menu Orders
@@ -118,7 +119,7 @@
       <ul class="nav nav-tabs app-tab" role="tablist">
         <li *ngFor="let menu of getMenus()" class="nav-item">
           <a (click)=setActiveId(menu.id) class="nav-link {{getActiveId() == menu.id ? 'active' : 'text-primary'}}"
-            data-toggle="tab" role="button">{{menu.name}} 
+            data-toggle="tab" role="button">{{menu.name}}
             <ng-container *ngIf="menu.targetCustomer !== 'DINE_IN_ONLY'">
               {{menu.targetCustomer ? "("+menu.targetCustomer+")" : ''}}
             </ng-container>
