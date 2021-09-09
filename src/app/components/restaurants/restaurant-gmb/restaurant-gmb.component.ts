@@ -269,7 +269,7 @@ export class RestaurantGmbComponent implements OnInit {
 
   private isRestaurantAndGoogleListingMatched(rt, googleListing) {
     // 0. the zipcode MUST match
-    // 1. either street number or phone matched
+    // 1. if it has a phone, it MUST match the phone, otherwise matching street number if OK
     const gmbPhone = googleListing.phone;
     const rtPhones = (rt.channels || []).map(c => c.value); // it's OK to have emails in the values
     const gmbAddress = googleListing.address;
@@ -280,7 +280,7 @@ export class RestaurantGmbComponent implements OnInit {
     const phoneMatched = gmbPhone && rtPhones.some(p => p === gmbPhone);
     const zipMatched = gmbAddressParsed.zip && gmbAddressParsed.zip === rtAddressParsed.zip;
     const streetNumberMatched = gmbAddressParsed.number && gmbAddressParsed.number === rtAddressParsed.number;
-    return zipMatched && (phoneMatched || streetNumberMatched);
+    return zipMatched && (phoneMatched || (!gmbPhone && streetNumberMatched));
   }
 
 
