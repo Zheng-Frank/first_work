@@ -7,6 +7,11 @@ import { ApiService } from 'src/app/services/api.service';
 import { GlobalService } from 'src/app/services/global.service';
 import { environment } from 'src/environments/environment';
 
+enum FunnelCreateModes {
+  New = 'New Funnel',
+  Copy = 'Copy from existing funnel'
+}
+
 @Component({
   selector: 'app-lead-dashboard2',
   templateUrl: './lead-dashboard2.component.html',
@@ -22,6 +27,8 @@ export class LeadDashboard2Component implements OnInit {
     $lt: '<',
     $gt: '>',
   };
+
+  funnelCreateMode = FunnelCreateModes.New;
 
   funnels: LeadFunnel[] = [];
   sampleRows = [];
@@ -67,6 +74,11 @@ export class LeadDashboard2Component implements OnInit {
   get operators() {
     return Object.keys(this.operatorMap);
   }
+
+  get funnelCreateModes() {
+    return FunnelCreateModes;
+  }
+
   constructor(private _api: ApiService, private _global: GlobalService) {
     this.loadFunnels();
   }
@@ -75,6 +87,7 @@ export class LeadDashboard2Component implements OnInit {
   }
 
   editFunnel(funnel?: LeadFunnel) {
+    this.funnelCreateMode = FunnelCreateModes.New;
     this.editingModal.show();
     if (!funnel) {
       // creating new one!
@@ -82,6 +95,18 @@ export class LeadDashboard2Component implements OnInit {
     } else {
       this.funnelInEditing = JSON.parse(JSON.stringify(funnel));
     }
+  }
+
+  copyFunnel(funnelName) {
+    let funnel = this.funnels.find(x => x.name === funnelName);
+    this.funnelInEditing = JSON.parse(JSON.stringify(funnel));
+    this.funnelInEditing._id = undefined;
+    this.funnelInEditing.name += " - Copy";
+    this.funnelInEditing.published = false;
+  }
+
+  existingFunnelNames() {
+    return this.funnels.map(f => f.name);
   }
 
   async doneEditingFunnel(event: FormEvent) {
@@ -188,7 +213,7 @@ export class LeadDashboard2Component implements OnInit {
     const $match = { _id: { $exists: true } };
     funnel.filters.reduce((m, filter) => (m[filter.field] = {
       [filter.operator]: filter.value
-    }, m), $match)
+    }, m), $match);
     this.sampleRows = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'raw-lead',
       aggregate: [
@@ -204,7 +229,7 @@ export class LeadDashboard2Component implements OnInit {
   }
 
   getQ(lead) {
-    return encodeURIComponent([lead.name, lead.address, lead.city, lead.state].join(', '))
+    return encodeURIComponent([lead.name, lead.address, lead.city, lead.state].join(', '));
   }
 
   getColumnValue(lead, cd: TableColumnDescriptor) {

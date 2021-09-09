@@ -55,6 +55,22 @@
   <h4 *ngIf="funnelInEditing._id">Edit Funnel</h4>
   <h4 *ngIf="!funnelInEditing._id">Add Funnel</h4>
   <hr>
+  <div *ngIf="!funnelInEditing._id">
+    <label>Choose New Or Existing Funnel:</label>
+    <div>
+      <div *ngFor="let option of [funnelCreateModes.New, funnelCreateModes.Copy]; let i = index" class="d-inline-block pr-2">
+        <input type="radio" name="option" id="option-{{i}}" [value]="option" [(ngModel)]="funnelCreateMode">
+        <label for="option-{{i}}">{{option}}</label>
+      </div>
+    </div>
+
+    <div *ngIf="funnelCreateMode === funnelCreateModes.Copy">
+      <label>Choose Funnel:</label>
+      <q-dropdown [items]="existingFunnelNames()"
+                  [placeholder]="'Select a funnel...'"
+                  (selectedItemChange)="copyFunnel($event)"> </q-dropdown>
+    </div>
+  </div>
   <q-form-builder [object]="funnelInEditing" [fieldDescriptors]="funnelFieldDescriptors"
     (submit)="doneEditingFunnel($event)" (cancel)="editingModal.hide()" (remove)="removeFunnel($event)"
     [showDelete]="funnelInEditing._id">
