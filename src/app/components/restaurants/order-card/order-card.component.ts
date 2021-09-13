@@ -252,6 +252,10 @@ export class OrderCardComponent implements OnInit {
     this.showTexting = !this.showTexting;
   }
 
+  phoneNumbersOfRT() {
+    return this.restaurant.channels.filter(x => x.type === 'Phone');
+  }
+
   async sendText() {
 
     try {

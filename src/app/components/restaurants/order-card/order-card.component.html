@@ -241,14 +241,19 @@
       <div *qIf="showTexting">
         <!--div class="row"-->
         <div>
+          <div class="text-info">
+            If a phone number you are willing to send SMS is not in the list, please make sure the phone is this restaurant's phone and add it to the restaurant's channels
+          </div>
           <div>
             <label class="mr-2"> Phone:</label>
             <div class="{{!isPhoneValid() ? 'invalid' : ''}}">
-              <input type="tel" class="form-control" [(ngModel)]="phoneNumberToText">
+              <select class="form-control" [(ngModel)]="phoneNumberToText">
+                <option *ngFor="let phone of phoneNumbersOfRT()" [value]="phone.value">{{phone.value}} ({{phone.notifications?.join("/")}})</option>
+              </select>
             </div>
           </div>
           <div>
-            <button class="btn btn-primary" (click)="sendText()" style="min-width: 6rem"
+            <button class="mt-2 float-right btn btn-primary" (click)="sendText()" style="min-width: 6rem"
               [disabled]="!isPhoneValid()">Send</button>
           </div>
         </div>
