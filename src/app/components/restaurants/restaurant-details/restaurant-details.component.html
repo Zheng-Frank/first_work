@@ -31,13 +31,23 @@
 </div>
 
 <div *ngIf="restaurant && !readonly">
-  <div class="p-t-1 pt-1 p-b-1 pb-1">
-    <button (click)="toggleTextReply()" class="btn btn-secondary fa fa-comments"> Send Text Message</button>
-    <select [(ngModel)]="languageType" class="language-select mr-3 col-2" style="min-width:180px;max-width:180px;" (change)="changeLanguage()">
-      <option *ngFor="let type of languageTypes" [value]="type.value">{{type.text}}</option>
-    </select>
-    <span class="ml-2 mr-2">Explanations</span><q-toggle [(ngModel)]="showExplanations" (change)="toggleShowExplanations()"></q-toggle>
+  <div class="p-t-1 pt-1 p-b-1 pb-1 row">
+    <div class="col-2">
+      <button (click)="toggleTextReply()" class="btn btn-secondary fa fa-comments"> Send Text Message</button>
+    </div>
+    <div class="col-10 text-right">
+      <select [(ngModel)]="languageType" class="language-select mr-3 col-2" style="min-width:180px;max-width:180px;" (change)="changeLanguage()">
+        <option *ngFor="let type of languageTypes" [value]="type.value">{{type.text}}</option>
+      </select>
+      <span class="ml-2 mr-2">Explanations</span><q-toggle [(ngModel)]="showExplanations" (change)="toggleShowExplanations()" class="mr-2"></q-toggle>
+      <button class="btn btn-primary ml-2" (click)="diagnose()"><i class="fas fa-stethoscope"></i> Diagnose</button>
+    </div>
   </div>
+    <!-- start with show warning data -->
+  <div class="row alert alert-danger m-1 p-1" style="border-radius:2px;" *ngIf="getWarningData()">
+    {{getWarningData()}}
+  </div>
+  <!-- end with show warning data -->
   <div>
     <q-modal #textReplyModal>
       <button type="button" class="close"  (click)="closeTextReply()">

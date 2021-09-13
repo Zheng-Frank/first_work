@@ -1,3 +1,4 @@
+import { RestaurantDashboardComponent } from './../restaurant-dashboard/restaurant-dashboard.component';
 import { filter, map } from 'rxjs/operators';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { LanguageType } from './../../../classes/language-type';
@@ -28,7 +29,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     { value: LanguageType.CHINESE, text: "显示中文" }
   ];
   languageType = this._global.languageType;
-  restaurant: Restaurant;
+  restaurant;
   
   @Input() id;
 
@@ -87,6 +88,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     disabled: 1,
     disabledAt: 1,
     disableScheduling: 1,
+    diagnostics: 1,
     excludeAmex: 1,
     excludeDiscover: 1,
     feeSchedules: 1,
@@ -169,6 +171,19 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   timer;
   refreshDataInterval = 60 * 1000;
   openOrNot = false;
+  // use map which is warning data, and the format of the warning data name.
+  warningMap = {
+    name: 'Name',
+    formatted_address: 'Address',
+    taxRate: 'Tax Rate',
+    serviceSettings: 'Service Settings',
+    paymentMeans: 'Payment Mean',
+    feeSchedules: 'Fee Schedules',
+    qmenuWebsite: 'qMenu Website',
+    pickupTimeEstimate: 'Time Estimate for Pickup',
+    deliveryTimeEstimate: 'Time Estimate for Delivery',
+    deliverySettings: 'Delivery Settings'
+}
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
     const tabVisibilityRolesMap = {
@@ -206,6 +221,58 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     if (this.timer) {
       clearInterval(this.timer);
     }
+  }
+
+  async diagnose() {
+    try {
+      await this._api.post(environment.appApiUrl + 'utils/diagnose-restaurant', { _id: this.restaurant._id }).toPromise();
+      this.populateRTDiagnostics();
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, 'Error');
+    }
+  }
+
+  async populateRTDiagnostics(){
+    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        _id: { $oid: this.restaurant.id || this.restaurant['_id'] }
+      },
+      projection: {
+        diagnostics: 1
+      },
+      limit: 1
+    }).toPromise();
+    this.restaurant.diagnostics = (restaurants[0] || {}).diagnostics; // first restaurant
+    this.getWarningData();
+  }
+
+  getWarningData(){
+    if(this.restaurant.diagnostics && this.restaurant.diagnostics.length > 0){
+      let missing = [];
+      this.restaurant.diagnostics.sort((a,b)=>new Date(b.time).valueOf() - new Date(a.time).valueOf());
+      let lastDiagnostic = this.restaurant.diagnostics[0] || {}; 
+      lastDiagnostic.result.filter(r => r.name === 'restaurant' ||  r.name === 'web').forEach(r => {
+        (r.errors || []).forEach(error => {
+          Object.keys(this.warningMap).forEach(key=>{
+            if(error.indexOf(key) !== -1 && this.isMissingError(error) && missing.indexOf(this.warningMap[key]) === -1){
+              missing.push(this.warningMap[key]);
+            }
+          });
+        });
+      });
+      if(missing.length > 0){
+        return 'MISSING: '+missing.join(', ');
+      }
+    }
+  }
+
+  isMissingError(error){
+    return ['should NOT have fewer than 1 items',
+    'should have required property',
+    'it is missing',
+    'should NOT be shorter than 1 characters'].some(errMsg => error.indexOf(errMsg)>=0);
   }
 
   // filter the biz of restaurant's contacts to show on rt portal
