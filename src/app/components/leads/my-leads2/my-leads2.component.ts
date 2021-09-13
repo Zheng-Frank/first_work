@@ -64,7 +64,7 @@ export class MyLeads2Component implements OnInit, OnDestroy {
 
   myLeads: RawLead[] = [];
   ongoingTab = { label: 'Ongoing', rows: [], filter: 'All' };
-  succeededTab = { label: 'In qMenu', rows: [] };
+  succeededTab = { label: 'In qMenu', rows: [], filter: 'All' };
   activeTab = this.ongoingTab;
   tabs = [this.ongoingTab, this.succeededTab];
 
