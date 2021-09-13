@@ -405,7 +405,6 @@ export class MyLeads2Component implements OnInit, OnDestroy {
   }
 
   fillTabs() {
-    console.log(this.activeTab.filter);
     this.ongoingTab.rows = this.myLeads.filter(lead => !lead.restaurant).map(lead => ({
       lead,
       localTime: this.getTimeZoneTime(lead.state),
