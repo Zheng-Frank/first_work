@@ -41,6 +41,19 @@ export class MyLeads2Component implements OnInit, OnDestroy {
     'phone'
   ];
 
+  // NOTE: NOT SUPPER ACCURATE! one state could have multiple timezones. this is an approximation
+  stateTzMap = {
+    PDT: ['WA', 'OR', 'CA', 'NV', 'AZ'],
+    MDT: ['MT', 'ID', 'WY', 'UT', 'CO', 'NM'],
+    CDT: ['ND', 'SD', 'MN', 'IA', 'NE', 'KS',
+      'OK', 'TX', 'LA', 'AR', 'MS', 'AL', 'TN', 'MO', 'IL', 'WI'],
+    EDT: ['MI', 'IN', 'KY', 'GA', 'FL', 'SC', 'NC', 'VA', 'WV',
+      'OH', 'PA', 'NY', 'VT', 'NH', 'ME', 'MA', 'RJ', 'CT',
+      'NJ', 'DE', 'MD', 'DC', 'RI'],
+    HST: ['HI'],
+    AKDT: ['AK']
+  };
+
   now = new Date();
   username;
   isAdmin = false;
@@ -50,8 +63,8 @@ export class MyLeads2Component implements OnInit, OnDestroy {
   publishedFunnels: LeadFunnel[] = [];
 
   myLeads: RawLead[] = [];
-  ongoingTab = { label: 'Ongoing', rows: [] };
-  succeededTab = { label: 'In qMenu', rows: [] };
+  ongoingTab = { label: 'Ongoing', rows: [], filter: 'All' };
+  succeededTab = { label: 'In qMenu', rows: [], filter: 'All' };
   activeTab = this.ongoingTab;
   tabs = [this.ongoingTab, this.succeededTab];
 
@@ -111,6 +124,10 @@ export class MyLeads2Component implements OnInit, OnDestroy {
     if (this.timer) {
       clearInterval(this.timer);
     }
+  }
+
+  getTimezoneKeys() {
+    return ['All', ...Object.keys(this.stateTzMap)];
   }
 
   // TEMP function and scripts to clean up. Should be removed once the code base is stable
@@ -240,6 +257,7 @@ export class MyLeads2Component implements OnInit, OnDestroy {
 
     this.action = null;
   }
+
   async assign(funnel) {
 
     // my un-success leads shouldn't be over the quota
@@ -385,18 +403,18 @@ export class MyLeads2Component implements OnInit, OnDestroy {
     this.fillTabs();
 
   }
-  private fillTabs() {
 
+  fillTabs() {
     this.ongoingTab.rows = this.myLeads.filter(lead => !lead.restaurant).map(lead => ({
       lead,
       localTime: this.getTimeZoneTime(lead.state),
       timezone: this.guessTimezone(lead.state),
-    })).sort((r1, r2) => new Date(r1.lead.campaigns[0].scheduledAt || this.now).valueOf() - new Date(r2.lead.campaigns[0].scheduledAt || this.now).valueOf());
+    })).filter(lead => this.activeTab.filter === 'All' ? true : this.activeTab.filter === lead.timezone).sort((r1, r2) => new Date(r1.lead.campaigns[0].scheduledAt || this.now).valueOf() - new Date(r2.lead.campaigns[0].scheduledAt || this.now).valueOf());
 
     this.succeededTab.rows = this.myLeads.filter(lead => lead.restaurant).map(lead => ({
       lead,
       localTime: this.getTimeZoneTime(lead.state)
-    })).sort();
+    })).filter(lead => this.activeTab.filter === 'All' ? true : this.activeTab.filter === lead.localTime ).sort();
 
   }
 
@@ -417,20 +435,7 @@ export class MyLeads2Component implements OnInit, OnDestroy {
   }
 
   private guessTimezone(state) {
-    // NOTE: NOT SUPPER ACCURATE! one state could have multiple timezones. this is an approximation
-    const stateTzMap = {
-      PDT: ['WA', 'OR', 'CA', 'NV', 'AZ'],
-      MDT: ['MT', 'ID', 'WY', 'UT', 'CO', 'NM'],
-      CDT: ['ND', 'SD', 'MN', 'IA', 'NE', 'KS',
-        'OK', 'TX', 'LA', 'AR', 'MS', 'AL', 'TN', 'MO', 'IL', 'WI'],
-      EDT: ['MI', 'IN', 'KY', 'GA', 'FL', 'SC', 'NC', 'VA', 'WV',
-        'OH', 'PA', 'NY', 'VT', 'NH', 'ME', 'MA', 'RJ', 'CT',
-        'NJ', 'DE', 'MD', 'DC', 'RI'],
-      HST: ['HI'],
-      AKDT: ['AK']
-    };
-
-    const tz = Object.keys(stateTzMap).find(k => stateTzMap[k].indexOf(state) >= 0);
+    const tz = Object.keys(this.stateTzMap).find(k => this.stateTzMap[k].indexOf(state) >= 0);
     return tz;
   }
 
