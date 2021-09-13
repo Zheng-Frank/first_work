@@ -1,3 +1,4 @@
+import { GlobalService } from 'src/app/services/global.service';
 import { Component, OnInit, ViewChild, QueryList, ViewChildren, ElementRef } from '@angular/core';
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from 'src/environments/environment';
@@ -87,7 +88,9 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
   }
   graphViewing = 'Total Calls'
-
+  // users is used to calculate agentMappingNames map, 
+  // using hard code of agentMappingNames, if user table doesn't has ivrUserName  
+  users = []; 
 
   getAgent(key) {
     if (key in this.agentMappingNames) {
@@ -101,7 +104,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
     this.queryData(this.criteria)
   }
 
-  constructor(private _api: ApiService) { }
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
   changeDate() {
     // console.log("DATE CHANGING 1 ", this.inputDateOne)
@@ -509,22 +512,31 @@ export class IvrAgentAnalysisComponent implements OnInit {
       console.log("INPUT END DATE ", new Date(this.currentEndDay))
     }
 
+    let query = {};
+    if(this.isAdmin()){
+      query = {
+        "Channel": 'VOICE',
+        Agent: { $ne: null },
+        createdAt: {
+          $gt: this.currentStartDay,
+          $lt: this.currentEndDay
+        }
+      }
+    }else{
+      query = {
+        "Channel": 'VOICE',
+        "Agent.Username": this._global.user.ivrUsername,
+        createdAt: {
+          $gt: this.currentStartDay,
+          $lt: this.currentEndDay
+        }
+      }
+    }
 
-
-
-
-    // this.populateLineTimePeriods(criteria)
     let ivrData = await this._api
       .getBatch(environment.qmenuApiUrl + "generic", {
         resource: "amazon-connect-ctr",
-        query: {
-          "Channel": 'VOICE',
-          Agent: { $ne: null },
-          createdAt: {
-            $gt: this.currentStartDay,
-            $lt: this.currentEndDay
-          }
-        },
+        query: query,
         projection: {
           'Agent.Username': 1,
           'ConnectedToSystemTimestamp': 1,
@@ -539,8 +551,35 @@ export class IvrAgentAnalysisComponent implements OnInit {
     this.agents = this.processAgents(this.rawIvrData)
   }
 
+  isAdmin(){
+    return this._global.user.roles.some(role => role === 'ADMIN');
+  }
+
+  async getUsers(){
+    this.users = await this._api.getBatch(environment.qmenuApiUrl + "generic",{
+      resource:'user',
+      query:{
+        username: {
+          $exists: true
+        },
+        ivrUsername: {
+          $exists: true
+        }
+      },
+      projection:{
+        username:1,
+        ivrUsername:1
+      }
+    },10000000);
+    this.users.forEach(user=>{
+      // if ivrUsername from user table, replace or add it into the agentMappingNames.
+      this.agentMappingNames[user.ivrUsername] = user.username;
+    });
+  }
+  
   async ngOnInit() {
-    await this.queryData(this.criteria)
+    await this.getUsers();
+    await this.queryData(this.criteria);
   }
 
   processLineChartData(agentName) {
