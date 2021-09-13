@@ -3,6 +3,13 @@
 <div class="card-group">
     <div class="card">
         <div class="card-body">
+            <h5 class="card-title">Onetime Import Transactions</h5>
+            <p class="card-text">ONE TIME ONLY</p>
+            <button class="btn btn-primary" (click)="importSalaries()" [disabled]="true">Execute</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
             <h5 class="card-title">Set disabled RT's disabledAt field</h5>
             <p class="card-text">Calculate all disabled RT's disabled time by it's order/log/apilog/createdAt, and save to disabledAt field.(Safe to run multiple times.)</p>
             <button class="btn btn-primary" (click)="disableAtMigrate()">Execute</button>

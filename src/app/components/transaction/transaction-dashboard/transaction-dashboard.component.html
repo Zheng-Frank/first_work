@@ -1,4 +1,4 @@
-<h1 class="text-center">Transactions</h1>
+<h1 class="text-center">Transactions ({{getFilteredTransactions().length}})</h1>
 <div class="text-center">Total: {{getTotal() | currency : 'USD' : 'symbol'}}</div>
 <div class="clearfix">
   <div class="float-left form-inline" *ngIf="!editing">

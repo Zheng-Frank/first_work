@@ -137,10 +137,12 @@ export class TransactionDashboardComponent implements OnInit {
   async populate() {
     const transactions = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'transaction',
-      limit: 60000
+      limit: 6000000000
     }).toPromise();
     this.transactions = transactions.map(t => new Transaction(t));
     this.transactions.sort((t1, t2) => t1.time.valueOf() - t2.time.valueOf());
+    this.payers = [... new Set(this.transactions.map(t => t.payer))].sort();
+    this.payees = [... new Set(this.transactions.map(t => t.payee))].sort();
   }
 
 

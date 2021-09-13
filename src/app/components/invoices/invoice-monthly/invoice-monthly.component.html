@@ -5,15 +5,15 @@
   </div>
   <div class="float-right">
     <div class="pb-2">
-      <button class="btn btn-primary" (click)="toggleAction('invoicedButLaterCanceled')">Find Invoiced but Later
-        Canceled Orders</button>
-      <button class="btn btn-primary" (click)="toggleAction('paymentSentButNotCompleted')">Find Payment Sent but not
+      <!-- <button class="btn btn-primary" (click)="toggleAction('invoicedButLaterCanceled')">Find Invoiced but Later
+        Canceled Orders</button> -->
+      <!-- <button class="btn btn-primary" (click)="toggleAction('paymentSentButNotCompleted')">Find Payment Sent but not
         Complete
-        Invoices</button>
-      <button class="btn btn-primary" (click)="toggleAction('rolledButLaterPaid')">Find Rolled but Later Completed
-        Invoices</button>
+        Invoices</button> -->
+      <!-- <button class="btn btn-primary" (click)="toggleAction('rolledButLaterPaid')">Find Rolled but Later Completed
+        Invoices</button> -->
       <button class="btn btn-primary" (click)="toggleAction('overdue')">Find Overdue Invoices</button>
-      <button class="btn btn-primary" (click)="toggleAction('missing')">Find Uninvoiced Orders</button>
+      <!-- <button class="btn btn-primary" (click)="toggleAction('missing')">Find Uninvoiced Orders</button> -->
     </div>
   </div>
 </div>
@@ -36,7 +36,8 @@
           <div><small>{{row.restaurant.id}}</small></div>
         </td>
         <td>
-          <a target="_blank" href="#/invoices/{{row._id}}"> {{row.fromDate | adjustedDate:'MMM d yyyy' : 'America/New_York'}} -
+          <a target="_blank" href="#/invoices/{{row._id}}"> {{row.fromDate | adjustedDate:'MMM d yyyy' :
+            'America/New_York'}} -
             {{row.toDate | adjustedDate:'MMM d' : 'America/New_York'}}</a>
         </td>
         <td>
@@ -72,7 +73,8 @@
           <div><small>{{row.restaurant.id}}</small></div>
         </td>
         <td>
-          <a target="_blank" href="#/invoices/{{row._id}}"> {{row.fromDate | adjustedDate:'MMM d yyyy' : 'America/New_York'}} -
+          <a target="_blank" href="#/invoices/{{row._id}}"> {{row.fromDate | adjustedDate:'MMM d yyyy' :
+            'America/New_York'}} -
             {{row.toDate | adjustedDate:'MMM d' : 'America/New_York'}}</a>
         </td>
         <td>
@@ -96,6 +98,10 @@
           <option>agent...</option>
           <option *ngFor="let agent of overdueAgents">{{agent}}</option>
         </select>
+        <select class="form-control mr-4" [(ngModel)]="overdueMonth">
+          <option>overdue months...</option>
+          <option *ngFor="let month of [2, 3, 4, 5]">{{month}}</option>
+        </select>
         <button class="btn btn-primary" (click)="populateOverdue()"><i class="fas fa-sync-alt"></i> Reload</button>
       </div>
     </div>
@@ -106,7 +112,7 @@
         <th>Local Time</th>
         <th>Agent</th>
         <th>Invoices</th>
-        <th>Unpaid Balance</th>
+        <th>Overdue</th>
         <th>Collection Logs</th>
         <th></th>
       </tr>
@@ -116,18 +122,20 @@
           {{i+1}}
         </td>
         <td>
-          <a target="_blank" href="#/restaurants/{{row.restaurant.id}}">{{row.restaurant.name}}</a>
-          <div><small>{{row.restaurant.id}}</small></div>
+          <a class="my-text-larger" target="_blank"
+            href="#/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
+          <div><small>{{row.restaurant._id}}</small></div>
         </td>
         <td class="text-nowrap">{{row.localTimeString}}</td>
         <td>
-          {{getRowAgent(row)}}
+          {{row.restaurant?.agent}}
         </td>
         <td>
-          <table class="table table-borderless table-sm">
+          <table class="table table-borderless table-sm text-nowrap">
             <tr *ngFor="let invoice of row.invoices" class="{{invoice.isPaymentCompleted ? 'text-success' : ''}}">
               <td>
-                <a target="_blank" href="#/invoices/{{invoice._id}}"> {{invoice.fromDate | adjustedDate:'MMM d yyyy' : 'America/New_York'}} -
+                <a target="_blank" href="#/invoices/{{invoice._id}}" class="text-nowrap"> {{invoice.fromDate |
+                  adjustedDate:'MMM d yyyy' : 'America/New_York'}} -
                   {{invoice.toDate | adjustedDate:'MMM d' : 'America/New_York'}}</a>
               </td>
               <td>
@@ -136,14 +144,14 @@
             </tr>
           </table>
         </td>
-        <td>{{row.unpaidBalance | currency:'USD':'symbol'}}</td>
+        <td class="text-nowrap">{{row.overdueMonths}} months</td>
         <td>
           <table class="table table-borderless table-sm">
-            <tr *ngFor="let log of row.logs">
+            <tr *ngFor="let log of row.restaurant.logs">
               <td>
                 {{log.username}}
               </td>
-              <td>
+              <td class="text-nowrap">
                 {{log.time | adjustedDate:'MMM d' : 'America/New_York'}}
               </td>
               <td>
@@ -152,7 +160,7 @@
             </tr>
           </table>
         </td>
-        <td>
+        <td>{{row.overdueSpan}} {{row.previousPaid}}
           <button class="btn btn-info" (click)="refreshOverdueRowLogs(row)">Refresh Logs</button>
         </td>
       </tr>
@@ -209,7 +217,8 @@
           </span>
         </td>
         <td>
-          <span class="badge badge-danger mx-1" *ngFor="let gap of row.gaps">{{gap.fromDate | adjustedDate: "shortDate" : 'America/New_York'}} -
+          <span class="badge badge-danger mx-1" *ngFor="let gap of row.gaps">{{gap.fromDate | adjustedDate: "shortDate"
+            : 'America/New_York'}} -
             {{gap.toDate | adjustedDate: "shortDate" : 'America/New_York'}} ({{gap.orders.length}})</span>
         </td>
         <td>
