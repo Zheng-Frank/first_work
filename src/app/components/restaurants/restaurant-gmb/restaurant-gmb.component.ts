@@ -16,6 +16,7 @@ import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 export class RestaurantGmbComponent implements OnInit {
   @ViewChild('addGMBInviteModal') addGMBInviteModal: ModalComponent;
   @Input() restaurant;
+  @Input() displayFull;
 
   relevantGmbRequests: any[] = [];
   emailAccountDict = {} as any;
