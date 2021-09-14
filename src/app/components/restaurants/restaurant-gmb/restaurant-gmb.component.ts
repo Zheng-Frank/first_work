@@ -285,16 +285,34 @@ export class RestaurantGmbComponent implements OnInit {
 
 
   private parseAddress(address) {
-    // State Bridge Rd, Duluth, GA 30097 // partial
-    // 818 Town and Country Blvd, Houston, TX 77024
+    // 818 Town and Country Blvd, Houston, TX 77024, USA
     // 818 Town and Country Blvd, Houston, TX 77024 USA
     // 9302 100 St #9302, Grande Prairie, AB T8V 2K9, Canada
 
+    const countryMap = {
+      'USA': 'US',
+      'US': 'US',
+      'United States': 'US',
+      'Canada': 'CA',
+      'CA': 'CA'
+    };
+
+    // parse country
+    let country = 'US';
+    for (let c in countryMap) {
+      if (address.endsWith(c)) {
+        country = countryMap[c];
+      }
+    }
+
     // remove trailing ' USA', etc
     let noCountryAddress = address;
-    noCountryAddress = noCountryAddress.replace(/ USA+$/, "");
-    noCountryAddress = noCountryAddress.replace(/ United States+$/, "");
-    noCountryAddress = noCountryAddress.replace(/ Canada+$/, "");
+    for (let c in countryMap) {
+      if (address.endsWith(c)) {
+        // 818 Town and Country Blvd, Houston, TX 77024, USA => 818 Town and Country Blvd, Houston, TX 77024, 
+        noCountryAddress = noCountryAddress.substring(0, noCountryAddress.length - c.length);
+      }
+    }
     // also trim ' ' and ','!
     noCountryAddress = noCountryAddress.split(' ').filter(t => t.length > 0).join(' ');
     noCountryAddress = noCountryAddress.split(',').filter(t => t.length > 0).join(',');
@@ -307,7 +325,7 @@ export class RestaurantGmbComponent implements OnInit {
     const street = parts[0].split(" ").slice(1).join(" ");
 
     return {
-      state, zip, number, city, street
+      state, zip, number, city, street, country
     }
   }
 
