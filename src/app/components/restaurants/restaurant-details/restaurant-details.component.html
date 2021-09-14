@@ -31,6 +31,7 @@
 
 <div *ngIf="restaurant && readonly">
   <app-restaurant-profile [restaurant]="restaurant" [editable]="false"></app-restaurant-profile>
+  <app-restaurant-gmb [restaurant]="restaurant" [displayFull]="false"></app-restaurant-gmb>
 </div>
 
 <div *ngIf="restaurant && !readonly">
@@ -105,7 +106,7 @@
       </div>
 
       <div *ngIf="activeTab === 'GMB'">
-        <app-restaurant-gmb [restaurant]="restaurant"></app-restaurant-gmb>
+        <app-restaurant-gmb [restaurant]="restaurant" [displayFull]="true"></app-restaurant-gmb>
       </div>
 
       <div class="row mt-4" *ngIf="activeTab === 'Settings'">
