@@ -57,6 +57,41 @@ export class MenusComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
+  async republishToAWS() {
+    try {
+      // --- Re publish changes
+      const domain = Helper.getTopDomain(this.restaurant.web.qmenuWebsite);
+      const templateName = this.restaurant.web.templateName;
+      const restaurantId = this.restaurant._id;
+
+      if (!templateName || !domain) {
+        return this._global.publishAlert(AlertType.Danger, 'Missing template name or website');
+      }
+
+      if (domain.indexOf('qmenu.us') >= 0) {
+        return this._global.publishAlert(AlertType.Danger, 'Failed. Can not inject qmenu');
+      }
+
+      await this._api.post(environment.qmenuApiUrl + 'utils/publish-website-s3', {
+        domain,
+        templateName,
+        restaurantId
+      }).toPromise();
+
+      // --- Invalidate domain
+      const result = await this._api.post(environment.appApiUrl + 'events',
+        [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: 'invalidate-domain', params: { domain: domain } } }]
+      ).toPromise();
+
+      console.log('republishToAWS() nvalidation result:', result);
+
+      this._global.publishAlert(AlertType.Success, 'Republishing to AWS was successful');
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, 'Error republishing to AWS');
+      console.error(error);
+    }
+  }
+
   ngOnInit() {
     this.disableNotesFlag = (this.restaurant.menus || []).some(m => m.mcs.some(mc => mc.mis.some(mi => mi.nonCustomizable)));
   }
@@ -517,7 +552,7 @@ export class MenusComponent implements OnInit {
     this.menuEditingModal.show();
   }
 
-  // judge menu missing menu hours 
+  // judge menu missing menu hours
   isMissingHoursMenu(menu){
     return !menu.hours || (menu.hours && menu.hours.length === 0);
   }
