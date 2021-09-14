@@ -383,7 +383,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   }
 
   displayWebsiteForMarketing() {
-    return this._global.user.roles.includes('MARKETER') && !this._global.user.roles.includes('ADMIN');
+    return this._global.user.roles.includes('MARKETER') && !this.editable;
   }
 
   ok() {
