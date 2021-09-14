@@ -14,14 +14,17 @@
 
       <div class="small">
         {{restaurant.googleAddress.formatted_address}}
-        (<a class="google_link" href="{{googleSearchText}}" target="_blank">Google<i class="fas fa-external-link-alt"></i></a>)
+        (<a class="google_link" href="{{googleSearchText}}" target="_blank">Google<i
+            class="fas fa-external-link-alt"></i></a>)
       </div>
       <div class="small">
-          Time: {{now| adjustedDate: 'h:mm a':restaurant.googleAddress.timezone}}, {{openOrNot?'Open':'Closed'}}<ng-container *ngIf="getBizContacts()">, {{getBizContacts()}}</ng-container>
-          <ng-container *ngIf="valueVisible()">(Value: {{ restaurant.score || 0 | number: "1.1-1" }})</ng-container>
+        Time: {{now| adjustedDate: 'h:mm a':restaurant.googleAddress.timezone}}, {{openOrNot?'Open':'Closed'}}
+        <ng-container *ngIf="getBizContacts()">, {{getBizContacts()}}</ng-container>
+        <ng-container *ngIf="valueVisible()">(Value: {{ displayValue(restaurant) }})</ng-container>
       </div>
       <h1 *ngIf="restaurant.disabled && restaurant.comebackDate === undefined" class="alert alert-danger">DISABLED</h1>
-      <h1 *ngIf="restaurant.disabled && (restaurant.comebackDate === null || isDate(restaurant.comebackDate))" class="alert alert-danger">TEMPORARILY DISABLED</h1>
+      <h1 *ngIf="restaurant.disabled && (restaurant.comebackDate === null || isDate(restaurant.comebackDate))"
+        class="alert alert-danger">TEMPORARILY DISABLED</h1>
     </q-banner>
   </div>
 </div>
@@ -36,21 +39,23 @@
       <button (click)="toggleTextReply()" class="btn btn-secondary fa fa-comments"> Send Text Message</button>
     </div>
     <div class="col-10 text-right">
-      <select [(ngModel)]="languageType" class="language-select mr-3 col-2" style="min-width:180px;max-width:180px;" (change)="changeLanguage()">
+      <select [(ngModel)]="languageType" class="language-select mr-3 col-2" style="min-width:180px;max-width:180px;"
+        (change)="changeLanguage()">
         <option *ngFor="let type of languageTypes" [value]="type.value">{{type.text}}</option>
       </select>
-      <span class="ml-2 mr-2">Explanations</span><q-toggle [(ngModel)]="showExplanations" (change)="toggleShowExplanations()" class="mr-2"></q-toggle>
+      <span class="ml-2 mr-2">Explanations</span>
+      <q-toggle [(ngModel)]="showExplanations" (change)="toggleShowExplanations()" class="mr-2"></q-toggle>
       <button class="btn btn-primary ml-2" (click)="diagnose()"><i class="fas fa-stethoscope"></i> Diagnose</button>
     </div>
   </div>
-    <!-- start with show warning data -->
+  <!-- start with show warning data -->
   <div class="row alert alert-danger m-1 p-1" style="border-radius:2px;" *ngIf="getWarningData()">
     {{getWarningData()}}
   </div>
   <!-- end with show warning data -->
   <div>
     <q-modal #textReplyModal>
-      <button type="button" class="close"  (click)="closeTextReply()">
+      <button type="button" class="close" (click)="closeTextReply()">
         <span>×</span>
       </button>
       <h4 class="text-center">Send Text Message</h4>
@@ -65,12 +70,14 @@
         <li class="nav-item" *ngFor="let tab of tabs">
           <a *ngIf="tab === 'Menus' " class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
             style="cursor: pointer;">{{tab}} ({{restaurant?.menus?.length || 0}})</a>
-          <a *ngIf="tab === 'Menu Options'" class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
-            style="cursor: pointer;">{{tab}} ({{restaurant?.menuOptions?.length || 0}})</a>
+          <a *ngIf="tab === 'Menu Options'" class="nav-link {{activeTab === tab? 'active' : ''}}"
+            (click)="setActiveTab(tab)" style="cursor: pointer;">{{tab}} ({{restaurant?.menuOptions?.length || 0}})</a>
           <a *ngIf="tab === 'Coupons'" class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
             style="cursor: pointer;">{{tab}} ({{restaurant?.promotions?.length || 0}})</a>
-          <a *ngIf="tab != 'Menus' && tab != 'Menu Options' && tab != 'Coupons' " class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
-            style="cursor: pointer;">{{tab}} <ng-container *ngIf="tab === 'Logs'">({{restaurant?.logs?.length || 0}})</ng-container></a>
+          <a *ngIf="tab != 'Menus' && tab != 'Menu Options' && tab != 'Coupons' "
+            class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
+            style="cursor: pointer;">{{tab}} <ng-container *ngIf="tab === 'Logs'">({{restaurant?.logs?.length || 0}})
+            </ng-container></a>
         </li>
       </ul>
     </div>
@@ -103,10 +110,11 @@
 
       <div class="row mt-4" *ngIf="activeTab === 'Settings'">
         <div class="col-xl-6" *ngIf="isSectionVisible('profile')">
-          <app-restaurant-profile [restaurant]="restaurant" #restaurantProfile [users]="knownUsers" [editable]="true"></app-restaurant-profile>
+          <app-restaurant-profile [restaurant]="restaurant" #restaurantProfile [users]="knownUsers" [editable]="true">
+          </app-restaurant-profile>
         </div>
         <div class="col-xl-6" *ngIf="isSectionVisible('webSettings')">
-            <app-email-code-reader [restaurant]="restaurant"></app-email-code-reader>
+          <app-email-code-reader [restaurant]="restaurant"></app-email-code-reader>
         </div>
         <div class="col-xl-6" *ngIf="isSectionVisible('restaurantManagedWebSettings')">
           <app-restaurant-web-settings [restaurant]="restaurant"></app-restaurant-web-settings>
@@ -159,7 +167,7 @@
       </div>
       <!-- start with IVR -->
       <div *ngIf="activeTab === 'IVR'">
-        <app-restaurant-ivr-list [restaurant]="restaurant" ></app-restaurant-ivr-list>
+        <app-restaurant-ivr-list [restaurant]="restaurant"></app-restaurant-ivr-list>
       </div>
       <!-- end with IVR -->
       <div *ngIf="activeTab === 'Tasks'">

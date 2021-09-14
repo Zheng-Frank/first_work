@@ -309,6 +309,19 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     return ['CSR', 'ADMIN', 'GMB'].some(role=>this._global.user.roles.includes(role));
   }
 
+  displayValue(rt) {
+    if (this._global.user.roles.includes('ADMIN')) {
+      return (rt.score || 0).toFixed (1) ;
+    }
+    if (!rt.score || rt.score >= 0 && rt.score < 3) {
+      return 'Low'
+    } else if (rt.score >= 3 && rt.score < 6) {
+      return 'Medium'
+    } else {
+      return 'High';
+    }
+  }
+
   // select html element change invoke it , and its function is change restaurant profile field into Chinese or English
   changeLanguage() {
     if (this.languageType === LanguageType.ENGLISH) {
