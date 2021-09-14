@@ -30,7 +30,7 @@
 </div>
 
 <div *ngIf="restaurant && readonly">
-  <app-restaurant-profile [restaurant]="restaurant"></app-restaurant-profile>
+  <app-restaurant-profile [restaurant]="restaurant" [editable]="false"></app-restaurant-profile>
 </div>
 
 <div *ngIf="restaurant && !readonly">
