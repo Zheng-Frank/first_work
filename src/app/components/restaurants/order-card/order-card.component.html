@@ -248,7 +248,7 @@
             <label class="mr-2"> Phone:</label>
             <div class="{{!isPhoneValid() ? 'invalid' : ''}}">
               <select class="form-control" [(ngModel)]="phoneNumberToText">
-                <option *ngFor="let phone of phoneNumbersOfRT()" [value]="phone.value">{{phone.value}} ({{phone.notifications?.join("/")}})</option>
+                <option *ngFor="let phone of phoneNumbersOfRT()" [value]="phone.value">{{phone.value}}</option>
               </select>
             </div>
           </div>

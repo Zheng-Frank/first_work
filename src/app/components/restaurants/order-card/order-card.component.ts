@@ -253,7 +253,7 @@ export class OrderCardComponent implements OnInit {
   }
 
   phoneNumbersOfRT() {
-    return this.restaurant.channels.filter(x => x.type === 'Phone');
+    return this.restaurant.channels.filter(x => x.type === 'SMS');
   }
 
   async sendText() {
