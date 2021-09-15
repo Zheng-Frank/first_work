@@ -11,7 +11,7 @@
 
     <td>
       <div class="form-group row">
-        <label class="col-3 col-form-label pt-0">Restaurant Managed Website {{row.sortWeight}}</label>
+        <label class="col-3 col-form-label pt-0">Restaurant Managed Website</label>
         <div class="col-9 text-left">
           <q-edit-label [value]="row.web?.bizManagedWebsite" (edit)="onEdit($event, row, 'bizManagedWebsite')"></q-edit-label>
           <div *ngIf="row.web?.bizManagedWebsite" class="pt-2">

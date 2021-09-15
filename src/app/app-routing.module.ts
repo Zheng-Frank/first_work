@@ -84,6 +84,7 @@ import { LeadDashboard2Component } from './components/leads/lead-dashboard2/lead
 import { MyLeads2Component } from './components/leads/my-leads2/my-leads2.component';
 import { CleanMenusComponent } from './components/monitoring/clean-menus/clean-menus.component';
 import { FraudDetectionComponent } from './components/fraud-detection/fraud-detection.component';
+import {CleanInsistedLinksComponent} from "./components/clean-insisted-links/clean-insisted-links.component";
 
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component },
@@ -169,6 +170,7 @@ const routes: Routes = [
   { path: 'routines-admin', component: RoutineAdminDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'seo-tracking', component: SeoTrackingComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'clean-menus', component: CleanMenusComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  { path: 'clean-insisted-link-rts', component: CleanInsistedLinksComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'fraud-detection', component: FraudDetectionComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: '**', redirectTo: '/home' }
 
