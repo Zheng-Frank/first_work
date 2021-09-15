@@ -30,7 +30,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   ];
   languageType = this._global.languageType;
   restaurant;
-  
+
   @Input() id;
 
   tabs = [];
@@ -183,7 +183,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     pickupTimeEstimate: 'Time Estimate for Pickup',
     deliveryTimeEstimate: 'Time Estimate for Delivery',
     deliverySettings: 'Delivery Settings'
-}
+  }
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
     const tabVisibilityRolesMap = {
@@ -233,7 +233,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  async populateRTDiagnostics(){
+  async populateRTDiagnostics() {
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
@@ -248,36 +248,36 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     this.getWarningData();
   }
 
-  getWarningData(){
-    if(this.restaurant.diagnostics && this.restaurant.diagnostics.length > 0){
+  getWarningData() {
+    if (this.restaurant.diagnostics && this.restaurant.diagnostics.length > 0) {
       let missing = [];
-      this.restaurant.diagnostics.sort((a,b)=>new Date(b.time).valueOf() - new Date(a.time).valueOf());
-      let lastDiagnostic = this.restaurant.diagnostics[0] || {}; 
-      lastDiagnostic.result.filter(r => r.name === 'restaurant' ||  r.name === 'web').forEach(r => {
+      this.restaurant.diagnostics.sort((a, b) => new Date(b.time).valueOf() - new Date(a.time).valueOf());
+      let lastDiagnostic = this.restaurant.diagnostics[0] || {};
+      lastDiagnostic.result.filter(r => r.name === 'restaurant' || r.name === 'web').forEach(r => {
         (r.errors || []).forEach(error => {
-          Object.keys(this.warningMap).forEach(key=>{
-            if(error.indexOf(key) !== -1 && this.isMissingError(error) && missing.indexOf(this.warningMap[key]) === -1){
+          Object.keys(this.warningMap).forEach(key => {
+            if (error.indexOf(key) !== -1 && this.isMissingError(error) && missing.indexOf(this.warningMap[key]) === -1) {
               missing.push(this.warningMap[key]);
             }
           });
         });
       });
-      if(missing.length > 0){
-        return 'MISSING: '+missing.join(', ');
+      if (missing.length > 0) {
+        return 'MISSING: ' + missing.join(', ');
       }
     }
   }
 
-  isMissingError(error){
+  isMissingError(error) {
     return ['should NOT have fewer than 1 items',
-    'should have required property',
-    'it is missing',
-    'should NOT be shorter than 1 characters'].some(errMsg => error.indexOf(errMsg)>=0);
+      'should have required property',
+      'it is missing',
+      'should NOT be shorter than 1 characters'].some(errMsg => error.indexOf(errMsg) >= 0);
   }
 
   // filter the biz of restaurant's contacts to show on rt portal
   getBizContacts() {
-    return (this.restaurant.channels || []).filter(channel => channel.type === 'Phone' && (channel.notifications || []).includes('Business')).map(c=>c.value).join(', ');
+    return (this.restaurant.channels || []).filter(channel => channel.type === 'Phone' && (channel.notifications || []).includes('Business')).map(c => c.value).join(', ');
   }
 
   async reload(callback: (rt: Restaurant) => any) {
@@ -305,8 +305,23 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     );
   }
 
-  valueVisible(){
-    return ['CSR', 'ADMIN', 'GMB'].some(role=>this._global.user.roles.includes(role));
+  valueVisible() {
+    return ['CSR', 'ADMIN', 'GMB'].some(role => this._global.user.roles.includes(role));
+  }
+
+  displayValue(rt) {
+    if (this._global.user.roles.includes('ADMIN')) {
+      return (rt.score || 0).toFixed(1);
+    }
+    if (!rt.score) {
+      return 'No Score'
+    } else if (rt.score >= 0 && rt.score < 3) {
+      return 'Low'
+    } else if (rt.score >= 3 && rt.score < 6) {
+      return 'Medium'
+    } else {
+      return 'High';
+    }
   }
 
   // select html element change invoke it , and its function is change restaurant profile field into Chinese or English
@@ -331,24 +346,24 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     // judge whether open
     // 1. by menu hours
     let flag = false;
-    for (let i = 0; i < (this.restaurant.menus||[]).length; i++) {
-      const menu = (this.restaurant.menus||[])[i];
-      if((menu.hours||[]).some(hour=>hour.isOpenAtTime(this.now, this.restaurant.googleAddress.timezone))){
+    for (let i = 0; i < (this.restaurant.menus || []).length; i++) {
+      const menu = (this.restaurant.menus || [])[i];
+      if ((menu.hours || []).some(hour => hour.isOpenAtTime(this.now, this.restaurant.googleAddress.timezone))) {
         flag = true;
         break;
       }
     }
     // 2. by restaurant closed hours
-    let closedHours = (this.restaurant.closedHours || []).filter(hour=>!(hour.toTime && this.now > hour.toTime));
-     
-    if(closedHours.some(hour=>{
+    let closedHours = (this.restaurant.closedHours || []).filter(hour => !(hour.toTime && this.now > hour.toTime));
+
+    if (closedHours.some(hour => {
       let nowTime = TimezoneHelper.getTimezoneDateFromBrowserDate(this.now, this.restaurant.googleAddress.timezone);
-      return nowTime >=hour.fromTime && nowTime<=hour.toTime;
-    })){
+      return nowTime >= hour.fromTime && nowTime <= hour.toTime;
+    })) {
       flag = false;
     }
 
-    if(flag){
+    if (flag) {
       this.openOrNot = true;
     }
     this.now = new Date();
@@ -356,7 +371,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
   async loadDetails() {
     this.readonly = true;
-   
+
     if (this.id) {
       this.apiRequesting = true;
       const query = { _id: { $oid: this.id } };
@@ -370,7 +385,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
         results => {
           this.apiRequesting = false;
           const rt = results[0];
-
           (rt.gmbOwnerHistory || []).reverse();
 
           (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi && mi.name)));
@@ -391,7 +405,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           this.googleSearchText = "https://www.google.com/search?q=" + encodeURIComponent(name + " " + formatted_address);
           // set timer of rt portal  
           this.refreshTime();
-          this.timer = setInterval(()=>this.refreshTime(), this.refreshDataInterval);
+          this.timer = setInterval(() => this.refreshTime(), this.refreshDataInterval);
         },
         error => {
           this.apiRequesting = false;
