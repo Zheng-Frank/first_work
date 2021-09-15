@@ -583,12 +583,6 @@ export class GlobalService {
           fa: "fas fa-history",
           accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"]
         },
-        // {
-        //   name: "Payments",
-        //   href: "#/payments",
-        //   fa: "fas fa-hand-holding-usd",
-        //   accessibleRoles: ["ADMIN", "ACCOUNTANT", "CSR"]
-        // },
         {
           name: "Invoices",
           href: "#/invoices",

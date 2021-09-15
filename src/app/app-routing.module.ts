@@ -19,7 +19,6 @@ import { Bs4Component } from './components/development/bs4/bs4.component';
 import { UIPreviewComponent } from './components/development/ui-preview/ui-preview/ui-preview.component';
 import { HomeComponent } from './components/home/home.component';
 import { LogsDashboardComponent } from './components/logs/logs-dashboard/logs-dashboard.component';
-import { PaymentsDashboardComponent } from './components/payments/payments-dashboard/payments-dashboard.component';
 import { InvoiceDashboardComponent } from './components/invoices/invoice-dashboard/invoice-dashboard.component';
 import { LeadDashboardComponent } from './components/leads/lead-dashboard/lead-dashboard.component';
 import { MyLeadsComponent } from './components/leads/my-leads/my-leads.component';
@@ -90,7 +89,6 @@ const routes: Routes = [
   { path: 'ui-preview', component: UIPreviewComponent },
   { path: 'home', component: HomeComponent, canActivate: [RoleGuard], data: { roles: ['MENU_EDITOR', 'ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'ACCOUNTANT', 'GMB', 'CSR'] } },
   { path: 'logs', component: LogsDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETING_DIRECTOR', 'MARKETER', 'GMB', 'CSR', 'ACCOUNTANT', 'MENU_EDITOR', 'DRIVER', 'RATE_EDITOR'] } },
-  { path: 'payments', component: PaymentsDashboardComponent, canActivate: [RoleGuard], data: { roles: ['CSR', 'ACCOUNTANT', 'ADMIN'] } },
   { path: 'invoices', component: InvoiceDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT', 'CSR'] } },
   { path: 'invoices/cycles', component: CyclesComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
   { path: 'invoices/cycles/:id', component: CycleDetailsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
