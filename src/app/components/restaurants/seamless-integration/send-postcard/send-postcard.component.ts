@@ -69,10 +69,10 @@ export class SendPostcardComponent implements OnInit {
             .post(environment.appApiUrl + "utils/send-postcard", {
               name: this.postcards[i].name,
               address: this.postcards[i].address,
-              frontUrl: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${encodeURIComponent(
+              frontUrl: `${environment.utilsApiUrl}render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${encodeURIComponent(
                 this.postcards[i].code
               )}%26side%3Dfront%26style%3d${this.style}&format=jpg`,
-              backUrl: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${encodeURIComponent(
+              backUrl: `${environment.utilsApiUrl}render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${encodeURIComponent(
                 this.postcards[i].code
               )}%26side%3Dback%26style%3d${this.style}&format=jpg`,
             })

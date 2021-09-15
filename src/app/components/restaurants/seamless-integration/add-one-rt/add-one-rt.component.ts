@@ -107,10 +107,10 @@ export class AddOneRtComponent implements OnInit {
             .post(environment.appApiUrl + "utils/send-postcard", {
               name: foundRes.name,
               address: foundRes.googleAddress.formatted_address,
-              frontUrl: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${encodeURIComponent(
+              frontUrl: `${environment.utilsApiUrl}render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${encodeURIComponent(
                 code
               )}%26side%3Dfront%26style%3d${this.style}&format=jpg`,
-              backUrl: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${encodeURIComponent(
+              backUrl: `${environment.utilsApiUrl}render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${encodeURIComponent(
                 code
               )}%26side%3Dback%26style%3d${this.style}&format=jpg`,
             })

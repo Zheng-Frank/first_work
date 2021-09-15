@@ -89,7 +89,7 @@ export class PostmatesOrderCardComponent implements OnInit {
   /**
    * if the customer has other orders in our platform,show it in a modal.
    */
-  openPreviousOrdersModal(order){
+  openPreviousOrdersModal(order) {
     this.onOpenPreviousOrdersModal.emit(order.previousOrders);
   }
   /**
@@ -110,7 +110,7 @@ export class PostmatesOrderCardComponent implements OnInit {
     let createdAtValue = this.now.valueOf() - new Date(order.createdAt).valueOf();// milliseconds
     // we only need the Integer,toFixed(0) will directly carry the decimal point in the background.
     // so should use parseInt() method.
-    let hours = parseInt((createdAtValue / (3600 * 1000))+"");
+    let hours = parseInt((createdAtValue / (3600 * 1000)) + "");
     // in this place,we need the minutes after the decimal point.
     let minutes = Number(((createdAtValue - hours * 3600 * 1000) / (60 * 1000)).toFixed(0));
     if (hours > 1) {
@@ -264,9 +264,6 @@ export class PostmatesOrderCardComponent implements OnInit {
     const customizedRenderingStyles = encodeURIComponent(orderView.customizedRenderingStyles || '');
     const menusEncoded = encodeURIComponent(JSON.stringify(menus || []));
     const template = orderView.template === 'chef' ? 'restaurantOrderPosChef' : 'restaurantOrderPos';
-
-    // url: "https://08znsr1azk.execute-api.us-east-1.amazonaws.com/prod/renderer?orderId=5c720fd092edbd4b28883ee1&template=restaurantOrderPosChef&format=png&customizedRenderingStyles=body%20%7B%20color%3A%20red%3B%20%7D&menus=%5B%7B%22name%22%3A%22All%20Day%20Menu%22%2C%22mcs%22%3A%5B%7B%22name%22%3A%22SPECIAL%20DISHES%22%2C%22mis%22%3A%5B%7B%22name%22%3A%221.Egg%20Roll%20(2)%22%7D%5D%7D%5D%7D%5D"
-
     let url = `${environment.legacyApiUrl.replace('https', 'http')}utilities/order/${environment.testOrderId}?format=pos&injectedStyles=${customizedRenderingStyles}`;
     if (format === 'esc' || format === 'gdi' || format === 'pdf' || (printClient.info && printClient.info.version && +printClient.info.version.split(".")[0] >= 3)) {
       // ONLY newest phoenix support chef view so for now
@@ -321,14 +318,10 @@ export class PostmatesOrderCardComponent implements OnInit {
 
                   let orderRenderingUrl;
                   if (format === "esc" || format === "gdi" || (format === "pdf") || (pc.info && pc.info.version && +pc.info.version.split(".")[0] >= 3)) {
-                    const stage = environment.env;
-                    orderRenderingUrl = `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/${stage}/renderer?orderId=${this.order.id}&template=${template}&format=${format}&customizedRenderingStyles=${encodeURIComponent(customizedRenderingStyles)}&menus=${encodeURIComponent(JSON.stringify(menus))}`;
+                    orderRenderingUrl = `${environment.utilsApiUrl}renderer?orderId=${this.order.id}&template=${template}&format=${format}&customizedRenderingStyles=${encodeURIComponent(customizedRenderingStyles)}&menus=${encodeURIComponent(JSON.stringify(menus))}`;
                   }
                   else {
-                    let legacyUrl = 'https://api.myqmenu.com/';
-                    if (environment.env === 'dev') {
-                      legacyUrl = "https://quez.herokuapp.com/";
-                    }
+                    let legacyUrl = environment.legacyApiUrl;
                     orderRenderingUrl = legacyUrl + 'utilities/order/' + this.order.id + '?format=pos';
                   }
 
@@ -376,17 +369,13 @@ export class PostmatesOrderCardComponent implements OnInit {
               let orderRenderingUrl;
               const format = printer.format || "png";
               if (format === "esc" || format === "gdi" || (format === "pdf") || (pc.info && pc.info.version && +pc.info.version.split(".")[0] >= 3)) {
-                const stage = environment.env;
-                orderRenderingUrl = `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/${stage}/renderer?orderId=${this.order.id}&template=restaurantOrderPos&format=${format}`;
+                orderRenderingUrl = `${environment.utilsApiUrl}renderer?orderId=${this.order.id}&template=restaurantOrderPos&format=${format}`;
                 if (format === "pdf") {
-                  orderRenderingUrl = `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/${stage}/renderer?orderId=${this.order.id}&template=restaurantOrderFax&format=${format}`;
+                  orderRenderingUrl = `${environment.utilsApiUrl}renderer?orderId=${this.order.id}&template=restaurantOrderFax&format=${format}`;
                 }
               }
               else {
-                let legacyUrl = 'https://api.myqmenu.com/';
-                if (environment.env === 'dev') {
-                  legacyUrl = "https://quez.herokuapp.com/";
-                }
+                let legacyUrl = environment.legacyApiUrl;
                 orderRenderingUrl = legacyUrl + 'utilities/order/' + this.order.id + '?format=pos';
               }
 
