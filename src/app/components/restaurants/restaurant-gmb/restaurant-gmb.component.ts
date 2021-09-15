@@ -290,43 +290,44 @@ export class RestaurantGmbComponent implements OnInit {
     // 9302 100 St #9302, Grande Prairie, AB T8V 2K9, Canada
 
     const countryMap = {
-      'USA': 'US',
-      'US': 'US',
+      USA: 'US',
+      US: 'US',
       'United States': 'US',
-      'Canada': 'CA',
-      'CA': 'CA'
+      Canada: 'CA',
+      CA: 'CA',
     };
 
     // parse country
     let country = 'US';
-    for (let c in countryMap) {
+    Object.keys(countryMap).forEach(c => {
       if (address.endsWith(c)) {
         country = countryMap[c];
       }
-    }
+    });
 
     // remove trailing ' USA', etc
     let noCountryAddress = address;
-    for (let c in countryMap) {
+    Object.keys(countryMap).forEach(c => {
       if (address.endsWith(c)) {
-        // 818 Town and Country Blvd, Houston, TX 77024, USA => 818 Town and Country Blvd, Houston, TX 77024, 
+        // 818 Town and Country Blvd, Houston, TX 77024, USA => 818 Town and Country Blvd, Houston, TX 77024,
         noCountryAddress = noCountryAddress.substring(0, noCountryAddress.length - c.length);
       }
-    }
+    });
+
     // also trim ' ' and ','!
     noCountryAddress = noCountryAddress.split(' ').filter(t => t.length > 0).join(' ');
     noCountryAddress = noCountryAddress.split(',').filter(t => t.length > 0).join(',');
 
-    const parts = noCountryAddress.split(", ");
-    const state = parts[parts.length - 1].split(" ")[0];
-    const zip = parts[parts.length - 1].split(" ").slice(1).join(" ");
-    const number = parts[0].split(" ")[0];
+    const parts = noCountryAddress.split(', ');
+    const state = parts[parts.length - 1].split(' ')[0];
+    const zip = parts[parts.length - 1].split(' ').slice(1).join(' ');
+    const number = parts[0].split(' ')[0];
     const city = parts[parts.length - 2];
-    const street = parts[0].split(" ").slice(1).join(" ");
+    const street = parts[0].split(' ').slice(1).join(' ');
 
     return {
-      state, zip, number, city, street, country
-    }
+      state, zip, number, city, street, country,
+    };
   }
 
   async refreshMainListing() {
