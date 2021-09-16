@@ -16,6 +16,7 @@ import { Channel } from '../../../classes/channel';
 import { Helper } from "../../../classes/helper";
 import { FattmerchantComponent } from '../fattmerchant/fattmerchant.component';
 import { StripeComponent } from '../stripe/stripe.component';
+import {SendMessageComponent} from '../../utilities/send-message/send-message.component';
 
 declare var $: any;
 declare var window: any;
@@ -29,10 +30,12 @@ const FATT_LIMIT = 299;
 })
 export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('myInvoiceViewer') myInvoiceViewer;
+  @ViewChild('sendMessageComponent') sendMessageComponent: SendMessageComponent;
 
   invoice: Invoice;
   paymentMeans: PaymentMeans[] = [];
   restaurantLogs: Log[] = [];
+  restaurantLogsExpand = false;
   restaurantId;
   restaurant: Restaurant;
 
@@ -50,6 +53,8 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     // 'US': 'USD', // this is the default
     'CA': 'CAD'
   };
+
+  templates = [];
 
   invoiceCurrency;
   @ViewChild('adjustmentModal') adjustmentModal: ModalComponent;
@@ -150,6 +155,22 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
           })
       )).pipe(mergeMap(invoices => {
         this.invoice = new Invoice(invoices[0]);
+        this.templates = [
+          [
+            {
+              title: 'Overdue invoice msg (Eng)',
+              subject: 'Overdue invoice reminder',
+              smsContent: `Hello, this is a message from qMenu. Please note that your restaurant has multiple outstanding invoices due, totaling $${this.invoice.balance}. We have re-sent you the latest bill via email, SMS, and/or fax, which should include all unpaid balances rolled over from any previous bill(s). Please review and settle your payment as soon as possible. This is a reminder that if payment is not received by the end of next week, our system will automatically modify your restaurant’s payment collection settings to have qMenu collect payment until the unpaid invoice balance is recouped. Thank you for your understanding and cooperation.`,
+              emailContent: `Hello, <br/>&nbsp;&nbsp;&nbsp;&nbsp;this is a message from qMenu. Please note that your restaurant has multiple outstanding invoices due, totaling $${this.invoice.balance}. We have re-sent you the latest bill via email, SMS, and/or fax, which should include all unpaid balances rolled over from any previous bill(s). Please review and settle your payment as soon as possible. <br/>&nbsp;&nbsp;&nbsp;&nbsp;This is a reminder that if payment is not received by the end of next week, our system will automatically modify your restaurant’s payment collection settings to have qMenu collect payment until the unpaid invoice balance is recouped. <br/>&nbsp;&nbsp;&nbsp;&nbsp;Thank you for your understanding and cooperation.`
+            },
+            {
+              title: '逾期账单消息 (中)',
+              subject: '逾期账单提醒',
+              smsContent: `您好，这里是qMenu，您餐厅的有多张未付账单，总额为$${this.invoice.balance}。 我们通过电子邮件/短信/传真重新发送给您最新账单，其中应包括之前账单中的所有未付余额。请尽快查看并结清您的付款。 温馨提示，如果在下周末之前未收到付款，我们的系统将自动修改您餐厅订单的信用卡收款设置，qMenu会代收信用卡付款，以便结算未付账单。谢谢您的支持与配合，祝您生意兴隆!`,
+              emailContent: `您好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是qMenu，您餐厅的有多张未付账单，总额为$${this.invoice.balance}。 我们通过电子邮件/短信/传真重新发送给您最新账单，其中应包括之前账单中的所有未付余额。请尽快查看并结清您的付款。<br/>&nbsp;&nbsp;&nbsp;&nbsp;温馨提示，如果在下周末之前未收到付款，我们的系统将自动修改您餐厅订单的信用卡收款设置，qMenu会代收信用卡付款，以便结算未付账单。<br/>&nbsp;&nbsp;&nbsp;&nbsp;谢谢您的支持与配合，祝您生意兴隆!`
+            }
+          ]
+        ];
         return this._api
           .get(environment.qmenuApiUrl + "generic", {
             resource: "restaurant",
@@ -358,6 +379,22 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     } catch (error) {
       this._global.publishAlert(AlertType.Danger, "Error updating to DB");
     }
+  }
+
+  get channels(): any[] {
+    if (this.restaurant && this.restaurant.channels) {
+      return this.restaurant.channels.filter(ch => ['SMS', 'Email'].includes(ch.type) && (ch.notifications || []).includes('Invoice'));
+    }
+    return [];
+  }
+
+  async addSendMsgLog(template) {
+    await this.addLog({
+      time: new Date(),
+      action: "send overdue message",
+      user: this._global.user.username,
+      value: JSON.stringify(template)
+    });
   }
 
   addAdjustment() {

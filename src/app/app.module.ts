@@ -230,7 +230,7 @@ import { RestaurantOthersComponent } from './components/restaurants/restaurant-o
 import { PostmatesOrderCardComponent } from './components/monitoring/postmates-order-card/postmates-order-card.component';
 import { PostmatesOrdersComponent } from './components/monitoring/postmates-orders/postmates-orders.component';
 import { GmbWrongLinkComponent } from './components/gmbs2/gmb-wrong-link/gmb-wrong-link.component';
-import { SendTextReplyComponent } from './components/utilities/send-text-reply/send-text-reply.component';
+import { SendMessageComponent } from './components/utilities/send-message/send-message.component';
 import { MenuCleanupComponent } from './components/restaurants/menu-cleanup/menu-cleanup.component';
 import { ApiLogsDashboardComponent } from './components/monitoring/api-logs-dashboard/api-logs-dashboard.component';
 import { SeoTrackingComponent } from './components/monitoring/seo-tracking/seo-tracking.component';
@@ -436,7 +436,7 @@ import { LeadDetailsComponent } from './components/leads/lead-details/lead-detai
     RestaurantsByCourierComponent,
     RestaurantOthersComponent,
     GmbWrongLinkComponent,
-    SendTextReplyComponent,
+    SendMessageComponent,
     PostmatesOrderCardComponent,
     PostmatesOrdersComponent,
     GmbPermanentlyClosedListComponent,
