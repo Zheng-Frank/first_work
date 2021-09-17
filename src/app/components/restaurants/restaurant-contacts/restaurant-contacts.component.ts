@@ -181,15 +181,6 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
     } else {
       this.channelInEditing = JSON.parse(JSON.stringify(channel));
       this.channelBeforeEditing = JSON.parse(JSON.stringify(channel));
-      const notificationMatch = (this.restaurant.orderNotifications || []).find(n => n.channel.value === this.channelInEditing.value && n.channel.type === this.channelInEditing.type);
-      if (notificationMatch) {
-        // RT has a notification for this channel, so to avoid confusion, we want to reflect this on the channel editing UI
-        if (!this.channelInEditing.notifications) {
-          this.channelInEditing.notifications = ['Order'];
-        } else if (!this.channelInEditing.notifications.includes('Order')) {
-          this.channelInEditing.notifications.push('Order');
-        }
-      }
       this.channelInEditing.index = this.restaurant.channels.indexOf(channel);
     }
     this.modalChannel.show();
@@ -260,7 +251,6 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
     // logic to make sure records are updated appropriately
     this.updateOrderNotifications(this.channelInEditing)
 
-
     this.patchDiff('channels', newChannels);
     this.channelBeforeEditing = null;
     event.acknowledge(null);
@@ -292,7 +282,7 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
 
 
 
-    this.patchDiff('orderNotificiations', newOrderNotifications);
+    this.patchDiff('orderNotifications', newOrderNotifications);
   }
 
   removeChannel(event: FormSubmit) {
