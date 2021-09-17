@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ViewChild } from '@angular/core';
+import { Component, OnInit, Input, ViewChild, OnChanges } from '@angular/core';
 import { Restaurant } from '@qmenu/ui';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { ApiService } from "../../../services/api.service";
@@ -16,7 +16,7 @@ import { FormSubmit } from '@qmenu/ui/classes';
   templateUrl: './restaurant-contacts.component.html',
   styleUrls: ['./restaurant-contacts.component.css']
 })
-export class RestaurantContactsComponent implements OnInit {
+export class RestaurantContactsComponent implements OnInit, OnChanges {
 
   @Input() restaurant: Restaurant;
   @Input() viewOnly = false;
@@ -28,6 +28,7 @@ export class RestaurantContactsComponent implements OnInit {
   personInEditing: Person = {} as Person;
 
   channelInEditing: Channel = {} as Channel;
+  channelBeforeEditing: Channel = {} as Channel;
 
   notes: string;
   channelFieldDescriptors = [
@@ -56,7 +57,7 @@ export class RestaurantContactsComponent implements OnInit {
       required: false,
       inputType: "multi-select",
       items: [
-        // { object: "Order", text: "Incoming Orders", selected: false },
+        { object: "Order", text: "Incoming Orders", selected: false },
         { object: "Invoice", text: "Invoice", selected: false },
         { object: "Business", text: "Business Phone", selected: false }
       ]
@@ -117,9 +118,28 @@ export class RestaurantContactsComponent implements OnInit {
 
   ngOnInit() {
     this.resetPersonFieldDescriptors();
-    this.notes=this.restaurant.notes;
+    this.notes = this.restaurant.notes;
     this.getCrms();
     this.crm = this.restaurant.crm;
+  }
+
+  ngOnChanges() {
+    this.synchronizeNotificationData();
+  }
+
+  synchronizeNotificationData() {
+    const notifications = this.restaurant.orderNotifications || [];
+    (this.restaurant.channels || []).map(ch => {
+      const notificationMatch = notifications.find(n => n.channel.value === ch.value && n.channel.type === ch.type);
+      if (notificationMatch) {
+        if (!ch.notifications) {
+          ch.notifications = ['Order']
+        } else if (!ch.notifications.includes('Order')) {
+          ch.notifications.push('Order');
+        }
+      }
+      return ch;
+    });
   }
 
   resetPersonFieldDescriptors() {
@@ -134,14 +154,14 @@ export class RestaurantContactsComponent implements OnInit {
   }
 
   // get all CRM users
-  getCrms(){
-        this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'user', query: '{"roles": "CRM"}', limit: 1000,  }).subscribe(
-          result => {
-              this.crms = result.sort((r1, r2) => r1.username > r2.username ? 1 : -1);
-          },
-          error => {
-            this._global.publishAlert(AlertType.Danger, 'Error pulling CRM users from API');
-          });
+  getCrms() {
+    this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'user', query: '{"roles": "CRM"}', limit: 1000, }).subscribe(
+      result => {
+        this.crms = result.sort((r1, r2) => r1.username > r2.username ? 1 : -1);
+      },
+      error => {
+        this._global.publishAlert(AlertType.Danger, 'Error pulling CRM users from API');
+      });
   }
 
   getPersonWithTitle(person) {
@@ -157,8 +177,19 @@ export class RestaurantContactsComponent implements OnInit {
       this.channelInEditing = {
         index: -1 // we use index as Id since JSON doesn't have Id for each obj,
       } as Channel;
+      this.channelBeforeEditing = JSON.parse(JSON.stringify(this.channelInEditing));
     } else {
       this.channelInEditing = JSON.parse(JSON.stringify(channel));
+      this.channelBeforeEditing = JSON.parse(JSON.stringify(channel));
+      const notificationMatch = (this.restaurant.orderNotifications || []).find(n => n.channel.value === this.channelInEditing.value && n.channel.type === this.channelInEditing.type);
+      if (notificationMatch) {
+        // RT has a notification for this channel, so to avoid confusion, we want to reflect this on the channel editing UI
+        if (!this.channelInEditing.notifications) {
+          this.channelInEditing.notifications = ['Order'];
+        } else if (!this.channelInEditing.notifications.includes('Order')) {
+          this.channelInEditing.notifications.push('Order');
+        }
+      }
       this.channelInEditing.index = this.restaurant.channels.indexOf(channel);
     }
     this.modalChannel.show();
@@ -209,11 +240,9 @@ export class RestaurantContactsComponent implements OnInit {
   submitChannel(event: FormSubmit) {
 
     // keep only digits for phone/sms/fax
-    if(['Phone', 'SMS', 'Fax'].indexOf(this.channelInEditing.type) >= 0) {
-      this.channelInEditing.value = this.channelInEditing.value.replace(/\D/g,'');
+    if (['Phone', 'SMS', 'Fax'].indexOf(this.channelInEditing.type) >= 0) {
+      this.channelInEditing.value = this.channelInEditing.value.replace(/\D/g, '');
     }
-    this.channelInEditing
-
 
     const newChannels = (this.restaurant.channels || []).slice(0);
     if (this.channelInEditing.index === -1) {
@@ -227,11 +256,43 @@ export class RestaurantContactsComponent implements OnInit {
     // we need to remove temp index!
     delete this.channelInEditing.index;
 
-    this.patchDiff('channels', newChannels);
+    // we also want to update this RT's orderNotifications property. updateOrderNotifications function takes care of 
+    // logic to make sure records are updated appropriately
+    this.updateOrderNotifications(this.channelInEditing)
 
+
+    this.patchDiff('channels', newChannels);
+    this.channelBeforeEditing = null;
     event.acknowledge(null);
     this.modalChannel.hide();
 
+  }
+
+  updateOrderNotifications(channel) {
+    let newOrderNotifications = JSON.parse(JSON.stringify(this.restaurant.orderNotifications)) || [];
+    // if this channel has had order notifications turned OFF during this round of editing, we want to delete any orderNotifications associated with this channel
+    const notificationsTurnedOff = (this.channelBeforeEditing.notifications || []).includes('Order') && !(channel.notifications || []).includes('Order');
+
+    if (notificationsTurnedOff) {
+      let matchingNotificationIndex = (this.restaurant.orderNotifications || []).findIndex(n => n.channel.value === channel.value && n.channel.type === channel.type);
+      if (matchingNotificationIndex >= 0) {
+        newOrderNotifications = this.restaurant.orderNotifications.splice(matchingNotificationIndex, 1); // deleting orderNotification
+      }
+    } else {
+      let notificationMatch = (this.restaurant.orderNotifications || []).find(n => n.channel.value === channel.value && n.channel.type === channel.type);
+      if (!notificationMatch && (channel.notifications || []).includes('Order')) {
+        newOrderNotifications.push({
+          channel: {
+            type: channel.type,
+            value: channel.value
+          }
+        });
+      }
+    }
+
+
+
+    this.patchDiff('orderNotificiations', newOrderNotifications);
   }
 
   removeChannel(event: FormSubmit) {
@@ -281,8 +342,7 @@ export class RestaurantContactsComponent implements OnInit {
     this.modalChannel.hide();
   }
 
-  updateCrm(event){
-
+  updateCrm(event) {
     // console.log("updateCrm " + this.restaurant['crm']);
     this.patchDiff('crm', this.crm);
   }
@@ -307,6 +367,7 @@ export class RestaurantContactsComponent implements OnInit {
 
       newBody[field] = newValue;
 
+      console.log(oldBody, newBody);
 
       this._prunedPatch
         .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
