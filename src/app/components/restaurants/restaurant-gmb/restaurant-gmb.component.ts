@@ -576,33 +576,36 @@ export class RestaurantGmbComponent implements OnInit {
 
   async addGmbUser() {
     try {
-      const ownerEmail = this.gmbOwner[0].account.email;
+      console.log(this.gmbOwner);
+      const [accountLocationPair] = this.gmbOwner.filter(al => al.location.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER'].indexOf(al.location.role) >= 0);
+      if (accountLocationPair) {
+        const ownerEmail = accountLocationPair.account.email;
+        if (!ownerEmail) {
+          this._global.publishAlert(AlertType.Warning, `Could not find a gmb account for ${ownerEmail}`);
+          return;
+        }
+        const payload = {
+          locationName: accountLocationPair.location.locationName,
+          ownerEmail,
+          inviteEmail: this.inviteEmail,
+          inviteRole: this.inviteRole
+        };
 
-      if (!ownerEmail) {
-        this._global.publishAlert(AlertType.Warning, `Could not find a gmb account for ${ownerEmail}`);
-        return;
+        await this._api.post(environment.appApiUrl + "gmb/generic", {
+          name: "invite-gmb",
+          payload
+        }).toPromise();
+        this.inviteEmail = '';
+        this._global.publishAlert(AlertType.Success, 'Success!');
+        this.addGMBInviteModal.hide();
+      } else {
+        this._global.publishAlert(AlertType.Danger, 'No published location found');
+        throw "No published location found";
       }
-
-      const payload = {
-        restaurantId: this.restaurant._id,
-        ownerEmail,
-        inviteEmail: this.inviteEmail,
-        inviteRole: this.inviteRole
-      };
-
-      await this._api.post(environment.appApiUrl + "gmb/generic", {
-        name: "invite-gmb",
-        payload
-      }).toPromise();
-
-      this.inviteEmail = '';
-
-      this._global.publishAlert(AlertType.Success, 'Success!');
     } catch (error) {
-      this._global.publishAlert(AlertType.Warning, `Error while trying to Invite Gmb User: ${this.inviteEmail}`);
+      this._global.publishAlert(AlertType.Danger, `Error while trying to Invite Gmb User: ${this.inviteEmail}`);
       console.error(error);
     }
-
   }
 
   hideInviteGmbUserModal() {

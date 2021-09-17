@@ -296,24 +296,21 @@
     </ul>
   </div>
 
-  <q-modal [title]="'Invite GMB User'" #addGMBInviteModal>
-    <div class="text-danger text-uppercase p-3">
-      OBSOLETE DUE TO CHANGE OF INVITE API: IF YOU ARE USING THIS FUNCTION, PLEASE TELL DEVELOPERS!!!
-    </div>
+  <q-modal [title]="'Invite GMB Manager'" #addGMBInviteModal>
     <div>
-      <label>Email:</label>
+      <label>Manager Email:</label>
       <input class="form-control" placeholder="i.e. someone@gmail.com" [(ngModel)]='inviteEmail'>
     </div>
 
-    <label>Role:</label>
+    <!-- <label>Role:</label>
     <select [(ngModel)]="inviteRole" class="form-control">
       <option value="OWNER">Owner</option>
       <option value="MANAGER">Manager</option>
-    </select>
+    </select> -->
 
     <div class="mt-3 d-flex justify-content-end">
       <button class="btn btn-small btn-primary" (click)='addGmbUser()' [disabled]="!isValidEmail()"><i
-          class="fas fa-plus"></i> Invite Gmb User</button>
+          class="fas fa-plus"></i> Invite</button>
     </div>
   </q-modal>
 
