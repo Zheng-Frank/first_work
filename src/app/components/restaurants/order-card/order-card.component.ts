@@ -44,6 +44,33 @@ export class OrderCardComponent implements OnInit {
   ngOnInit() {
   }
 
+  getOrderOrigin(order){
+    let origin = 'others'; // init a value which will be override later
+    if (order.analytics) {
+      // both empty => direct qmenu
+      // parse referrer and then utm
+      const { utm, referrer } = order.analytics;
+      if (!utm && !referrer) {
+          origin = 'DIRECT-QMENU';
+      }
+
+      if (referrer && !utm) {
+          if (['google', 'yelp', 'facebook'].some(source => referrer.indexOf(source) >= 0)) {
+              [origin] = ['google', 'yelp', 'facebook'].filter(source => referrer.indexOf(source) >= 0);
+          } else {
+              origin = 'DIRECT-DOMAIN';
+          }
+      }
+
+      if (utm) { // utm overrides everything!
+          if (['google', 'yelp', 'facebook'].some(source => utm.indexOf(source) >= 0)) {
+            [origin] = ['google', 'yelp', 'facebook'].filter(source => utm.indexOf(source) >= 0);
+          }
+      }
+    }
+    return origin;
+  }
+
   orerFromAppOrPWA(order){
     return this.orderFromApp(order) || this.orderFromPWA(order);
   }

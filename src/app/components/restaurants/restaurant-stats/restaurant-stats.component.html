@@ -1,250 +1,192 @@
-<table class="table mb-5" style="width:50%;">
-  <tbody>
+<div>
+  <div class="alert alert-info" style="width:50%;">Life time orders: {{statistics.totalLifetimeOrders.value}}. The
+    following stats are from latest {{orders.length}} orders.</div>
+  <h2>General</h2>
+  <table class="table mb-5" style="width:50%;">
+    <tbody>
+      <tr>
+        <th>Statistics</th>
+        <th class="digit-align">Value</th>
+      </tr>
+      <tr>
+        <td>{{statistics.averageDailyOrders.label}}</td>
+        <td class="digit-align">{{statistics.averageDailyOrders.value}}</td>
+      </tr>
+      <tr>
+        <td>{{statistics.totalUniqueCustomer.label}}</td>
+        <td class="digit-align">{{statistics.totalUniqueCustomer.value}}</td>
+      </tr>
+      <tr>
+        <td>{{statistics.newCustomerLast30DaysOrders.label}}</td>
+        <td class="digit-align">{{statistics.newCustomerLast30DaysOrders.value}}</td>
+      </tr>
+      <tr>
+        <td>{{statistics.totalOrdersFromRepeatCustomer.label}}</td>
+        <td class="digit-align">{{statistics.totalOrdersFromRepeatCustomer.value}}</td>
+      </tr>
+      <tr>
+        <td>{{statistics.totalOrderFromNewCustomer.label}}</td>
+        <td class="digit-align">{{statistics.totalOrderFromNewCustomer.value}}</td>
+      </tr>
+      <tr>
+        <td>{{statistics.menusWithPicture.label}}</td>
+        <td class="digit-align">{{statistics.menusWithPicture.value}}</td>
+      </tr>
+      <tr>
+        <td>{{statistics.menusWithoutPicture.label}}</td>
+        <td class="digit-align">{{statistics.menusWithoutPicture.value}}</td>
+      </tr>
+      <tr>
+        <td>{{statistics.menusWithPictureOrderRate.label}}</td>
+        <td class="digit-align">{{statistics.menusWithPictureOrderRate.value}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div>
+  <h2>Device</h2>
+  <table class="table" style="width:50%;">
+    <tr *ngIf="isVisiabled(orderFromDevice.mobileTotal)">
+      <td>
+        <i class="fa fa-mobile-alt"></i> Mobile device
+      </td>
+      <td class="digit-align">
+        {{orderFromDevice.mobileTotal}}
+      </td>
+    </tr>
+    <!-- start with by os -->
+    <tr *ngIf="isVisiabled(orderFromDevice.mobileTotal)">
+      <td>
+        By OS
+      </td>
+      <td>
+        <div *ngIf="isVisiabled(orderFromDevice.mobile.byOS.iOS)" class="row">
+          <div class="col-4"><i class="fab fa-apple ml-5"></i></div>
+          <div class="col-8 text-right">{{orderFromDevice.mobile.byOS.iOS}}</div>
+        </div>
+        <div *ngIf="isVisiabled(orderFromDevice.mobile.byOS.Android)" class="row">
+          <div class="col-4"><i class="fab fa-android ml-5"></i></div>
+          <div class="col-8 text-right">{{orderFromDevice.mobile.byOS.Android}}</div>
+        </div>
+        <div *ngIf="isVisiabled(orderFromDevice.mobile.byOS.Others)" class="row">
+          <div class="col-4"><span class="ml-5">Others</span></div>
+          <div class="col-8 text-right">{{orderFromDevice.mobile.byOS.Others}}</div>
+        </div>
+      </td>
+    </tr>
+    <!-- end with by os -->
+    <!-- start with by type -->
+    <tr *ngIf="isVisiabled(orderFromDevice.mobileTotal)">
+      <td>
+        By type
+      </td>
+      <td>
+        <div *ngIf="isVisiabled(orderFromDevice.mobile.byType.PWA)" class="row">
+          <div class="col-4"><span class="ml-5">PWA</span></div>
+          <div class="col-8 text-right">{{orderFromDevice.mobile.byType.PWA}}</div>
+        </div>
+        <div *ngIf="isVisiabled(orderFromDevice.mobile.byType.App)" class="row">
+          <div class="col-4"><span class="ml-5">App</span></div>
+          <div class="col-8 text-right">{{orderFromDevice.mobile.byType.App}}</div>
+        </div>
+        <div *ngIf="isVisiabled(orderFromDevice.mobile.byType.Browser)" class="row">
+          <div class="col-4"><span class="ml-5">Browser</span></div>
+          <div class="col-8 text-right">{{orderFromDevice.mobile.byType.Browser}}</div>
+        </div>
+        <div *ngIf="isVisiabled(orderFromDevice.mobile.byType.Others)" class="row">
+          <div class="col-4"><span class="ml-5">Others</span></div>
+          <div class="col-8 text-right">{{orderFromDevice.mobile.byType.Others}}</div>
+        </div>
+      </td>
+    </tr>
+    <!-- end with by type -->
+    <tr *ngIf="isVisiabled(orderFromDevice.pcTotal)">
+      <td>
+        <i class="fa fa-laptop"></i> PC
+      </td>
+      <td class="digit-align">
+        {{orderFromDevice.pcTotal}}
+      </td>
+    </tr>
+    <!-- start with by PC os -->
+    <tr *ngIf="isVisiabled(orderFromDevice.pcTotal)">
+      <td>
+        By OS
+      </td>
+      <td>
+        <div *ngIf="isVisiabled(orderFromDevice.pc.byOS.Windows)" class="row">
+          <div class="col-4"><i class="fab fa-windows ml-5"></i></div>
+          <div class="col-8 text-right">{{orderFromDevice.pc.byOS.Windows}}</div>
+        </div>
+        <div *ngIf="isVisiabled(orderFromDevice.pc.byOS.Mac)" class="row">
+          <div class="col-4"><i class="fab fa-apple ml-5"></i></div>
+          <div class="col-8 text-right">{{orderFromDevice.pc.byOS.Mac}}</div>
+        </div>
+        <div *ngIf="isVisiabled(orderFromDevice.pc.byOS.Linux)" class="row">
+          <div class="col-4"><i class="fab fa-linux ml-5"></i></div>
+          <div class="col-8 text-right">{{orderFromDevice.pc.byOS.Linux}}</div>
+        </div>
+        <div *ngIf="isVisiabled(orderFromDevice.pc.byOS.Others)" class="row">
+          <div class="col-4"><span class="ml-5">Others</span></div>
+          <div class="col-8 text-right">{{orderFromDevice.pc.byOS.Others}}</div>
+        </div>
+      </td>
+    </tr>
+    <!-- end with by PC os -->
+    <!-- start with by pc browser -->
+    <tr *ngIf="isVisiabled(orderFromDevice.pcTotal)">
+      <td>
+        By Browser
+      </td>
+      <td>
+        <div *ngIf="isVisiabled(orderFromDevice.pc.byBrowser.Chrome)" class="row">
+          <div class="col-4"><i class="fab fa-chrome ml-5"></i></div>
+          <div class="col-8 text-right">{{orderFromDevice.pc.byBrowser.Chrome}}</div>
+        </div>
+        <div *ngIf="isVisiabled(orderFromDevice.pc.byBrowser.Safari)" class="row">
+          <div class="col-4"><i class="fab fa-safari ml-5"></i></div>
+          <div class="col-8 text-right">{{orderFromDevice.pc.byBrowser.Safari}}</div>
+        </div>
+        <div *ngIf="isVisiabled(orderFromDevice.pc.byBrowser.Firefox)" class="row">
+          <div class="col-4"><i class="fab fa-firefox ml-5"></i></div>
+          <div class="col-8 text-right">{{orderFromDevice.pc.byBrowser.Firefox}}</div>
+        </div>
+        <div *ngIf="isVisiabled(orderFromDevice.pc.byBrowser.IE)" class="row">
+          <div class="col-4"><i class="fab fa-internet-explorer ml-5"></i></div>
+          <div class="col-8 text-right">{{orderFromDevice.pc.byBrowser.IE}}</div>
+        </div>
+        <div *ngIf="isVisiabled(orderFromDevice.pc.byBrowser.Edge)" class="row">
+          <div class="col-4"><i class="fab fa-edge ml-5"></i></div>
+          <div class="col-8 text-right">{{orderFromDevice.pc.byBrowser.Edge}}</div>
+        </div>
+        <div *ngIf="isVisiabled(orderFromDevice.pc.byBrowser.Others)" class="row">
+          <div class="col-4"><span class="ml-5">Others</span></div>
+          <div class="col-8 text-right">{{orderFromDevice.pc.byBrowser.Others}}</div>
+        </div>
+      </td>
+    </tr>
+    <!-- end with by pc browser -->
+    <tr *ngIf="isVisiabled(orderFromDevice.otherTotal)">
+      <td>
+        Others
+      </td>
+      <td class="digit-align">
+        {{orderFromDevice.otherTotal}}
+      </td>
+    </tr>
+  </table>
+</div>
+
+<div>
+  <h2>Source</h2>
+  <table class="table" style="width:50%;">
     <tr>
-      <th>Statistics</th>
+      <th>Source Type</th>
       <th class="digit-align">Value</th>
     </tr>
-    <tr>
-      <td>{{statistics.totalLifetimeOrders.label}}</td>
-      <td class="digit-align">{{statistics.totalLifetimeOrders.value}}</td>
+    <tr *ngFor="let data of orderOriginMap | keyvalue">
+      <td>{{data.key}}</td>
+      <td class="digit-align">{{data.value}}</td>
     </tr>
-    <tr>
-      <td>{{statistics.averageDailyOrders.label}}</td>
-      <td class="digit-align">{{statistics.averageDailyOrders.value}}</td>
-    </tr>
-    <tr>
-      <td>{{statistics.totalUniqueCustomer.label}}</td>
-      <td class="digit-align">{{statistics.totalUniqueCustomer.value}}</td>
-    </tr>
-    <tr>
-      <td>{{statistics.newCustomerLast30DaysOrders.label}}</td>
-      <td class="digit-align">{{statistics.newCustomerLast30DaysOrders.value}}</td>
-    </tr>
-    <tr>
-      <td>{{statistics.totalOrdersFromRepeatCustomer.label}}</td>
-      <td class="digit-align">{{statistics.totalOrdersFromRepeatCustomer.value}}</td>
-    </tr>
-    <tr>
-      <td>{{statistics.totalOrderFromNewCustomer.label}}</td>
-      <td class="digit-align">{{statistics.totalOrderFromNewCustomer.value}}</td>
-    </tr>
-    <tr>
-      <td>{{statistics.menusWithPicture.label}}</td>
-      <td class="digit-align">{{statistics.menusWithPicture.value}}</td>
-    </tr>
-    <tr>
-      <td>{{statistics.menusWithoutPicture.label}}</td>
-      <td class="digit-align">{{statistics.menusWithoutPicture.value}}</td>
-    </tr>
-    <tr>
-      <td>{{statistics.menusWithPictureOrderRate.label}}</td>
-      <td class="digit-align">{{statistics.menusWithPictureOrderRate.value}}</td>
-    </tr>
-  </tbody>
-</table>
-<table class="table" style="width:50%;">
-  <tr *ngIf="isVisiabled(orderFromDevice.mobileTotal)">
-    <td>
-      <i class="fa fa-mobile-alt"></i> Mobile device
-    </td>
-    <td class="digit-align">
-      {{orderFromDevice.mobileTotal}}
-    </td>
-  </tr>
-  <!-- start with by os -->
-  <tr *ngIf="isVisiabled(orderFromDevice.mobileTotal)">
-    <td>
-      By OS
-    </td>
-    <td>
-      <table class="table">
-        <tr *ngIf="isVisiabled(orderFromDevice.mobile.byOS.iOS)">
-          <td>
-            <i class="fab fa-apple"></i>
-          </td>
-          <td class="digit-align">
-            {{orderFromDevice.mobile.byOS.iOS}}
-          </td>
-        </tr>
-        <tr *ngIf="isVisiabled(orderFromDevice.mobile.byOS.Android)">
-          <td>
-            <i class="fab fa-android"></i>
-          </td>
-          <td class="digit-align">
-            {{orderFromDevice.mobile.byOS.Android}}
-          </td>
-        </tr>
-        <tr *ngIf="isVisiabled(orderFromDevice.mobile.byOS.Others)">
-          <td>
-            Others
-          </td>
-          <td class="digit-align">
-            {{orderFromDevice.mobile.byOS.Others}}
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-  <!-- end with by os -->
-  <!-- start with by type -->
-  <tr *ngIf="isVisiabled(orderFromDevice.mobileTotal)">
-    <td>
-      By type
-    </td>
-    <td>
-      <table class="table">
-        <tr *ngIf="isVisiabled(orderFromDevice.mobile.byType.PWA)">
-          <td>
-            PWA
-          </td>
-          <td class="digit-align">
-            {{orderFromDevice.mobile.byType.PWA}}
-          </td>
-        </tr>
-        <tr *ngIf="isVisiabled(orderFromDevice.mobile.byType.App)">
-          <td>
-            App
-          </td>
-          <td class="digit-align">
-            {{orderFromDevice.mobile.byType.App}}
-          </td>
-        </tr>
-        <tr *ngIf="isVisiabled(orderFromDevice.mobile.byType.Browser)">
-          <td>
-            Browser
-          </td>
-          <td class="digit-align">
-            {{orderFromDevice.mobile.byType.Browser}}
-          </td>
-        </tr>
-        <tr *ngIf="isVisiabled(orderFromDevice.mobile.byType.Others)">
-          <td>
-            Others
-          </td>
-          <td class="digit-align">
-            {{orderFromDevice.mobile.byType.Others}}
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-  <!-- end with by type -->
-  <tr *ngIf="isVisiabled(orderFromDevice.pcTotal)">
-    <td>
-      <i class="fa fa-laptop"></i> PC
-    </td>
-    <td class="digit-align">
-      {{orderFromDevice.pcTotal}}
-    </td>
-  </tr>
-  <!-- start with by PC os -->
-  <tr *ngIf="isVisiabled(orderFromDevice.pcTotal)">
-    <td>
-      By OS
-    </td>
-    <td>
-      <table class="table">
-        <tr *ngIf="isVisiabled(orderFromDevice.pc.byOS.Windows)">
-          <td>
-            <i class="fab fa-windows"></i>
-          </td>
-          <td class="digit-align">
-            {{orderFromDevice.pc.byOS.Windows}}
-          </td>
-        </tr>
-        <tr *ngIf="isVisiabled(orderFromDevice.pc.byOS.Mac)">
-          <td>
-            <i class="fab fa-apple"></i>
-          </td>
-          <td class="digit-align">
-            {{orderFromDevice.pc.byOS.Mac}}
-          </td>
-        </tr>
-        <tr *ngIf="isVisiabled(orderFromDevice.pc.byOS.Linux)">
-          <td>
-            <i class="fab fa-linux"></i>
-          </td>
-          <td class="digit-align">
-            {{orderFromDevice.pc.byOS.Linux}}
-          </td>
-        </tr>
-        <tr *ngIf="isVisiabled(orderFromDevice.pc.byOS.Others)">
-          <td>
-            Others
-          </td>
-          <td class="digit-align">
-            {{orderFromDevice.pc.byOS.Others}}
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-  <!-- end with by PC os -->
-  <!-- start with by pc browser -->
-  <tr *ngIf="isVisiabled(orderFromDevice.pcTotal)">
-    <td>
-      By Browser
-    </td>
-    <td>
-      <table class="table">
-        <tr *ngIf="isVisiabled(orderFromDevice.pc.byBrowser.Chrome)">
-          <td>
-            <i class="fab fa-chrome"></i>
-          </td>
-          <td class="digit-align">
-            {{orderFromDevice.pc.byBrowser.Chrome}}
-          </td>
-        </tr>
-        <tr *ngIf="isVisiabled(orderFromDevice.pc.byBrowser.Safari)">
-          <td>
-            <i class="fab fa-safari"></i>
-          </td>
-          <td class="digit-align">
-            {{orderFromDevice.pc.byBrowser.Safari}}
-          </td>
-        </tr>
-        <tr *ngIf="isVisiabled(orderFromDevice.pc.byBrowser.Firefox)">
-          <td>
-            <i class="fab fa-firefox"></i>
-          </td>
-          <td class="digit-align">
-            {{orderFromDevice.pc.byBrowser.Firefox}}
-          </td>
-        </tr>
-        <tr *ngIf="isVisiabled(orderFromDevice.pc.byBrowser.IE)">
-          <td>
-            <i class="fab fa-internet-explorer"></i>
-          </td>
-          <td class="digit-align">
-            {{orderFromDevice.pc.byBrowser.IE}}
-          </td>
-        </tr>
-        <tr *ngIf="isVisiabled(orderFromDevice.pc.byBrowser.Edge)">
-          <td>
-            <i class="fab fa-edge"></i>
-          </td>
-          <td class="digit-align">
-            {{orderFromDevice.pc.byBrowser.Edge}}
-          </td>
-        </tr>
-        <tr *ngIf="isVisiabled(orderFromDevice.pc.byBrowser.Others)">
-          <td>
-            Others
-          </td>
-          <td class="digit-align">
-            {{orderFromDevice.pc.byBrowser.Others}}
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-  <!-- end with by pc browser -->
-  <tr *ngIf="isVisiabled(orderFromDevice.otherTotal)">
-    <td>
-      Others
-    </td>
-    <td class="digit-align">
-      {{orderFromDevice.otherTotal}}
-    </td>
-  </tr>
-</table>
+  </table>
+</div>

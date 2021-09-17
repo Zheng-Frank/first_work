@@ -1,3 +1,11 @@
 .digit-align{
     text-align: right;
 }
+
+::ng-deep .table td{
+    vertical-align: middle;
+}
+
+::ng-deep col-8{
+    margin-right: 0;
+}

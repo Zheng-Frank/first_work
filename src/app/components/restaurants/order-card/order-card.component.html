@@ -7,6 +7,7 @@
     <i class="fa fa-clipboard" (click)="copyToClipboard(order)" style="cursor:pointer;"></i>
   </div>
   <div *ngIf="order.dineInSessionObj" class="qr order-from-row">
+    <div class="order-from-border mr-2">{{getOrderOrigin(order)}}</div>
     <div *ngIf="orderFromPC(order)" class="order-from-border">
       <i class="fa fa-laptop"></i>
       <i class="fab fa-windows" *ngIf="orderFromWindows(order)"></i>
@@ -46,6 +47,7 @@
   </div>
   <!-- start with pc/phone icon -->
   <div *ngIf="!order.dineInSessionObj" class="qr order-from-row">
+    <div class="order-from-border mr-2">{{getOrderOrigin(order)}}</div>
     <div *ngIf="orderFromPC(order)" class="order-from-border">
       <i class="fa fa-laptop"></i>
       <i class="fab fa-windows" *ngIf="orderFromWindows(order)"></i>
