@@ -35,8 +35,9 @@ export class OrderCardComponent implements OnInit {
   confirmAction;
   confirmTitle;
   confirmBodyText;
-  phoneNumberToText;
-  showTexting: boolean = false;
+  phoneNumberToText = '';
+  showTexting = false;
+  showPhoneNumberInput = false;
   displayingDeliveryDetails = false;
   constructor(private _api: ApiService, private _global: GlobalService, private datePipe: DatePipe) {
   }
@@ -280,7 +281,7 @@ export class OrderCardComponent implements OnInit {
   }
 
   phoneNumbersOfRT() {
-    return this.restaurant.channels.filter(x => x.type === 'SMS');
+    return (this.restaurant.channels || []).filter(x => x.type === 'SMS');
   }
 
   async sendText() {
@@ -290,6 +291,22 @@ export class OrderCardComponent implements OnInit {
         orderId: this.order.id, type: 'sms', to: this.phoneNumberToText
       }).toPromise();
       this._global.publishAlert(AlertType.Success, `Sent SMS to ${this.phoneNumberToText}`);
+      // if user input a new phone number, add it to RT's channel.
+      if (!(this.phoneNumbersOfRT()).some(x => x.value === this.phoneNumberToText)) {
+        const newChannels = (this.restaurant.channels || []).slice(0);
+        newChannels.push({type: 'SMS', value: this.phoneNumberToText, notifications: []});
+        try {
+          await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+            {
+              old: { _id: this.restaurant._id },
+              new: { _id: this.restaurant._id, channels: newChannels }
+            }
+          ]).toPromise();
+          this.restaurant.channels = newChannels;
+        } catch (e) {
+          console.log(e);
+        }
+      }
     } catch (error) {
       console.log(error);
       this._global.publishAlert(AlertType.Danger, `Failed sending SMS to ${this.phoneNumberToText}`);
@@ -297,7 +314,7 @@ export class OrderCardComponent implements OnInit {
   }
 
   isPhoneValid() {
-    return this.phoneNumberToText && this.phoneNumberToText.match(/^[2-9]\d{2}[2-9]\d{2}\d{4}$/);
+    return /^[2-9]\d{2}[2-9]\d{2}\d{4}$/.test(this.phoneNumberToText);
   }
 
   async sendEmail() {

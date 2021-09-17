@@ -241,23 +241,21 @@
 
 
       <div *qIf="showTexting">
-        <!--div class="row"-->
         <div>
-          <div class="text-info">
-            If a phone number you are willing to send SMS is not in the list, please make sure the phone is this restaurant's phone and add it to the restaurant's channels
+          <label class="mr-2">Phone:</label>
+          <div class="{{!isPhoneValid() ? 'invalid' : ''}}">
+            <select class="form-control" [(ngModel)]="phoneNumberToText">
+              <option *ngFor="let phone of phoneNumbersOfRT()" [value]="phone.value">{{phone.value}}</option>
+            </select>
           </div>
-          <div>
-            <label class="mr-2"> Phone:</label>
-            <div class="{{!isPhoneValid() ? 'invalid' : ''}}">
-              <select class="form-control" [(ngModel)]="phoneNumberToText">
-                <option *ngFor="let phone of phoneNumbersOfRT()" [value]="phone.value">{{phone.value}}</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <button class="mt-2 float-right btn btn-primary" (click)="sendText()" style="min-width: 6rem"
-              [disabled]="!isPhoneValid()">Send</button>
-          </div>
+          <a class="btn-link mt-1" (click)="showPhoneNumberInput = !showPhoneNumberInput" >
+            Does not find phone number you need? click here to input a new phone number.
+          </a>
+          <input *ngIf="showPhoneNumberInput" class="form-control mt-1" type="tel" [(ngModel)]="phoneNumberToText" />
+        </div>
+        <div>
+          <button class="mt-2 float-right btn btn-primary" (click)="sendText()" style="min-width: 6rem"
+                  [disabled]="!isPhoneValid()">Send</button>
         </div>
       </div>
 
