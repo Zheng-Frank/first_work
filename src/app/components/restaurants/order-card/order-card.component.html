@@ -249,7 +249,7 @@
             </select>
           </div>
           <a class="btn-link mt-1" (click)="showPhoneNumberInput = !showPhoneNumberInput" >
-            Does not find phone number you need? click here to input a new phone number.
+            Phone number not in the list? Click here to input a new:
           </a>
           <input *ngIf="showPhoneNumberInput" class="form-control mt-1" type="tel" [(ngModel)]="phoneNumberToText" />
         </div>
