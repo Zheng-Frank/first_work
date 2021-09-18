@@ -80,14 +80,11 @@ export class CleanInsistedLinksComponent implements OnInit {
     const oldValue = JSON.parse(JSON.stringify(web[field] || {}));
     const newValue = (event.newValue || '').trim();
 
-    if (field === 'qmenuPop3Password' && !restaurant.web.qmenuWebsite) {
-      this._global.publishAlert(AlertType.Danger, 'Error: no qMenu managed website found. Please enter managed website before entering a password');
-      return;
-    }
     if (newValue) {
       try {
         await this._api.get(environment.appApiUrl + 'utils/check-url?url=' + newValue).toPromise();
-      } catch {
+      } catch (e) {
+        console.log(e);
         this._global.publishAlert(AlertType.Danger, 'Error: Please enter a valid website URL');
         return;
       }
