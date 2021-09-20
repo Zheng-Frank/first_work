@@ -243,6 +243,7 @@ import { MyLeads2Component } from './components/leads/my-leads2/my-leads2.compon
 import { CleanMenusComponent } from './components/monitoring/clean-menus/clean-menus.component';
 import { RestaurantIvrListComponent } from './components/restaurants/restaurant-ivr-list/restaurant-ivr-list.component';
 import { LeadDetailsComponent } from './components/leads/lead-details/lead-details.component';
+import { CleanInsistedLinksComponent } from './components/clean-insisted-links/clean-insisted-links.component';
 
 
 
@@ -455,7 +456,8 @@ import { LeadDetailsComponent } from './components/leads/lead-details/lead-detai
     LeadDashboard2Component,
     MyLeads2Component,
     RestaurantIvrListComponent,
-    LeadDetailsComponent
+    LeadDetailsComponent,
+    CleanInsistedLinksComponent
   ],
   imports: [
     BrowserModule,
