@@ -243,6 +243,7 @@ import { MyLeads2Component } from './components/leads/my-leads2/my-leads2.compon
 import { CleanMenusComponent } from './components/monitoring/clean-menus/clean-menus.component';
 import { RestaurantIvrListComponent } from './components/restaurants/restaurant-ivr-list/restaurant-ivr-list.component';
 import { LeadDetailsComponent } from './components/leads/lead-details/lead-details.component';
+import { GmbTaskDetailComponent } from './components/gmbs2/gmb-task-detail/gmb-task-detail.component';
 import { CleanInsistedLinksComponent } from './components/clean-insisted-links/clean-insisted-links.component';
 
 
@@ -457,6 +458,7 @@ import { CleanInsistedLinksComponent } from './components/clean-insisted-links/c
     MyLeads2Component,
     RestaurantIvrListComponent,
     LeadDetailsComponent,
+    GmbTaskDetailComponent,
     CleanInsistedLinksComponent
   ],
   imports: [

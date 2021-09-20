@@ -2,21 +2,14 @@
   white-space: pre-wrap;
 }
 
-::ng-deep th {
+::ng-deep th,td:first-child {
   white-space: nowrap;
 }
+
 .min-w-6 {
   min-width: 6rem;
 }
 
 .opacity-30 {
   opacity: 0.3;
-}
-
-::ng-deep .modal-header {
-  text-align: center;
-}
-
-::ng-deep .modal-dialog {
-  max-width: 70%;
 }
