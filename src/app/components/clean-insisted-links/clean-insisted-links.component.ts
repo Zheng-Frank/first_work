@@ -43,7 +43,7 @@ export class CleanInsistedLinksComponent implements OnInit {
         name: 1,
         web: 1,
       },
-    }, 10000);
+    }, 1000);
 
     this.rows = allRestaurants
       .filter(restaurant =>
