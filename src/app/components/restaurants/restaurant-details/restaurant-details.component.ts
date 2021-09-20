@@ -8,7 +8,7 @@ import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
 import { RestaurantProfileComponent } from '../restaurant-profile/restaurant-profile.component';
 import { Helper } from '../../../classes/helper';
-import {SendMessageComponent} from '../../utilities/send-message/send-message.component';
+import { SendMessageComponent } from '../../utilities/send-message/send-message.component';
 
 
 declare var $: any;
@@ -393,11 +393,11 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   }
 
   valueVisible() {
-    return ['CSR', 'ADMIN', 'GMB'].some(role => this._global.user.roles.includes(role));
+    return ['CSR', 'ADMIN', 'GMB_SPECIALIST'].some(role => this._global.user.roles.includes(role));
   }
 
   displayValue(rt) {
-    if (this._global.user.roles.includes('ADMIN')) {
+    if (['GMB_SPECIALIST', 'ADMIN'].some(role => this._global.user.roles.includes(role))) {
       return (rt.score || 0).toFixed(1);
     }
     if (!rt.score) {
