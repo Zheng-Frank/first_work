@@ -39,11 +39,10 @@ export class CleanInsistedLinksComponent implements OnInit {
       projection: {
         _id: 1,
         disabled: 1,
-        googleAddress: 1,
         name: 1,
         web: 1,
       },
-    }, 1000);
+    }, 2000);
 
     this.rows = allRestaurants
       .filter(restaurant =>
