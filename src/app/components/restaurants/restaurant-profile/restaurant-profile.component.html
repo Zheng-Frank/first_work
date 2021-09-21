@@ -789,15 +789,14 @@
                 <th colspan="2">
                   <div class="row">
                     <div class="col-4 pl-5">
-                      {{changeLanguageFlag === 'English' ? 'Do not hide useless menu items' : '显示冷门菜单项' }}
+                      {{changeLanguageFlag === 'English' ? 'Show menu item number and unpolular items' : '显示菜号和不常点的菜' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                         (mouseover)="showCorrespondingTranslation('DoNotHideUselessMenuItems')"
                         (mouseout)="translating = ''">
                         <div *ngIf="translating === 'DoNotHideUselessMenuItems'" class="left talk radius">
-                          <p>Do not hide useless menu
-                            items:{{Explanations.EnglishExplanations.DoNotHideUselessMenuItems}}</p>
+                          <p>Show menu item number and unpolular items:{{Explanations.EnglishExplanations.DoNotHideUselessMenuItems}}</p>
                           -------------<br>
-                          <p>显示冷门菜单项:{{Explanations.ChineseExplanations.DoNotHideUselessMenuItems}}</p>
+                          <p>显示菜号和不常点的菜:{{Explanations.ChineseExplanations.DoNotHideUselessMenuItems}}</p>
                         </div>
                       </i>
                     </div>
@@ -1591,14 +1590,13 @@
             </div>
           </div>
           <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Do not hide useless menu
-              items' : '不隐藏无用的菜单项' }}
+            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Show menu item number and unpolular items' : '显示菜号和不常点的菜' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                 (mouseover)="showCorrespondingTranslation('DoNotHideUselessMenuItems')" (mouseout)="translating = ''">
                 <div *ngIf="translating === 'DoNotHideUselessMenuItems'" class="left edit-talk radius">
-                  <p>Do not hide useless menu items:{{Explanations.EnglishExplanations.DoNotHideUselessMenuItems}}</p>
+                  <p>Show menu item number and unpolular items:{{Explanations.EnglishExplanations.DoNotHideUselessMenuItems}}</p>
                   -------------<br>
-                  <p>不隐藏无用的菜单项:{{Explanations.ChineseExplanations.DoNotHideUselessMenuItems}}</p>
+                  <p>显示菜号和不常点的菜:{{Explanations.ChineseExplanations.DoNotHideUselessMenuItems}}</p>
                 </div>
               </i>
             </label>
