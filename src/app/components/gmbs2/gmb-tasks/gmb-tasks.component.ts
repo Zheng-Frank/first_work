@@ -61,6 +61,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
     @ViewChild('rowModal') rowModal: ModalComponent;
     @ViewChild('taskDetail') taskDetail: GmbTaskDetailComponent;
+    apiLoading = false;
     activeTabLabel = 'Mine';
     currentAction;
     tasks = [];
@@ -201,6 +202,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     }
 
     async populate() {
+        this.apiLoading = true;
         try {
             // populate RTs first because tasks will do filter about them
             await this.populateRTs();
@@ -214,7 +216,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         } catch (error) {
             this._global.publishAlert(AlertType.Danger, 'Error on loading data. Please contact technical support');
         }
-
+        this.apiLoading = false;
         this.filter();
     }
 

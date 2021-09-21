@@ -44,6 +44,7 @@ export class GmbTaskDetailComponent implements OnInit {
   // Send Google PIN message.
   sendingGooglePinMessage = false;
   showRTLogs = false;
+  showTaskJson = false; // control to show json string
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
