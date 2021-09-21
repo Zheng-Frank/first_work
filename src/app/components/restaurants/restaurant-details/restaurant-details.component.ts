@@ -179,7 +179,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     qmenuWebsite: 'qMenu Website',
     pickupTimeEstimate: 'Time Estimate for Pickup',
     deliveryTimeEstimate: 'Time Estimate for Delivery',
-    deliverySettings: 'Delivery Settings'
+    deliverySettings: 'Delivery Settings',
+    preferredLanguage: 'Preferred Language'
   };
   messageTemplates = [
     [

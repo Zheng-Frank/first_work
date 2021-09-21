@@ -1007,9 +1007,11 @@
             </label>
             <div class="pl-1 col-7">
               <select class="form-control" [(ngModel)]="preferredLanguage">
-                <option *ngFor="let language of preferredLanguages" [ngValue]="language">
-                  {{ language.text }}
-                </option>
+                <ng-container *ngFor="let language of preferredLanguages">
+                  <option [ngValue]="language" [hidden]="!language.value">
+                    {{ language.text }}
+                  </option>
+                </ng-container>
               </select>
             </div>
           </div>

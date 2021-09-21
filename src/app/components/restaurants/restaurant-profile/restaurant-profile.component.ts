@@ -227,6 +227,12 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   }
 
   ngOnInit() {
+    if(!this.restaurant.preferredLanguage){
+      this.preferredLanguages.unshift({
+        value: "",
+        text: ""
+      });
+    }
     this.selfSignupRegistered = this.restaurant.selfSignup && this.restaurant.selfSignup.registered;
 
     if (this.restaurant.disabled && this.restaurant['comebackDate'] === undefined) {
@@ -298,7 +304,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
     // special fields
     this.images = this.restaurant.images || [];
-    this.preferredLanguage = this.preferredLanguages.filter(z => z.value === (this.restaurant.preferredLanguage || 'ENGLISH'))[0];
+    this.preferredLanguage = this.preferredLanguages.filter(z => z.value === (this.restaurant.preferredLanguage))[0];
 
     // website broadcast expiration field
     // 2021-07-15T04:00:00.000Z
@@ -443,6 +449,9 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     }
 
     newObj.preferredLanguage = (this.preferredLanguage && this.preferredLanguage.value) || undefined;
+    if(!newObj.preferredLanguage){
+      return this._global.publishAlert(AlertType.Danger,"Please select a standard language(请选择餐馆的标准语言)!");
+    }
     // update those two fields!
     newObj.images = this.images;
     delete oldObj['images'];
