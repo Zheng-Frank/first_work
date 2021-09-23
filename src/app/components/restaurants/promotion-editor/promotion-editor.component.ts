@@ -158,7 +158,7 @@ export class PromotionEditorComponent implements OnChanges {
     this.promotion.applicableItems = this.flattenList(this.applicableItems) || [];
 
     if (!this.hasExpiry) {
-      this.promotion.expiry = null;
+      delete this.promotion.expiry;
     } else {
       this.promotion.expiry = new Date(this.expiry);
       // this is UTC, we need to make it local browser (whoever operating this! Assuming same timezone as restaurant owner)
