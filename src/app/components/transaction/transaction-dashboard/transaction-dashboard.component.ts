@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { Transaction } from 'src/app/classes/transaction';
 import { AlertType } from 'src/app/classes/alert-type';
+import {ModalComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
 
 @Component({
   selector: 'app-transaction-dashboard',
@@ -12,6 +13,8 @@ import { AlertType } from 'src/app/classes/alert-type';
 })
 export class TransactionDashboardComponent implements OnInit {
 
+  @ViewChild('editModal') editModal: ModalComponent;
+
   payers = ['qmenu', 'gary', 'chris'];
   payees = ['sam', 'lucy', 'mike', 'kevin', 'charity', 'gary', 'chris', 'james', 'qmenu'];
   paymentMeans = ['payoneer', 'paypal', 'wechat', 'check', 'cash'];
@@ -19,7 +22,6 @@ export class TransactionDashboardComponent implements OnInit {
 
   transactions = [];
   transactionInEditing: any = {};
-  editing = false;
   selectedPayer;
   selectedPayee;
 
@@ -60,7 +62,7 @@ export class TransactionDashboardComponent implements OnInit {
     {
       label: 'Input Date'
     }
-  ]
+  ];
 
   fieldDescriptors = [
     {
@@ -73,7 +75,7 @@ export class TransactionDashboardComponent implements OnInit {
       field: "payer", //
       label: "Payer (from)",
       required: true,
-      inputType: "single-select",
+      inputType: "select",
       items: this.payers.sort().map(payer => ({
         object: payer,
         text: payer,
@@ -84,7 +86,7 @@ export class TransactionDashboardComponent implements OnInit {
       field: "payee", //
       label: "Payee (to)",
       required: true,
-      inputType: "single-select",
+      inputType: "select",
       items: this.payees.sort().map(payee => ({
         object: payee,
         text: payee,
@@ -101,7 +103,7 @@ export class TransactionDashboardComponent implements OnInit {
       field: "currency", //
       label: "Currency",
       inputType: "single-select",
-      items: ['USD', 'CNY'].map(s => ({ object: s, text: s, selected: false }))
+      items: ['USD', 'CNY', 'PHP'].map(s => ({ object: s, text: s, selected: false }))
     },
     {
       field: "exchangeRate", //
@@ -132,6 +134,11 @@ export class TransactionDashboardComponent implements OnInit {
 
   ngOnInit() {
     this.populate();
+  }
+
+  add() {
+    this.transactionInEditing = {};
+    this.editModal.show();
   }
 
   async populate() {
@@ -170,16 +177,13 @@ export class TransactionDashboardComponent implements OnInit {
     this.transactions.push(transaction);
 
     this._global.publishAlert(AlertType.Success, 'Added transaction');
+    this.editModal.hide();
     return event.acknowledge(null);
 
   }
 
   changeFilter() {
 
-  }
-
-  toggleEditing() {
-    this.editing = !this.editing;
   }
 
   getFilteredTransactions() {

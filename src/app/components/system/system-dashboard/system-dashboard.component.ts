@@ -49,6 +49,10 @@ export class SystemDashboardComponent implements OnInit {
       route: 'leads',
       text: 'Lead Funnels'
     },
+    {
+      route: 'transactions',
+      text: 'Transactions'
+    },
   ];
 
   system: any;
