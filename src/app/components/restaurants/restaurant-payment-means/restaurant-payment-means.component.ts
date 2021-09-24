@@ -28,6 +28,10 @@ export class RestaurantPaymentMeansComponent implements OnInit {
   ngOnInit() {
   }
 
+  formChanged(event) {
+    // TO BE UPDATED: this just to make siyuan's code not blocking compilation
+  }
+
   editNew() {
     this.paymentMeansModal.title = 'New Payment Means';
     this.paymentMeansInEditing = new PaymentMeans();

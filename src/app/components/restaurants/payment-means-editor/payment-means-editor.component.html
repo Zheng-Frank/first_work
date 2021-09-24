@@ -1,5 +1,5 @@
 <q-form-builder #paymentMeansFormBuilder [object]="paymentMeans" [showDelete]="showDelete" [fieldDescriptors]="paymentMeansFieldDescriptors"
-    (submit)="clickSubmit($event)" (cancel)="clickCancel()" (remove)="clickRemove($event)" (change)="formChanged($event)">
+    (submit)="clickSubmit($event)" (cancel)="clickCancel()" (remove)="clickRemove($event)" (change)="formChanged()">
 
     <div class="form-group"
         *ngIf="paymentMeans.type === 'Quickbooks Bank Withdraw' || paymentMeans.type === 'Direct Deposit'">

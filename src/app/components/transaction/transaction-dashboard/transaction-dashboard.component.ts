@@ -1,10 +1,10 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { Transaction } from 'src/app/classes/transaction';
 import { AlertType } from 'src/app/classes/alert-type';
-import {ModalComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 
 @Component({
   selector: 'app-transaction-dashboard',
@@ -64,6 +64,30 @@ export class TransactionDashboardComponent implements OnInit {
     }
   ];
 
+  payerFieldDescriptor = {
+    field: "payer", //
+    label: "Payer (from)",
+    required: true,
+    inputType: "select",
+    items: this.payers.sort().map(payer => ({
+      object: payer,
+      text: payer,
+      selected: false
+    }))
+  };
+
+  payeeFieldDescriptor = {
+    field: "payee", //
+    label: "Payee (to)",
+    required: true,
+    inputType: "select",
+    items: this.payees.sort().map(payee => ({
+      object: payee,
+      text: payee,
+      selected: false
+    }))
+  };
+
   fieldDescriptors = [
     {
       field: "time", //
@@ -71,28 +95,8 @@ export class TransactionDashboardComponent implements OnInit {
       required: true,
       inputType: "date"
     },
-    {
-      field: "payer", //
-      label: "Payer (from)",
-      required: true,
-      inputType: "select",
-      items: this.payers.sort().map(payer => ({
-        object: payer,
-        text: payer,
-        selected: false
-      }))
-    },
-    {
-      field: "payee", //
-      label: "Payee (to)",
-      required: true,
-      inputType: "select",
-      items: this.payees.sort().map(payee => ({
-        object: payee,
-        text: payee,
-        selected: false
-      }))
-    },
+    this.payerFieldDescriptor,
+    this.payeeFieldDescriptor,
     {
       field: "amount", //
       label: "Amount",
@@ -150,8 +154,18 @@ export class TransactionDashboardComponent implements OnInit {
     this.transactions.sort((t1, t2) => t1.time.valueOf() - t2.time.valueOf());
     this.payers = [... new Set(this.transactions.map(t => t.payer))].sort();
     this.payees = [... new Set(this.transactions.map(t => t.payee))].sort();
+    // re-bind the form payer and payees
+    this.payeeFieldDescriptor.items = this.payers.sort().map(payer => ({
+      object: payer,
+      text: payer,
+      selected: false
+    }));
+    this.payeeFieldDescriptor.items = this.payees.sort().map(payer => ({
+      object: payer,
+      text: payer,
+      selected: false
+    }));
   }
-
 
   async formSubmit(event) {
     // MUST:
