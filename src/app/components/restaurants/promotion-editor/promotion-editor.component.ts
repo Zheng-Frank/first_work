@@ -121,6 +121,15 @@ export class PromotionEditorComponent implements OnChanges {
     this.applicableItems = this.unflattenList(promotion.applicableItems);
   }
 
+  togglePaymentMethod(paymentMethod) {
+    if ((this.promotion.applicablePaymentMethods || []).includes(paymentMethod)) {
+      this.promotion.applicablePaymentMethods = this.promotion.applicablePaymentMethods.filter(x => x !== paymentMethod);
+    } else {
+      this.promotion.applicablePaymentMethods = this.promotion.applicablePaymentMethods || [];
+      this.promotion.applicablePaymentMethods.push(paymentMethod);
+    }
+  }
+
   isPromotionValid() {
     if (!this.promotionType) {
       return false;
@@ -166,6 +175,7 @@ export class PromotionEditorComponent implements OnChanges {
       // and the db data need to be transform to local time when compare
       this.promotion.expiry.setMinutes(this.promotion.expiry.getMinutes() + new Date().getTimezoneOffset());
     }
+    console.log(this.promotion);
     this.onDone.emit(this.promotion);
   }
 
