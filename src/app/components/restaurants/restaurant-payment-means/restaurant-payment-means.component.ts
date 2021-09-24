@@ -1,3 +1,4 @@
+import { PaymentMeansEditorComponent } from './../payment-means-editor/payment-means-editor.component';
 import { Component, OnInit, Input, ViewChild } from '@angular/core';
 import { Restaurant, PaymentMeans } from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
@@ -17,6 +18,7 @@ export class RestaurantPaymentMeansComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
   @ViewChild('paymentMeansModal') paymentMeansModal: ModalComponent;
+  @ViewChild('paymentEditor') paymentEditor: PaymentMeansEditorComponent;
   paymentMeansInEditing = new PaymentMeans();
   originalPaymentMeansInEditing;
 
@@ -27,10 +29,11 @@ export class RestaurantPaymentMeansComponent implements OnInit {
   }
 
   editNew() {
-    this.paymentMeansModal.show();
     this.paymentMeansModal.title = 'New Payment Means';
     this.paymentMeansInEditing = new PaymentMeans();
     this.originalPaymentMeansInEditing = undefined;
+    this.paymentEditor.formChanged();
+    this.paymentMeansModal.show();
   }
 
   onCancel() {
@@ -38,10 +41,11 @@ export class RestaurantPaymentMeansComponent implements OnInit {
   }
 
   edit(paymentMeans) {
-    this.paymentMeansModal.show();
     this.paymentMeansModal.title = 'Edit Payment Means';
     this.originalPaymentMeansInEditing = paymentMeans;
-    this.paymentMeansInEditing = JSON.parse(JSON.stringify(paymentMeans));
+    this.paymentMeansInEditing = new PaymentMeans(JSON.parse(JSON.stringify(paymentMeans)));
+    this.paymentEditor.formChanged();
+    this.paymentMeansModal.show();
   }
 
   

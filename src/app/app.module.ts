@@ -245,6 +245,7 @@ import { RestaurantIvrListComponent } from './components/restaurants/restaurant-
 import { LeadDetailsComponent } from './components/leads/lead-details/lead-details.component';
 import { GmbTaskDetailComponent } from './components/gmbs2/gmb-task-detail/gmb-task-detail.component';
 import { CleanInsistedLinksComponent } from './components/clean-insisted-links/clean-insisted-links.component';
+import { PaymentMeansEditorComponent } from './components/restaurants/payment-means-editor/payment-means-editor.component';
 
 
 
@@ -459,7 +460,8 @@ import { CleanInsistedLinksComponent } from './components/clean-insisted-links/c
     RestaurantIvrListComponent,
     LeadDetailsComponent,
     GmbTaskDetailComponent,
-    CleanInsistedLinksComponent
+    CleanInsistedLinksComponent,
+    PaymentMeansEditorComponent
   ],
   imports: [
     BrowserModule,

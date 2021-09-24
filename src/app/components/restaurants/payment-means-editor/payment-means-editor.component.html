@@ -1,0 +1,112 @@
+<q-form-builder #paymentMeansFormBuilder [object]="paymentMeans" [showDelete]="showDelete" [fieldDescriptors]="paymentMeansFieldDescriptors"
+    (submit)="clickSubmit($event)" (cancel)="clickCancel()" (remove)="clickRemove($event)" (change)="formChanged($event)">
+
+    <div class="form-group"
+        *ngIf="paymentMeans.type === 'Quickbooks Bank Withdraw' || paymentMeans.type === 'Direct Deposit'">
+        <label>Bank Info</label>
+        <div class="card text-white bg-info p-2">
+            <!-- <img src="assets/images/check.png" width="311px" height="165px" alt="check image"> -->
+            <div class="form-group">
+                <label>Name on Check</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="John Doe"
+                        [(ngModel)]="paymentMeans.details.name" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Address</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="address"
+                        [(ngModel)]="paymentMeans.details.address" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Routing Number</label>
+                <div class="input-group">
+                    <input type="tel" class="form-control" [(ngModel)]="paymentMeans.details.routingNumber" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Account Number</label>
+                <div class="input-group">
+                    <input type="tel" class="form-control" [(ngModel)]="paymentMeans.details.accountNumber" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="form-group" *ngIf="paymentMeans.type === 'Credit Card'">
+        <label>Credit Card Details</label>
+        <div class="card text-white bg-info p-2">
+            <div class="form-group">
+                <label>Card Number</label>
+                <div class="input-group">
+                    <input type="tel" class="form-control" [(ngModel)]="paymentMeans.details.cardNumber" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6 form-group">
+                    <label>Expiry</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="eg. 03/22"
+                            [(ngModel)]="paymentMeans.details.expiry" />
+                    </div>
+                </div>
+                <div class="col-6 form-group">
+                    <label>CV Code</label>
+                    <div class="input-group">
+                        <input type="tel" class="form-control" [(ngModel)]="paymentMeans.details.cvc" />
+                    </div>
+                </div>
+                <div class="col-6 form-group">
+                    <label>First and Last Names</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="eg. John Doe"
+                            [(ngModel)]="paymentMeans.details.name" />
+                    </div>
+                </div>
+                <div class="col-6 form-group">
+                    <label>Zip Code</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="eg. 30022"
+                            [(ngModel)]="paymentMeans.details.zipcode" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="form-group" *ngIf="paymentMeans.type === 'Check Deposit'">
+        <label>Payment Receiver Details</label>
+        <div class="card text-white bg-info p-2">
+            <div class="form-group">
+                <label>Payee Name</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="John Doe"
+                        [(ngModel)]="paymentMeans.details.name" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Address</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" [(ngModel)]="paymentMeans.details.address" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="form-group ml-2" *ngIf="paymentMeans.type === 'Check'">
+        <small>Advise the restaurant to send checks to:</small><br>
+        <small>qMenu, Inc.</small><br>
+        <small>7778 McGinnis Ferry Rd #276</small><br>
+        <small>Suwanee, GA 30024</small>
+    </div>
+    <div class="form-group ml-4" *ngIf="paymentMeans.type === 'Quickbooks Bank Withdraw' || paymentMeans.type === 'Credit Card'">
+        <input class="form-check-input" type="checkbox" [(ngModel)]="paymentMeans.details.onetime"/> One-time(一次性)
+    </div>
+    <div class="form-group">
+        <label>Memo</label>
+        <div class="input-group">
+            <input type="text" class="form-control" [(ngModel)]="paymentMeans.details.memo" />
+        </div>
+    </div>
+</q-form-builder>
