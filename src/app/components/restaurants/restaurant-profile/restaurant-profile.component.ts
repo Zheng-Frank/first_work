@@ -212,6 +212,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
   changeLanguageFlag = this._global.languageType;
   preferredLanguages = [
+    { value: '', text: '' },
     { value: 'ENGLISH', text: 'English' },
     { value: 'CHINESE', text: 'Chinese' }
   ];
@@ -580,7 +581,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       REQUIRED_FIELDS.push("deliveryTimeEstimate");
     }
 
-    return REQUIRED_FIELDS.filter(field => !this[field]).join(', ');
+    return REQUIRED_FIELDS.filter(field => !this[field] || this[field].value === '').join(', ');
   }
 
 }
