@@ -320,6 +320,14 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
 
     const newChannels = this.restaurant.channels.slice(0);
     newChannels.splice(this.channelInEditing.index, 1);
+
+    const notificationMatchIndex = (this.restaurant.orderNotifications || []).findIndex(n => n.channel.value === oldChannel.value && n.channel.type === oldChannel.type);
+    console.log(notificationMatchIndex)
+    if (notificationMatchIndex >= 0) {
+      const newNotifications = this.restaurant.orderNotifications.slice(0);
+      newNotifications.splice(notificationMatchIndex, 1);
+      this.patchDiff('orderNotifications', newNotifications);
+    }
     this.patchDiff('channels', newChannels);
     event.acknowledge(null);
     this.modalChannel.hide();
@@ -365,6 +373,7 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
   }
 
   async patchDiff(field, newValue) {
+    console.log(field, newValue);
     if (Helper.areObjectsEqual(this.restaurant[field], newValue)) {
       this._global.publishAlert(
         AlertType.Info,
