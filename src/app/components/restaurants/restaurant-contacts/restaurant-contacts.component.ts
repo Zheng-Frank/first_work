@@ -65,14 +65,14 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
   ];
 
   languageDescriptor = {
-      field: "language",
-      label: "Language",
-      required: false,
-      inputType: "single-select",
-      items: [
-        { object: "ENGLISH", text: "English", selected: false },
-        { object: "CHINESE", text: "Chinese", selected: false }
-      ]
+    field: "language",
+    label: "Language",
+    required: false,
+    inputType: "single-select",
+    items: [
+      { object: "ENGLISH", text: "English", selected: false },
+      { object: "CHINESE", text: "Chinese", selected: false }
+    ]
   };
 
   personFieldDescriptors = [
@@ -291,14 +291,13 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
   }
 
   updateOrderNotifications(channel) {
-    let newOrderNotifications = JSON.parse(JSON.stringify(this.restaurant.orderNotifications)) || [];
+    const newOrderNotifications = JSON.parse(JSON.stringify(this.restaurant.orderNotifications)) || [];
     // if this channel has had order notifications turned OFF during this round of editing, we want to delete any orderNotifications associated with this channel
     const notificationsTurnedOff = (this.channelBeforeEditing.notifications || []).includes('Order') && !(channel.notifications || []).includes('Order');
-
     if (notificationsTurnedOff) {
       let matchingNotificationIndex = (this.restaurant.orderNotifications || []).findIndex(n => n.channel.value === channel.value && n.channel.type === channel.type);
       if (matchingNotificationIndex >= 0) {
-        newOrderNotifications = this.restaurant.orderNotifications.splice(matchingNotificationIndex, 1); // deleting orderNotification
+        newOrderNotifications.splice(matchingNotificationIndex, 1); // deleting orderNotification
       }
     } else {
       let notificationMatch = (this.restaurant.orderNotifications || []).find(n => n.channel.value === channel.value && n.channel.type === channel.type);
@@ -311,8 +310,6 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
         });
       }
     }
-
-
 
     this.patchDiff('orderNotifications', newOrderNotifications);
   }
