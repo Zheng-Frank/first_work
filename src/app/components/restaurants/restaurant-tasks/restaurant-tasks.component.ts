@@ -16,19 +16,33 @@ import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 export class RestaurantTasksComponent implements OnInit, OnChanges {
   @ViewChild('taskDetailModal') taskDetailModal: ModalComponent;
   @ViewChild('taskDetail') taskDetail: GmbTaskDetailComponent;
+  @ViewChild('viewJSONModal') viewJSONModal: ModalComponent;
   @Input() restaurant: Restaurant;
 
   tasks: Task[] = [];
-  constructor(private _api: ApiService, private _global: GlobalService) {}
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
   refreshing = false;
   qmenuDomains = new Set();
   publishedCids = new Set();
+  currentTask;
+  user;
+  assignees = [];
   ngOnInit() {
   }
 
+  showTaskJSON(task) {
+    this.currentTask = task;
+    this.viewJSONModal.show();
+  }
+
   private async populateQMDomains() {
-    this.qmenuDomains = await this._global.getCachedDomains();
+    try {
+      this.qmenuDomains = await this._global.getCachedDomains();
+    }catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, error.message);
+    }
   }
 
   async createGmbRequestTask() {
@@ -64,6 +78,10 @@ export class RestaurantTasksComponent implements OnInit, OnChanges {
     await this.reloadTasks();
   }
 
+  async triggerActionDone(event){
+    await this.reloadTasks();
+  }
+
   async handleAssignComplete() {
     await this.reloadTasks();
   }
@@ -84,50 +102,63 @@ export class RestaurantTasksComponent implements OnInit, OnChanges {
   }
 
   private async populatePublishedCids() {
-    const allPublished = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "gmbAccount",
-      query: {},
-      limit: 100000,
-      projection: {
-        _id: 0,
-        "locations.cid": 1,
-        "locations.status": 1,
-        "locations.role": 1
-      }
-    }).toPromise();
-    allPublished.forEach(acct => (acct.locations || []).forEach(loc => {
-      if (loc.status === "Published" && ["PRIMARY_OWNER", 'OWNER', 'CO_OWNER', 'MANAGER'].find(r => r === loc.role)) this.publishedCids.add(loc.cid)
-    }));
+    try {
+      const allPublished = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "gmbAccount",
+        query: {},
+        limit: 100000,
+        projection: {
+          _id: 0,
+          "locations.cid": 1,
+          "locations.status": 1,
+          "locations.role": 1
+        }
+      }).toPromise();
+      allPublished.forEach(acct => (acct.locations || []).forEach(loc => {
+        if (loc.status === "Published" && ["PRIMARY_OWNER", 'OWNER', 'CO_OWNER', 'MANAGER'].find(r => r === loc.role)) this.publishedCids.add(loc.cid)
+      }));
+    }catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, error.message);
+    }
   }
 
   async ngOnChanges(changes: SimpleChanges) {
     if (this.restaurant) {
       await this.populateQMDomains();
       await this.populatePublishedCids();
+      this.user = this._global.user;
+      const users = await this._global.getCachedUserList();
+      this.assignees = users.filter(u => !u.disabled && u.roles.some(r => ['GMB_SPECIALIST', 'MARKETER'].indexOf(r) >= 0)).map(u => u.username).sort((u1, u2) => u1 > u2 ? 1 : -1);
+      this.assignees.unshift('NON-CLAIMED');
       // refresh tasks for the restaurant
       await this.reloadTasks();
     }
   }
 
   async reloadTasks() {
-    console.log('called')
-    this.tasks = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "task",
-      query: {
-        $or: [
-          {
-            "relatedMap.restaurantId": this.restaurant._id
-          },
-          {
-            "relatedMap.qmenuId": this.restaurant._id
-          }
-        ]
-      },
-      limit: 10000000
-    }).toPromise();
-    this.tasks.sort((a, b) => a.createdAt > b.createdAt ? 1 : -1);
+    try {
+      this.tasks = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "task",
+        query: {
+          $or: [
+            {
+              "relatedMap.restaurantId": this.restaurant._id
+            },
+            {
+              "relatedMap.qmenuId": this.restaurant._id
+            }
+          ]
+        },
+        limit: 10000000
+      }).toPromise();
+      this.tasks.sort((a, b) => a.createdAt > b.createdAt ? 1 : -1);
+      this.tasks = this.tasks.map(task=>new Task(task));
+    }catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, error.message);
+    }
   }
-
 
   async refreshGmbTasks() {
     this.refreshing = true;

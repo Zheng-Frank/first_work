@@ -5,6 +5,7 @@ import { ApiService } from './../../../services/api.service';
 import { environment } from 'src/environments/environment';
 import { Input, Output } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
+import { Task } from 'src/app/classes/tasks/task';
 
 @Component({
   selector: 'app-gmb-task-detail',
@@ -17,6 +18,8 @@ export class GmbTaskDetailComponent implements OnInit {
   qmenuDomains = new Set();
   @Input()
   publishedCids = new Set();
+  @Input()
+  assignees = [];
   @Output()
   refreshTask = new EventEmitter();
   @Output()
@@ -26,7 +29,6 @@ export class GmbTaskDetailComponent implements OnInit {
 
   //help display postcardID
   postcardIds = new Map();
-  assignees = [];
   restaurant;
   modalTask;
   relatedTasks;
@@ -45,26 +47,37 @@ export class GmbTaskDetailComponent implements OnInit {
   sendingGooglePinMessage = false;
   showRTLogs = false;
   showTaskJson = false; // control to show json string
-
+  now = new Date();
+  timer;
+  
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
     await this.populatePostcardId();
-    const users = await this._global.getCachedUserList();
-    this.assignees = users.filter(u => !u.disabled && u.roles.some(r => ['GMB_SPECIALIST', 'MARKETER'].indexOf(r) >= 0)).map(u => u.username).sort((u1, u2) => u1 > u2 ? 1 : -1);
-    this.assignees.unshift('NON-CLAIMED');
+    this.timer = setInterval(_ => this.now = new Date(), 60000);
+  }
+  
+  ngOnDestroy() {
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
   }
 
   async populatePostcardId() {
-    const gmbAccounts = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "gmbAccount",
-      limit: 100000,
-      projection: {
-        "email": 1,
-        "postcardId": 1
-      }
-    }).toPromise();
-    this.postcardIds = new Map(gmbAccounts.map(acct => [acct.email, acct.postcardId]));
+    try {
+      const gmbAccounts = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "gmbAccount",
+        limit: 100000,
+        projection: {
+          "email": 1,
+          "postcardId": 1
+        }
+      }).toPromise();
+      this.postcardIds = new Map(gmbAccounts.map(acct => [acct.email, acct.postcardId]));
+    }catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, error.message);
+    }
   }
 
   async init(taskId) {
@@ -74,8 +87,8 @@ export class GmbTaskDetailComponent implements OnInit {
           _id: { $oid: taskId }
       }
     }).toPromise();
-    this.modalTask = tasks[0];
-    const theTask = tasks[0];
+    this.modalTask = new Task(tasks[0]);
+    const theTask = new Task(tasks[0]);
     this.preferredVerificationOption = undefined;
     this.isPublished = this.publishedCids.has(theTask.relatedMap.cid);
     this.taskScheduledAt = theTask.scheduledAt || new Date();

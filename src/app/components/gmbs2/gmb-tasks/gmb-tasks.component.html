@@ -180,6 +180,6 @@
   </button>
  
   <app-gmb-task-detail #taskDetail [qmenuDomains]="qmenuDomains" [publishedCids]="publishedCids"
-   (refreshTask)="handleRefreshSingleTask($event)"
+  [assignees]="assignees" (refreshTask)="handleRefreshSingleTask($event)"
   (assignComplete)="handleAssignComplete()" (showDetailsEvent)="showDetails($event)"></app-gmb-task-detail> 
 </q-modal>
