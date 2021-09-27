@@ -9,19 +9,20 @@ import { PaymentMeans } from '@qmenu/ui';
   templateUrl: './payment-means-editor.component.html',
   styleUrls: ['./payment-means-editor.component.css']
 })
-export class PaymentMeansEditorComponent implements OnInit{
+export class PaymentMeansEditorComponent implements OnInit {
 
   @ViewChild('paymentMeansFormBuilder') paymentMeansForm: FormBuilderComponent;
   @Output() cancel = new EventEmitter();
   @Output() remove = new EventEmitter<any>();
   @Output() submit = new EventEmitter<any>();
 
-  @Input() paymentMeans = {} as PaymentMeans;
   @Input() showDelete = false;
 
+  paymentMeans = new PaymentMeans();
+
   directionFieldItems = [
-    {object: 'Send', text: 'Restaurant → qMenu', selected: false},
-    {object: 'Receive', text: 'qMenu → Restaurant', selected: false}
+    { object: 'Send', text: 'Restaurant → qMenu', selected: false },
+    { object: 'Receive', text: 'qMenu → Restaurant', selected: false }
   ]
 
   directionFieldDescriptors = {
@@ -34,12 +35,11 @@ export class PaymentMeansEditorComponent implements OnInit{
 
   typeFieldItems = [
     // { object: "Check", text: "Check to qMenu", selected: false }, obsolete: use Stripe instead
-    {object: 'Stripe', text: 'Pay Online', selected: false},
-    {object: 'Check', text: 'Send Check to qMenu', selected: false },
-    {object: 'Quickbooks Bank Withdraw', text: 'Quickbooks Bank Withdraw', selected: false},
-    {object: 'Credit Card', text: 'Credit Card', selected: false},
-    {object: 'Direct Deposit', text: 'Direct Deposit (receive)', selected: false},
-    {object: 'Check Deposit', text: 'Check Deposit (receive)', selected: false}
+    { object: 'Stripe', text: 'Pay online or Send Check', selected: false },
+    { object: 'Quickbooks Bank Withdraw', text: 'Quickbooks Bank Withdraw', selected: false },
+    { object: 'Credit Card', text: 'Credit Card', selected: false },
+    { object: 'Direct Deposit', text: 'Direct Deposit (receive)', selected: false },
+    { object: 'Check Deposit', text: 'Check Deposit (receive)', selected: false }
   ]
 
   typeFieldDescriptors = {
@@ -56,26 +56,45 @@ export class PaymentMeansEditorComponent implements OnInit{
   ngOnInit() {
   }
 
-  formChanged(){
+  init(paymentMeans) {
+    this.paymentMeans = paymentMeans;
+    this.updateFormBuilder();
+  }
+
+  needShowOneTime() {
+    if (this.paymentMeans.direction === 'Send' && (this.paymentMeans.type === 'Quickbooks Bank Withdraw' || this.paymentMeans.type === 'Credit Card')) {
+      return true;
+    } else {
+      this.paymentMeans.details.onetime = undefined;
+      return false;
+    }
+  }
+
+  updateFormBuilder() {
     this.paymentMeansFieldDescriptors.length = 0;
     this.paymentMeansFieldDescriptors.push(this.directionFieldDescriptors);
-    console.log(JSON.stringify(this.paymentMeans));
+
     // control type according to what direction of money is flowing
-    switch(this.paymentMeans.direction){
+    switch (this.paymentMeans.direction) {
       case 'Send':
+        // TODO: prevent type is empty situation
         this.typeFieldDescriptors.items = this.typeFieldItems.filter(item => item.object !== 'Direct Deposit' && item.object !== 'Check Deposit');
         this.paymentMeansFieldDescriptors.push(this.typeFieldDescriptors);
         break;
       case 'Receive':
+        // TODO: prevent type is empty situation
         this.typeFieldDescriptors.items = this.typeFieldItems.filter(item => item.object === 'Direct Deposit' || item.object === 'Check Deposit');
         this.paymentMeansFieldDescriptors.push(this.typeFieldDescriptors);
         break;
       default:
         break;
     }
-
     // trigger changes to rebind things
     this.paymentMeansForm.ngOnChanges();
+  }
+
+  formChanged(event) {
+    this.updateFormBuilder();
   }
 
   clickCancel() {
