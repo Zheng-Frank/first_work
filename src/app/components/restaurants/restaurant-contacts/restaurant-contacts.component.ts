@@ -315,8 +315,6 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
   }
 
   removeChannel(event: FormSubmit) {
-
-
     const oldChannel = this.restaurant.channels[this.channelInEditing.index];
     this.updatePeopleOnChannelChange('DELETE', oldChannel);
 
@@ -366,7 +364,7 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
     this.patchDiff('crm', this.crm);
   }
 
-  patchDiff(field, newValue) {
+  async patchDiff(field, newValue) {
     if (Helper.areObjectsEqual(this.restaurant[field], newValue)) {
       this._global.publishAlert(
         AlertType.Info,
@@ -385,8 +383,6 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
       };
 
       newBody[field] = newValue;
-
-      console.log(oldBody, newBody);
 
       this._prunedPatch
         .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{

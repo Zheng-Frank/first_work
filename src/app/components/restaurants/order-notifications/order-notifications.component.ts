@@ -126,14 +126,13 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
 
   ngOnInit() {
-    this.orderNotifications = this.restaurant.orderNotifications || [];
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    this.orderNotifications = this.restaurant.orderNotifications || [];
   }
 
   // order types column is always displayed, havingOrderTypes() is currently un-used
-  
   // havingOrderTypes() {
   //   return this.orderNotifications.some(n => n.orderTypes && n.orderTypes.length > 0 && n.orderTypes.length < 3);
   // }
