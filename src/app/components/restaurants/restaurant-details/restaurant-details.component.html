@@ -18,13 +18,9 @@
             class="fas fa-external-link-alt"></i></a>)
       </div>
       <div class="small">
-<<<<<<< HEAD
-        Value: {{ restaurant.score || 0 | number: "1.1-1" }}
-=======
         Time: {{now| adjustedDate: 'h:mm a':restaurant.googleAddress.timezone}}, {{openOrNot?'Open':'Closed'}}
         <ng-container *ngIf="getBizContacts()">, {{getBizContacts()}}</ng-container>
         <ng-container *ngIf="valueVisible()">(Value: {{ displayValue(restaurant) }})</ng-container>
->>>>>>> master
       </div>
       <h1 *ngIf="restaurant.disabled && restaurant.comebackDate === undefined" class="alert alert-danger">DISABLED</h1>
       <h1 *ngIf="restaurant.disabled && (restaurant.comebackDate === null || isDate(restaurant.comebackDate))"
