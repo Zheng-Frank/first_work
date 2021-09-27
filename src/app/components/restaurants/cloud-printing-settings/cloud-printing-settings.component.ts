@@ -203,6 +203,12 @@ export class CloudPrintingSettingsComponent implements OnInit {
     //           url: url,
     //           copies: this.orderView.copies || 1 // default to 1
     //         }
+    //       },
+    //       trigger: {
+    //         id: this._global.user._id,
+    //         name: this._global.user.username,
+    //         source: "CSR",
+    //         module: "cloud print - print test order"
     //       }
     //     }
     //   }]).toPromise();
@@ -221,7 +227,13 @@ export class CloudPrintingSettingsComponent implements OnInit {
               sn: this.printer.name,
               key: this.printer.key,
               orderId: environment.testOrderId,
-              copies: this.printer.autoPrintCopies || 1
+              copies: this.printer.autoPrintCopies || 1,
+              trigger: {
+                id: this._global.user._id,
+                name: this._global.user.username,
+                source: 'CSR',
+                module: "cloud print - print test order"
+              }
             }
           }]).toPromise();
           this._global.publishAlert(AlertType.Info, "Print job sent");
@@ -234,7 +246,13 @@ export class CloudPrintingSettingsComponent implements OnInit {
               printerName: this.printer.name,
               orderId: environment.testOrderId,
               copies: this.printer.autoPrintCopies || 1,
-              format: this.printer.settings.DefaultPageSettings.PrintableArea.Width > 480 ? 'pdf' : 'png'
+              format: this.printer.settings.DefaultPageSettings.PrintableArea.Width > 480 ? 'pdf' : 'png',
+              trigger: {
+                id: this._global.user._id,
+                name: this._global.user.username,
+                source: "CSR",
+                module: "cloud print - print test order"
+              }
             }
           }]).toPromise();
           this._global.publishAlert(AlertType.Info, "Print job sent");
@@ -256,6 +274,12 @@ export class CloudPrintingSettingsComponent implements OnInit {
                   url: url,
                   copies: this.orderView.copies || 1 // default to 1
                 }
+              },
+              trigger: {
+                id: this._global.user._id,
+                name: this._global.user.username,
+                source: "CSR",
+                module: "cloud print - print test order"
               }
             }
           }]).toPromise();
@@ -386,9 +410,6 @@ export class CloudPrintingSettingsComponent implements OnInit {
     const customizedRenderingStyles = encodeURIComponent(this.orderView.customizedRenderingStyles || '');
     const menus = encodeURIComponent(JSON.stringify(this.menus || []));
     const template = this.orderView.template === 'chef' ? 'restaurantOrderPosChef' : 'restaurantOrderPos';
-
-    // url: "https://08znsr1azk.execute-api.us-east-1.amazonaws.com/prod/renderer?orderId=5c720fd092edbd4b28883ee1&template=restaurantOrderPosChef&format=png&customizedRenderingStyles=body%20%7B%20color%3A%20red%3B%20%7D&menus=%5B%7B%22name%22%3A%22All%20Day%20Menu%22%2C%22mcs%22%3A%5B%7B%22name%22%3A%22SPECIAL%20DISHES%22%2C%22mis%22%3A%5B%7B%22name%22%3A%221.Egg%20Roll%20(2)%22%7D%5D%7D%5D%7D%5D"
-
     let url = `${environment.legacyApiUrl.replace('https', 'http')}utilities/order/${environment.testOrderId}?format=pos&injectedStyles=${customizedRenderingStyles}`;
     if (format === 'esc' || format === 'gdi' || format === 'pdf' || (this.printClient.info && this.printClient.info.version && +this.printClient.info.version.split(".")[0] >= 3)) {
       // ONLY newest phoenix support chef view so for now
@@ -532,6 +553,12 @@ export class CloudPrintingSettingsComponent implements OnInit {
               data: {
                 "fake": "id"
               }
+            },
+            trigger: {
+              id: this._global.user._id,
+              name: this._global.user.username,
+              source: "CSR",
+              module: "cloud print - pull printer"
             }
           }
         }]).toPromise();

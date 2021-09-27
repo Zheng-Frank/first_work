@@ -16,7 +16,7 @@ declare var google: any;
 })
 export class RestaurantMapComponent implements OnInit {
 
-  restaurants: Restaurant[];
+  restaurants: Restaurant[] = [];
   map = null;
   markers = [];
   infoWindow = null;
@@ -32,6 +32,10 @@ export class RestaurantMapComponent implements OnInit {
   keyword = '';
   placeService = null;
   searchedMarkers = [];
+  cuisine = '';
+  markerRTDict = new Map();
+  filteredRTs: Restaurant[] = [];
+  loading = false;
 
   constructor(private _router: Router, private _api: ApiService, private _global: GlobalService) {
   }
@@ -42,6 +46,16 @@ export class RestaurantMapComponent implements OnInit {
     await this.getRTs();
     this.placeService = new google.maps.places.PlacesService(this.map);
     this.drawMarkers();
+    const autocomplete = new google.maps.places.Autocomplete(document.getElementById('address-input'), {
+      placeholder: undefined, types: ['geocode'],
+      fields: ['geometry.location', 'place_id', 'formatted_address', 'address_components', 'utc_offset_minutes', 'vicinity']
+    });
+    autocomplete.bindTo('bounds', this.map);
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      this.map.setCenter(place.geometry.location);
+      this.searchByAddress(place.geometry.location);
+    });
   }
 
   async initAgents() {
@@ -55,6 +69,7 @@ export class RestaurantMapComponent implements OnInit {
     }, 500);
 
     this.agents = users.filter(u => u.roles && u.roles.includes('MARKETER'));
+    this.agents.sort((x, y) => x.username > y.username ? 1 : -1);
   }
 
   async getRTs() {
@@ -68,8 +83,20 @@ export class RestaurantMapComponent implements OnInit {
         'googleAddress.administrative_area_level_1': 1,
         'googleAddress.lat': 1,
         'googleAddress.lng': 1,
+        'googleListing.cuisine': 1
       }
     }, 10000);
+  }
+
+  get cuisines(): string[] {
+    let list = this.restaurants.reduce((a, c) => {
+      if (c.googleListing && c.googleListing.cuisine && !a.includes(c.googleListing.cuisine)) {
+        return [...a, c.googleListing.cuisine];
+      }
+      return a;
+    }, []);
+    list.sort((x, y) => x > y ? 1 : -1);
+    return list;
   }
 
   initMap() {
@@ -98,16 +125,25 @@ export class RestaurantMapComponent implements OnInit {
     });
   }
 
-  drawMarkers() {
+  centerToRT(rt) {
+    let {googleAddress: {formatted_address, lat, lng}} = rt;
+    this.map.setCenter({lat, lng});
+    this.infoWindow.setContent(`<div><h3>${rt.name}</h3><div>${formatted_address}</div></div>`);
+    this.infoWindow.open({anchor: this.markerRTDict.get(rt._id), map: this.map});
+  }
 
+  drawMarkers() {
     this.clearMap(this.markers);
-    this.centerTo(this.state);
+    this.markerRTDict.clear();
 
     let rts = this.restaurants.filter(x => {
       // @ts-ignore
       return (!this.state || x.googleAddress && x.googleAddress.administrative_area_level_1 === this.state)
-        && (!this.agent || Helper.getSalesAgent(x.rateSchedules, this.agents) === this.agent);
+        && (!this.agent || Helper.getSalesAgent(x.rateSchedules, this.agents) === this.agent)
+        && (!this.cuisine || x.googleListing && x.googleListing.cuisine === this.cuisine);
     });
+    rts.sort((x, y) => x.name > y.name ? 1 : -1);
+    this.filteredRTs = rts;
 
     rts.forEach(rt => {
       // @ts-ignore
@@ -125,36 +161,52 @@ export class RestaurantMapComponent implements OnInit {
         position: {lat, lng}, title: rt.name, map: this.map, icon
       });
       marker.addListener('click', () => {
-        this.infoWindow.setContent(`<div><h3>${rt.name}</h3><div>${rt.googleAddress.formatted_address}</div></div>`);
+        this.infoWindow.setContent(`
+          <div>
+            <h3>${rt.name}</h3>
+            <div>
+              ${rt.googleAddress.formatted_address}
+               <a class="ml-1" href="https://www.google.com/search?q=${this.getQ(rt.name, rt.googleAddress.formatted_address)}" target="_blank">
+                 Open on Google<i class="fas fa-external-link-alt"></i>
+              </a>
+            </div>
+          </div>
+        `);
         this.infoWindow.open({
           anchor: marker, map: this.map
         });
       });
       this.markers.push(marker);
+      this.markerRTDict.set(rt._id, marker);
     });
+  }
+
+  getQ(name, address) {
+    return encodeURIComponent([name, address].join(', '));
   }
 
   markSearched(items) {
     items.forEach(item => {
-      this.placeService.getDetails({
-        placeId: item.place_id,
-        fields: ['formatted_address']
-      }, (place, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
-          const marker = new google.maps.Marker({
-            position: item.geometry.location,
-            title: item.name, map: this.map,
-            icon: './assets/icons/marker-red.svg'
-          });
-          marker.addListener('click', () => {
-            this.infoWindow.setContent(`<div><h3>${item.name}</h3><div>${place.formatted_address}</div></div>`);
-            this.infoWindow.open({
-              anchor: marker, map: this.map
-            });
-          });
-          this.searchedMarkers.push(marker);
-        }
+      const marker = new google.maps.Marker({
+        position: item.geometry.location,
+        title: item.name, map: this.map,
+        icon: './assets/icons/marker-red.svg'
       });
+      marker.addListener('click', () => {
+        this.infoWindow.setContent(`
+          <div>
+            <h3>${item.name}</h3>
+            <div>
+              ${item.formatted_address}
+               <a class="ml-1" href="https://www.google.com/search?q=${this.getQ(item.name, item.formatted_address)}" target="_blank">
+                 Open on Google<i class="fas fa-external-link-alt"></i>
+              </a>
+            </div>
+          </div>
+        `);
+        this.infoWindow.open({anchor: marker, map: this.map});
+      });
+      this.searchedMarkers.push(marker);
     });
 
   }
@@ -168,19 +220,51 @@ export class RestaurantMapComponent implements OnInit {
     markers.length = 0;
   }
 
+  sameRT(rt, searched) {
+    if (!rt.googleAddress) {
+      return false;
+    }
+    return rt.name === searched.name
+      && rt.googleAddress.lat === searched.geometry.location.lat()
+      && rt.googleAddress.lng === searched.geometry.location.lng();
+  }
+
+  searchCallback(results, status, pagination, list) {
+    if (status === google.maps.places.PlacesServiceStatus.OK) {
+      list.push(...results);
+      if (pagination.hasNextPage) {
+        pagination.nextPage((r, s, p) => this.searchCallback(r, s, p, list));
+        return;
+      }
+    }
+    this.loading = false;
+    // filter out RTs belongs to qmenu
+    list = list.filter(x => !this.restaurants.some(rt => this.sameRT(rt, x)));
+    this.markSearched(list);
+  }
+
   search() {
     if (!this.keyword) {
       this._global.publishAlert(AlertType.Warning, 'Please input a keyword to search');
       return;
     }
     this.clearMap(this.searchedMarkers);
-    this.placeService.nearbySearch({
-      query: this.keyword, bounds: this.map.getBounds(), type: ['restaurant']
-    }, (results, status) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK) {
-        this.markSearched(results);
-      }
-    });
+    this.loading = true;
+    let list = [];
+    this.placeService.textSearch({
+      location: this.map.getCenter(), radius: 5000,
+      query: this.keyword, type: ['restaurant']
+    }, (r, s, p) => this.searchCallback(r, s, p, list));
+  }
+
+  searchByAddress(location) {
+    this.clearMap(this.searchedMarkers);
+    let list = [];
+    this.loading = true;
+    this.placeService.textSearch({
+      query: 'restaurant',
+      location, radius: 5000, type: ['restaurant']
+    }, (r, s, p) => this.searchCallback(r, s, p, list));
   }
 
 }

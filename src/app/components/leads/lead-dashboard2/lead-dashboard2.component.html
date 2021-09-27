@@ -1,0 +1,162 @@
+<h1 class="text-center">Lead Funnels</h1>
+
+<div class="text-right mb-2">
+  <button class="btn btn-primary" (click)="editFunnel()">+ Add New Funnel</button>
+</div>
+<table class="table my-2">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Published</th>
+      <th scope="col">Name</th>
+      <th scope="col">Created</th>
+      <th scope="col"></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let funnel of funnels; let i = index" class="{{funnel.published ? '' : 'not-published'}}">
+      <th>
+        {{i + 1}}
+      </th>
+      <td>
+        {{funnel.published ? '✓' : ''}}
+      </td>
+      <td>
+        <div class="funnel-name">{{funnel.name}}</div>
+        <div class="my-text-small">
+          {{funnel.description}}
+        </div>
+        <div class="my-text-small">
+          {{funnel.getComments()}}
+        </div>
+        <div *ngIf="funnel.analysis">
+          {{funnel.getAnalysisString()}}
+        </div>
+      </td>
+      <td>
+        {{funnel.createdAt | date}}
+        <div>
+          by {{funnel.createdBy}}
+        </div>
+      </td>
+      <td class="text-nowrap text-right">
+        <button class="btn btn-link" (click)="loadFunnelAnalysis(funnel)">{{funnel.analysis ? 'Re-analyze' :
+          'Analyze'}}</button>
+        <button class="btn btn-link" (click)="editFunnel(funnel)">Edit</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<q-modal #editingModal>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">×</span>
+  </button>
+  <h4 *ngIf="funnelInEditing._id">Edit Funnel</h4>
+  <h4 *ngIf="!funnelInEditing._id">Add Funnel</h4>
+  <hr>
+  <div *ngIf="!funnelInEditing._id">
+    <label>Choose New Or Existing Funnel:</label>
+    <div>
+      <div *ngFor="let option of [funnelCreateModes.New, funnelCreateModes.Copy]; let i = index" class="d-inline-block pr-2">
+        <input type="radio" name="option" id="option-{{i}}" [value]="option" [(ngModel)]="funnelCreateMode">
+        <label for="option-{{i}}">{{option}}</label>
+      </div>
+    </div>
+
+    <div *ngIf="funnelCreateMode === funnelCreateModes.Copy">
+      <label>Choose Funnel:</label>
+      <q-dropdown [items]="existingFunnelNames()"
+                  [placeholder]="'Select a funnel...'"
+                  (selectedItemChange)="copyFunnel($event)"> </q-dropdown>
+    </div>
+  </div>
+  <q-form-builder [object]="funnelInEditing" [fieldDescriptors]="funnelFieldDescriptors"
+    (submit)="doneEditingFunnel($event)" (cancel)="editingModal.hide()" (remove)="removeFunnel($event)"
+    [showDelete]="funnelInEditing._id">
+    <div class="form-group">
+      <label>Filters:</label>
+      <ul class="list-group my-2">
+        <li *ngFor="let filter of funnelInEditing.filters || []"
+          class="list-group-item d-flex justify-content-between align-items-left">
+          <div class="d-inline-block">
+            <strong>{{filter.field}} {{filter.operator}} {{filter.value}}</strong>
+            <div>{{filter.comment}}</div>
+          </div>
+          <button class="btn btn-link pt-0" (click)="removeFilter(filter)">&times;</button>
+        </li>
+      </ul>
+      <div class="row">
+        <div class="col-3 pr-0">
+          <input [(ngModel)]="filterInEditing.field" class="form-control" type="text"
+            placeholder="a field, eg. googleListing.cuisine">
+        </div>
+        <div class="col-1 pr-0">
+          <select class="form-control" [(ngModel)]="filterInEditing.operator">
+            <option *ngFor="let op of operators" [ngValue]="op">{{op}}</option>
+          </select>
+        </div>
+        <div class="col-3 pr-0">
+          <input class="form-control" type="text" placeholder="a value, eg. null, 20, etc."
+            [(ngModel)]="filterInEditing.value">
+        </div>
+        <div class="col-3 pr-0">
+          <input class="form-control" type="text" placeholder="comment" [(ngModel)]="filterInEditing.comment">
+        </div>
+        <div class="col-2 pr-0">
+          <button class="btn btn-link" (click)="addFilter()">+ Add</button>
+        </div>
+      </div>
+      <div>
+        <button class="btn btn-link" (click)="toggleSampleLead()">Sample Lead Data <i
+            class="fa fa-chevron-{{sampleLead ? 'up' : 'down'}}"></i>
+        </button>
+        <!-- do not format the following for pre tag -->
+        <pre *ngIf="sampleLead">
+{{sampleLead | json}}
+</pre>
+      </div>
+    </div>
+  </q-form-builder>
+</q-modal>
+
+<q-modal #analyzingModal>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">×</span>
+  </button>
+  <h4 class="text-center">{{funnelInEditing.name}}</h4>
+  <hr>
+  <div class="text-center py-3">
+    <div *ngFor="let a of funnelInEditing.analysis || []">
+      <div *ngIf="a.filter">
+        <div>&dArr;</div>
+        <div>{{a.filter.comment}}</div>
+        <div>
+          {{a.filter.field}} {{operatorMap[a.filter.operator] || a.filter.operator}} {{a.filter.value === null ? 'null'
+          : a.filter.value}}</div>
+        <strong>{{a.ratio | percent}}</strong>
+        <div>&dArr;</div>
+      </div>
+      <span class="numberCircle"><span>{{a.count}}</span></span>
+    </div>
+    <div class="pt-3" *ngIf="sampleRows.length > 0">
+      <h2>Sample List</h2>
+      <q-table [rows]="sampleRows" [tableColumnDescriptors]="myColumnDescriptors">
+        <tr *tableRowTemplate="let row;">
+          <td>{{sampleRows.indexOf(row) + 1}}</td>
+          <td>
+            <div *ngIf="!row.googleListing?.cid">{{row.name}}</div>
+            <a *ngIf="row.googleListing?.cid" href="https://www.google.com/search?q={{getQ(row)}}"
+              target="_blank">{{row.name}}</a>
+            <div>
+              <small>{{row.address}}, {{row.city}}, {{row.state}} {{row.zipcode}}</small>
+            </div>
+          </td>
+          <td *ngFor="let cd of myColumnDescriptors.slice(2)">
+            {{getColumnValue(row, cd)}}
+          </td>
+        </tr>
+      </q-table>
+    </div>
+  </div>
+</q-modal>

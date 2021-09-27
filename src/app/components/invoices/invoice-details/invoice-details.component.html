@@ -33,40 +33,6 @@
         </div>
 
         <div *qIf="display === 'logs'">
-            <h4>Restaurant Logs
-                <small>(*click to edit)</small>
-            </h4>
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th scope="col">Date</th>
-                        <th scope="col">Order#</th>
-                        <th scope="col">Problem</th>
-                        <th scope="col">Response</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let log of restaurantLogs"
-                        class="list-group-item-action {{log.resolved ? '' : 'alert-danger'}}">
-
-                        <td class="text-nowrap">{{log.time | adjustedDate: 'shortDate' : 'America/New_York'}}
-                            <div class="text-muted">
-                                <small>{{log.time | adjustedDate: 'shortTime' : 'America/New_York'}}</small>
-                            </div>
-                        </td>
-                        <td>{{log.relatedOrders}}</td>
-                        <td>{{log.problem}}</td>
-                        <td>{{log.response}}</td>
-
-                        <td>
-                            <button *ngIf="!log.resolved" class="btn btn-link p-0" (click)="resolve(log)">Mark as
-                                Resolved</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
             <h4>Invoice Logs</h4>
             <table class="table table-sm">
                 <thead>
@@ -83,6 +49,35 @@
                         <td>{{log.time | adjustedDate: 'short' : 'America/New_York'}}</td>
                         <td>{{log.action}}</td>
                         <td>{{(log.value || log.result?.fax?.status) | json}}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>
+              Restaurant Logs
+              <i (click)="restaurantLogsExpand = !restaurantLogsExpand" class="fas fa-chevron-{{restaurantLogsExpand ? 'up' : 'down'}}"></i>
+            </h4>
+            <table *ngIf="restaurantLogsExpand" class="table table-sm">
+                <thead>
+                    <tr>
+                        <th scope="col">Date</th>
+                        <th scope="col">Order#</th>
+                        <th scope="col">Problem</th>
+                        <th scope="col">Response</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let log of restaurantLogs"
+                        class="list-group-item-action {{log.resolved ? '' : 'alert-danger'}}">
+
+                        <td class="text-nowrap">{{log.time | adjustedDate: 'shortDate' : 'America/New_York'}}
+                            <div class="text-muted">
+                                <small>{{log.time | adjustedDate: 'shortTime' : 'America/New_York'}}</small>
+                            </div>
+                        </td>
+                        <td>{{log.relatedOrders}}</td>
+                        <td>{{log.problem}}</td>
+                        <td>{{log.response}}</td>
                     </tr>
                 </tbody>
             </table>
@@ -157,6 +152,8 @@
             <span *ngIf="!invoice.isCanceled">
                 <button class="btn btn-primary" (click)="addAdjustment()">
                     <i class="far fa-plus-square"></i> Add Adjustment</button>
+                <button *ngIf="invoice?.balance > 0" class="btn btn-primary" (click)="sendMessageComponent.show()">
+                    <i class="fas fa-envelope-open-text"></i> Send Overdue Message</button>
                 <button class="btn btn-link text-danger" (click)="toggleInvoiceStatus('isCanceled')">
                     <i class="fas fa-times"></i> Cancel Invoice</button>
             </span>
@@ -169,40 +166,6 @@
         </div>
 
         <div *qIf="display === 'logs'">
-            <h4>Restaurant Logs
-                <small>(*click to edit)</small>
-            </h4>
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th scope="col">Date</th>
-                        <th scope="col">Order#</th>
-                        <th scope="col">Problem</th>
-                        <th scope="col">Response</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let log of restaurantLogs"
-                        class="list-group-item-action {{log.resolved ? '' : 'alert-danger'}}">
-
-                        <td class="text-nowrap">{{log.time | adjustedDate: 'shortDate' : 'America/New_York'}}
-                            <div class="text-muted">
-                                <small>{{log.time | adjustedDate: 'shortTime' : 'America/New_York'}}</small>
-                            </div>
-                        </td>
-                        <td>{{log.relatedOrders}}</td>
-                        <td>{{log.problem}}</td>
-                        <td>{{log.response}}</td>
-
-                        <td>
-                            <button *ngIf="!log.resolved" class="btn btn-link p-0" (click)="resolve(log)">Mark as
-                                Resolved</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
             <h4>Invoice Logs</h4>
             <table class="table table-sm">
                 <thead>
@@ -219,6 +182,34 @@
                         <td>{{log.time | adjustedDate: 'short' : 'America/New_York'}}</td>
                         <td>{{log.action}}</td>
                         <td>{{(log.value || log.result?.fax?.status) | json}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h4>
+              Restaurant Logs
+              <i (click)="restaurantLogsExpand = !restaurantLogsExpand" class="fas fa-chevron-{{restaurantLogsExpand ? 'up' : 'down'}}"></i>
+            </h4>
+            <table *ngIf="restaurantLogsExpand" class="table table-sm">
+                <thead>
+                    <tr>
+                        <th scope="col">Date</th>
+                        <th scope="col">Order#</th>
+                        <th scope="col">Problem</th>
+                        <th scope="col">Response</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let log of restaurantLogs"
+                        class="list-group-item-action {{log.resolved ? '' : 'alert-danger'}}">
+
+                        <td class="text-nowrap">{{log.time | adjustedDate: 'shortDate' : 'America/New_York'}}
+                            <div class="text-muted">
+                                <small>{{log.time | adjustedDate: 'shortTime' : 'America/New_York'}}</small>
+                            </div>
+                        </td>
+                        <td>{{log.relatedOrders}}</td>
+                        <td>{{log.problem}}</td>
+                        <td>{{log.response}}</td>
                     </tr>
                 </tbody>
             </table>
@@ -280,3 +271,5 @@
 
 
 </q-modal>
+
+<app-send-message #sendMessageComponent (success)="addSendMsgLog($event)" [templates]="templates" [channels]="channels"></app-send-message>

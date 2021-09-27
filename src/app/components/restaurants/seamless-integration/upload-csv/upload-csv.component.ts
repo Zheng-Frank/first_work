@@ -161,23 +161,15 @@ export class UploadCsvComponent implements OnInit {
 
               let restaurantId = crawledResult[0]._id;
               if (this.designatePostcard && alreadyWorkWithUs != "TRUE") {
-                // send LOB response'
-                // const backUrl =
-                //   "http://bf1651968fee.ngrok.io/postcard.html?code=abcdef&style=Chinese&side=back";
-                // const frontUrl =
-                //   "http://bf1651968fee.ngrok.io/postcard.html?code=abcdef&style=Chinese&side=front";
-                //   frontUrl: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/render-url?url=${encodeURIComponent(
-                // frontUrl
-                // )}&format=jpg`,
                 try {
                   let lobObj = await this._api
                     .post(environment.appApiUrl + "utils/send-postcard", {
                       name: crawledResult[0].name,
                       address: crawledResult[0].googleAddress.formatted_address,
-                      frontUrl: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${encodeURIComponent(
+                      frontUrl: `${environment.utilsApiUrl}render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${encodeURIComponent(
                         crawledResult[0].selfSignup.code
                       )}%26side%3Dfront%26style%3d${language}&format=jpg`,
-                      backUrl: `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${encodeURIComponent(
+                      backUrl: `${environment.utilsApiUrl}render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${encodeURIComponent(
                         crawledResult[0].selfSignup.code
                       )}%26side%3Dback%26style%3d${language}&format=jpg`,
                     })

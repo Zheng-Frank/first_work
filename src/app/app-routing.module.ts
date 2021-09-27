@@ -19,7 +19,6 @@ import { Bs4Component } from './components/development/bs4/bs4.component';
 import { UIPreviewComponent } from './components/development/ui-preview/ui-preview/ui-preview.component';
 import { HomeComponent } from './components/home/home.component';
 import { LogsDashboardComponent } from './components/logs/logs-dashboard/logs-dashboard.component';
-import { PaymentsDashboardComponent } from './components/payments/payments-dashboard/payments-dashboard.component';
 import { InvoiceDashboardComponent } from './components/invoices/invoice-dashboard/invoice-dashboard.component';
 import { LeadDashboardComponent } from './components/leads/lead-dashboard/lead-dashboard.component';
 import { MyLeadsComponent } from './components/leads/my-leads/my-leads.component';
@@ -80,22 +79,27 @@ import { GmbWrongLinkComponent } from './components/gmbs2/gmb-wrong-link/gmb-wro
 import { RoutineDashboardComponent } from './components/routines/routine-dashboard/routine-dashboard.component';
 import { RoutineAdminDashboardComponent } from './components/routines/routine-admin-dashboard/routine-admin-dashboard.component';
 import { GmbPermanentlyClosedListComponent } from './components/gmbs2/gmb-closed-list/gmb-closed-list.component';
+import { LeadDashboard2Component } from './components/leads/lead-dashboard2/lead-dashboard2.component';
+import { MyLeads2Component } from './components/leads/my-leads2/my-leads2.component';
 import { CleanMenusComponent } from './components/monitoring/clean-menus/clean-menus.component';
 import { FraudDetectionComponent } from './components/fraud-detection/fraud-detection.component';
+import {CleanInsistedLinksComponent} from "./components/clean-insisted-links/clean-insisted-links.component";
 
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component },
   { path: 'ui-preview', component: UIPreviewComponent },
   { path: 'home', component: HomeComponent, canActivate: [RoleGuard], data: { roles: ['MENU_EDITOR', 'ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'ACCOUNTANT', 'GMB', 'CSR'] } },
   { path: 'logs', component: LogsDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETING_DIRECTOR', 'MARKETER', 'GMB', 'CSR', 'ACCOUNTANT', 'MENU_EDITOR', 'DRIVER', 'RATE_EDITOR'] } },
-  { path: 'payments', component: PaymentsDashboardComponent, canActivate: [RoleGuard], data: { roles: ['CSR', 'ACCOUNTANT', 'ADMIN'] } },
   { path: 'invoices', component: InvoiceDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT', 'CSR'] } },
   { path: 'invoices/cycles', component: CyclesComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
   { path: 'invoices/cycles/:id', component: CycleDetailsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
   { path: 'invoices/monthly/:startDate', component: InvoiceMonthlyDetailsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },
   { path: 'invoices/:id', component: InvoiceDetailsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT', 'CSR', 'INVOICE_VIEWER'] } },
-  { path: 'leads', component: LeadDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'GMB', 'CSR'] } },
-  { path: 'my-leads', component: MyLeadsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR'] } },
+  { path: 'leads-old', component: LeadDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'GMB', 'CSR'] } },
+  { path: 'leads', component: LeadDashboard2Component, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'GMB', 'CSR'] } },
+  { path: 'leads', component: LeadDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'GMB'] } },
+  { path: 'my-leads-old', component: MyLeadsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR'] } },
+  { path: 'my-leads', component: MyLeads2Component, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR'] } },
   { path: 'login', component: LoginComponent },
   { path: 'orders', component: OrderDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT', 'CSR'] } },
   { path: 'profile', component: ProfileComponent },
@@ -132,13 +136,14 @@ const routes: Routes = [
   { path: 'gmb-closed', component: GmbPermanentlyClosedListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB', 'CSR', 'GMB_SPECIALIST'] } },
   { path: 'gmb-losts', component: GmbLostListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB', 'CSR', 'GMB_SPECIALIST'] } },
   { path: 'gmb-pins', component: GmbPinsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
-  { path: 'gmb-tasks', component: GmbTasksComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB', 'CSR', 'ACCOUNTANT', 'MARKETER_INTERNAL'] } },
+  { path: 'gmb-tasks', component: GmbTasksComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB', 'GMB_SPECIALIST', 'GMB_ADMIN', 'MARKETER_INTERNAL'] } },
   { path: 'defend-gmb-tasks', component: DefendGmbTasksComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB', 'CSR', 'ACCOUNTANT', 'MARKETER_INTERNAL'] } },
   { path: 'workflows', component: WorkflowDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR'] } },
-  { path: 'sops', component: SopDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', 'CSR', 'ACCOUNTANT', 'MARKETER'] } },
+  { path: 'sops', component: SopDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNT', 'CRM', 'CSR', 'DRIVER', 'GMB_SPECIALIST', 'GMB', 'INVOICE_VIEWER', 'IVR_CSR_MANAGER', 'IVR_GMB_MANAGER', 'IVR_INTERNAL_MANAGER',
+  'IVR_SALES_MANAGER','MARKETER_EXTERNAL','MARKETER_INTERNAL', 'MARKETER','MARKETER_DIRECTOR', 'MENU_EDITOR', 'PAYER', 'RATE_EDITOR','SIGNUP_AGENT'] } },
   { path: 'sops/:id', component: SopDetailsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', 'CSR', 'ACCOUNTANT', 'MARKETER'] } },
   { path: 'events', component: EventDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
-  { path: 'transaction', component: TransactionDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+  { path: 'transactions', component: TransactionDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'migration', component: AwsMigrationComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'postmates-list', component: PostmatesListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'postmates-orders', component: PostmatesOrdersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
@@ -156,13 +161,14 @@ const routes: Routes = [
   { path: 'restaurants-promotion', component: MonitoringPromotionComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'banned-customers', component: BannedCustomersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB', 'CSR'] } },
   { path: 'schemas', component: SchemasComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB', 'CSR'] } },
-  { path: 'seamless-integration', component: SeamlessIntegrationComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'SIGNUP_AGENT'] }, }, { path: 'ivr-agent-analysis', component: IvrAgentAnalysisComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'SIGNUP_AGENT'] }, },
+  { path: 'seamless-integration', component: SeamlessIntegrationComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'SIGNUP_AGENT'] }, }, { path: 'ivr-agent-analysis', component: IvrAgentAnalysisComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'SIGNUP_AGENT','MARKETING_DIRECTOR', 'MARKETER', 'INVOICE_VIEWER', 'GMB', 'CSR', 'ACCOUNTANT', 'MENU_EDITOR', 'RATE_EDITOR'] }, },
   { path: 'weird-data', component: WeirdDataComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB', 'CSR'] } },
   { path: 'api-logs', component: ApiLogsDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'routines', component: RoutineDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETING_DIRECTOR', 'MARKETER', 'GMB', 'CSR', 'ACCOUNTANT', 'MENU_EDITOR', 'DRIVER', 'RATE_EDITOR'] } },
   { path: 'routines-admin', component: RoutineAdminDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'seo-tracking', component: SeoTrackingComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'clean-menus', component: CleanMenusComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  { path: 'clean-insisted-link-rts', component: CleanInsistedLinksComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'fraud-detection', component: FraudDetectionComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: '**', redirectTo: '/home' }
 

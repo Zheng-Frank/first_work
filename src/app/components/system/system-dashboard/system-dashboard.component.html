@@ -1,10 +1,7 @@
-<a class="h4" href="/#/couriers">Couriers</a>
-<a class="h4" href="/#/payments">Payment Means</a>
-<a class="h4" href="/#/transaction">Transactions</a>
-<a class="h4" href="/#/orders">Orders</a>
-<a class="h4" href="/#/users">Users</a>
-<a class="h4" href="/#/messaging">Messaging</a>
-<a class="h4" href="/#/routines-admin">Routines Admin</a>
+<!-- a list of quick links only visible to admins -->
+<a *ngFor="let item of adminLinks" class="btn btn-link" href="/#/{{item.route}}">
+    {{item.text}}
+</a>
 
 <app-db-scripts></app-db-scripts>
 <div *ngIf="system">

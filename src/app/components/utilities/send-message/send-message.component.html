@@ -1,0 +1,67 @@
+<q-modal #sendMsgModal (close)="cleanup()" (open)="onShow()">
+  <button type="button" class="close"  (click)="sendMsgModal.hide()">
+    <span>×</span>
+  </button>
+  <h4 class="text-center">Send Message</h4>
+  <hr>
+  <div>
+    <label>Send to: </label>
+    <div class="text-targets" *ngIf="channels.length > 0">
+      <label *ngFor="let channel of sortedChannels">
+        <input type="checkbox" (change)="selectTarget($event, channel)"
+               [value]="channel.value" [checked]="targets.includes(channel)">
+        <i class="fas fa-{{channelIcon(channel.type)}}"></i>
+        {{channel.value}}
+        <ng-container *ngIf="channel.notifications?.length">({{channel.notifications?.join("/")}})</ng-container>
+      </label>
+    </div>
+    <div *ngIf="channels.length <= 0">
+      No message target found, please add the contact you need to the RT's contacts.
+    </div>
+  </div>
+  <div class="mt-3">
+    <label>Message Template: </label>
+    <select *ngIf="allowCustomTemplate || templates.length > 0" (change)="changeTpl($event)" class="form-control">
+      <option *ngIf="!template.title" hidden></option>
+      <ng-container *ngIf="allowCustomTemplate">
+        <option [value]="customTemplate.title" [selected]="template.title === customTemplate.title">
+          {{customTemplate.title}}
+        </option>
+        <hr>
+      </ng-container>
+      <ng-container *ngFor="let items of templates; let i = index">
+        <option *ngFor="let item of items" [value]="item.title" [selected]="item.title === template.title">
+          {{item.title}}
+        </option>
+        <hr *ngIf="i < templates.length - 1">
+      </ng-container>
+    </select>
+    <div *ngIf="templates.length <= 0">
+      No message template found, please contact to developer team if you need add new message templates.
+    </div>
+  </div>
+  <div class="mt-3" *ngIf="hasSMS()">
+    <label>SMS Content:</label>
+    <textarea [disabled]="!canEdit()" rows="10" class="form-control" [(ngModel)]="template.smsContent"></textarea>
+  </div>
+  <ng-container *ngIf="hasEmail()">
+    <div class="mt-3">
+      <label>Email Subject:</label>
+      <input [disabled]="!canEdit()" class="form-control" type="text" [(ngModel)]="template.subject" >
+    </div>
+    <div class="mt-3" *ngIf="emailContentMode === emailContentModes.Editing">
+      <label>Email Content: <a (click)="emailContentMode = emailContentModes.Preview" class="btn-link">Preview</a></label>
+      <textarea [disabled]="!canEdit()" rows="10" class="form-control" [(ngModel)]="template.emailContent"></textarea>
+      <div *ngIf="emailContentMode === emailContentModes.Preview" class="msg-content" [innerHTML]="template.emailContent"></div>
+    </div>
+    <div class="mt-3" *ngIf="emailContentMode === emailContentModes.Preview">
+      <label>Email Content: <a (click)="emailContentMode = emailContentModes.Editing" class="btn-link">Edit</a></label>
+      <div class="msg-content" [innerHTML]="template.emailContent"></div>
+    </div>
+  </ng-container>
+  <div class="mt-3">
+    <button (click)="send()" [disabled]="!canSend()" class="btn btn-primary btn-block">Send</button>
+  </div>
+</q-modal>
+
+

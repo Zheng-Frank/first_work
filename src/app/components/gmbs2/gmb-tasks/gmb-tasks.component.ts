@@ -1,3 +1,4 @@
+import { GmbTaskDetailComponent } from './../gmb-task-detail/gmb-task-detail.component';
 import { Component, OnInit, ViewChild, OnDestroy, SimpleChanges } from '@angular/core';
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from '../../../../environments/environment';
@@ -59,23 +60,16 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     }
 
     @ViewChild('rowModal') rowModal: ModalComponent;
+    @ViewChild('taskDetail') taskDetail: GmbTaskDetailComponent;
     apiLoading = false;
     activeTabLabel = 'Mine';
     currentAction;
     tasks = [];
     hideClosedOldTasksDays = 15;
 
-    relatedTasks = [];
 
     qmenuDomains = new Set();
     publishedCids = new Set();
-    modalTask;
-    restaurant;
-    verificationOptions = [];
-    verifications = [];
-    preferredVerificationOption;
-    showNotifier = false;
-    isPublished = false;
 
     restaurantDict = {};
 
@@ -86,16 +80,10 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     //tasks query criteria based on user roles
     query_or;
 
-    assignees = [];
-
-    taskScheduledAt = new Date();
-    comments = '';
-    pin;
-    verifyingOption;
+    // comments = '';
+    // pin;
+    // verifyingOption;
     pagination = true;
-    //help display postcardID
-    postcardIds = new Map();
-
     //manual error fixes
     manualFixes = ["UPDATE_INFO_REQUIRED"];
 
@@ -165,7 +153,6 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             label: "Comments"
         },
     ];
-
     timer;
 
 
@@ -179,17 +166,11 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         }
     }
 
-
     async ngOnInit() {
 
         this.user = this._global.user;
         this.myUsername = this.user.username;
         this.myUserRoles = this.user.roles || [];
-
-        // either marketer or GMB
-        const users = await this._global.getCachedUserList();
-        this.assignees = users.filter(u => !u.disabled && u.roles.some(r => ['GMB_SPECIALIST', 'MARKETER'].indexOf(r) >= 0)).map(u => u.username).sort((u1, u2) => u1 > u2 ? 1 : -1);
-        this.assignees.unshift('NON-CLAIMED');
 
         this.setActiveTab(this.tabs[0]);
 
@@ -200,210 +181,10 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
         this.now = new Date();
         this.filter();
-
     }
 
-    taskResult;
-    async closeTask() {
-        if (this.taskResult) {
-            if (confirm('Are you sure?')) {
-                await this.update(this.modalTask, "result", this.taskResult);
-                await this.update(this.modalTask, "resultAt", new Date());
-                const fullComments = `${new Date().getMonth() + 1}/${new Date().getDate()} ${this.user.username}: closed`;
-
-                await this.update(this.modalTask, 'comments', this.modalTask.comments ? `${this.modalTask.comments}\n${fullComments}` : fullComments);
-
-                this.rowModal.hide();
-            }
-        } else {
-            alert('please select a result');
-        }
-    }
-
-    async hardRefresh(task) {
-        try {
-            await this.hardRefreshV5Task(task._id);
-            this._global.publishAlert(AlertType.Success, 'Refreshed Successfully');
-
-        } catch (error) {
-            console.log(error);
-            const result = error.error || error.message || error;
-            this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
-        }
-
-        await this.refreshSingleTask(this.modalTask._id);
-
-    }
-
-    async completePin(pinHistory) {
-        if (confirm('Do not try too many times for this function. Too many failed tries will cause the verification disappear. Are you sure to use this PIN?')) {
-            try {
-                // await this._api.post(environment.gmbNgrok + 'task/complete', {
-                await this._api.post(environment.appApiUrl + 'gmb/generic', {
-                    name: "complete-pin",
-                    payload: {
-                        taskId: this.modalTask._id,
-                        email: this.modalTask.request.email,
-                        locationName: this.modalTask.request.locationName,
-                        pin: pinHistory.pin
-                    }
-                }).toPromise();
-
-                this._global.publishAlert(AlertType.Success, 'Verified Successfully');
-
-            } catch (error) {
-                console.log(error);
-                const result = error.error || error.message || error;
-                this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
-            }
-
-            await this.addComments(`tried PIN`);
-            await this.refreshSingleTask(this.modalTask._id);
-        }
-    }
-
-    async resetPin(pinHistory) {
-        if (confirm('Are you sure to reset this PIN? This will not erase the PIN history but scanning task will not see it')) {
-            try {
-                // await this._api.post(environment.gmbNgrok + 'task/reset-pin', {
-                await this._api.post(environment.appApiUrl + 'gmb/generic', {
-                    name: "reset-pin",
-                    payload: {
-                        taskId: this.modalTask._id,
-                        username: this._global.user.username
-                    }
-                }).toPromise();
-
-                this._global.publishAlert(AlertType.Success, 'PIN reset Successfully, refreshing task');
-
-            } catch (error) {
-                console.log(error);
-                const result = error.error || error.message || error;
-                this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
-            }
-
-            await this.addComments(`PIN reset`);
-            await this.hardRefresh(this.modalTask);
-        }
-    }
-
-    async hardRefreshV5Task(taskId) {
-        await this._api.post(environment.appApiUrl + "gmb/generic", {
-            name: "process-one-task",
-            payload: {
-                taskId: taskId,
-                forceRefresh: true
-            }
-        }).toPromise();
-    }
-
-    async trigger(task, vo) {
-        if (confirm('Trigger too many times could exhaust existing verification options. Are you sure?')) {
-            this.verifyingOption = vo;
-            try {
-
-                await this._api.post(environment.appApiUrl + "gmb/generic", {
-                    name: "verify",
-                    payload: {
-                        taskId: task._id,
-                        email: task.request.email,
-                        locationName: task.request.locationName,
-                        verificationOption: vo
-                    }
-                }).toPromise();
-
-                this._global.publishAlert(AlertType.Success, 'triggered successfully, refreshing task');
-
-            } catch (error) {
-                console.log(error);
-                const result = error.error || error.message || error;
-                this._global.publishAlert(AlertType.Danger, JSON.stringify(result));
-            }
-            this.verifyingOption = undefined;
-            await this.addComments(`tried verification`);
-            await this.hardRefresh(task);
-        }
-    }
-
-    // Send Google PIN message.
-    sendingGooglePinMessage = false;
-    triggerSendGooglePinMessage() {
-        this.sendingGooglePinMessage = !this.sendingGooglePinMessage;
-    }
-
-    logSendingGooglePinMessage(event) {
-        const notification_status_new = {
-            user: this._global.user.username,
-            time: new Date(),
-            channels: event.channels,
-            comments: event.comments
-        }
-        if (this.modalTask.notification_status) {
-            this.modalTask.notification_status.unshift(notification_status_new);
-        }
-        else {
-            this.modalTask.notification_status = [notification_status_new];
-        }
-        this.update(this.modalTask, "notification_status", this.modalTask.notification_status);
-        this.triggerSendGooglePinMessage();
-    }
-
-    showCompleteNotificationHistory = false;
-
-    triggerCompleteNotificationHistory() {
-        this.showCompleteNotificationHistory = !this.showCompleteNotificationHistory;
-    }
-
-
-    join(values) {
-        return (values || []).join(', ')
-    }
-
-    async toggleDecline() {
-        const currentlyDeclined = this.modalTask.request.ownerDeclined;
-        const message = currentlyDeclined ?
-            'The owner has agreed to work with qMenu. Are you sure?'
-            : 'The owner has declined to work with qMenu. This will assign the task to another person to handle. Are you sure?';
-
-        if (confirm(message)) {
-            await this.addComments(currentlyDeclined ? 'owner agreed to work with qMenu' : 'owner declined to work with qMenu');
-            await this.update(this.modalTask, 'request.ownerDeclined', !currentlyDeclined);
-            await this.update(this.modalTask, 'scheduledAt', new Date());
-            // also update restaurant
-            await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
-                {
-                    old: {
-                        _id: { $oid: this.modalTask.relatedMap.restaurantId },
-                        web: {}
-                    },
-                    new: {
-                        _id: { $oid: this.modalTask.relatedMap.restaurantId },
-                        web: {
-                            agreeToCorporate: currentlyDeclined ? 'Yes' : 'No'
-                        }
-                    },
-                }
-            ]).toPromise();
-        }
-    }
-
-    async assign(task, assignee) {
-        await this.update(task, 'assignee', assignee === 'NON-CLAIMED' ? undefined : assignee);
+    async handleAssignComplete() {
         await this.populateTasks();
-        this.rowModal.hide();
-    }
-
-    plusDay(i) {
-        const scheduledAt = new Date();
-        scheduledAt.setDate(scheduledAt.getDate() + i);
-        this.taskScheduledAt = scheduledAt;
-        this.scheduledAtUpdated(scheduledAt);
-    }
-
-    scheduledAtUpdated(event) {
-        this.update(this.modalTask, 'scheduledAt', this.taskScheduledAt);
-        this.addComments(`rescheduled`);
-
     }
 
     setActiveTab(tab) {
@@ -411,150 +192,22 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     }
 
     async showDetails(taskId) {
-
-        const tasks = await this._api.get(environment.qmenuApiUrl + "generic", {
-            resource: "task",
-            query: {
-                _id: { $oid: taskId }
-            }
-        }).toPromise();
-
-        if (this.modalTask && this.modalTask._id !== taskId) {
+        if (this.taskDetail.modalTask && this.taskDetail.modalTask._id !== taskId) {
             // dismiss first the pop the new one up
             this.rowModal.hide();
             await new Promise(resolve => setTimeout(resolve, 1000));
         }
-
-        this.modalTask = tasks[0];
-        const theTask = tasks[0];
+        await this.taskDetail.init(taskId);
         this.rowModal.show();
-
-        this.preferredVerificationOption = undefined;
-        // const relatedAccounts = await this._api.get(environment.qmenuApiUrl + "generic", {
-        //     resource: "gmbAccount",
-        //     query: { "locations.cid": theTask.relatedMap.cid },
-        //     limit: 100000,
-        //     projection: {
-        //         "locations.cid": 1,
-        //         "locations.status": 1
-        //     }
-        // }).toPromise();
-        // this.isPublished = relatedAccounts.some(acct => acct.locations.some(loc => loc.cid === theTask.relatedMap.cid && loc.status === 'Published'));
-        this.isPublished = this.publishedCids.has(theTask.relatedMap.cid);
-
-        this.taskScheduledAt = theTask.scheduledAt || new Date();
-        const verificationOptions = (((theTask.request.voHistory || [])[0] || { options: [] }).options || []).filter(vo => vo.verificationMethod !== 'SMS').map(vo => ({
-            ...vo,
-            verification: ((theTask.request.verificationHistory || [])[0] || { verifications: [] }).verifications.filter(verification => verification.state === 'PENDING' && verification.method === vo.verificationMethod)[0]
-        }));
-
-        this.verificationOptions = verificationOptions || [];
-        this.verifications = ((theTask.request.verificationHistory || [])[0] || {}).verifications || [];
-        // add faClass
-        const faMap = {
-            EMAIL: 'at',
-            ADDRESS: 'address-card',
-            PHONE_CALL: 'phone'
-        };
-        this.verificationOptions.map(vo => {
-            vo.faClass = faMap[vo.verificationMethod] || 'question';
-        });
-        this.verifications.map(v => {
-            v.faClass = faMap[v.method] || 'question';
-        });
-
-        // preferred:
-        const emailOption = this.verificationOptions.filter(vo => vo.verificationMethod === 'EMAIL' && !this.isNonQmenuEmail(vo))[0];
-        const phoneOption = this.verificationOptions.filter(vo => vo.verificationMethod === 'PHONE_CALL')[0];
-        const addressOption = this.verificationOptions.filter(vo => vo.verificationMethod === 'ADDRESS')[0];
-        const pendingAddressVerification = this.verifications.filter(v => v.method === 'ADDRESS' && v.state === 'PENDING')[0];
-
-        if (emailOption) {
-            this.preferredVerificationOption = emailOption;
-        } else if (!pendingAddressVerification && phoneOption && !this.isPublished) {
-            this.preferredVerificationOption = phoneOption;
-        } else if (addressOption) {
-            this.preferredVerificationOption = addressOption;
-        }
-
-
-        this.restaurant = (
-            await this._api.get(environment.qmenuApiUrl + "generic", {
-                resource: "restaurant",
-                query: { _id: { $oid: theTask.relatedMap.restaurantId } },
-                limit: 1,
-                projection: {
-                    "googleAddress.formatted_address": 1,
-                    "googleAddress.timezone": 1,
-                    "googleListing.gmbOwner": 1,
-                    "googleListing.phone": 1,
-                    score: 1,
-                    people: 1,
-                    logs: 1,
-                    channels: 1 // for sending google-pin emails or sms
-                }
-            }).toPromise()
-        )[0];
-        (this.restaurant.people || []).map(person => {
-            person.channels = (person.channels || []).filter(c => c.type !== 'Email')
-        });
-
-        const relatedTasks = await this._api.get(environment.qmenuApiUrl + "generic", {
-            resource: "task",
-            query: { "relatedMap.cid": theTask.relatedMap.cid, result: null },
-            limit: 100,
-            projection: {
-                assignee: 1,
-                name: 1,
-                "request.email": 1,
-                "transfer.toEmail": 1,
-                createdAt: 1
-            }
-        }).toPromise();
-
-        this.relatedTasks = relatedTasks.filter(t => t._id !== theTask._id);
-
-    }
-    async savePin() {
-        if (!this.pin) {
-            return alert('Bad PIN to save');
-        }
-        try {
-            // await this._api.post(environment.gmbNgrok + 'task/save-pin', {
-            await this._api.post(environment.appApiUrl + 'gmb/generic', {
-                name: "save-pin",
-                payload: {
-                    taskId: this.modalTask._id,
-                    pin: this.pin,
-                    username: this._global.user.username
-                }
-            }).toPromise();
-        } catch (error) {
-            console.log(error);
-            alert('ERROR SAVING PIN');
-        }
-        this.pin = '';
-        await this.refreshSingleTask(this.modalTask._id);
-    }
-
-    async addComments(comments) {
-        if (comments) {
-            console.log(comments);
-            const fullComments = `${new Date().getMonth() + 1}/${new Date().getDate()} ${this.user.username}: ${comments}`;
-            console.log(comments);
-            console.log(this.modalTask);
-            await this.update(this.modalTask, 'comments', this.modalTask.comments ? `${this.modalTask.comments}\n${fullComments}` : fullComments);
-        }
-        this.comments = '';
     }
 
     async populate() {
+        this.apiLoading = true;
         try {
             // populate RTs first because tasks will do filter about them
             await this.populateRTs();
             await Promise.all([
                 this.populateTasks(),
-                this.populatePostcardId(),
                 this.populateQMDomains(),
                 this.populatePublishedCids(),
                 this.populateManualFixes()
@@ -563,7 +216,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         } catch (error) {
             this._global.publishAlert(AlertType.Danger, 'Error on loading data. Please contact technical support');
         }
-
+        this.apiLoading = false;
         this.filter();
     }
 
@@ -571,64 +224,21 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         return verificationOption.verificationMethod === 'EMAIL' && verificationOption.emailData && !this.qmenuDomains.has(verificationOption.emailData.domainName);
     }
 
-    async update(task, field, value) {
-        try {
-            // convert a.b.c ==> {a: {b: {c: xxx}}}
-            const oldTask: any = { _id: task._id };
-            const paths = field.split('.');
-            let obj = oldTask;
-            let key = paths.shift();
-            while (paths.length > 0) {
-                const newObj = {};
-                obj[key] = newObj;
-                obj = newObj;
-                key = paths.shift();
-            };
-
-            let newTask;
-            if (value === undefined) {
-                newTask = JSON.parse(JSON.stringify(oldTask));
-                obj[key] = 'random';
-            } else {
-                obj[key] = value;
-                newTask = JSON.parse(JSON.stringify(oldTask));
-                delete obj[key];
-            }
-            await this._api.patch(environment.qmenuApiUrl + "generic?resource=task", [{ old: oldTask, new: newTask }]);
-            await this.refreshSingleTask(task._id);
-
-        } catch (error) {
-            console.log(error);
-            this._global.publishAlert(AlertType.Danger, 'Error updating');
-        }
-
-    }
-
-    async refreshSingleTask(taskId) {
+    async handleRefreshSingleTask(taskId) {
         const tasks = await this._api.get(environment.qmenuApiUrl + "generic", {
             resource: "task",
             query: { _id: { $oid: taskId } }
         }).toPromise();
         const task = new Task(tasks[0]);
-        console.log("refreshed", task);
-        if (this.modalTask._id === task._id) {
-            await this.showDetails(task._id);
+        if (this.taskDetail.modalTask._id === task._id) {
+            await this.showDetails(taskId);
         }
         this.tabs.map(tab => {
             const index = tab.rows.findIndex(row => row.task._id === task._id);
             if (index >= 0) {
                 tab.rows[index] = this.generateRow(index + 1, task);
-                if (this.modalTask._id === task._id) {
-                    this.modalTask = tab.rows[index];
-                }
             }
         });
-    }
-
-    getAddress(task) {
-        if (task) {
-            return (this.restaurantDict[task.relatedMap.restaurantId].googleAddress || {}).formatted_address || '';
-        }
     }
 
     private generateRow(rowNumber, task) {
@@ -868,22 +478,6 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             tab.rows = this.filteredTasks.filter(filterMap[tab.label]).map((task, index) => this.generateRow(index + 1, task));
         });
         console.log("filter", new Date().valueOf() - start.valueOf());
-    }
-
-    async populatePostcardId() {
-        const gmbAccounts = await this._api.get(environment.qmenuApiUrl + "generic", {
-            resource: "gmbAccount",
-            limit: 100000,
-            projection: {
-                "email": 1,
-                "postcardId": 1
-            }
-        }).toPromise();
-        this.postcardIds = new Map(gmbAccounts.map(acct => [acct.email, acct.postcardId]));
-    }
-
-    getPostcardId(email) {
-        return this.postcardIds.get(email);
     }
 
     isPinExpired(pinObj) {

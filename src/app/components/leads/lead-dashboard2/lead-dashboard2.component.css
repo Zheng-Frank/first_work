@@ -1,0 +1,36 @@
+.numberCircle {
+    display: inline-block;
+    line-height: 0px;
+    border-radius: 50%;
+    border: 2px solid;
+    font-size: 32px;
+}
+
+.numberCircle span {
+    display: inline-block;
+    padding-top: 50%;
+    padding-bottom: 50%;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+.funnel-name {
+    font-weight: 500;
+    font-size: larger;
+}
+
+.my-text-small {
+    font-size: 75%;
+}
+
+::ng-deep .modal-header {
+    text-align: center;
+}
+
+::ng-deep .modal-dialog {
+    max-width: 90%;
+}
+
+.not-published {
+    opacity: 0.5;
+}

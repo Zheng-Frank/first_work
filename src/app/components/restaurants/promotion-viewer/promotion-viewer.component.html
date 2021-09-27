@@ -57,6 +57,9 @@
     <div *ngIf="!promotion.public">
       <i class="fas fa-lock"></i> Not displayed on webpage
     </div>
+    <div *ngIf="promotion.applicablePaymentMethods?.includes('CASH')">
+      <i class="fas fa-money-bill"></i> CASH only
+    </div>
     <div *ngIf="promotion.newCustomerOnly">
       <i class="fas fa-user-plus"></i> New customer only
     </div>

@@ -64,6 +64,17 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
     }
   ];
 
+  languageDescriptor = {
+      field: "language",
+      label: "Language",
+      required: false,
+      inputType: "single-select",
+      items: [
+        { object: "ENGLISH", text: "English", selected: false },
+        { object: "CHINESE", text: "Chinese", selected: false }
+      ]
+  };
+
   personFieldDescriptors = [
     {
       field: "title", //
@@ -114,6 +125,8 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
   crm = "";
   crms = [];
 
+  Languages = { ENGLISH: 'English', CHINESE: 'Chinese' };
+
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
 
   ngOnInit() {
@@ -148,7 +161,7 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
         fd.items = (this.restaurant.channels || []).map(channel => ({
           text: channel.type + ': ' + channel.value,
           object: { type: channel.type, value: channel.value }
-        }))
+        }));
       }
     });
   }
@@ -169,7 +182,7 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
   }
 
   join(values) {
-    return (values || []).join(', ')
+    return (values || []).join(', ');
   }
 
   editChannel(channel?: any) {
@@ -183,6 +196,8 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
       this.channelBeforeEditing = JSON.parse(JSON.stringify(channel));
       this.channelInEditing.index = this.restaurant.channels.indexOf(channel);
     }
+    this.languageDescriptor.items.forEach(x => x.selected = false);
+    this.channelFormChange();
     this.modalChannel.show();
   }
 
@@ -228,12 +243,29 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
     this.modalPerson.hide();
   }
 
+  channelFormChange() {
+    if (this.channelInEditing.type === 'Phone') {
+      if (!this.channelFieldDescriptors.some(x => x.field === 'language')) {
+        this.channelFieldDescriptors.push(this.languageDescriptor);
+      }
+    } else {
+      this.channelFieldDescriptors = this.channelFieldDescriptors.filter(x => x.field !== 'language');
+    }
+  }
+
+
   submitChannel(event: FormSubmit) {
 
     // keep only digits for phone/sms/fax
     if (['Phone', 'SMS', 'Fax'].indexOf(this.channelInEditing.type) >= 0) {
       this.channelInEditing.value = this.channelInEditing.value.replace(/\D/g, '');
     }
+
+    // currently language only support for Phone
+    if (this.channelInEditing.type !== 'Phone') {
+      this.channelInEditing.language = undefined;
+    }
+
 
     const newChannels = (this.restaurant.channels || []).slice(0);
     if (this.channelInEditing.index === -1) {
@@ -322,7 +354,7 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
       });
 
       if (affected) {
-        this.patchDiff('people', newPeople)
+        this.patchDiff('people', newPeople);
       }
     }
 

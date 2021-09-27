@@ -18,8 +18,8 @@
   </ul>
 </div>
 <q-modal #paymentMeansModal>
-  <q-payment-means-editor [paymentMeans]="paymentMeansInEditing" [showDelete]="originalPaymentMeansInEditing" (submit)="onSubmit($event)"
-  (cancel)="onCancel()" (remove)="onDelete($event)"></q-payment-means-editor>
+  <app-payment-means-editor #paymentEditor [paymentMeans]="paymentMeansInEditing" [showDelete]="originalPaymentMeansInEditing" (submit)="onSubmit($event)"
+  (cancel)="onCancel()" (remove)="onDelete($event)" (change)="formChanged($event)"></app-payment-means-editor>
 
 </q-modal>
 <!--displaying-->

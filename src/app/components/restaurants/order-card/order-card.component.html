@@ -6,18 +6,84 @@
     <span class="pl-1" routerLink="/order/{{order.id}}">{{order.orderNumber}}</span>
     <i class="fa fa-clipboard" (click)="copyToClipboard(order)" style="cursor:pointer;"></i>
   </div>
-  <div *ngIf="order.dineInSessionObj" class="qr">
-    <i class="fa fa-qrcode"></i> QR <span>{{order.dineInSessionObj.code}}</span>
-    <i class="fa fa-laptop" *ngIf="orderFromPC(order)"></i>
-    <i class="fa fa-mobile-alt" *ngIf="orderFromPhone(order)"></i>
+  <div *ngIf="order.dineInSessionObj" class="qr order-from-row">
+    <div class="order-from-border mr-2">{{getOrderOrigin(order)}}</div>
+    <div *ngIf="orderFromPC(order)" class="order-from-border">
+      <i class="fa fa-laptop"></i>
+      <i class="fab fa-windows" *ngIf="orderFromWindows(order)"></i>
+      <i class="fab fa-apple" *ngIf="orderFromMac(order)"></i>
+      <i class="fab fa-linux" *ngIf="orderFromLinux(order)"></i>
+      <i class="fab fa-chrome" *ngIf="orderFromChrome(order)"></i>
+      <i class="fab fa-safari" *ngIf="orderFromSafari(order)"></i>
+      <i class="fab fa-firefox" *ngIf="orderFromFirefox(order)"></i>
+      <i class="fab fa-internet-explorer" *ngIf="orderFromIE(order)"></i>
+      <i class="fab fa-edge" *ngIf="orderFromEdge(order)"></i>
+      <i class="fas fa-question-circle" *ngIf="orderFromBrowserUnknown(order)"></i>
+    </div>
+    <div *ngIf="orderFromPhone(order)" [ngClass]="{'order-from-border-active': orerFromAppOrPWA(order),'order-from-border':!orerFromAppOrPWA(order)}">
+      <i class="fa fa-mobile-alt"></i>
+      <i class="fab fa-android" *ngIf="orderFromAndroid(order)"></i>
+      <i class="fab fa-apple" *ngIf="orderFromiOS(order)"></i>
+      <span *ngIf="orderFromApp(order)" class="order-from-span">App</span>
+      <span *ngIf="orderFromPWA(order)" class="order-from-span">PWA</span>
+      <i class="fab fa-chrome" *ngIf="orderFromChrome(order)"></i>
+      <i class="fab fa-safari" *ngIf="orderFromSafari(order)"></i>
+      <i class="fab fa-firefox" *ngIf="orderFromFirefox(order)"></i>
+      <i class="fab fa-internet-explorer" *ngIf="orderFromIE(order)"></i>
+      <i class="fab fa-edge" *ngIf="orderFromEdge(order)"></i>
+      <i class="fas fa-question-circle" *ngIf="orderFromBrowserUnknown(order)"></i>
+    </div>
+    <div class="qr-layout">
+      <i class="fa fa-qrcode ml-2"></i><span class="ml-1">QR {{order.dineInSessionObj.code}}</span>
+    </div>
+    <!--display a checkmark to indicate it's done-->
+    <h4 *ngIf="order.statusEqual('COMPLETED')" class="text-success">
+      &#10004;
+    </h4>
+    <!--display an x to indicate it's done-->
+    <h4 *ngIf="order.statusEqual('CANCELED')" class="text-danger">
+      &#10008;
+    </h4>
   </div>
   <!-- start with pc/phone icon -->
-  <div *ngIf="!order.dineInSessionObj" class="qr">
-    <i class="fa fa-laptop" *ngIf="orderFromPC(order)"></i>
-    <i class="fa fa-mobile-alt" *ngIf="orderFromPhone(order)"></i>
+  <div *ngIf="!order.dineInSessionObj" class="qr order-from-row">
+    <div class="order-from-border mr-2">{{getOrderOrigin(order)}}</div>
+    <div *ngIf="orderFromPC(order)" class="order-from-border">
+      <i class="fa fa-laptop"></i>
+      <i class="fab fa-windows" *ngIf="orderFromWindows(order)"></i>
+      <i class="fab fa-apple" *ngIf="orderFromMac(order)"></i>
+      <i class="fab fa-linux" *ngIf="orderFromLinux(order)"></i>
+      <i class="fab fa-chrome" *ngIf="orderFromChrome(order)"></i>
+      <i class="fab fa-safari" *ngIf="orderFromSafari(order)"></i>
+      <i class="fab fa-firefox" *ngIf="orderFromFirefox(order)"></i>
+      <i class="fab fa-internet-explorer" *ngIf="orderFromIE(order)"></i>
+      <i class="fab fa-edge" *ngIf="orderFromEdge(order)"></i>
+      <i class="fas fa-question-circle" *ngIf="orderFromBrowserUnknown(order)"></i>
+    </div>
+    <div *ngIf="orderFromPhone(order)" [ngClass]="{'order-from-border-active':orerFromAppOrPWA(order),'order-from-border':!orerFromAppOrPWA(order)}">
+      <i class="fa fa-mobile-alt"></i>
+      <i class="fab fa-android" *ngIf="orderFromAndroid(order)"></i>
+      <i class="fab fa-apple" *ngIf="orderFromiOS(order)"></i>
+      <span *ngIf="orderFromApp(order)" class="order-from-span">App</span>
+      <span *ngIf="orderFromPWA(order)" class="order-from-span">PWA</span>
+      <i class="fab fa-chrome" *ngIf="orderFromChrome(order)"></i>
+      <i class="fab fa-safari" *ngIf="orderFromSafari(order)"></i>
+      <i class="fab fa-firefox" *ngIf="orderFromFirefox(order)"></i>
+      <i class="fab fa-internet-explorer" *ngIf="orderFromIE(order)"></i>
+      <i class="fab fa-edge" *ngIf="orderFromEdge(order)"></i>
+      <i class="fas fa-question-circle" *ngIf="orderFromBrowserUnknown(order)"></i>
+    </div>
+    <!--display a checkmark to indicate it's done-->
+    <h4 *ngIf="order.statusEqual('COMPLETED')" class="text-success">
+      &#10004;
+    </h4>
+    <!--display an x to indicate it's done-->
+    <h4 *ngIf="order.statusEqual('CANCELED')" class="text-danger">
+      &#10008;
+    </h4>
   </div>
   <!-- end with pc/phone icon -->
-  <div class="card-block">
+  <div class="card-block mt-3">
 
     <h4 class="text-sm-center">
       {{getCustomerName(order)}}
@@ -28,15 +94,6 @@
     <div *ngIf="order.customer?.bannedReasons" class="alert alert-danger">
       <i class="fa fa-ban"></i> BANNED: {{getBannedReasons()}}
     </div>
-
-    <!--display a checkmark to indicate it's done-->
-    <h4 *ngIf="order.statusEqual('COMPLETED')" class="app-status-done text-success">
-      &#10004;
-    </h4>
-    <!--display an x to indicate it's done-->
-    <h4 *ngIf="order.statusEqual('CANCELED')" class="app-status-done text-danger">
-      &#10008;
-    </h4>
 
     <h5 *ngIf="getCustomerPhoneNumber(order)" class="text-sm-center">
       <a href="tel:{{getCustomerPhoneNumber(order)}}">{{getCustomerPhoneNumber(order) | tel}}</a>
@@ -178,23 +235,27 @@
           <i class="fa fa-reply"></i> Change order type</a>
         <a role="button" class="text-primary text-nowrap card-link" (click)="adjustInvoice()">
           <i class="fas fa-file-invoice-dollar"></i> Invoice Adjust</a>
-
+        <a role="button" class="text-primary text-nowrap card-link" (click)="viewNotificationHistory(order)">
+          <i class="fas fa-bell"></i> Notifications</a>
       </div>
 
 
       <div *qIf="showTexting">
-        <!--div class="row"-->
         <div>
-          <div>
-            <label class="mr-2"> Phone:</label>
-            <div class="{{!isPhoneValid() ? 'invalid' : ''}}">
-              <input type="tel" class="form-control" [(ngModel)]="phoneNumberToText">
-            </div>
+          <label class="mr-2">Phone:</label>
+          <div class="{{!isPhoneValid() ? 'invalid' : ''}}">
+            <select class="form-control" [(ngModel)]="phoneNumberToText">
+              <option *ngFor="let phone of phoneNumbersOfRT()" [value]="phone.value">{{phone.value}}</option>
+            </select>
           </div>
-          <div>
-            <button class="btn btn-primary" (click)="sendText()" style="min-width: 6rem"
-              [disabled]="!isPhoneValid()">Send</button>
-          </div>
+          <a class="btn-link mt-1" (click)="showPhoneNumberInput = !showPhoneNumberInput" >
+            Phone number not in the list? Click here to input a new:
+          </a>
+          <input *ngIf="showPhoneNumberInput" class="form-control mt-1" type="tel" [(ngModel)]="phoneNumberToText" />
+        </div>
+        <div>
+          <button class="mt-2 float-right btn btn-primary" (click)="sendText()" style="min-width: 6rem"
+                  [disabled]="!isPhoneValid()">Send</button>
         </div>
       </div>
 

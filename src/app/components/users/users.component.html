@@ -1,4 +1,4 @@
-<h1 class="text-center">Users</h1>
+<h1 class="text-center">Users ({{getTableUserCount()}})</h1>
 <div class="text-right pb-2">
   <label class="checkbox-inline" *ngIf="getDisabledUsers().length > 0"><input type="checkbox"
       [(ngModel)]="showDisabled"> Show disabled
@@ -10,6 +10,7 @@
     <thead>
       <tr>
         <th scope="col">Username</th>
+        <th scope="col">IVR</th>
         <th scope="col">Roles</th>
         <th scope="col">Manager</th>
         <th scope="col"></th>
@@ -17,9 +18,12 @@
     </thead>
     <tbody>
       <ng-container *ngFor="let user of users">
-        <tr  *ngIf="showDisabled || !user.disabled" class="{{user.disabled ? 'disabled' : ''}}">
+        <tr *ngIf="showDisabled || !user.disabled" class="{{user.disabled ? 'disabled' : ''}}">
           <th scope="row">{{user.username}}
-            <div  class="text-tiny">{{(user.languages || []).join(' ')}}</div>
+            <div class="text-tiny">{{(user.languages || []).join(' ')}}</div>
+          </th>
+          <th scope="row">
+            {{user.ivrUsername}}
           </th>
           <td>{{(user.roles || []).join(', ')}}
             <div class="text-tiny text-muted">
@@ -31,7 +35,7 @@
             <button class="btn btn-link pr-0" (click)="edit(user)">Edit</button>
           </td>
         </tr>
-    </ng-container>
+      </ng-container>
     </tbody>
   </table>
 </div>

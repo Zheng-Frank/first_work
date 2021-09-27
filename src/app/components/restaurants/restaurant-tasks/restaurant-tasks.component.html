@@ -20,11 +20,12 @@
     <tr *ngFor="let task of tasks">
       <td>{{task.result}}</td>
       <td>{{task.createdAt | date: 'medium'}}</td>
-      <td><button class="btn btn-link py-0" (click)="showDetails(task)">{{task._id}}</button></td>
+      <td><button class="btn btn-link py-0" (click)="showDetails(task._id)">{{task._id}}</button></td>
       <td>{{task.name}}</td>
       <td>{{task.resultAt | date: 'medium'}}</td>
       <td>
-        <app-gmb-account-hotlink *ngIf="task.request?.email" [email]="task.request?.email" [appealId]="task.request?.appealId"></app-gmb-account-hotlink>
+        <app-gmb-account-hotlink *ngIf="task.request?.email" [email]="task.request?.email"
+          [appealId]="task.request?.appealId"></app-gmb-account-hotlink>
       </td>
       <td>{{(task.request?.pinHistory || [])[0]?.pin}} </td>
       <td>{{(task.request?.statusHistory || [])[0]?.status}} </td>
@@ -33,8 +34,12 @@
 
 </div>
 
-<q-modal #taskDetailsModal>
-  <pre>
-    {{ selectedTask | json}}
-  </pre>
+<!--the editing modal-->
+<q-modal #taskDetailModal>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">×</span>
+  </button>
+  <app-gmb-task-detail #taskDetail [qmenuDomains]="qmenuDomains" [publishedCids]="publishedCids"
+  (refreshTask)="handleRefreshSingleTask($event)" 
+  (assignComplete)="handleAssignComplete()" (showDetailsEvent)="showDetails($event)"></app-gmb-task-detail>
 </q-modal>

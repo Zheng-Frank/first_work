@@ -1,4 +1,4 @@
-<div class="media mt-1 {{mi.disabled ? 'app-muted' : ''}}">
+<div class="media mt-1 {{mi.disabled ? 'app-muted' : ''}} bordered">
   <div class="media-left" *ngIf="getMiImageUrl(mi)">
     <img class="media-object img-rounded app-menu-thumbnail" src="{{getMiImageUrl(mi)}}" alt="{{mi.name}}">
     <div *ngIf="hasInventory()">

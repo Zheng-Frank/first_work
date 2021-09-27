@@ -19,6 +19,7 @@
           <button class="btn btn-link" (click)="deleteImages()">Delete Image (删除图片)</button>
           <button class="btn btn-link" (click)="disableNotes()">{{ !disableNotesFlag ? 'Enable Notes(打开注释)': 'Disable Notes(取消客人注释)' }}</button>
           <button class="btn btn-link" (click)="copyMenu = !copyMenu">Copy Menu to (拷贝菜单到)</button>
+          <button class="btn btn-link" (click)="republishToAWS()">Re-Publish Website to AWS (网站重发布到 AWS)</button>
           <button class="btn btn-link" (click)="adjustingAllPrices = !adjustingAllPrices">Adjust All Prices
             (整体提价)</button>
           <button class="btn btn-link" (click)="adjustingMenuOrders = !adjustingMenuOrders">Adjust Menu Orders
@@ -118,7 +119,17 @@
       <ul class="nav nav-tabs app-tab" role="tablist">
         <li *ngFor="let menu of getMenus()" class="nav-item">
           <a (click)=setActiveId(menu.id) class="nav-link {{getActiveId() == menu.id ? 'active' : 'text-primary'}}"
-            data-toggle="tab" role="button">{{menu.name}} {{menu.targetCustomer ? "("+menu.targetCustomer+")" : ''}}</a>
+            data-toggle="tab" role="button">{{menu.name}}
+            <ng-container *ngIf="menu.targetCustomer !== 'DINE_IN_ONLY'">
+              {{menu.targetCustomer ? "("+menu.targetCustomer+")" : ''}}
+            </ng-container>
+            <ng-container *ngIf="menu.targetCustomer === 'DINE_IN_ONLY'">
+              <i class="fas fa-utensils"></i>
+            </ng-container>
+            <ng-container *ngIf="isMissingHoursMenu(menu)">
+              <i class="fas fa-exclamation-triangle"></i>
+            </ng-container>
+          </a>
         </li>
         <li class="nav-item" *ngIf="getMenus().length > 0">
           <a class="nav-link text-primary {{!getActiveId() ? 'active' : 'text-primary'}}" (click)="clickNew()"
@@ -161,7 +172,9 @@
     </button>
     <h4 class="header-title text-center">
     Preview Extractions and Translations
-    <label class="header-checkbox"><input type="checkbox" [(ngModel)]="menuCleanHandleIDsOnly"> Only handle IDs</label>
+    <label class="header-checkbox">
+      <input type="checkbox" (click)="cleanupComponent.collect()" [(ngModel)]="menuCleanHandleIDsOnly"> Only handle IDs
+    </label>
   </h4>
     <hr>
     <app-menu-cleanup #cleanupComponent [allMenus]="restaurant.menus" [translations]="restaurant.translations"

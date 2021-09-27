@@ -27,7 +27,6 @@
         <!-- end with show no image items -->
       </div>
       <div class="col-5 text-right">
-           <!-- <button class="btn btn-primary" *ngIf="isAdmin()" (click)="scrape()"><i class="fa fas fa-sync"></i> Scrape Common Items Async</button> -->
         <button class="btn btn-primary" (click)="openAddRecordsModal()">+ Add New Records</button>
       </div>
     </div>
@@ -51,8 +50,8 @@
         <td>
           <q-values [(ngModel)]="row.aliases" (ngModelChange)="updateAliases(row)"></q-values>
           <div class="row ml-1 mt-2" *ngIf="row.menuCount || row.orderCount">
-            <span class="mr-2" *ngIf="orderBy === 'Menu frequency'">Menu Frequency: {{row.menuCount || 0}}</span>
-            <span *ngIf="orderBy === 'Order frequency'">Order Frequency: {{row.orderCount || 0}}</span>
+            <span class="mr-2">Menu Frequency: {{row.menuCount || 0}},</span>
+            <span>Order Frequency: {{row.orderCount || 0}}</span>
           </div>
           <div class="row ml-1 mt-2 text-warning" *ngIf="row.cuisines">
             <span>Cuisines: {{row.cuisines.join(', ').toString()}}</span>

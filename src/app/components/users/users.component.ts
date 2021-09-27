@@ -68,8 +68,13 @@ export class UsersComponent implements OnInit {
         this._global.publishAlert(AlertType.Danger, 'Error pulling users from API');
       });
   }
-  getDisabledUsers(){
-    return this.users.filter(user=>user.disabled);
+
+  getTableUserCount() {
+    return this.users.filter(user => this.showDisabled || !user.disabled).length;
+  }
+
+  getDisabledUsers() {
+    return this.users.filter(user => user.disabled);
   }
   toggleDeleting() {
     this.deleting = !this.deleting;
@@ -119,10 +124,15 @@ export class UsersComponent implements OnInit {
       field: 'roles',
       label: 'Roles',
       inputType: 'multi-select',
-      required: true,
+      required: false,
       minSelection: 0,
       maxSelection: 100,
       items: this.existingRoleItems
+    },
+    {
+      field: 'ivrUsername',
+      label: 'IVR Username',
+      required: false,
     },
     {
       field: 'languages',

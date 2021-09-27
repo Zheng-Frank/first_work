@@ -86,6 +86,13 @@ export class RestaurantPromotionsComponent implements OnInit {
   }
 
   onDone(promotion) {
+    this.restaurant.promotions.forEach(promo => {
+      Object.keys(promo).forEach(key => {
+        if (!promo[key]) {
+          delete promo[key];
+        }
+      });
+    });
     // shadow clone
     const newPromotions = (this.restaurant.promotions || []).slice(0);
     if (promotion.id) {

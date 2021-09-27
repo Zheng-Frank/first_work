@@ -10,6 +10,7 @@ import { Gmb3Service } from "src/app/services/gmb3.service";
 import { Helper } from "src/app/classes/helper";
 import { Domain } from "src/app/classes/domain";
 import * as FileSaver from 'file-saver';
+import { Transaction } from "src/app/classes/transaction";
 @Component({
   selector: "app-db-scripts",
   templateUrl: "./db-scripts.component.html",
@@ -18,9 +19,264 @@ import * as FileSaver from 'file-saver';
 export class DbScriptsComponent implements OnInit {
   removingOrphanPhones = false;
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) { }
-
   ngOnInit() { }
 
+  async importSalaries() {
+    const mylines = `PASTE ACTUAL LINES HERE`;
+
+    const transactions = mylines.split('\n').map(line => {
+
+      // const firstname = ["Adam", "Alex", "Aaron", "Ben", "Carl", "Dan", "David", "Edward", "Fred", "Frank", "George", "Hal", "Hank", "Ike", "John", "Jack", "Joe", "Larry", "Monte", "Matthew", "Mark", "Nathan", "Otto", "Paul", "Peter", "Roger", "Roger", "Steve", "Thomas", "Tim", "Ty", "Victor", "Walter"];
+      // const randFirstname = firstname[Math.floor(Math.random() * firstname.length)].toLowerCase();
+
+      const [payer, payee, currency, means, description, inputUsername, time, amountString, exchangeRateString] = line.split('\t').map(t => t.trim());
+      const amount = parseFloat(amountString);
+      const exchangeRate = parseFloat(exchangeRateString);
+      const transaction = new Transaction({
+        payer, payee, currency, means, description, inputUsername, time, amount, exchangeRate,
+        inputTime: new Date()
+      });
+      return transaction;
+    }).filter(tran => tran.amount);
+    console.log(transactions)
+
+    // await this._api.post(environment.qmenuApiUrl + 'generic?resource=transaction', transactions).toPromise();
+  }
+
+  async disableAtMigrate() {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: { disabled: true, disabledAt: { $exists: false } },
+      projection: { _id: 1, 'logs.time': 1, createdAt: 1, disabledAt: 1 }
+    }, 50);
+    let zero = new Date(0).valueOf();
+    const getDTValue = (datetime) => {
+      let value = new Date(datetime).valueOf();
+      return Number.isNaN(value) ? zero : value;
+    };
+    const patchList = [];
+    for (let i = 0; i < rts.length; i++) {
+      let rt = rts[i];
+      let latestLogTime = (rt.logs || []).reduce((a, c) => Math.max(a, getDTValue(c.time)), zero);
+      let latestOrder = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'order',
+        query: { restaurant: { $oid: rt._id } },
+        projection: { createdAt: 1 },
+        sort: { createdAt: -1 },
+        limit: 1
+      }).toPromise();
+      let latestOrderTime = latestOrder.length ? getDTValue(latestOrder[0].createdAt) : zero;
+      let latestApiLog = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'apilog',
+        query: { 'body.0.old._id': rt._id },
+        projection: { time: 1 },
+        sort: { time: -1 },
+        limit: 1
+      }).toPromise();
+
+      let latestApiLogTime = latestApiLog.length ? getDTValue(latestApiLog[0].time) : zero;
+      let disabledAt = Math.max(latestLogTime, latestOrderTime);
+
+      if (disabledAt === zero) {
+        disabledAt = latestApiLogTime;
+      }
+
+      if (disabledAt === zero) {
+        let createdAt = new Date(rt.createdAt);
+        // add one week to createdAt
+        createdAt.setDate(createdAt.getDate() + 7);
+        disabledAt = createdAt.valueOf();
+      }
+      patchList.push({
+        old: { _id: rt._id },
+        new: { _id: rt._id, disabledAt: new Date(disabledAt) }
+      });
+    }
+    console.log(patchList);
+    if (patchList.length) {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+    }
+  }
+
+  async preferredLanguageMigrate() {
+    const users = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'user', query: {}
+    }, 1000);
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: { disabled: { $ne: true } }
+    }, 50);
+    const chineseAgents = [
+      'alan', 'alice', 'amy', 'andy', 'annie', 'anny',
+      'cara', 'carrie', 'cathy', 'cici', 'demi',
+      'emily', 'eva', 'felix', 'hayley', 'ivy',
+      'james', 'joanan', 'joy', 'julia', 'kevin', 'kk',
+      'lily.jiang', 'lucy', 'mary', 'mia', 'mo', 'nicole',
+      'sam', 'sherry.zhao', 'sisi', 'siyuan.zhang',
+      'sun', 'sunny', 'vivi', 'xuesan.li',
+      'akili', 'angel', 'angelina', 'august', 'august',
+      'carol', 'celine', 'coco', 'daisy', 'dana', 'diana',
+      'dyney', 'ella', 'eric.wang', 'gina', 'grace',
+      'huafu.hu', 'ivy.chang', 'jake', 'jane', 'jane.sui',
+      'jessie', 'jiawei.sun', 'julia.zhu', 'july', 'laurence',
+      'lemon', 'lily.he', 'lina', 'linda', 'mandy', 'max',
+      'may', 'megan', 'risa', 'rita', 'ruby', 'sacha',
+      'sadie.peng', 'sally', 'sandy', 'sera', 'sophia',
+      'stella', 'tina.zhou', 'tracy', 'vicky', 'vicky.luo',
+      'windy', 'xinxi', 'yolanda', 'yoyo', 'yoyo.wang', 'zoe.zhou', 'zora'
+    ];
+    const chineseAgentsSet = new Set(chineseAgents);
+    const getSalesAgent = (rateSchedules) => {
+      let now = Date.now();
+      const isValid = x => users.some(u => u.username === x.agent);
+      let list = (rateSchedules || []).filter(x => isValid(x) && new Date(x.date).valueOf() <= now.valueOf())
+        .sort((x, y) => new Date(x.date).valueOf() - new Date(y.date).valueOf());
+      let item = list.pop() || {};
+      return item.agent;
+    };
+    const patchList = [];
+    rts.forEach(rt => {
+      let salesAgent = getSalesAgent(rt.rateSchedules);
+      let channels = rt.channels || [];
+      let phoneOrderChannels = channels.filter(x => x.type === 'Phone' && (x.notifications || []).includes('Order'));
+      let updateOp = null;
+      // 1. has preferredLanguage
+      if (rt.preferredLanguage) {
+        // 1.1 no phone order notification -> get language depend on salesagent, set to preferredLanguage
+        if (phoneOrderChannels.length === 0) {
+          let preferredLanguage = salesAgent && chineseAgentsSet.has(salesAgent) ? 'CHINESE' : 'ENGLISH';
+          updateOp = {
+            old: { _id: rt._id },
+            new: { _id: rt._id, preferredLanguage }
+          };
+        } else {
+          // 1.2 has phone order notification -> keep preferredLanguage, and set it to channelLanguage
+          phoneOrderChannels.forEach(x => x.channelLanguage = rt.preferredLanguage);
+          updateOp = {
+            old: { _id: rt._id },
+            new: { _id: rt._id, channels }
+          };
+        }
+      } else {
+        // 2 no preferredLanguage
+        // 2.1 no phone order notification -> get language depend on salesagent and set to preferredLanguage
+        if (phoneOrderChannels.length === 0) {
+          let preferredLanguage = salesAgent && chineseAgentsSet.has(salesAgent) ? 'CHINESE' : 'ENGLISH';
+          updateOp = {
+            old: { _id: rt._id },
+            new: { _id: rt._id, preferredLanguage }
+          };
+        } else {
+          // 2.2 has phone order notification -> preferredLanguage and channelLanguage to English
+          let preferredLanguage = 'ENGLISH';
+          phoneOrderChannels.forEach(x => x.channelLanguage = preferredLanguage);
+          updateOp = {
+            old: { _id: rt._id },
+            new: { _id: rt._id, preferredLanguage, channels }
+          };
+        }
+      }
+      if (updateOp) {
+        patchList.push(updateOp);
+      }
+    });
+    console.log(JSON.stringify(patchList));
+    if (patchList.length > 0) {
+      // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+    }
+  }
+
+  async regularSpacesAroundParentheses() {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        $or: [
+          { 'menus.name': { $regex: "\\S\\(|\\(\\s+|\\)\\S|\\s+\\)" } },
+          { 'menus.mcs.name': { $regex: "\\S\\(|\\(\\s+|\\)\\S|\\s+\\)" } },
+          { 'menus.mcs.mis.name': { $regex: "\\S\\(|\\(\\s+|\\)\\S|\\s+\\)" } }
+        ]
+      }
+    }, 50);
+
+    const clean = item => {
+      if (item.name) {
+        item.name = item.name.replace(/\s*\(\s*/g, ' (').replace(/\s*\)\s*/g, ') ').replace(/\s+/g, ' ').trim();
+      }
+    };
+    let patchList = rts.map(rt => {
+      rt.menus.forEach(menu => {
+        if (menu) {
+          clean(menu);
+          (menu.mcs || []).forEach(mc => {
+            if (mc) {
+              clean(mc);
+              (mc.mis || []).forEach(mi => {
+                if (mi) {
+                  clean(mi);
+                }
+              });
+            }
+          });
+        }
+      });
+
+      return {
+        old: { _id: rt._id },
+        new: { _id: rt._id, menus: rt.menus }
+      };
+    });
+    console.log(patchList);
+    if (patchList.length > 0) {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+    }
+  }
+
+  async unifyQuotationMarksAndParenthesesInMenuName() {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        $or: [
+          { 'menus.name': { $regex: "[（）‘’“”]" } },
+          { 'menus.mcs.name': { $regex: "[（）‘’“”]" } },
+          { 'menus.mcs.mis.name': { $regex: "[（）‘’“”]" } }
+        ]
+      }
+    }, 50);
+
+    const clean = item => {
+      if (item.name) {
+        item.name = item.name.replace(/‘/g, "'").replace(/’/g, "'")
+          .replace(/“/g, '"').replace(/”/g, '"')
+          .replace(/（/g, '(').replace(/）/g, ')');
+      }
+    };
+    let patchList = rts.map(rt => {
+      rt.menus.forEach(menu => {
+        if (menu) {
+          clean(menu);
+          (menu.mcs || []).forEach(mc => {
+            if (mc) {
+              clean(mc);
+              (mc.mis || []).forEach(mi => {
+                if (mi) {
+                  clean(mi);
+                }
+              });
+            }
+          });
+        }
+      });
+
+      return {
+        old: { _id: rt._id },
+        new: { _id: rt._id, menus: rt.menus }
+      };
+    });
+    console.log(patchList);
+    if (patchList.length > 0) {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+    }
+  }
 
 
   parsePrefixNum(name) {
@@ -157,61 +413,68 @@ export class DbScriptsComponent implements OnInit {
     return false;
   }
 
-  detectNumberByMc(mc, rtId, detectedMis) {
-    let numbers = [];
+  detectNumberByMc(mc, rtId, detectedMcs) {
     if (!mc.mis) {
       return false;
     }
-    mc.mis.forEach((mi) => {
-      // if mi has no name or has a number, skip
+    let numbers = [], names = [], len = mc.mis.length, repeatNums = [];
+    for (let i = 0; i < len; i++) {
+      let mi = mc.mis[i];
       if (!mi.name || mi.number) {
-        numbers.push(null);
         return false;
       }
-      let num = mi.name.split('.')[0];
-      numbers.push(num.trim());
-    });
-    // if numbers less than 5, or have empty number item,
-    // or have number includes 3+ continuous letter,
-    // or have number includes non-english characters, skip
-    if (numbers.length < 5 || numbers.some(n => !n || /[a-z]{3,}/i.test(n) || /[^\x00-\xff]/.test(n))) {
-      return false;
+      let [num, ...rest] = mi.name.split('.');
+      // remove pure name's prefix ) or . or -
+      let name = rest.join('.').replace(/^\s*[-).]\s*/, '').trim();
+      num = num.trim();
+      // cases to skip:
+      // 1. num or name is empty; eg. Soda, B-A, B-B, Combo 1, Combo 2 etc.
+      // 2. name repeat; eg. 2 Wings, 3 Wings, 4 Wings, etc.
+      // 3. num includes 3+ continuous letter eg. Especial 1. Camarofongo, Especial 2. Camarofongo etc.
+      // 4. num contains non-english characters eg. 蛋花汤 S1. Egg Drop Soup, 云吞汤 S2. Wonton Soup etc.
+      // 5. num contains parentheses aka (), as we don't know if the () thing is related to the menu name
+      // 6. original name startsWith 805 B.B.+ etc
+      // 7. original name startsWith 12 oz. etc
+      if (!num || !name || /\(.*\)/.test(num)
+        || /^(\d+\s+)*([a-zA-Z]+\.){2,}/.test(mi.name)
+        || /^(\d+\.?)+\s+[a-zA-Z]{2,}\./.test(mi.name)
+        || names.some(n => n.toLowerCase() === name.toLowerCase())
+        || /[a-z]{3,}/i.test(num) || /[^\x00-\xff]/.test(num)) {
+        continue;
+      }
+      names[i] = name;
+      // if or num repeat, we save the repeat num and index for later use
+      if (numbers.some(n => n.toLowerCase() === num.toLowerCase())) {
+        repeatNums[i] = num;
+        continue;
+      }
+      // if num has (), we should extract the () and set to name
+      let [remark] = num.match(/\(.*\)/) || [""];
+      if (remark) {
+        names[i] = remark + names[i];
+      }
+      numbers[i] = num;
     }
-    let base = numbers.shift();
-    if (!base) {
+    // only handle mcs with at least 5 mis
+    if (numbers.length < 5) {
       return false;
     }
 
-
-    let baseLastCharCode = base.charCodeAt(base.length - 1);
-    let flag = numbers.every((n, i) => {
-      // make sure the extracted number is increasing
-      // check the last character
-      return baseLastCharCode + (i + 1) === n.charCodeAt(n.length - 1);
-    });
-    if (flag) {
-      let origin = mc.mis.map(x => ({ number: x.number, name: x.name }));
-      // make update
-      numbers.unshift(base);
-      mc.mis.forEach((mi, index) => {
-        let num = numbers[index];
-        let names = mi.name.split('.');
-        names.shift();
-        // remove pure name's prefix ) or .
-        mi.name = names.join('.').replace(/^\s*[).]\s*/, '').trim();
-        mi.number = num;
-      });
-      // if the updated name is empty, we should skip, eg: comb1, comb2, comb3, etc... -> empty name
-      if (mc.mis.some(x => !x.name)) {
-        return false;
-      }
-      let temp = {
-        rt: rtId, origin, numbers: [base, ...numbers],
-        updated: mc.mis.map(x => ({ number: x.number, name: x.name }))
-      };
-      detectedMis.push(temp);
+    let confidence = numbers.filter(n => !!n).length / len;
+    // calculate exception ratio , skip lower then 0.79 (4 of 5)
+    if (Math.ceil(confidence * 100) < 80) {
+      return false;
     }
-    return flag;
+    detectedMcs.push({
+      rt: rtId, mc: mc.name, mis: mc.mis.map((mi, i) => (numbers[i] || repeatNums[i]) + ' | ' + mi.name + '      |      ' + names[i])
+    });
+    mc.mis.forEach((mi, i) => {
+      if (numbers[i] || repeatNums[i]) {
+        mi.number = numbers[i] || repeatNums[i];
+        mi.name = names[i];
+      }
+    });
+    return true;
   }
 
   async extractMenuNumberInName() {
@@ -220,19 +483,33 @@ export class DbScriptsComponent implements OnInit {
       query: { disabled: { $ne: true } },
       projection: { 'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, 'menus.mcs.mis.number': 1, name: 1 }
     }, 500);
-
-    let detectedMis = [];
+    let detectedMcs = [], patchList = [];
     let canExtract = rts.filter(rt => {
       let flag = false;
       (rt.menus || []).forEach(menu => {
         (menu.mcs || []).forEach(mc => {
-          flag = this.detectNumberByMc(mc, rt._id, detectedMis) || flag;
+          flag = this.detectNumberByMc(mc, rt._id, detectedMcs) || flag;
         });
       });
+      if (flag) {
+        patchList.push({
+          old: { _id: rt._id },
+          new: { _id: rt._id, menus: rt.menus }
+        });
+      }
       return flag;
     });
-    console.log('rt count: ', canExtract.length, ' mi count: ', detectedMis.length);
-    console.log(JSON.stringify(detectedMis));
+    console.log('rt count: ', canExtract.length, ' mc count: ', detectedMcs.length,
+      ' mi count: ', detectedMcs.reduce((a, c) => a + c.mis.length, 0));
+    let str = "";
+    detectedMcs.forEach(mc => {
+      str += mc.rt + " " + mc.mc;
+      str += '\n\t';
+      str += mc.mis.join('\n\t');
+      str += '\n\n';
+    });
+    console.log(str);
+    console.log(JSON.stringify(patchList.slice(0, 100)));
     console.log(JSON.stringify(canExtract.map(rt => rt._id)));
   }
 
@@ -2382,8 +2659,14 @@ export class DbScriptsComponent implements OnInit {
     //       params: {
     //         to: email,
     //         subject: emailSubject,
-    //         html: emailContent
-    //       }
+    //         html: emailContent,
+    //         trigger: {
+    //           id: this._global.user._id,
+    //             name: this._global.user.username,
+    //             source: "CSR",
+    //             module: "db script - handle holiday"
+    //         }
+    //       },
     //     });
     //   });
 
@@ -2396,7 +2679,13 @@ export class DbScriptsComponent implements OnInit {
     //         to: phone,
     //         from: "8447935942",
     //         providerName: "plivo",
-    //         message: smsMessage
+    //         message: smsMessage,
+    //         trigger: {
+    //           id: this._global.user._id,
+    //             name: this._global.user.username,
+    //             source: "CSR",
+    //             module: "db script - handle holiday"
+    //         }
     //       }
     //     });
     //   });
