@@ -131,6 +131,11 @@ export class PromotionEditorComponent implements OnChanges {
   }
 
   isPromotionValid() {
+
+    if(this.hasExpiry && !this.expiry){
+      return false;
+    }
+
     if (!this.promotionType) {
       return false;
     }
@@ -167,7 +172,7 @@ export class PromotionEditorComponent implements OnChanges {
     this.promotion.applicableItems = this.flattenList(this.applicableItems) || [];
 
     if (!this.hasExpiry) {
-      delete this.promotion.expiry;
+      this.promotion.expiry = undefined;
     } else {
       this.promotion.expiry = new Date(this.expiry);
       // this is UTC, we need to make it local browser (whoever operating this! Assuming same timezone as restaurant owner)
