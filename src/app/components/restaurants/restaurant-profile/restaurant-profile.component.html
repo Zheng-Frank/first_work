@@ -147,7 +147,8 @@
                     </i>
                   </div>
                   <div class="col-7 pl-1" style="font-weight: 600;">
-                    {{restaurant.taxRate | percentage}}
+                    <ng-container *ngIf="restaurant.taxRate>=0">{{restaurant.taxRate | percentage}}</ng-container>
+                    <ng-container *ngIf="restaurant.taxRate!==0 && !restaurant.taxRate">N/A</ng-container>
                   </div>
                 </div>
               </th>

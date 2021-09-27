@@ -427,10 +427,10 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
     // make sure types are correct!
     // can not use isNaN because isNaN(null) is false
-    if(!this.taxRate || this.taxRate < 0){
-      newObj.taxRate = 0;
+    if(this.taxRate < 0){
+      return this._global.publishAlert(AlertType.Danger,"Please don't enter a negative number!");
     }else{
-      newObj.taxRate = this.taxRate > 1 ? 1 : this.taxRate;
+      newObj.taxRate = this.taxRate === 0 ? 0 : !this.taxRate ? undefined : this.taxRate > 1 ? 1 : this.taxRate;
     }
     newObj.surchargeAmount = +this.surchargeAmount || undefined;
     newObj.pickupTimeEstimate = +this.pickupTimeEstimate || undefined;
