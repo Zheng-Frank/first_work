@@ -12,7 +12,7 @@
 <div *ngIf="modalTask?.request?.email" class="text-center">
   <app-gmb-account-hotlink [email]="modalTask?.request?.email" [appealId]="modalTask?.request?.appealId">
   </app-gmb-account-hotlink>
-  <label>[postcard ID: {{postcardIds.get(modalTask?.request?.email)}}]</label>
+  <label>[postcard ID: {{postcardIds.get(modalTask?.request?.email)||'N/A'}}]</label>
 </div>
 
 <div class="alert alert-danger text-center" *ngIf="modalTask?.request?.ownerDeclined">

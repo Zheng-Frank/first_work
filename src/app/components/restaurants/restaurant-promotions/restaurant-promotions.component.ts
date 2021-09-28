@@ -27,7 +27,7 @@ export class RestaurantPromotionsComponent implements OnInit {
 
   promotionInEditing;
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
   }
@@ -111,11 +111,10 @@ export class RestaurantPromotionsComponent implements OnInit {
       );
     } else {
       // api update here...
-      this._prunedPatch
+      this._api
         .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
           old: {
-            _id: this.restaurant['_id'],
-            promotions: this.restaurant.promotions
+            _id: this.restaurant['_id']
           }, new: {
             _id: this.restaurant['_id'],
             promotions: newPromotions

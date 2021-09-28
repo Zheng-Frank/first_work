@@ -88,7 +88,7 @@ export class InvoiceMonthlyComponent implements OnInit {
     timeThreshold.setMonth(timeThreshold.getMonth() - 5);
 
     // get recent invoice: because we "roll", so we can use latest n invoices of a restaurant to decide of an invoice is overdue
-    const batchSize = 20000;
+    const batchSize = 6000;
     let skip = 0;
     const rtInvoicesList = [];
     while (true) {
@@ -135,6 +135,7 @@ export class InvoiceMonthlyComponent implements OnInit {
             $project: {
               _id: 1,
               'invoices.balance': 1,
+              'invoices._id': 1,
               'invoices.isPaymentCompleted': 1,
               // 'invoices.previousBalance': 1,
               // 'invoices.previousPayments': 1,
@@ -160,7 +161,7 @@ export class InvoiceMonthlyComponent implements OnInit {
       ri.restaurant = this.restaurantIdMap[ri._id];
       ri.lastInvoice = ri.invoices.sort((i2, i1) => new Date(i1.fromDate) > new Date(i2.fromDate) ? 1 : -1)[0];
       ri.unpaidToDate = this.getUnpaidToDate(ri.invoices, initUnpaidDate);
-      ri.overdueMonths = Math.floor((new Date().valueOf() - ri.unpaidToDate.valueOf()) / (30 * 24 * 3600000))
+      ri.overdueMonths = Math.ceil((new Date().valueOf() - ri.unpaidToDate.valueOf()) / (30 * 24 * 3600000))
     });
 
     // now let's find overdue rows

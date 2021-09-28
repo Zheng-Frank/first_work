@@ -473,14 +473,12 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
         results => {
           this.apiRequesting = false;
           const rt = results[0];
-          (rt.gmbOwnerHistory || []).reverse();
-
-          (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi && mi.name)));
           this.restaurant = rt ? new Restaurant(rt) : undefined;
           if (!this.restaurant) {
             return this._global.publishAlert(AlertType.Danger, 'Not found or not accessible');
           }
-
+          (rt.gmbOwnerHistory || []).reverse();
+          (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi && mi.name)));
           const canEdit = this._global.user.roles.some(r =>
             ['ADMIN', 'MENU_EDITOR', 'CSR', 'ACCOUNTANT'].indexOf(r) >= 0) ||
             (rt.rateSchedules).some(rs => rs.agent === 'invalid') ||

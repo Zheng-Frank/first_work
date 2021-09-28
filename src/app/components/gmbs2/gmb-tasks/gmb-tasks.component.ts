@@ -15,21 +15,33 @@ import { Helper } from "src/app/classes/helper";
 })
 export class GmbTasksComponent implements OnInit, OnDestroy {
 
+    authShowTask(){
+        return this.myUserRoles.some(role=>['ADMIN', 'GMB', 'GMB_SPECIALIST', 'GMB_ADMIN'].includes(role));
+    }
+
     private async populateTasks() {
         const myRoles = this.myUserRoles;
         const myUsername = this.myUsername;
         console.log(myRoles);
         console.log(myUsername);
         console.log(myRoles.indexOf("MARKETER_INTERNAL") >= 0 ? { assignee: myUsername } : {});
-        // this.setQueryOr();
-        const dbTasks = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
-            resource: "task",
-            query: {
+        let query = {}
+        if(this.authShowTask()){
+            query = {
+                result: null,
+                name: "GMB Request"
+            }
+        }else{
+            query = {
                 result: null,
                 name: "GMB Request",
                 ...myRoles.indexOf("MARKETER_INTERNAL") >= 0 ? { assignee: myUsername } : {},
                 // "relatedMap.restaurantId": "58a34a2be1ddb61100f9e49c"
-            },
+            }
+        }
+        const dbTasks = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+            resource: "task",
+            query: query,
             projection: {
                 "assignee": 1,
                 "ownerDeclined": 1,
@@ -154,7 +166,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         },
     ];
     timer;
-
+    assignees = [];
 
     constructor(private _api: ApiService, private _global: GlobalService) {
         this.timer = setInterval(_ => this.now = new Date(), 60000);
@@ -171,6 +183,9 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
         this.user = this._global.user;
         this.myUsername = this.user.username;
         this.myUserRoles = this.user.roles || [];
+        const users = await this._global.getCachedUserList();
+        this.assignees = users.filter(u => !u.disabled && u.roles.some(r => ['GMB_SPECIALIST', 'MARKETER'].indexOf(r) >= 0)).map(u => u.username).sort((u1, u2) => u1 > u2 ? 1 : -1);
+        this.assignees.unshift('NON-CLAIMED');
 
         this.setActiveTab(this.tabs[0]);
 

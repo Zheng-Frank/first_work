@@ -96,6 +96,14 @@
 
   <div>
     <label class="mt-1">
+      <input type="checkbox" [checked]="promotion.applicablePaymentMethods?.includes('CASH')"
+        (change)="togglePaymentMethod('CASH')">
+      Only for Cash
+    </label>
+  </div>
+
+  <div>
+    <label class="mt-1">
       <input type="checkbox" [(ngModel)]="promotion.newCustomerOnly"> Only for new customers</label>
   </div>
 

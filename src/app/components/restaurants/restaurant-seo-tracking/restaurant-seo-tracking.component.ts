@@ -1,10 +1,9 @@
-import { Input, ViewChild } from '@angular/core';
-import { Component, OnInit } from '@angular/core';
-import { Restaurant } from '@qmenu/ui';
-import { AlertType } from '../../../classes/alert-type';
-import { ApiService } from '../../../services/api.service';
-import { GlobalService } from '../../../services/global.service';
-import { environment } from '../../../../environments/environment';
+import {Component, Input, OnInit, ViewChild} from '@angular/core';
+import {Restaurant} from '@qmenu/ui';
+import {AlertType} from '../../../classes/alert-type';
+import {ApiService} from '../../../services/api.service';
+import {GlobalService} from '../../../services/global.service';
+import {environment} from '../../../../environments/environment';
 
 @Component({
   selector: 'app-restaurant-seo-tracking',
@@ -15,29 +14,19 @@ export class RestaurantSeoTrackingComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
   @ViewChild('scrapeModal') scrapeModal;
-  specificColumnDescriptors = [
-    {
-      label: 'Provider'
-    },
-    {
-      label: 'Old Ranking',
-    },
-    {
-      label: 'New Ranking',
-    },
-    {
-      label: 'Up/Down',
-    },
+  cols = [
+    {label: 'Provider'},
+    {label: 'Old Ranking'},
+    {label: 'New Ranking'},
+    {label: 'Up/Down'},
   ];
-  specificRankingRows = [];
-  filterSpecificRankingRows = [];
+  list = [];
+  rows = [];
   ranks = [];
-  startDates = [];
-  endDates = [];
-  startDate: string = '';
-  endDate: string = '';
+  startDate = '';
+  endDate = '';
   providers = [];
-  createdAts = [];
+  dates = [];
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
@@ -46,7 +35,7 @@ export class RestaurantSeoTrackingComponent implements OnInit {
   }
 
   async populateGoogleRanks() {
-    this.specificRankingRows = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+    this.list = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "google-ranks",
       query: {
         restaurantId: this.restaurant._id,
@@ -63,107 +52,45 @@ export class RestaurantSeoTrackingComponent implements OnInit {
         createdAt: 1
       }
     }, 500);
-    this.specificRankingRows.sort((a, b) => new Date(a.createdAt).valueOf() - new Date(b.createdAt).valueOf());
+    this.list.sort((a, b) => new Date(a.createdAt).valueOf() - new Date(b.createdAt).valueOf());
 
-    // ISO date is 'yyyy-MM-DDThh:mm:ss.msmsmsZ'
-    // if the script run in a day, it should adapt yyyy-MM-DD
-    this.specificRankingRows.forEach(row => row.createdAt = (row.createdAt || '').split('T')[0]);
-    this.specificRankingRows.forEach(row => {
-      if (this.createdAts.indexOf(row.createdAt) === -1) {
-        this.createdAts.push(row.createdAt);
-      }
-    });
-    if (this.createdAts.length > 1) {
-      this.startDates = this.createdAts;
-      this.endDates = Object.assign(this.endDates, this.createdAts);
-      this.endDates.shift();
-    }
-
-    this.specificRankingRows.forEach(row => {
-      row.ranks.forEach(rank => {
-        if (rank.name && this.providers.indexOf(rank.name) === -1) {
-          this.providers.push(rank.name);
-        }
-      });
-    });
-    this.startDate = this.startDates[0];
-    this.endDate = this.endDates[0];
+    this.dates = Array.from(new Set(this.list.map(x => x.createdAt.split('T')[0])));
+    this.providers = Array.from(new Set(this.list.reduce((a, c) => a.concat((c.ranks || []).map(r => r.name).filter(x => !!x)), [])));
+    this.startDate = this.dates[0];
+    this.endDate = this.dates[this.dates.length - 1];
   }
 
   calcRankRowsByDate() {
-    if (this.startDates.length >= 1 && this.endDates.length >= 1) {
-      if (new Date(this.startDate).valueOf() > new Date(this.endDate).valueOf()) {
-        return this._global.publishAlert(AlertType.Danger, 'Start date must be earlier than end date!');
-      }
-      this.filterSpecificRankingRows.length = 0;
-      this.providers.forEach(provider => {
-        let obj = {
-          provider: '',
-          oldRanking: 0,
-          newRanking: 0,
-          upDown: ''
-        }
-        obj.provider = provider;
-        let startDateRanks = [];
-        this.specificRankingRows.filter(row => row.createdAt === this.startDate).forEach(row => (row.ranks || []).forEach(rank => {
-          if (rank.name === provider) {
-            startDateRanks.push(rank);
-          }
-        }));
-        let endDateRanks = [];
-        this.specificRankingRows.filter(row => row.createdAt === this.endDate).forEach(row => (row.ranks || []).forEach(rank => {
-          if (rank.name === provider) {
-            endDateRanks.push(rank);
-          }
-        }));
-        startDateRanks.sort((a, b) => a.rank - b.rank);
-        endDateRanks.sort((a, b) => a.rank - b.rank);
-        obj.oldRanking = startDateRanks[0] && startDateRanks[0].rank ? startDateRanks[0].rank : 'N/A';
-        obj.newRanking = endDateRanks[0] && endDateRanks[0].rank ? endDateRanks[0].rank : 'N/A';
-        if (isNaN(obj.oldRanking) || isNaN(obj.newRanking)) {
-          obj.upDown = 'N/A';
-        } else {
-          obj.upDown = obj.oldRanking - obj.newRanking+"";
-        }
-        this.filterSpecificRankingRows.push(obj);
-      });
-    } else { // the data in database of the ranks of this restaurant is only a day.
-      this.providers.forEach(provider => {
-        let obj = {
-          provider: '',
-          oldRanking: 0,
-          newRanking: 0,
-          upDown: '0'
-        }
-        obj.provider = provider;
-        let providersRanks = [];
-        this.specificRankingRows.forEach(row => (row.ranks || []).forEach(rank => {
-          if (rank.name === provider) {
-            providersRanks.push(rank);
-          }
-        }));
-        providersRanks.sort((a, b) => a.rank - b.rank);
-        obj.oldRanking = obj.newRanking = providersRanks[0] && providersRanks[0].rank ? providersRanks[0].rank : 'N/A';
-        if (isNaN(obj.oldRanking)) {
-          obj.upDown = 'N/A';
-        }
-        this.filterSpecificRankingRows.push(obj);
-      });
+    if (new Date(this.startDate).valueOf() > new Date(this.endDate).valueOf()) {
+      return this._global.publishAlert(AlertType.Danger, 'Start date must be earlier than end date!');
     }
-    this.filterSpecificRankingRows = this.filterSpecificRankingRows.filter(row=>!(row.oldRanking === 'N/A' && row.newRanking === 'N/A'));
-    this.filterSpecificRankingRows.sort((a, b) => a.newRanking - b.newRanking);
+    let startRanks = this.list.filter(x => x.createdAt.split('T')[0] === this.startDate).pop() || {ranks: []};
+    let endRanks = this.list.filter(x => x.createdAt.split('T')[0] === this.endDate).pop() || {ranks: []};
+    this.rows = this.providers.map(p => {
+      let startRank = startRanks.ranks.find(r => r.name === p);
+      let endRank = endRanks.ranks.find(r => r.name === p);
+      let item = {
+        provider: p, change: 0 as string|number,
+        oldRanking: startRank ? startRank.rank : 'N/A',
+        newRanking: endRank ? endRank.rank : 'N/A'
+      };
+      item.change = -(item.newRanking - item.oldRanking);
+      if (Number.isNaN(item.change)) {
+        item.change = 'N/A';
+      }
+      return item;
+    });
   }
 
   async scrape() {
     try {
       this._global.publishAlert(AlertType.Info, 'Scraping...');
-      const ranks = await this._api.post(environment.appApiUrl + 'utils/menu', {
+      this.ranks = await this._api.post(environment.appApiUrl + 'utils/menu', {
         name: 'google-rank',
         payload: {
           restaurantId: this.restaurant._id,
         }
       }).toPromise();
-      this.ranks = ranks;
       this.scrapeModal.show();
       this._global.publishAlert(AlertType.Success, 'Google ranks scraped!');
     } catch (error) {
@@ -181,16 +108,15 @@ export class RestaurantSeoTrackingComponent implements OnInit {
   }
 
   getqMenuCondition() {
-    let qmenuRank = this.filterSpecificRankingRows.find(rank => rank.provider === 'qmenu');
-    if (qmenuRank && qmenuRank.newRanking && qmenuRank.oldRanking) {
-      let deltaRank = qmenuRank.oldRanking - qmenuRank.newRanking;
-
-      if (deltaRank === 0) {
+    let qmenuRank = this.rows.find(rank => rank.provider === 'qmenu');
+    if (qmenuRank && Number.isInteger(qmenuRank.change)) {
+      let { change } = qmenuRank;
+      if (change === 0) {
         return 'qMenu: keep ranking';
-      } else if (deltaRank < 0) {
-        return 'qMenu: moved down by ' + Math.abs(deltaRank);
-      } else if(deltaRank > 0){
-        return 'qMenu: moved up by ' + Math.abs(deltaRank);
+      } else if (change < 0) {
+        return 'qMenu: moved down by ' + (-change);
+      } else if (change > 0) {
+        return 'qMenu: moved up by ' + change;
       }
     } else {
       return `Rank of qMenu can't be calculated because missing oldRanking or new Ranking.`;

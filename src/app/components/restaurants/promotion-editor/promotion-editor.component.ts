@@ -121,7 +121,21 @@ export class PromotionEditorComponent implements OnChanges {
     this.applicableItems = this.unflattenList(promotion.applicableItems);
   }
 
+  togglePaymentMethod(paymentMethod) {
+    if ((this.promotion.applicablePaymentMethods || []).includes(paymentMethod)) {
+      this.promotion.applicablePaymentMethods = this.promotion.applicablePaymentMethods.filter(x => x !== paymentMethod);
+    } else {
+      this.promotion.applicablePaymentMethods = this.promotion.applicablePaymentMethods || [];
+      this.promotion.applicablePaymentMethods.push(paymentMethod);
+    }
+  }
+
   isPromotionValid() {
+
+    if(this.hasExpiry && !this.expiry){
+      return false;
+    }
+
     if (!this.promotionType) {
       return false;
     }
@@ -158,7 +172,7 @@ export class PromotionEditorComponent implements OnChanges {
     this.promotion.applicableItems = this.flattenList(this.applicableItems) || [];
 
     if (!this.hasExpiry) {
-      this.promotion.expiry = null;
+      this.promotion.expiry = undefined;
     } else {
       this.promotion.expiry = new Date(this.expiry);
       // this is UTC, we need to make it local browser (whoever operating this! Assuming same timezone as restaurant owner)
@@ -166,6 +180,7 @@ export class PromotionEditorComponent implements OnChanges {
       // and the db data need to be transform to local time when compare
       this.promotion.expiry.setMinutes(this.promotion.expiry.getMinutes() + new Date().getTimezoneOffset());
     }
+    console.log(this.promotion);
     this.onDone.emit(this.promotion);
   }
 

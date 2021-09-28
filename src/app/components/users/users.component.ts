@@ -28,6 +28,7 @@ export class UsersComponent implements OnInit {
     'ADMIN',
     'CRM',
     'CSR',
+    'DEVELOPER',
     'DRIVER',
     'GMB_SPECIALIST',
     'GMB',
