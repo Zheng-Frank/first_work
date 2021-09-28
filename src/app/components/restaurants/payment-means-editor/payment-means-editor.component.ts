@@ -47,7 +47,11 @@ export class PaymentMeansEditorComponent implements OnInit {
     label: 'Type',
     required: true,
     inputType: 'single-select',
-    items: this.typeFieldItems
+    items: this.typeFieldItems,
+    validate:()=> {
+      // prevent type is empty situation
+      return this.typeFieldDescriptors.items.some(item=>item.object === this.paymentMeans.type);
+    }
   }
 
   paymentMeansFieldDescriptors = [];
