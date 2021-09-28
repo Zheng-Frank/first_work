@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, ViewChild } from '@angular/core';
 import { Restaurant } from '@qmenu/ui';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { ApiService } from 'src/app/services/api.service';
@@ -16,6 +16,7 @@ import { PrunedPatchService } from 'src/app/services/prunedPatch.service';
 export class OrderNotificationsComponent implements OnInit, OnChanges {
   @ViewChild('modalNotification') modalNotification: ModalComponent;
   @Input() restaurant: Restaurant;
+  @Output() updateRestaurant = new EventEmitter();
 
   orderNotifications: any = [];
 
@@ -128,7 +129,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
   ngOnInit() {
   }
 
-  ngOnChanges(changes: SimpleChanges) {
+  ngOnChanges() {
     this.orderNotifications = this.restaurant.orderNotifications || [];
   }
 
@@ -255,6 +256,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
               AlertType.Success,
               "Updated successfully"
             );
+            this.updateRestaurant.emit(this.restaurant);
           },
           error => {
             this._global.publishAlert(AlertType.Danger, "Error updating to DB");

@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ViewChild, OnChanges } from '@angular/core';
+import { Component, OnInit, Input, ViewChild, OnChanges, Output, EventEmitter } from '@angular/core';
 import { Restaurant } from '@qmenu/ui';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { ApiService } from "../../../services/api.service";
@@ -20,6 +20,7 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
 
   @Input() restaurant: Restaurant;
   @Input() viewOnly = false;
+  @Output() updateRestaurant = new EventEmitter();
 
   @ViewChild('modalPerson') modalPerson: ModalComponent;
   @ViewChild('modalChannel') modalChannel: ModalComponent;
@@ -405,6 +406,7 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
               AlertType.Success,
               "Updated successfully"
             );
+            this.updateRestaurant.emit(this.restaurant);
           },
           error => {
             this._global.publishAlert(AlertType.Danger, "Error updating to DB");

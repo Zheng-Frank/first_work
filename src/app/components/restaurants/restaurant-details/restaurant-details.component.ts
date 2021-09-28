@@ -313,6 +313,10 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
+  updateRestaurant(rt) {
+    this.restaurant = new Restaurant(rt);
+  }
+
   async diagnose() {
     try {
       await this._api.post(environment.appApiUrl + 'utils/diagnose-restaurant', { _id: this.restaurant._id }).toPromise();
