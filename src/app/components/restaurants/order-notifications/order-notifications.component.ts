@@ -275,6 +275,8 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     this.patchDiff(this.orderNotifications, oldOrderNotifications);
     event.acknowledge(null);
     this.modalNotification.hide();
+    this.restaurant.orderNotifications = this.orderNotifications;
+    this.updateRestaurant.emit(this.restaurant);
   }
 
   async retrievePrintClients() {
