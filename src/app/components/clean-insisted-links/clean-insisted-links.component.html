@@ -1,8 +1,19 @@
 <h1 class="card-title text-center pt-4 pb-2"> Clean Insisted Links ({{rows.length}})</h1>
 
+<div class="form-group row">
+  <label class="col-md-1 col-form-label"> Gmb Status:</label>
+  <div class="col-md-2">
+    <select class="form-control" [(ngModel)]="filterBy" (change)="filter()">
+      <option [ngValue]="'All'" selected>All</option>
+      <option [ngValue]="'Ownership'">Ownsership</option>
+      <option [ngValue]="'NoOwnership'">No Ownership</option>
+    </select>
+  </div>
+</div>
+
 <q-table [rows]="rows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="100000">
   <tr *tableRowTemplate="let row;">
-    <td style="width: 35%">
+    <td style="width: 30%">
       <div class="d-flex flex-column">
         <a href="/#/restaurants/{{row._id}}">{{row.name}}</a>
         <small class="text-muted">Id: {{row._id}}</small>
@@ -10,7 +21,12 @@
     </td>
 
     <td>
-      <div class="form-group row">
+      <div *ngIf="row.hasGmbOwnership" class="text-success"]>Ownership</div>
+      <div *ngIf="!row.hasGmbOwnership" class="text-danger">No Ownsership</div>
+    </td>
+
+    <td>
+      <div class="form-group row" style="max--width: 30%;">
         <label class="col-3 col-form-label pt-0">Restaurant Managed Website</label>
         <div class="col-9 text-left">
           <q-edit-label [value]="row.web?.bizManagedWebsite" (edit)="onEdit($event, row, 'bizManagedWebsite')"></q-edit-label>
@@ -44,5 +60,36 @@
       </div>
     </td>
 
+    <td>
+      <ng-container>
+        <table class="table table-sm">
+          <tr>
+            <th>Number</th>
+            <th>User</th>
+            <th>Time</th>
+            <th>Problem</th>
+            <th>Response</th>
+          </tr>
+          <ng-container *ngFor="let log of row.logs">
+            <tr *ngIf="log.type === 'cleanup-insisted'">
+              <td>{{row.logs.indexOf(log)+1}}</td>
+              <td>{{log.username}}</td>
+              <td>{{log.time | adjustedDate : 'MMM d h:mm a' : row.googleAddress.timezone}}</td>
+              <td>{{log.problem}}</td>
+              <td>{{log.response}}</td>
+            </tr>
+          </ng-container>
+        </table>
+        <div>
+          <button class="btn btn-primary btn-sm" (click)="addLog(row)"><i class="fas fa-plus"></i>Add Log</button>
+        </div>
+      </ng-container>
+    </td>
+
   </tr>
 </q-table>
+
+
+<q-modal #logEditingModal>
+  <app-log-editor #myLogEditor [restaurant]="activeRestaurant" [restaurantList]="[]" [log]="logInEditing" (success)="onSuccessAddLog($event)" (cancel)="onCancelAddLog()"></app-log-editor>
+</q-modal>
