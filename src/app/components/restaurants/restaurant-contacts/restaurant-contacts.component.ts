@@ -331,7 +331,7 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
     newChannels.splice(this.channelInEditing.index, 1);
 
     const notificationMatchIndex = (this.restaurant.orderNotifications || []).findIndex(n => n.channel.value === oldChannel.value && n.channel.type === oldChannel.type);
-    console.log(notificationMatchIndex)
+    
     if (notificationMatchIndex >= 0) {
       const newNotifications = this.restaurant.orderNotifications.slice(0);
       newNotifications.splice(notificationMatchIndex, 1);
@@ -401,7 +401,6 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
 
       newBody[field] = newValue;
 
-      console.log(oldBody, newBody);
       this._prunedPatch
         .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
           old: oldBody, new: newBody
@@ -417,7 +416,6 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
             this.updateRestaurant.emit(this.restaurant);
           },
           error => {
-            console.log(error);
             this._global.publishAlert(AlertType.Danger, "Error updating to DB");
           }
         );
