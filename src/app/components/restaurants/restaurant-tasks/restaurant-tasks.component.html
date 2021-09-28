@@ -6,7 +6,7 @@
       <i class="fas fa-hourglass-half"></i> Refresh GMB Tasks</button>
   </div>
 
-  <table>
+  <table class="table table-sm">
     <tr>
       <th>Result</th>
       <th>Created At</th>
@@ -16,11 +16,14 @@
       <th>Email</th>
       <th>PIN</th>
       <th>Status</th>
+      <th>Action</th>
     </tr>
     <tr *ngFor="let task of tasks">
       <td>{{task.result}}</td>
       <td>{{task.createdAt | date: 'medium'}}</td>
-      <td><button class="btn btn-link py-0" (click)="showDetails(task._id)">{{task._id}}</button></td>
+      <td>
+        <button class="btn btn-link py-0" (click)="showTaskJSON(task)">{{task._id}}</button>
+      </td>
       <td>{{task.name}}</td>
       <td>{{task.resultAt | date: 'medium'}}</td>
       <td>
@@ -29,6 +32,13 @@
       </td>
       <td>{{(task.request?.pinHistory || [])[0]?.pin}} </td>
       <td>{{(task.request?.statusHistory || [])[0]?.status}} </td>
+      <td>
+        <button class="btn btn-sm btn-link mb-2 ml-1" *ngIf="task.name === 'GMB Request'"
+          (click)="showDetails(task._id)">View</button>
+        <app-task-action-bar *ngIf="task.name !== 'GMB Request'" [task]="task" [user]="user"
+          (actionDone)="triggerActionDone($event)">
+        </app-task-action-bar>
+      </td>
     </tr>
   </table>
 
@@ -40,6 +50,16 @@
     <span aria-hidden="true">×</span>
   </button>
   <app-gmb-task-detail #taskDetail [qmenuDomains]="qmenuDomains" [publishedCids]="publishedCids"
-  (refreshTask)="handleRefreshSingleTask($event)" 
-  (assignComplete)="handleAssignComplete()" (showDetailsEvent)="showDetails($event)"></app-gmb-task-detail>
+  [assignees]="assignees" (refreshTask)="handleRefreshSingleTask($event)" (assignComplete)="handleAssignComplete()"
+  (showDetailsEvent)="showDetails($event)"></app-gmb-task-detail>
+</q-modal>
+
+<!-- the view json modal -->
+<q-modal #viewJSONModal>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">×</span>
+  </button>
+<pre>
+{{currentTask|json}}
+</pre>
 </q-modal>

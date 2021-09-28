@@ -38,7 +38,7 @@ export class Task {
     createdAt: Date;    
     updatedAt: Date;
     gmbBiz: any;
-
+    request: any;
     static predefinedTasks =
     [
       {

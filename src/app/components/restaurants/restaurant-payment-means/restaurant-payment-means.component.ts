@@ -28,15 +28,11 @@ export class RestaurantPaymentMeansComponent implements OnInit {
   ngOnInit() {
   }
 
-  formChanged(event) {
-    // TO BE UPDATED: this just to make siyuan's code not blocking compilation
-  }
-
   editNew() {
     this.paymentMeansModal.title = 'New Payment Means';
     this.paymentMeansInEditing = new PaymentMeans();
     this.originalPaymentMeansInEditing = undefined;
-    this.paymentEditor.formChanged();
+    this.paymentEditor.init(this.paymentMeansInEditing);
     this.paymentMeansModal.show();
   }
 
@@ -48,11 +44,10 @@ export class RestaurantPaymentMeansComponent implements OnInit {
     this.paymentMeansModal.title = 'Edit Payment Means';
     this.originalPaymentMeansInEditing = paymentMeans;
     this.paymentMeansInEditing = new PaymentMeans(JSON.parse(JSON.stringify(paymentMeans)));
-    this.paymentEditor.formChanged();
+    this.paymentEditor.init(this.paymentMeansInEditing);
     this.paymentMeansModal.show();
   }
 
-  
   onDelete(event) {
     const newPaymentMeans = (this.restaurant.paymentMeans || []).filter(pm => pm !== this.originalPaymentMeansInEditing);
     this.patch(newPaymentMeans, event.formEvent.acknowledge);

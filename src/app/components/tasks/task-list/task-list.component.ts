@@ -110,6 +110,9 @@ export class TaskListComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     if (this.taskList) {
+      this.taskList.forEach(task => {
+        task.comments = task.comments.trim();
+      });
       this.taskNames = ['All', ...Array.from(new Set(this.taskList.map(t => t.name)))];
       if (this.taskNames.indexOf(this.selectedTaskName) < 0) {
         this.selectedTaskName = 'All';

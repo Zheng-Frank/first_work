@@ -247,6 +247,7 @@ import { LeadDetailsComponent } from './components/leads/lead-details/lead-detai
 import { GmbTaskDetailComponent } from './components/gmbs2/gmb-task-detail/gmb-task-detail.component';
 import { CleanInsistedLinksComponent } from './components/clean-insisted-links/clean-insisted-links.component';
 import { PaymentMeansEditorComponent } from './components/restaurants/payment-means-editor/payment-means-editor.component';
+import { OrderlessSignupsComponent } from './components/monitoring/orderless-signups/orderless-signups.component';
 
 
 
@@ -464,7 +465,8 @@ import { PaymentMeansEditorComponent } from './components/restaurants/payment-me
     LeadDetailsComponent,
     GmbTaskDetailComponent,
     CleanInsistedLinksComponent,
-    PaymentMeansEditorComponent
+    PaymentMeansEditorComponent,
+    OrderlessSignupsComponent
   ],
   imports: [
     BrowserModule,
