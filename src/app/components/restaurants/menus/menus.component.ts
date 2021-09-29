@@ -670,31 +670,24 @@ export class MenusComponent implements OnInit {
 
     const oldMenus = this.restaurant.menus || [];
     const newMenus = JSON.parse(JSON.stringify(oldMenus));
-    let needUpdate = false;
     newMenus.map(menu => (menu.mcs || []).map(mc => (mc.mis || []).map(mi => {
-      /* Image origin: "CSR", "RESTAURANT", "IMAGE-PICKER"
+      /* the following is obsolete: 
+          Image origin: "CSR", "RESTAURANT", "IMAGE-PICKER"
           only inject image when no existing image with origin as "CSR", "RESTAURANT", or overwrite images with origin as "IMAGE-PICKER"
       */
       try {
-
-        if (mi && mi.imageObjs && !(mi.imageObjs.some(each => each.origin === 'CSR' || each.origin === 'RESTAURANT'))) {
+        // only inject if there is NO image
+        if (mi && !mi.SkipImageInjection && (!mi.imageObjs || mi.imageObjs.length === 0)) {// !(mi.imageObjs.some(each => each.origin === 'CSR' || each.origin === 'RESTAURANT'))) {
           // 9/29/2021 use newer algorithm
           const matchingAlias = images.find(i => i.images && i.images.length > 0 && i.aliases.some(a => ImageItem.areAliasesSame(a, mi.name)));
           if (matchingAlias) {
             totalMatched++;
-            // reset the imageObj
-            mi.imageObjs = [];
-            (matchingAlias.images || []).map(each => {
-              if (!mi.SkipImageInjection) {
-                (mi.imageObjs).push({
-                  originalUrl: each.url,
-                  thumbnailUrl: each.url192,
-                  normalUrl: each.url768,
-                  origin: 'IMAGE-PICKER'
-                });
-              }
-            });
-            needUpdate = true;
+            mi.imageObjs = matchingAlias.images.map(each => ({
+              originalUrl: each.url,
+              thumbnailUrl: each.url192,
+              normalUrl: each.url768,
+              origin: 'IMAGE-PICKER'
+            }));
           }
         }
       } catch (e) {
@@ -702,7 +695,7 @@ export class MenusComponent implements OnInit {
       }
     })));
 
-    if (needUpdate) {
+    if (totalMatched > 0) {
       try {
         await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
           old: {
@@ -720,9 +713,9 @@ export class MenusComponent implements OnInit {
         console.log(error);
         this._global.publishAlert(AlertType.Danger, 'Failed!');
       }
-
+    } else {
+      this._global.publishAlert(AlertType.Info, `No update because ${totalMatched} matched!`);
     }
-
   }
 
   async deleteImages() {
