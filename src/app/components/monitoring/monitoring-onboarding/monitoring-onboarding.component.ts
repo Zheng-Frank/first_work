@@ -52,6 +52,7 @@ export class MonitoringOnboardingComponent implements OnInit {
       projection: {
         name: 1,
         "googleAddress.formatted_address": 1,
+        "googleAddress.timezone": 1, 
         alias: 1,
         disabled: 1,
         "menus.disabled": 1,
@@ -60,7 +61,7 @@ export class MonitoringOnboardingComponent implements OnInit {
         "rateSchedules": { $slice: -1 },
         logs: { $slice: -2 },
       }
-    }, 4000);
+    }, 3000);
     // get populate all sale agents   
     // restaurantIdsWith
     const validRestaurant = allRestaurants.filter(r => ((r.rateSchedules || [])[0] || {}).agent !== "invalid");

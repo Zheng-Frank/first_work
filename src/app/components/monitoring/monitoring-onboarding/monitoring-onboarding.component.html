@@ -37,6 +37,7 @@
     <th>Restaurant</th>
     <th>Created</th>
     <th class="text-nowrap">Sales Agent</th>
+    <th>Timezone</th>
     <th>GMB</th>
     <th class="text-nowrap">Has Menu</th>
     <th class="text-nowrap">Has Order</th>
@@ -59,6 +60,9 @@
     </td>
     <td>
       {{row.agent}}
+    </td>
+    <td>
+      {{row.restaurant.googleAddress?.timezone}}
     </td>
     <td class="text-nowrap">
       <ng-container *ngIf="row.accountAndStatuses[0]?.status === 'Published'">
