@@ -9,7 +9,8 @@ import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from '../../../../environments/environment';
 import { AlertType } from '../../../classes/alert-type';
-import {MenuCleanupComponent} from '../menu-cleanup/menu-cleanup.component';
+import { MenuCleanupComponent } from '../menu-cleanup/menu-cleanup.component';
+import { ImageItem } from 'src/app/classes/image-item';
 
 
 @Component({
@@ -254,11 +255,11 @@ export class MenusComponent implements OnInit {
           const timestamp = new Date().valueOf();
           menus = [
             ...(this.restaurant.menus || []),
-            ...(menus.map(m => ({...m, id: m.id + timestamp, disabled: true, name: m.name + ` (imported ${importedTime})`})))
+            ...(menus.map(m => ({ ...m, id: m.id + timestamp, disabled: true, name: m.name + ` (imported ${importedTime})` })))
           ];
           menuOptions = [
             ...(this.restaurant.menuOptions || []),
-            ...(menuOptions.map(m => ({...m, id: m.id + timestamp, disabled: true, name: m.name + ` (imported ${importedTime})`})))
+            ...(menuOptions.map(m => ({ ...m, id: m.id + timestamp, disabled: true, name: m.name + ` (imported ${importedTime})` })))
           ];
         }
         await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
@@ -315,7 +316,7 @@ export class MenusComponent implements OnInit {
     this.menuCleanModal.hide();
   }
 
-  async cleanupSave({menus, translations}: any) {
+  async cleanupSave({ menus, translations }: any) {
     try {
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: {
@@ -553,13 +554,13 @@ export class MenusComponent implements OnInit {
   }
 
   // judge menu missing menu hours
-  isMissingHoursMenu(menu){
+  isMissingHoursMenu(menu) {
     return !menu.hours || (menu.hours && menu.hours.length === 0);
   }
 
   edit(menu) {
     this.menuEditor.setMenu(new Menu(menu));
-    this.menuEditor.viewMenuLink = environment.customerPWAUrl+this.restaurant.alias+'/menu/'+menu.id;
+    this.menuEditor.viewMenuLink = environment.customerPWAUrl + this.restaurant.alias + '/menu/' + menu.id;
     this.menuEditingModal.show();
   }
 
@@ -661,9 +662,10 @@ export class MenusComponent implements OnInit {
   }
 
   async injectImages() {
-    const images = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    let totalMatched = 0;
+    const images: ImageItem[] = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'image',
-      limit: 3000
+      limit: 3000000
     }).toPromise();
 
     const oldMenus = this.restaurant.menus || [];
@@ -676,13 +678,10 @@ export class MenusComponent implements OnInit {
       try {
 
         if (mi && mi.imageObjs && !(mi.imageObjs.some(each => each.origin === 'CSR' || each.origin === 'RESTAURANT'))) {
-          const match = function (aliases, name) {
-            const sanitizedName = Helper.sanitizedName(name);
-            return (aliases || []).some(alias => alias.toLowerCase().trim() === sanitizedName);
-          };
-          // only use the first matched alias
-          let matchingAlias = images.filter(image => match(image.aliases, mi.name) || match(image.aliases, mi.description))[0];
-          if (matchingAlias && matchingAlias.images && matchingAlias.images.length > 0) {
+          // 9/29/2021 use newer algorithm
+          const matchingAlias = images.find(i => i.images && i.images.length > 0 && i.aliases.some(a => ImageItem.areAliasesSame(a, mi.name)));
+          if (matchingAlias) {
+            totalMatched++;
             // reset the imageObj
             mi.imageObjs = [];
             (matchingAlias.images || []).map(each => {
@@ -716,7 +715,7 @@ export class MenusComponent implements OnInit {
         }]).toPromise();
         const menus = JSON.parse(JSON.stringify(newMenus));
         this.restaurant.menus = menus.map(x => new Menu(x));
-        this._global.publishAlert(AlertType.Success, 'Success!');
+        this._global.publishAlert(AlertType.Success, `${totalMatched} matched!`);
       } catch (error) {
         console.log(error);
         this._global.publishAlert(AlertType.Danger, 'Failed!');
