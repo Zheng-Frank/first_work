@@ -118,7 +118,7 @@ export class UsersComponent implements OnInit {
       inputType: 'single-select',
       required: false,
       items: this.users
-        .filter(u => u.username !== user.username)
+        .filter(u => u.username !== user.username && !u.disabled)
         .map(u => ({ object: u.username, text: u.username, selected: false }))
     },
     {
