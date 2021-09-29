@@ -19,14 +19,17 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Set disabled RT's disabledAt field</h5>
-            <p class="card-text">Calculate all disabled RT's disabled time by it's order/log/apilog/createdAt, and save to disabledAt field.(Safe to run multiple times.)</p>
+            <p class="card-text">Calculate all disabled RT's disabled time by it's order/log/apilog/createdAt, and save
+                to disabledAt field.(Safe to run multiple times.)</p>
             <button class="btn btn-primary" (click)="disableAtMigrate()">Execute</button>
         </div>
     </div>
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Preferred Language and Channel Language Migrate</h5>
-            <p class="card-text"><strong>(ONE-TIME only)</strong> Get Restaurant's preferred language by preferredLanguage and salesAgent and order notification channel, update to the preferredLanguage field and channel.language field.</p>
+            <p class="card-text"><strong>(ONE-TIME only)</strong> Get Restaurant's preferred language by
+                preferredLanguage and salesAgent and order notification channel, update to the preferredLanguage field
+                and channel.language field.</p>
             <button class="btn btn-primary" (click)="preferredLanguageMigrate()" [disabled]="true">Execute</button>
         </div>
     </div>
@@ -40,7 +43,8 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Replace Chinese Quotation Marks And Parentheses to English</h5>
-            <p class="card-text">Find all menus with name includes Chinese quotation marks and parentheses, replace them to corresponding English character.(Safe to run multiple times.)</p>
+            <p class="card-text">Find all menus with name includes Chinese quotation marks and parentheses, replace them
+                to corresponding English character.(Safe to run multiple times.)</p>
             <button class="btn btn-primary" (click)="unifyQuotationMarksAndParenthesesInMenuName()">Execute</button>
         </div>
     </div>
