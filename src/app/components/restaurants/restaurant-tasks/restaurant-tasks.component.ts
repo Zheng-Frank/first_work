@@ -5,6 +5,8 @@ import { GlobalService } from 'src/app/services/global.service';
 import { AlertType } from 'src/app/classes/alert-type';
 import { environment } from 'src/environments/environment';
 import { Task } from 'src/app/classes/tasks/task';
+import { GmbTaskDetailComponent } from '../../gmbs2/gmb-task-detail/gmb-task-detail.component';
+import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 
 @Component({
   selector: 'app-restaurant-tasks',
@@ -12,15 +14,35 @@ import { Task } from 'src/app/classes/tasks/task';
   styleUrls: ['./restaurant-tasks.component.css']
 })
 export class RestaurantTasksComponent implements OnInit, OnChanges {
-  @ViewChild('taskDetailsModal') taskDetailsModal;
+  @ViewChild('taskDetailModal') taskDetailModal: ModalComponent;
+  @ViewChild('taskDetail') taskDetail: GmbTaskDetailComponent;
+  @ViewChild('viewJSONModal') viewJSONModal: ModalComponent;
   @Input() restaurant: Restaurant;
 
   tasks: Task[] = [];
-  selectedTask;
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   refreshing = false;
+  qmenuDomains = new Set();
+  publishedCids = new Set();
+  currentTask;
+  user;
+  assignees = [];
   ngOnInit() {
+  }
+
+  showTaskJSON(task) {
+    this.currentTask = task;
+    this.viewJSONModal.show();
+  }
+
+  private async populateQMDomains() {
+    try {
+      this.qmenuDomains = await this._global.getCachedDomains();
+    }catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, error.message);
+    }
   }
 
   async createGmbRequestTask() {
@@ -56,45 +78,87 @@ export class RestaurantTasksComponent implements OnInit, OnChanges {
     await this.reloadTasks();
   }
 
-  async showDetails(task) {
-    this.selectedTask = task;
-    this.taskDetailsModal.show();
-    const tasks = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "task",
-      query: { _id: { $oid: task._id } },
-      limit: 1
-    }).toPromise();
-    this.selectedTask = tasks[0];
+  async triggerActionDone(event){
+    await this.reloadTasks();
+  }
+
+  async handleAssignComplete() {
+    await this.reloadTasks();
+  }
+
+  async handleRefreshSingleTask(taskId) {
+    await this.reloadTasks();
+    await this.showDetails(taskId);
+  }
+
+  async showDetails(taskId) {
+    if (this.taskDetail.modalTask && this.taskDetail.modalTask._id !== taskId) {
+      // dismiss first the pop the new one up
+      this.taskDetailModal.hide();
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    await this.taskDetail.init(taskId);
+    this.taskDetailModal.show();
+  }
+
+  private async populatePublishedCids() {
+    try {
+      const allPublished = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "gmbAccount",
+        query: {},
+        limit: 100000,
+        projection: {
+          _id: 0,
+          "locations.cid": 1,
+          "locations.status": 1,
+          "locations.role": 1
+        }
+      }).toPromise();
+      allPublished.forEach(acct => (acct.locations || []).forEach(loc => {
+        if (loc.status === "Published" && ["PRIMARY_OWNER", 'OWNER', 'CO_OWNER', 'MANAGER'].find(r => r === loc.role)) this.publishedCids.add(loc.cid)
+      }));
+    }catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, error.message);
+    }
   }
 
   async ngOnChanges(changes: SimpleChanges) {
-    console.log('changes')
     if (this.restaurant) {
-      console.log('changes2')
+      await this.populateQMDomains();
+      await this.populatePublishedCids();
+      this.user = this._global.user;
+      const users = await this._global.getCachedUserList();
+      this.assignees = users.filter(u => !u.disabled && u.roles.some(r => ['GMB_SPECIALIST', 'MARKETER'].indexOf(r) >= 0)).map(u => u.username).sort((u1, u2) => u1 > u2 ? 1 : -1);
+      this.assignees.unshift('NON-CLAIMED');
       // refresh tasks for the restaurant
       await this.reloadTasks();
     }
   }
 
   async reloadTasks() {
-    console.log('called')
-    this.tasks = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "task",
-      query: {
-        $or: [
-          {
-            "relatedMap.restaurantId": this.restaurant._id
-          },
-          {
-            "relatedMap.qmenuId": this.restaurant._id
-          }
-        ]
-      },
-      limit: 10000000
-    }).toPromise();
-    this.tasks.sort((a, b) => a.createdAt > b.createdAt ? 1 : -1);
+    try {
+      this.tasks = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "task",
+        query: {
+          $or: [
+            {
+              "relatedMap.restaurantId": this.restaurant._id
+            },
+            {
+              "relatedMap.qmenuId": this.restaurant._id
+            }
+          ]
+        },
+        limit: 10000000
+      }).toPromise();
+      this.tasks.sort((a, b) => a.createdAt > b.createdAt ? 1 : -1);
+      this.tasks = this.tasks.map(task=>new Task(task));
+    }catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, error.message);
+    }
   }
-
 
   async refreshGmbTasks() {
     this.refreshing = true;

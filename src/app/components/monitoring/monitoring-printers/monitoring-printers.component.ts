@@ -31,7 +31,7 @@ export class MonitoringPrintersComponent implements OnInit {
     field: "host",
     label: "EU Host",
     inputType: "checkbox",
-    required: false 
+    required: false
   },
 
   ];
@@ -205,6 +205,12 @@ export class MonitoringPrintersComponent implements OnInit {
               data: {
                 "fake": "id"
               }
+            },
+            trigger: {
+              id: this._global.user._id,
+              name: this._global.user.username,
+              source: "CSR",
+              module: "monitor print - pull phoenix printer"
             }
           }
         }]).toPromise();
@@ -363,6 +369,12 @@ export class MonitoringPrintersComponent implements OnInit {
           data: {
             value: 60 * 1000
           }
+        },
+        trigger: {
+          id: this._global.user._id,
+          name: this._global.user.username,
+          source: "CSR",
+          module: "monitor printer - suspend connection"
         }
       }
     }]).toPromise();
@@ -382,7 +394,7 @@ export class MonitoringPrintersComponent implements OnInit {
 
             module.exports = {
               APP_VERSION: '3.2.1',
-              
+
               RECONNECT_INTERVAL: 5 * (1000),
               PING_INTERVAL: 1 * (60 * 1000),
               PING_INTERVAL_TRESHOLD_MULTIPLIER: 1.5,
@@ -393,6 +405,12 @@ export class MonitoringPrintersComponent implements OnInit {
             };`,
             version: '0.2.2'
           }
+        },
+        trigger: {
+          id: this._global.user._id,
+          name: this._global.user.username,
+          source: "CSR",
+          module: "monitor print - emulate update"
         }
       }
     }]).toPromise();
@@ -417,7 +435,13 @@ export class MonitoringPrintersComponent implements OnInit {
               sn: printer.name,
               key: printer.key,
               orderId: environment.testOrderId,
-              copies: printer.autoPrintCopies || 1
+              copies: printer.autoPrintCopies || 1,
+              trigger: {
+                id: this._global.user._id,
+                name: this._global.user.username,
+                source: "CSR",
+                module: "monitor print - print test order"
+              }
             }
           }]).toPromise();
           this._global.publishAlert(AlertType.Info, "Print job sent");
@@ -429,7 +453,13 @@ export class MonitoringPrintersComponent implements OnInit {
               printerName: printer.name,
               orderId: environment.testOrderId,
               copies: printer.autoPrintCopies || 1,
-              format: printer.settings.DefaultPageSettings.PrintableArea.Width > 480 ? 'pdf' : 'png'
+              format: printer.settings.DefaultPageSettings.PrintableArea.Width > 480 ? 'pdf' : 'png',
+              trigger: {
+                id: this._global.user._id,
+                name: this._global.user.username,
+                source: "CSR",
+                module: "monitor print - print test order"
+              }
             }
           }]).toPromise();
           this._global.publishAlert(AlertType.Info, "Print job sent");
@@ -473,6 +503,12 @@ export class MonitoringPrintersComponent implements OnInit {
                   url: url,
                   copies: printer.autoPrintCopies || 1
                 }
+              },
+              trigger: {
+                id: this._global.user._id,
+                name: this._global.user.username,
+                source: "CSR",
+                module: "monitor print - print test order"
               }
             }
           }]).toPromise();
@@ -546,6 +582,12 @@ export class MonitoringPrintersComponent implements OnInit {
                 "restaurantName": restaurant.name,
                 "restaurantId": restaurant._id
               }
+            },
+            trigger: {
+              id: this._global.user._id,
+              name: this._global.user.username,
+              source: "CSR",
+              module: "monitor print - edit restaurant id"
             }
           }
         }]).toPromise();

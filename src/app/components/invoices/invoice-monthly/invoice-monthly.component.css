@@ -1,3 +1,11 @@
 .bg-light-gray {
     background-color: #eee;
 }
+
+.table-sm {
+    padding-top: 0;
+}
+
+.my-text-larger {
+    font-size: 125%;
+}

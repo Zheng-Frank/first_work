@@ -557,25 +557,25 @@ export class GlobalService {
           name: "Routines",
           href: "#/routines",
           fa: "fas fa-hourglass",
-          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "INVOICE_VIEWER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "RATE_EDITOR"]
+          accessibleRoles: ['ADMIN', 'MARKETING_DIRECTOR', 'MARKETER', 'GMB', 'CSR', 'ACCOUNTANT', 'MENU_EDITOR', 'DRIVER', 'RATE_EDITOR']
         },
         {
           name: "IVR",
           href: "#/ivr/agent",
           fa: "fas fa-user",
-          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "INVOICE_VIEWER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "RATE_EDITOR"]
+          accessibleRoles: ['ADMIN', 'MARKETING_DIRECTOR', 'MARKETER', 'INVOICE_VIEWER', 'GMB', 'CSR', 'ACCOUNTANT', 'MENU_EDITOR', 'RATE_EDITOR']
         },
         {
           name: "ONBOARDING",
           href: "#/onboarding",
           fa: "fas fa-utensils",
-          accessibleRoles: ["ADMIN", "CSR", "ACCOUNTANT", "MENU_EDITOR"]
+          accessibleRoles: ['ADMIN', 'MARKETING_DIRECTOR', 'MARKETER', 'INVOICE_VIEWER', 'GMB', 'CSR', 'ACCOUNTANT', 'MENU_EDITOR', 'RATE_EDITOR']
         },
         {
           name: "Restaurants",
           href: "#/restaurants",
           fa: "fas fa-utensils",
-          accessibleRoles: ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT", "MARKETER"]
+          accessibleRoles: ['ADMIN', 'MENU_EDITOR', 'CSR', 'ACCOUNTANT', 'MARKETER']
         },
         {
           name: "Logs",
@@ -583,12 +583,6 @@ export class GlobalService {
           fa: "fas fa-history",
           accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"]
         },
-        // {
-        //   name: "Payments",
-        //   href: "#/payments",
-        //   fa: "fas fa-hand-holding-usd",
-        //   accessibleRoles: ["ADMIN", "ACCOUNTANT", "CSR"]
-        // },
         {
           name: "Invoices",
           href: "#/invoices",
@@ -605,7 +599,7 @@ export class GlobalService {
           name: "Tasks",
           href: "#/tasks",
           fa: "fas fa-tasks",
-          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "INVOICE_VIEWER", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"]
+          accessibleRoles: ['ADMIN', 'MARKETING_DIRECTOR', 'MARKETER', 'GMB', 'CSR', 'ACCOUNTANT', 'MENU_EDITOR', 'DRIVER', 'RATE_EDITOR']
         },
         {
           name: "Yelp",
@@ -623,19 +617,19 @@ export class GlobalService {
           name: "GMB Tasks",
           href: "#/gmb-tasks",
           fa: "fab fa-google",
-          accessibleRoles: ["ADMIN", "GMB", "GMB_SPECIALIST", "GMB_ADMIN", "MARKETER_INTERNAL"]
+          accessibleRoles: ['ADMIN', 'GMB', 'GMB_SPECIALIST', 'GMB_ADMIN', 'MARKETER_INTERNAL']
         },
-        {
-          name: "Leads",
-          href: "#/leads",
-          fa: "fas fa-lightbulb",
-          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER", "GMB"]
-        },
+        // {
+        //   name: "Leads",
+        //   href: "#/leads",
+        //   fa: "fas fa-lightbulb",
+        //   accessibleRoles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'GMB']
+        // },
         {
           name: "My Leads",
           href: "#/my-leads",
           fa: "fas fa-tasks",
-          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "MARKETER"]
+          accessibleRoles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR']
         },
         // {
         //   name: "Users",
@@ -653,7 +647,9 @@ export class GlobalService {
           name: "SOPs",
           href: "#/sops",
           fa: "fas fa-project-diagram",
-          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"]
+          accessibleRoles: ['ADMIN', 'ACCOUNT', 'CRM', 'CSR', 'DRIVER', 'GMB_SPECIALIST', 'GMB', 'INVOICE_VIEWER', 'IVR_CSR_MANAGER', 'IVR_GMB_MANAGER', 'IVR_INTERNAL_MANAGER',
+            'IVR_SALES_MANAGER','MARKETER_EXTERNAL','MARKETER_INTERNAL', 'MARKETER','MARKETER_DIRECTOR', 'MENU_EDITOR', 'PAYER', 'RATE_EDITOR',
+            'SIGNUP_AGENT']
         },
         {
           name: "Monitoring",
@@ -665,7 +661,7 @@ export class GlobalService {
           name: "System",
           href: "#/system",
           fa: "fas fa-cog",
-          accessibleRoles: ["ADMIN"]
+          accessibleRoles: ['ADMIN']
         },
         // {
         //   name: "Transactions",

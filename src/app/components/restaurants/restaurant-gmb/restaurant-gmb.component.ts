@@ -1,5 +1,4 @@
 import { Component, OnInit, Input, SimpleChanges, ViewChild } from '@angular/core';
-import { Restaurant } from '@qmenu/ui';
 import { GmbBiz } from '../../../classes/gmb/gmb-biz';
 import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
@@ -8,7 +7,6 @@ import { AlertType } from '../../../classes/alert-type';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { Helper } from 'src/app/classes/helper';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-import { parseAddress } from "parse-address";
 
 @Component({
   selector: 'app-restaurant-gmb',
@@ -18,6 +16,7 @@ import { parseAddress } from "parse-address";
 export class RestaurantGmbComponent implements OnInit {
   @ViewChild('addGMBInviteModal') addGMBInviteModal: ModalComponent;
   @Input() restaurant;
+  @Input() displayFull;
 
   relevantGmbRequests: any[] = [];
   emailAccountDict = {} as any;
@@ -41,7 +40,6 @@ export class RestaurantGmbComponent implements OnInit {
 
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
     this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
-    console.log(parseAddress)
   }
 
   async ngOnInit() {
@@ -123,7 +121,7 @@ export class RestaurantGmbComponent implements OnInit {
             this.gmbUtilizationObj.validDays = Number(ownerTime.toFixed(0));
             this.gmbUtilizationObj.rate = 100;
           }
-        }else{ // the case is the length large than 1.
+        } else { // the case is the length large than 1.
           if ((i + 1) != this.restaurant.gmbOwnerHistory.length) {
             let sample = {
               id: i,
@@ -138,13 +136,13 @@ export class RestaurantGmbComponent implements OnInit {
             sample.width = width.toFixed(2) + "%";
             sample.widthRate = Number(width.toFixed(2));
             let ownerTime = (widthRate * allTime / (24 * 3600 * 1000));
-            sample.ownerTime = ownerTime.toFixed(0)+ " days";
+            sample.ownerTime = ownerTime.toFixed(0) + " days";
             this.gmbOwnerHistoryRate.push(sample);
             if (history.gmbOwner === 'qmenu') {
               this.gmbUtilizationObj.validDays += Number(ownerTime.toFixed(0));
               this.gmbUtilizationObj.rate += sample.widthRate;
             }
-          }else if ( i === this.restaurant.gmbOwnerHistory.length - 1) {
+          } else if (i === this.restaurant.gmbOwnerHistory.length - 1) {
             let sample = {
               id: i,
               gmbOwner: history.gmbOwner,
@@ -270,6 +268,69 @@ export class RestaurantGmbComponent implements OnInit {
     // return this.relevantGmbRequests.filter(request => request.place_id === gmbBiz.place_id && request.gmbAccountId === (this.getGmbAccount(email) || {})._id);
   }
 
+  private isRestaurantAndGoogleListingMatched(rt, googleListing) {
+    // 0. the zipcode MUST match
+    // 1. if it has a phone, it MUST match the phone, otherwise matching street number if OK
+    const gmbPhone = googleListing.phone;
+    const rtPhones = (rt.channels || []).map(c => c.value); // it's OK to have emails in the values
+    const gmbAddress = googleListing.address;
+    const rtAddress = rt.googleAddress.formatted_address;
+    const gmbAddressParsed = this.parseAddress(gmbAddress);
+    const rtAddressParsed = this.parseAddress(rtAddress);
+
+    const phoneMatched = gmbPhone && rtPhones.some(p => p === gmbPhone);
+    const zipMatched = gmbAddressParsed.zip && gmbAddressParsed.zip === rtAddressParsed.zip;
+    const streetNumberMatched = gmbAddressParsed.number && gmbAddressParsed.number === rtAddressParsed.number;
+    return zipMatched && (phoneMatched || (!gmbPhone && streetNumberMatched));
+  }
+
+
+  private parseAddress(address) {
+    // 818 Town and Country Blvd, Houston, TX 77024, USA
+    // 818 Town and Country Blvd, Houston, TX 77024 USA
+    // 9302 100 St #9302, Grande Prairie, AB T8V 2K9, Canada
+
+    const countryMap = {
+      USA: 'US',
+      US: 'US',
+      'United States': 'US',
+      Canada: 'CA',
+      CA: 'CA',
+    };
+
+    // parse country
+    let country = 'US';
+    Object.keys(countryMap).forEach(c => {
+      if (address.endsWith(c)) {
+        country = countryMap[c];
+      }
+    });
+
+    // remove trailing ' USA', etc
+    let noCountryAddress = address;
+    Object.keys(countryMap).forEach(c => {
+      if (address.endsWith(c)) {
+        // 818 Town and Country Blvd, Houston, TX 77024, USA => 818 Town and Country Blvd, Houston, TX 77024,
+        noCountryAddress = noCountryAddress.substring(0, noCountryAddress.length - c.length);
+      }
+    });
+
+    // also trim ' ' and ','!
+    noCountryAddress = noCountryAddress.split(' ').filter(t => t.length > 0).join(' ');
+    noCountryAddress = noCountryAddress.split(',').filter(t => t.length > 0).join(',');
+
+    const parts = noCountryAddress.split(', ');
+    const state = parts[parts.length - 1].split(' ')[0];
+    const zip = parts[parts.length - 1].split(' ').slice(1).join(' ');
+    const number = parts[0].split(' ')[0];
+    const city = parts[parts.length - 2];
+    const street = parts[0].split(' ').slice(1).join(' ');
+
+    return {
+      state, zip, number, city, street, country,
+    };
+  }
+
   async refreshMainListing() {
     if (!this.restaurant.googleAddress || !this.restaurant.googleAddress.formatted_address) {
       this._global.publishAlert(AlertType.Danger, 'No address found for the restaurant!');
@@ -279,8 +340,6 @@ export class RestaurantGmbComponent implements OnInit {
     this.apiRequesting = true;
     const name = this.restaurant.name;
     const address = this.restaurant.googleAddress.formatted_address.replace(", USA", "");
-    const parsedRtAddress = parseAddress(address);
-    console.log("parsed RT ", parsedRtAddress);
     let crawledResult;
     try {
 
@@ -288,9 +347,7 @@ export class RestaurantGmbComponent implements OnInit {
       // using name + address
       const query = { q: [name, address].join(", ") };
       crawledResult = await this._api.get(environment.qmenuApiUrl + "utils/scan-gmb", query).toPromise();
-      const parsed = parseAddress(crawledResult.address.replace(", USA", ""));
-      console.log("parsed", parsed);
-      if (parsedRtAddress.zip !== parsed.zip || parsedRtAddress.number !== parsed.number) {
+      if (!this.isRestaurantAndGoogleListingMatched(this.restaurant, crawledResult)) {
         crawledResult = undefined;
       }
     }
@@ -308,9 +365,7 @@ export class RestaurantGmbComponent implements OnInit {
       try {
         const query = { q: name + ', ' + addressTokens[addressTokens.length - 2] + ', ' + addressTokens[addressTokens.length - 1] };
         crawledResult = await this._api.get(environment.qmenuApiUrl + "utils/scan-gmb", query).toPromise();
-        const parsed = parseAddress(crawledResult.address.replace(", USA", ""));
-        console.log("parsed", parsed);
-        if (parsedRtAddress.zip !== parsed.zip || parsedRtAddress.number !== parsed.number) {
+        if (!this.isRestaurantAndGoogleListingMatched(this.restaurant, crawledResult)) {
           crawledResult = undefined;
         }
       }
@@ -334,7 +389,6 @@ export class RestaurantGmbComponent implements OnInit {
       }]).toPromise();
       this.restaurant.googleListing = crawledResult;
       this._global.publishAlert(AlertType.Success, 'GMB crawled: ' + this.restaurant.name);
-
 
       // query gmbBiz, and update!
 
@@ -477,26 +531,29 @@ export class RestaurantGmbComponent implements OnInit {
     if (!target.website) {
       return this._global.publishAlert(AlertType.Info, 'No qMenu website found to inject');
     }
-    for (let al of row.accountLocationPairs) {
-      console.log(al);
-      if (al.location.status === 'Published') {
 
-        try {
-          const result = await this._api.post(environment.appApiUrl + 'utils/inject-gmb-urls', {
-            email: al.account.email,
-            locationName: al.location.locationName,
-            websiteUrl: target.website,
-            menuUrl: target.menuUrl,
-            orderAheadUrl: target.orderAheadUrl,
-            reservationsUrl: target.reservation
-          }).toPromise();
-          this._global.publishAlert(AlertType.Success, "API Called");
-          console.log(result);
-        } catch (error) {
-          console.log(error);
-          this._global.publishAlert(AlertType.Danger, JSON.stringify(error));
-        }
+    // preference: qmenu06 => everything else
+    const [pickedAl] = row.accountLocationPairs
+      .filter(al => al.location.status === 'Published' && ["PRIMARY_OWNER", "OWNER", "CO_OWNER", "MANAGER"].indexOf(al.location.role) >= 0)
+      .sort((a1, a2) => a1.account.email === 'qmenu06@gmail.com' ? -1 : 1);
+    if (pickedAl) {
+      try {
+        const result = await this._api.post(environment.appApiUrl + 'utils/inject-gmb-urls', {
+          email: pickedAl.account.email,
+          locationName: pickedAl.location.locationName,
+          websiteUrl: target.website,
+          menuUrl: target.menuUrl,
+          orderAheadUrl: target.orderAheadUrl,
+          reservationsUrl: target.reservation
+        }).toPromise();
+        this._global.publishAlert(AlertType.Success, "API Called");
+        console.log(result);
+      } catch (error) {
+        console.log(error);
+        this._global.publishAlert(AlertType.Danger, JSON.stringify(error));
       }
+    } else {
+      this._global.publishAlert(AlertType.Danger, 'No account found to inject!');
     }
 
   }
@@ -519,33 +576,36 @@ export class RestaurantGmbComponent implements OnInit {
 
   async addGmbUser() {
     try {
-      const ownerEmail = this.gmbOwner[0].account.email;
+      console.log(this.gmbOwner);
+      const [accountLocationPair] = this.gmbOwner.filter(al => al.location.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER'].indexOf(al.location.role) >= 0);
+      if (accountLocationPair) {
+        const ownerEmail = accountLocationPair.account.email;
+        if (!ownerEmail) {
+          this._global.publishAlert(AlertType.Warning, `Could not find a gmb account for ${ownerEmail}`);
+          return;
+        }
+        const payload = {
+          locationName: accountLocationPair.location.locationName,
+          ownerEmail,
+          inviteEmail: this.inviteEmail,
+          inviteRole: this.inviteRole
+        };
 
-      if (!ownerEmail) {
-        this._global.publishAlert(AlertType.Warning, `Could not find a gmb account for ${ownerEmail}`);
-        return;
+        await this._api.post(environment.appApiUrl + "gmb/generic", {
+          name: "invite-gmb",
+          payload
+        }).toPromise();
+        this.inviteEmail = '';
+        this._global.publishAlert(AlertType.Success, 'Success!');
+        this.addGMBInviteModal.hide();
+      } else {
+        this._global.publishAlert(AlertType.Danger, 'No published location found');
+        throw "No published location found";
       }
-
-      const payload = {
-        restaurantId: this.restaurant._id,
-        ownerEmail,
-        inviteEmail: this.inviteEmail,
-        inviteRole: this.inviteRole
-      };
-
-      await this._api.post(environment.appApiUrl + "gmb/generic", {
-        name: "invite-gmb",
-        payload
-      }).toPromise();
-
-      this.inviteEmail = '';
-
-      this._global.publishAlert(AlertType.Success, 'Success!');
     } catch (error) {
-      this._global.publishAlert(AlertType.Warning, `Error while trying to Invite Gmb User: ${this.inviteEmail}`);
+      this._global.publishAlert(AlertType.Danger, `Error while trying to Invite Gmb User: ${this.inviteEmail}`);
       console.error(error);
     }
-
   }
 
   hideInviteGmbUserModal() {

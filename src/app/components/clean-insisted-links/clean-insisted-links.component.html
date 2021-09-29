@@ -1,0 +1,48 @@
+<h1 class="card-title text-center pt-4 pb-2"> Clean Insisted Links ({{rows.length}})</h1>
+
+<q-table [rows]="rows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="100000">
+  <tr *tableRowTemplate="let row;">
+    <td style="width: 35%">
+      <div class="d-flex flex-column">
+        <a href="/#/restaurants/{{row._id}}">{{row.name}}</a>
+        <small class="text-muted">Id: {{row._id}}</small>
+      </div>
+    </td>
+
+    <td>
+      <div class="form-group row">
+        <label class="col-3 col-form-label pt-0">Restaurant Managed Website</label>
+        <div class="col-9 text-left">
+          <q-edit-label [value]="row.web?.bizManagedWebsite" (edit)="onEdit($event, row, 'bizManagedWebsite')"></q-edit-label>
+          <div *ngIf="row.web?.bizManagedWebsite" class="pt-2">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="id_useBizWebsite" [checked]="row.web?.useBizWebsite" (change)="toggle($event, row, 'useBizWebsite')">
+              <label class="form-check-label" for="id_useBizWebsite"> Insisted Website</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="menuUrl" [checked]="row.web?.useBizMenuUrl" (change)="toggle($event, row, 'useBizMenuUrl')">
+              <label class="form-check-label" for="menuUrl"> Insisted Menu Url</label>
+              <q-edit-label [value]="row.web?.menuUrl" (edit)="onEdit($event, row, 'menuUrl')"></q-edit-label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="orderAheadUrl" [checked]="row.web?.useBizOrderAheadUrl" (change)="toggle($event, row, 'useBizOrderAheadUrl')">
+              <label class="form-check-label" for="orderAheadUrl"> Insisted Order Url</label>
+              <q-edit-label [value]="row.web?.orderAheadUrl" (edit)="onEdit($event, row, 'orderAheadUrl')"></q-edit-label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="reservationUrl" [checked]="row.web?.useBizReservationUrl" (change)="toggle($event, row, 'useBizReservationUrl')">
+              <label class="form-check-label" for="reservationUrl"> Insisted Reservation Url</label>
+              <q-edit-label [value]="row.web?.reservationUrl" (edit)="onEdit($event, row, 'reservationUrl')"></q-edit-label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="id_useBizWebsiteForAll" [checked]="row.web?.useBizWebsiteForAll" (change)="toggle($event, row, 'useBizWebsiteForAll')">
+              <label class="form-check-label" for="id_useBizWebsiteForAll"> Insisted All</label>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </td>
+
+  </tr>
+</q-table>

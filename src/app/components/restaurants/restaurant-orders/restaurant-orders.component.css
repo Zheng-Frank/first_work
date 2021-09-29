@@ -15,17 +15,17 @@
     -webkit-box-shadow: 1px 1px 2px hsla(0, 0%, 0%, 0.3);
     box-shadow: 1px 1px 2x hsla(0, 0%, 0%, 0.3);
   }
-  
+
   .talk p {
     padding: 8px 8px 0px 8px;
   }
-  
+
   .radius {
     -webkit-border-radius: 10px;
     -moz-border-radius: 10px;
     border-radius: 10px;
   }
-  
+
   .left:before {
     position: absolute;
     content: "\00a0";
@@ -37,8 +37,26 @@
     top: 15px;
     left: -18px;
   }
-  
+
   .left {
     margin-right: 20px;
     float: right;
   }
+
+.order-notification-line {
+  padding-left: 1rem;
+}
+
+.order-notification-line hr {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.order-notification-line > i {
+  margin-left: -1rem;
+}
+.notification-instruct {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -35,6 +35,12 @@
   </div>
 </div>
 
-<div class="d-flex justify-content-end"> 
+<div class="d-flex justify-content-end">
   <button class="btn btn-primary btn-sm" (click)="changeOwnership()" [disabled]="!canChangeOwnership()">Change Ownership</button>
+</div>
+
+<div *ngFor="let step of steps">
+  {{step.title}}
+  <span *ngIf="step.status" class="ml-1 text-{{step.style}}">{{step.status}}</span>
+  <a routerLink="/restaurants/{{step.newRTId}}" *ngIf="step.newRTId">{{step.newRTId}}</a>
 </div>

@@ -79,7 +79,6 @@ import { SwitchComponent } from './components/restaurants/switch/switch.componen
 import { RadioGroupComponent } from './components/restaurants/radio-group/radio-group.component';
 import { MenuItemsEditorComponent } from './components/restaurants/menu-items-editor/menu-items-editor.component';
 import { LogEditorComponent } from './components/logs/log-editor/log-editor.component';
-import { PaymentsDashboardComponent } from './components/payments/payments-dashboard/payments-dashboard.component';
 import { TaskListComponent } from './components/tasks/task-list/task-list.component';
 import { TaskDashboardComponent } from './components/tasks/task-dashboard/task-dashboard.component';
 import { TaskGenericHandlerComponent } from './components/tasks/task-generic-handler/task-generic-handler.component';
@@ -231,7 +230,7 @@ import { RestaurantOthersComponent } from './components/restaurants/restaurant-o
 import { PostmatesOrderCardComponent } from './components/monitoring/postmates-order-card/postmates-order-card.component';
 import { PostmatesOrdersComponent } from './components/monitoring/postmates-orders/postmates-orders.component';
 import { GmbWrongLinkComponent } from './components/gmbs2/gmb-wrong-link/gmb-wrong-link.component';
-import { SendTextReplyComponent } from './components/utilities/send-text-reply/send-text-reply.component';
+import { SendMessageComponent } from './components/utilities/send-message/send-message.component';
 import { MenuCleanupComponent } from './components/restaurants/menu-cleanup/menu-cleanup.component';
 import { ApiLogsDashboardComponent } from './components/monitoring/api-logs-dashboard/api-logs-dashboard.component';
 import { SeoTrackingComponent } from './components/monitoring/seo-tracking/seo-tracking.component';
@@ -239,8 +238,15 @@ import { RestaurantSeoTrackingComponent } from './components/restaurants/restaur
 import { FraudDetectionComponent } from './components/fraud-detection/fraud-detection.component';
 import { MonitoringPromotionCellComponent } from './components/monitoring/monitoring-promotion-cell/monitoring-promotion-cell.component';
 import { RestaurantMapComponent } from './components/restaurants/restaurant-map/restaurant-map.component';
+import { LeadDashboard2Component } from './components/leads/lead-dashboard2/lead-dashboard2.component';
+import { MyLeads2Component } from './components/leads/my-leads2/my-leads2.component';
 import { CleanMenusComponent } from './components/monitoring/clean-menus/clean-menus.component';
 import { RestaurantIvrListComponent } from './components/restaurants/restaurant-ivr-list/restaurant-ivr-list.component';
+import { LeadDetailsComponent } from './components/leads/lead-details/lead-details.component';
+import { GmbTaskDetailComponent } from './components/gmbs2/gmb-task-detail/gmb-task-detail.component';
+import { CleanInsistedLinksComponent } from './components/clean-insisted-links/clean-insisted-links.component';
+import { PaymentMeansEditorComponent } from './components/restaurants/payment-means-editor/payment-means-editor.component';
+import { OrderlessSignupsComponent } from './components/monitoring/orderless-signups/orderless-signups.component';
 
 
 
@@ -312,7 +318,6 @@ import { RestaurantIvrListComponent } from './components/restaurants/restaurant-
     SwitchComponent,
     RadioGroupComponent,
     GmbCard2Component,
-    PaymentsDashboardComponent,
     TaskListComponent,
     TaskDashboardComponent,
     TaskGenericHandlerComponent,
@@ -435,7 +440,7 @@ import { RestaurantIvrListComponent } from './components/restaurants/restaurant-
     RestaurantsByCourierComponent,
     RestaurantOthersComponent,
     GmbWrongLinkComponent,
-    SendTextReplyComponent,
+    SendMessageComponent,
     PostmatesOrderCardComponent,
     PostmatesOrdersComponent,
     GmbPermanentlyClosedListComponent,
@@ -451,7 +456,14 @@ import { RestaurantIvrListComponent } from './components/restaurants/restaurant-
     CleanMenusComponent,
     MonitoringPromotionCellComponent,
     RestaurantMapComponent,
-    RestaurantIvrListComponent
+    LeadDashboard2Component,
+    MyLeads2Component,
+    RestaurantIvrListComponent,
+    LeadDetailsComponent,
+    GmbTaskDetailComponent,
+    CleanInsistedLinksComponent,
+    PaymentMeansEditorComponent,
+    OrderlessSignupsComponent
   ],
   imports: [
     BrowserModule,

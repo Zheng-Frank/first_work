@@ -1,25 +1,53 @@
 <h2 class="card-title m-3">
-  <h1 class="text-center">SEO Tracking (Coming soon)</h1>
+  <h1 class="text-center">SEO Tracking</h1>
 </h2>
-<div class="mb-3">
+<div class="mb-3 form-inline">
   <button class="btn btn-primary" (click)="scrape()">Scrape provider rankings</button>
+  <ng-container *ngIf="dates.length > 1">
+    <label class="form-check-label mr-2 ml-2">Start Date
+      <select [(ngModel)]="startDate" class="form-control ml-1" (change)="calcRankRowsByDate()">
+        <option *ngFor="let date of dates.slice(0, this.dates.length - 1)">{{date}}</option>
+      </select>
+    </label>
+    <label class="form-check-label mr-2">End Date
+      <select [(ngModel)]="endDate" class="form-control ml-1" (change)="calcRankRowsByDate()">
+        <option *ngFor="let date of dates.slice(1)">{{date}}</option>
+      </select>
+    </label>
+  </ng-container>
+  <label class="form-check-label ml-2" *ngIf="dates.length === 1">
+    Show in {{dates[0]}}
+  </label>
 </div>
-<q-table [rows]="filterSpecificRankingRows" [tableColumnDescriptors]="specificColumnDescriptors" [compact]="true"
-[pageSize]="100000">
-<tr *tableRowTemplate="let row;">
-  <td>
-    {{row?.provider}}
-  </td>
-  <td>
-    {{row?.oldRanking}}
-  </td>
-  <td>
-    {{row?.newRanking}}
-  </td>
-</tr>
-</q-table>
-<q-modal title="Google Ranks" #scrapeModal (close)="scrapeModal.hide()">
+<div *ngIf="rows.length > 0">
+  {{getqMenuCondition()}}
+</div>
+<div *ngIf="rows.length === 0">
+  Specific Ranking list is empty.
+</div>
+<ng-container *ngIf="rows.length > 0">
+  <q-table [rows]="rows" [tableColumnDescriptors]="cols" [compact]="true"
+    [pageSize]="100000">
+    <tr *tableRowTemplate="let row;">
+      <td>
+        {{row?.provider}}
+      </td>
+      <td>
+        {{row?.oldRanking}}
+      </td>
+      <td>
+        {{row?.newRanking}}
+      </td>
+      <td>
+        {{row?.change}}
+      </td>
+    </tr>
+  </q-table>
+</ng-container>
+
+<q-modal title="Google Ranks" #scrapeModal (close)="closeScrapeModal()">
   <div *ngFor="let item of ranks" class="mb-1">
-    <strong class="ml-3">{{item.rank}}</strong><a class="ml-3" href="{{item.website}}" target="_blank">{{item.name || item.website}}</a>
+    <strong class="ml-3">{{item.rank}}</strong><a class="ml-3" href="{{item.website}}"
+      target="_blank">{{item.name || item.website}}</a>
   </div>
 </q-modal>

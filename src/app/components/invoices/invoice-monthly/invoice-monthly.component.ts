@@ -6,7 +6,14 @@ import { Invoice } from 'src/app/classes/invoice';
 
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { AlertType } from 'src/app/classes/alert-type';
-import {Helper} from '../../../classes/helper';
+import { Helper } from '../../../classes/helper';
+interface OverdueRow {
+  unpaidToDate: Date;
+  overdueMonths: number;
+  restaurant: any;
+  lastInvoice: any;
+  localTimeString: string;
+}
 @Component({
   selector: 'app-invoice-monthly',
   templateUrl: './invoice-monthly.component.html',
@@ -25,10 +32,11 @@ export class InvoiceMonthlyComponent implements OnInit {
   overlappedOrGappedOnly = false;
   qmenuCollectedOnly = false;
 
-  overdueRows = [];
+  overdueRows: OverdueRow[] = [];
   overdueAgents = [];
   overdueAgent = "agent...";
   overdueStatus = "restaurant status...";
+  overdueMonth = "overdue months...";
 
   rolledButLaterCompletedRows = [];
   paymentSentButNotCompletedRows = [];
@@ -56,6 +64,127 @@ export class InvoiceMonthlyComponent implements OnInit {
 
   }
 
+  getUnpaidToDate(invoices, initUnpaidDate) {
+    invoices.sort((i2, i1) => new Date(i1.fromDate) > new Date(i2.fromDate) ? 1 : -1);
+    // now let's see the last toDate of unpaid
+    let unpaidToDate = initUnpaidDate;
+    for (let i = 0; i < invoices.length; i++) {
+      if (invoices[i].isPaymentCompleted) {
+        break;
+      }
+      unpaidToDate = invoices[i].toDate;
+    }
+    return new Date(unpaidToDate);
+  }
+
+  async populateOverdue() {
+
+    if (Object.keys(this.populateRestaurantIdMap).length === 0) {
+      await this.populateRestaurantIdMap();
+    }
+
+    // only care recently create invoices, like 4 month??
+    const timeThreshold = new Date();
+    timeThreshold.setMonth(timeThreshold.getMonth() - 5);
+
+    // get recent invoice: because we "roll", so we can use latest n invoices of a restaurant to decide of an invoice is overdue
+    const batchSize = 6000;
+    let skip = 0;
+    const rtInvoicesList = [];
+    while (true) {
+      const rtInvoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'invoice',
+        aggregate: [
+          {
+            $match: {
+              createdAt: { $gt: { $date: timeThreshold } },
+              isCanceled: { $ne: true },
+              // isPaymentCompleted: { $ne: true },
+              isSent: true,
+              // balance: { $gt: 0 } // only when they owe us money! NOTE we should NOT use this because it could be negative & paid to all previous rolled over ones
+            }
+          },
+          {
+            $project: {
+              balance: 1,
+              isPaymentCompleted: 1,
+              // previousBalance: 1,
+              // previousPayments: 1,
+              previousInvoiceId: 1,
+              fromDate: 1,
+              toDate: 1,
+              "restaurant.id": 1,
+              // using the following could reduce returned object a little bit smaller thus we can have more per query
+              // b: '$balance',
+              // pb: '$previousBalance',
+              // pp: '$previousPayments',
+              // pId: '$previousInvoiceId',
+              // f: '$fromDate',
+              // t: '$toDate',
+              // rt: "$restaurant.id",
+            }
+          },
+          { $sort: { _id: -1 } },
+          {
+            $group: {
+              _id: '$restaurant.id',
+              invoices: { $addToSet: "$$ROOT" } // special mongo syntax
+            } // _id is a composite key!
+          },
+          {
+            $project: {
+              _id: 1,
+              'invoices.balance': 1,
+              'invoices._id': 1,
+              'invoices.isPaymentCompleted': 1,
+              // 'invoices.previousBalance': 1,
+              // 'invoices.previousPayments': 1,
+              'invoices.previousInvoiceId': 1,
+              'invoices.fromDate': 1,
+              'invoices.toDate': 1,
+            } // _id is a composite key!
+          },
+          { $skip: skip },
+          { $limit: batchSize },
+        ]
+      }).toPromise();
+      rtInvoicesList.push(...rtInvoices);
+      skip += batchSize;
+      if (rtInvoices.length === 0 || rtInvoices.length < batchSize) {
+        break;
+      }
+    }
+
+    // inject field: unpaidToDate of to each restaurant
+    const initUnpaidDate = new Date();
+    rtInvoicesList.forEach(ri => {
+      ri.restaurant = this.restaurantIdMap[ri._id];
+      ri.lastInvoice = ri.invoices.sort((i2, i1) => new Date(i1.fromDate) > new Date(i2.fromDate) ? 1 : -1)[0];
+      ri.unpaidToDate = this.getUnpaidToDate(ri.invoices, initUnpaidDate);
+      ri.overdueMonths = Math.ceil((new Date().valueOf() - ri.unpaidToDate.valueOf()) / (30 * 24 * 3600000))
+    });
+
+    // now let's find overdue rows
+    const OVERDUE_THRESHOLD = 48 * 24 * 3600000;
+    const HAVING_RECENT_INVOICES_TO_DATE_THRESHOLD = (31 + 10) * 24 * 3600000;
+
+    this.overdueRows = rtInvoicesList.filter(r =>
+      new Date(r.invoices[0].toDate).valueOf() + HAVING_RECENT_INVOICES_TO_DATE_THRESHOLD > new Date().valueOf() // at least having recently created invoices (some are too little to generate anything)
+      && r.unpaidToDate.valueOf() + OVERDUE_THRESHOLD < new Date().valueOf()); // overdue
+
+    // sort by total unpaid desc
+    this.overdueRows.sort((row1, row2) => row2.lastInvoice.balance - row1.lastInvoice.balance);
+
+    // let's put a localTimeString to it
+    this.overdueRows.map(row => {
+      const time = Helper.adjustDate(new Date(), row.restaurant.timezone);
+      row.localTimeString = time.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit' });
+    });
+    // now populate overdueAgents unique agents
+    this.overdueAgents = [... this.overdueRows.reduce((myset, row) => (myset.add(row.restaurant.agent), myset), new Set())].filter(agent => agent).sort();
+    console.log()
+  }
+
   private async loadSkippedRestaurants() {
     this.skipAutoInvoicingRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
@@ -66,9 +195,6 @@ export class InvoiceMonthlyComponent implements OnInit {
         "name": 1
       }
     }, 6000000)
-    console.log(this.skipAutoInvoicingRestaurants);
-
-
     this.skipAutoInvoicingRestaurants.sort((r1, r2) => r1.name > r2.name ? 1 : -1);
 
   }
@@ -88,17 +214,45 @@ export class InvoiceMonthlyComponent implements OnInit {
   }
 
   async populateRestaurantIdMap() {
-    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {},
-      projection: {
-        name: 1,
-        disabled: 1,
-        rateSchedules: 1
-      }
-    }, 200000);
-    restaurants.map(rt => rt.agent = (rt.rateSchedules || []).map(rs => rs.agent).slice(-1)[0]);
-    this.restaurantIdMap = restaurants.reduce((map, rt) => (map[rt._id] = rt, map), {});
+      aggregate: [
+        { $match: { _id: { $exists: true } } },
+        {
+          $project: {
+            name: 1,
+            disabled: 1,
+            lastRateSchedule: { $arrayElemAt: ["$rateSchedules", -1] },
+            timezone: '$googleAddress.timezone',
+            // only get 'collection' type of logs
+            logs: {
+              $filter: {
+                input: "$logs",
+                as: "log",
+                cond: { $in: ["$$log.type", ['collection']] }
+              },
+            }
+          }
+        },
+        {
+          $project: {
+            name: 1,
+            disabled: 1,
+            agent: '$lastRateSchedule.agent',
+            timezone: 1,
+            // project useful part of logs:
+            'logs.username': 1,
+            'logs.response': 1,
+            'logs.time': 1,
+          }
+        }
+      ]
+    }).toPromise();
+    this.restaurantIdMap = restaurants.reduce((map, rt) => (
+      map[rt._id] = rt,
+      rt.logs = rt.logs || [],
+      map // last one to return itself
+    ), {});
   }
 
   async toggleAction(action) {
@@ -130,6 +284,8 @@ export class InvoiceMonthlyComponent implements OnInit {
     if (new Date()) {
       return alert("temp disabled.")
     }
+
+
     // query order status === canceled, then match invoice?
     const canceledOrderStatuses = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: "orderstatus",
@@ -421,176 +577,27 @@ export class InvoiceMonthlyComponent implements OnInit {
     console.log(this.rolledButLaterCompletedRows);
   }
 
-  async populateOverdue() {
-    if (Object.keys(this.populateRestaurantIdMap).length === 0) {
-      await this.populateRestaurantIdMap();
-    }
-    const invoiceBatchSize = 5000;
-    let invoices = [];
-    while (true) {
-      const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'invoice',
-        query: {
-          isPaymentCompleted: { $ne: true },
-          isCanceled: { $ne: true },
-          isSent: true,
-          // balance: { $lt: 0 } // only when they owe us money!
-        },
-        projection: {
-          "logs.time": 1,
-          "logs.action": 1,
-          "logs.user": 1,
-          balance: 1,
-          "restaurant.id": 1,
-          "restaurant.name": 1,
-          "restaurant.rateSchedules": 1,
-          "restaurant.address.timezone": 1,
-          fromDate: 1,
-          toDate: 1,
-          previousInvoiceId: 1,
-          "payments.amount": 1
-        },
-        skip: invoices.length,
-        limit: invoiceBatchSize
-      }).toPromise();
-      invoices.push(...batch);
-      if (batch.length === 0 || batch.length < invoiceBatchSize) {
-        break;
-      }
-    }
-
-    // const gmbAccountsWithPublishedLocations = await this._api.get(environment.qmenuApiUrl + 'generic', {
-    //   resource: 'gmbAccount',
-    //   query: {
-    //     "published": { $gt: 0 }
-    //   },
-    //   projection: {
-    //     "locations.cid": 1,
-    //     "locations.status": 1
-    //   },
-    //   limit: 20000
-    // }).toPromise();
-
-    // const publishedCids = gmbAccountsWithPublishedLocations.reduce((myset, account) => ((account.locations || []).map(loc => loc.status === 'Published' && myset.add(loc.cid)), myset), new Set());
-
-
-    // console.log(publishedCids);
-
-    // organize by restaurant id
-    const idRowMap = {};
-    invoices.map(invoice => {
-      if (idRowMap[invoice.restaurant.id]) {
-        idRowMap[invoice.restaurant.id].invoices.push(new Invoice(invoice));
-      } else {
-        idRowMap[invoice.restaurant.id] = {
-          restaurant: invoice.restaurant,
-          invoices: [new Invoice(invoice)]
-        };
-      }
-    });
-
-
-    const havingReferenceInvoices = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'invoice',
-      query: {
-        previousInvoiceId: { $exists: true },
-        isCanceled: { $ne: true }
-      },
-      projection: {
-        previousInvoiceId: 1
-      },
-      limit: 800000
-    }, 30000);
-
-
-    const beingReferencedIds = new Set(havingReferenceInvoices.map(i => i.previousInvoiceId));
-
-    const collectionLogs = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: {
-        "logs.type": "collection"
-      },
-      projection: {
-        "logs.time": 1,
-        "logs.response": 1,
-        "logs.username": 1,
-        "logs.type": 1,
-        "googleListing.cid": 1
-      },
-    }, 1000);
-
-    collectionLogs.map(restaurant => {
-      if (idRowMap[restaurant._id]) {
-        idRowMap[restaurant._id].logs = (restaurant.logs || []).filter(log => log.type === 'collection');
-        // idRowMap[restaurant._id].ownedGmb = restaurant.googleListing && publishedCids.has(restaurant.googleListing.cid)
-      }
-    });
-
-    collectionLogs.map(restaurant => {
-      if (idRowMap[restaurant._id]) {
-        idRowMap[restaurant._id].logs = (restaurant.logs || []).filter(log => log.type === 'collection');
-      }
-    });
-
-    // now lets filter:
-
-    this.overdueRows = Object.keys(idRowMap).map(id => idRowMap[id]);
-    // remove being referenced invoices because they are handled!
-
-    console.log('before', this.overdueRows.length);
-    // treating rolled as paid
-    this.overdueRows.map(row => row.invoices = row.invoices.filter(i => !beingReferencedIds.has(i._id)));
-    this.overdueRows = this.overdueRows.filter(row => row.invoices.length > 0);
-    console.log('after', this.overdueRows.length);
-
-    const overdueSpan = 48 * 24 * 3600000;
-    this.overdueRows = this.overdueRows.filter(row =>
-      // over timespan
-      row.invoices[row.invoices.length - 1].toDate.valueOf() - row.invoices[0].fromDate.valueOf() > overdueSpan
-      // previous is not paid (rolled over)
-      || (row.invoices[0].previousInvoiceId && (row.invoices[0].payments || []).length === 0)
-    );
-
-    console.log('after 2', this.overdueRows.length);
-    // for each row, let's remove being rolled ones!
-
-    this.overdueRows.map(row => row.agent = (row.restaurant.rateSchedules || []).map(each => each.agent))
-
-    // sort by total unpaid desc
-    this.overdueRows.map(row => row.unpaidBalance = row.invoices.reduce((sum, invoice) => sum + invoice.balance, 0));
-    this.overdueRows.sort((row1, row2) => row2.unpaidBalance - row1.unpaidBalance);
-
-    // let's put a localTimeString to it
-    this.overdueRows.map(row => {
-      const time = Helper.adjustDate(new Date(), (row.restaurant.address || {}).timezone);
-      row.localTimeString = time.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit' });
-    });
-    // now populate overdueAgents unique agents
-    this.overdueAgents = [... this.overdueRows.reduce((myset, row) => (myset.add(this.getRowAgent(row)), myset), new Set())].filter(agent => agent).sort();
-    console.log(this.overdueAgents);
-  }
   isRowDisabled(row) {
     return (this.restaurantIdMap[row.restaurant.id] || {}).disabled;
   }
 
   getTotalUnpaid() {
-    return this.getFilteredOverdueRows().reduce((sum, row) => sum + (row.unpaidBalance > 0 ? row.unpaidBalance : 0), 0);
-  }
-
-  getRowAgent(row) {
-    return ((this.restaurantIdMap[row.restaurant.id] || {}).agent || "").toLowerCase();
+    return this.getFilteredOverdueRows().reduce((sum, row) => sum + (row.lastInvoice.balance > 0 ? row.lastInvoice.balance : 0), 0);
   }
 
   getFilteredOverdueRows() {
     return (this.overdueRows || []).filter(row => {
-      if (this.overdueAgent !== "agent..." && this.getRowAgent(row) !== this.overdueAgent) {
+      if (this.overdueAgent !== "agent..." && row.restaurant.agent !== this.overdueAgent) {
         return false;
       }
-      if (this.overdueStatus === "disabled" && !this.restaurantIdMap[row.restaurant.id].disabled) {
+      if (this.overdueStatus === "disabled" && !row.restaurant.disabled) {
         return false;
       }
-      if (this.overdueStatus === "enabled" && this.restaurantIdMap[row.restaurant.id].disabled) {
+      if (this.overdueStatus === "enabled" && row.restaurant.disabled) {
         return false;
+      }
+      if (+this.overdueMonth > 0) {
+        return row.overdueMonths === +this.overdueMonth;
       }
       return true;
     });
@@ -802,7 +809,7 @@ export class InvoiceMonthlyComponent implements OnInit {
   }
 
   async refreshOverdueRowLogs(row) {
-    const restaurant = (await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const [restaurant] = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
         _id: { $oid: row.restaurant.id }
@@ -811,7 +818,7 @@ export class InvoiceMonthlyComponent implements OnInit {
         logs: 1,
         name: 1
       }
-    }).toPromise())[0];
-    row.logs = (restaurant.logs || []).filter(log => log.type === 'collection');
+    }).toPromise();
+    row.restaurant.logs = (restaurant.logs || []).filter(log => log.type === 'collection');
   }
 }

@@ -456,7 +456,7 @@ export class SeamlessIntegrationComponent implements OnInit {
   }
 
   getPreview(code) {
-    return `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/dev/render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${code}%26side%3Dback%26style%3d${this.style}&format=jpg`;
+    return `${environment.utilsApiUrl}render-url?url=https%3A%2F%2Fsignup.qmenu.com%2Fpostcard.html%3Fcode%3D${code}%26side%3Dback%26style%3d${this.style}&format=jpg`;
   }
 
   getOwner(id) {

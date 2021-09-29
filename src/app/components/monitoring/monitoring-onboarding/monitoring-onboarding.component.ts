@@ -1,16 +1,19 @@
+import { Menu } from '@qmenu/ui';
+import { AlertType } from 'src/app/classes/alert-type';
+import { User } from './../../../classes/user';
 import { Component, OnInit } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { Log } from '../../../classes/log';
-enum hideInvaidSalesTypes{
-  All = 'All',
+enum hideInvaidSalesTypes {
+  All = 'Valid Sale?',
   ValidSales = 'Valid Sales',
   InvalidSales = 'Invalid Sales'
-} 
+}
 
-enum MenuTypes{
-  All = 'All',
+enum MenuTypes {
+  All = 'Has Menu?',
   NoMenu = 'No Menu',
   HavingMenu = 'Having Menu'
 }
@@ -22,7 +25,10 @@ enum MenuTypes{
 })
 export class MonitoringOnboardingComponent implements OnInit {
 
-  hideInvalidSales = hideInvaidSalesTypes.ValidSales; // a flag to control whether hide restaurants of  invalid sales 
+  salespeople = []; // filter by Sales people.
+  salesperson = 'Salesperson...';
+
+  hideInvalidSales = hideInvaidSalesTypes.All; // a flag to control whether hide restaurants of  invalid sales 
   havingGMB: boolean;
   isWarning: boolean;
   filterBy = MenuTypes.All;
@@ -55,8 +61,7 @@ export class MonitoringOnboardingComponent implements OnInit {
         logs: { $slice: -2 },
       }
     }, 4000);
-
-
+    // get populate all sale agents   
     // restaurantIdsWith
     const validRestaurant = allRestaurants.filter(r => ((r.rateSchedules || [])[0] || {}).agent !== "invalid");
     const havingOrderRestaurantIdSet = new Set(await this._api.get(environment.legacyApiUrl + 'utilities/distinctOrderRestaurantIds').toPromise());
@@ -104,7 +109,14 @@ export class MonitoringOnboardingComponent implements OnInit {
     });
 
     this.rows.sort((r1, r2) => r2.restaurant.createdAt.valueOf() - r1.restaurant.createdAt.valueOf())
-    this.filteredRows = this.rows;
+    this.rows.filter(r => !r.agent || !(r.agent && (r.agent.trim() === "invalid" || r.agent.trim() === "Invalid" || r.agent.trim() === "none" || r.agent.trim() === "None")))
+    .forEach(row=>{
+      if(row.agent && !this.salespeople.includes(row.agent)){
+        this.salespeople.push(row.agent);
+      }
+    });
+    this.salespeople.sort((a,b)=> (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0));
+   
     this.filter();
   }
 
@@ -124,21 +136,21 @@ export class MonitoringOnboardingComponent implements OnInit {
     switch (this.filterBy) {
       case MenuTypes.All:
         this.filteredRows = this.filteredRows;
-      break;
+        break;
 
       case MenuTypes.NoMenu:
-        this.filteredRows = this.filteredRows.filter(r => r.agent !== 'charity' && r.noMenu);
+        this.filteredRows = this.filteredRows.filter(r => r.noMenu);
         break;
 
       case MenuTypes.HavingMenu:
-        this.filteredRows = this.filteredRows.filter(r => r.agent !== 'charity' && !r.noMenu && r.noOrder);
+        this.filteredRows = this.filteredRows.filter(r => !r.noMenu);
         break;
       default:
         break;
     }
 
     switch (this.hideInvalidSales) {
-      case hideInvaidSalesTypes.All :
+      case hideInvaidSalesTypes.All:
         this.filteredRows = this.filteredRows;
         break;
 
@@ -151,7 +163,15 @@ export class MonitoringOnboardingComponent implements OnInit {
       default:
         break;
     }
+    this.filterBySalePerson();
+  }
 
+  filterBySalePerson(){
+    if(this.salesperson !== 'Salesperson...'){
+      this.filteredRows = this.filteredRows.filter(r =>r.agent === this.salesperson);
+    }else{
+      this.filteredRows = this.filteredRows;
+    }
   }
 
 }

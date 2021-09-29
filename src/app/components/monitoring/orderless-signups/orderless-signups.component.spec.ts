@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { IvrAgentAnalysisComponent } from './ivr-agent-analysis.component';
+import { OrderlessSignupsComponent } from './orderless-signups.component';
 
-describe('IvrAgentAnalysisComponent', () => {
-  let component: IvrAgentAnalysisComponent;
-  let fixture: ComponentFixture<IvrAgentAnalysisComponent>;
+describe('OrderlessSignupsComponent', () => {
+  let component: OrderlessSignupsComponent;
+  let fixture: ComponentFixture<OrderlessSignupsComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ IvrAgentAnalysisComponent ]
+      declarations: [ OrderlessSignupsComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(IvrAgentAnalysisComponent);
+    fixture = TestBed.createComponent(OrderlessSignupsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

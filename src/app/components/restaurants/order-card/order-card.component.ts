@@ -27,6 +27,7 @@ export class OrderCardComponent implements OnInit {
   @Output() onBan = new EventEmitter();
   @Output() onOpenChangeOrderTypesModal = new EventEmitter();
   @Output() onOpenPreviousCanceledOrderModal = new EventEmitter();
+  @Output() onViewNotificationHistory = new EventEmitter();
 
   @ViewChild('toggleButton') toggleButton;
   @ViewChild('confirmModal') confirmModal: ConfirmComponent;
@@ -34,22 +35,109 @@ export class OrderCardComponent implements OnInit {
   confirmAction;
   confirmTitle;
   confirmBodyText;
-  phoneNumberToText;
-  showTexting: boolean = false;
+  phoneNumberToText = '';
+  showTexting = false;
+  showPhoneNumberInput = false;
   displayingDeliveryDetails = false;
   constructor(private _api: ApiService, private _global: GlobalService, private datePipe: DatePipe) {
   }
 
   ngOnInit() {
   }
-  // judge order whether is from phone. 
+
+  getOrderOrigin(order){
+    let origin = 'others'; // init a value which will be override later
+    if (order.analytics) {
+      // both empty => direct qmenu
+      // parse referrer and then utm
+      const { utm, referrer } = order.analytics;
+      if (!utm && !referrer) {
+          origin = 'DIRECT-QMENU';
+      }
+
+      if (referrer && !utm) {
+          if (['google', 'yelp', 'facebook'].some(source => referrer.indexOf(source) >= 0)) {
+              [origin] = ['google', 'yelp', 'facebook'].filter(source => referrer.indexOf(source) >= 0);
+          } else {
+              origin = 'DIRECT-DOMAIN';
+          }
+      }
+
+      if (utm) { // utm overrides everything!
+          if (['google', 'yelp', 'facebook'].some(source => utm.indexOf(source) >= 0)) {
+            [origin] = ['google', 'yelp', 'facebook'].filter(source => utm.indexOf(source) >= 0);
+          }
+      }
+    }
+    return origin;
+  }
+
+  orerFromAppOrPWA(order){
+    return this.orderFromApp(order) || this.orderFromPWA(order);
+  }
+
+  orderFromMac(order) {
+    return order.runtime && order.runtime.os && order.runtime.os.indexOf('Mac') >= 0;
+  }
+
+  orderFromLinux(order) {
+    return order.runtime && order.runtime.os && order.runtime.os.indexOf('Linux') >= 0;
+  }
+
+  orderFromWindows(order) {
+    return order.runtime && order.runtime.os && order.runtime.os.indexOf('Windows')>=0;
+  }
+  // order is from Android, judging by order.runtime.os
+  orderFromAndroid(order) {
+    return order.runtime && order.runtime.os && order.runtime.os.indexOf('Android') >= 0;
+  }
+  // order is from is iOS, judging by order.runtime.os
+  orderFromiOS(order) {
+    return order.runtime && order.runtime.os && order.runtime.os.indexOf('iOS') >=0;
+  }
+  // judge order whether is from Edge by order.runtime.browser.
+  // the type of browser:
+  // Chrome, FireFox, Safari, IE
+  orderFromChrome(order){
+    return order.runtime && order.runtime.browser.toLowerCase() === 'chrome';
+  }
+
+  orderFromFirefox(order){
+    return order.runtime && order.runtime.browser.toLowerCase() === 'firefox';
+  }
+
+  orderFromSafari(order){
+    return order.runtime && order.runtime.browser.toLowerCase() === 'safari';
+  }
+
+  orderFromEdge(order){
+    return order.runtime && order.runtime.browser.toLowerCase() === 'edge';
+  }
+
+  orderFromIE(order){
+    return order.runtime && order.runtime.browser.toLowerCase() === 'ie';
+  }
+
+  orderFromBrowserUnknown(order){
+    return order.runtime && order.runtime.browser && !this.orderFromChrome(order) && !this.orderFromSafari(order) && !this.orderFromFirefox(order) && !this.orderFromIE(order);
+  }
+
+  // judge order whether is from Edge by order.runtime.isApp.
+  orderFromApp(order) {
+    return order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os.indexOf('iOS') >=0) && order.runtime.isApp;
+  }
+  // judge order whether is from Edge by order.runtime.standalone.
+  orderFromPWA(order) {
+    return order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os.indexOf('iOS') >=0) && order.runtime.standalone && !order.runtime.isApp;
+  }
+  // judge order whether is from phone.
   orderFromPhone(order) {
     return order.runtime && order.runtime.isApp ||
-      (order.runtime && order.runtime.os && (order.runtime.os === 'Android' || order.runtime.os === 'iOS'));
+      (order.runtime && order.runtime.os && (order.runtime.os.indexOf('Android') >= 0 || order.runtime.os.indexOf('iOS') >=0));
   }
-  // judge order whether is from computer. 
+  // judge order whether is from computer.
   orderFromPC(order) {
-    return order.runtime && order.runtime.os && (order.runtime.os === 'Mac' || order.runtime.os === 'Linux' || order.runtime.os === 'Windows');
+    return order.runtime && order.runtime.os && (order.runtime.os.indexOf('Mac') >= 0 || order.runtime.os.indexOf('Linux')>=0 || order.runtime.os.indexOf('Windows')>=0);
   }
 
   openPreviousCanceledOrderModal(order_id) {
@@ -192,6 +280,10 @@ export class OrderCardComponent implements OnInit {
     this.showTexting = !this.showTexting;
   }
 
+  phoneNumbersOfRT() {
+    return (this.restaurant.channels || []).filter(x => x.type === 'SMS');
+  }
+
   async sendText() {
 
     try {
@@ -199,6 +291,22 @@ export class OrderCardComponent implements OnInit {
         orderId: this.order.id, type: 'sms', to: this.phoneNumberToText
       }).toPromise();
       this._global.publishAlert(AlertType.Success, `Sent SMS to ${this.phoneNumberToText}`);
+      // if user input a new phone number, add it to RT's channel.
+      if (!(this.phoneNumbersOfRT()).some(x => x.value === this.phoneNumberToText)) {
+        const newChannels = (this.restaurant.channels || []).slice(0);
+        newChannels.push({type: 'SMS', value: this.phoneNumberToText, notifications: []});
+        try {
+          await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+            {
+              old: { _id: this.restaurant._id },
+              new: { _id: this.restaurant._id, channels: newChannels }
+            }
+          ]).toPromise();
+          this.restaurant.channels = newChannels;
+        } catch (e) {
+          console.log(e);
+        }
+      }
     } catch (error) {
       console.log(error);
       this._global.publishAlert(AlertType.Danger, `Failed sending SMS to ${this.phoneNumberToText}`);
@@ -206,7 +314,7 @@ export class OrderCardComponent implements OnInit {
   }
 
   isPhoneValid() {
-    return this.phoneNumberToText && this.phoneNumberToText.match(/^[2-9]\d{2}[2-9]\d{2}\d{4}$/);
+    return /^[2-9]\d{2}[2-9]\d{2}\d{4}$/.test(this.phoneNumberToText);
   }
 
   async sendEmail() {
@@ -230,9 +338,6 @@ export class OrderCardComponent implements OnInit {
     const customizedRenderingStyles = encodeURIComponent(orderView.customizedRenderingStyles || '');
     const menusEncoded = encodeURIComponent(JSON.stringify(menus || []));
     const template = orderView.template === 'chef' ? 'restaurantOrderPosChef' : 'restaurantOrderPos';
-
-    // url: "https://08znsr1azk.execute-api.us-east-1.amazonaws.com/prod/renderer?orderId=5c720fd092edbd4b28883ee1&template=restaurantOrderPosChef&format=png&customizedRenderingStyles=body%20%7B%20color%3A%20red%3B%20%7D&menus=%5B%7B%22name%22%3A%22All%20Day%20Menu%22%2C%22mcs%22%3A%5B%7B%22name%22%3A%22SPECIAL%20DISHES%22%2C%22mis%22%3A%5B%7B%22name%22%3A%221.Egg%20Roll%20(2)%22%7D%5D%7D%5D%7D%5D"
-
     let url = `${environment.legacyApiUrl.replace('https', 'http')}utilities/order/${environment.testOrderId}?format=pos&injectedStyles=${customizedRenderingStyles}`;
     if (format === 'esc' || format === 'gdi' || format === 'pdf' || (printClient.info && printClient.info.version && +printClient.info.version.split(".")[0] >= 3)) {
       // ONLY newest phoenix support chef view so for now
@@ -287,14 +392,10 @@ export class OrderCardComponent implements OnInit {
 
                   let orderRenderingUrl;
                   if (format === "esc" || format === "gdi" || (format === "pdf") || (pc.info && pc.info.version && +pc.info.version.split(".")[0] >= 3)) {
-                    const stage = environment.env;
-                    orderRenderingUrl = `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/${stage}/renderer?orderId=${this.order.id}&template=${template}&format=${format}&customizedRenderingStyles=${encodeURIComponent(customizedRenderingStyles)}&menus=${encodeURIComponent(JSON.stringify(menus))}`;
+                    orderRenderingUrl = `${environment.utilsApiUrl}renderer?orderId=${this.order.id}&template=${template}&format=${format}&customizedRenderingStyles=${encodeURIComponent(customizedRenderingStyles)}&menus=${encodeURIComponent(JSON.stringify(menus))}`;
                   }
                   else {
-                    let legacyUrl = 'https://api.myqmenu.com/';
-                    if (environment.env === 'dev') {
-                      legacyUrl = "https://quez.herokuapp.com/";
-                    }
+                    let legacyUrl = environment.legacyApiUrl;
                     orderRenderingUrl = legacyUrl + 'utilities/order/' + this.order.id + '?format=pos';
                   }
 
@@ -325,6 +426,12 @@ export class OrderCardComponent implements OnInit {
                           url: orderRenderingUrl,
                           copies: printer.copies || 1 // default to 1
                         }
+                      },
+                      trigger: {
+                        id: this._global.user._id,
+                        name: this._global.user.username,
+                        source: "CSR",
+                        module: "order - print"
                       }
                     }
                   }]).toPromise();
@@ -336,10 +443,9 @@ export class OrderCardComponent implements OnInit {
               let orderRenderingUrl;
               const format = printer.format || "png";
               if (format === "esc" || format === "gdi" || (format === "pdf") || (pc.info && pc.info.version && +pc.info.version.split(".")[0] >= 3)) {
-                const stage = environment.env;
-                orderRenderingUrl = `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/${stage}/renderer?orderId=${this.order.id}&template=restaurantOrderPos&format=${format}`;
+                orderRenderingUrl = `${environment.utilsApiUrl}renderer?orderId=${this.order.id}&template=restaurantOrderPos&format=${format}`;
                 if (format === "pdf") {
-                  orderRenderingUrl = `https://08znsr1azk.execute-api.us-east-1.amazonaws.com/${stage}/renderer?orderId=${this.order.id}&template=restaurantOrderFax&format=${format}`;
+                  orderRenderingUrl = `${environment.utilsApiUrl}renderer?orderId=${this.order.id}&template=restaurantOrderFax&format=${format}`;
                 }
               }
               else {
@@ -375,6 +481,12 @@ export class OrderCardComponent implements OnInit {
                       url: orderRenderingUrl,
                       copies: printer.settings && printer.settings.copies || 1 // default to 1
                     }
+                  },
+                  trigger: {
+                    id: this._global.user._id,
+                    name: this._global.user.username,
+                    source: "CSR",
+                    module: "order - print"
                   }
                 }
               }]).toPromise();
@@ -503,5 +615,9 @@ export class OrderCardComponent implements OnInit {
       case 'pending':
         return 'Pending';
     }
+  }
+
+  viewNotificationHistory(order: Order) {
+    this.onViewNotificationHistory.emit(order.id);
   }
 }

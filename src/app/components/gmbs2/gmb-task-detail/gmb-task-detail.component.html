@@ -1,0 +1,249 @@
+<h4 class="text-center">{{restaurant?.name}}
+</h4>
+<div class="small text-center">
+  <a target="_blank" href="#/restaurants/{{modalTask?.relatedMap?.restaurantId}}">{{restaurant?.googleAddress?.formatted_address}}</a>
+</div>
+<div class="text-center">
+  <button class="btn btn-link" (click)="hardRefresh(modalTask)"><i class="fas fa-sync-alt"></i>
+    Hard Refresh</button>
+</div>
+
+<hr>
+<div *ngIf="modalTask?.request?.email" class="text-center">
+  <app-gmb-account-hotlink [email]="modalTask?.request?.email" [appealId]="modalTask?.request?.appealId">
+  </app-gmb-account-hotlink>
+  <label>[postcard ID: {{postcardIds.get(modalTask?.request?.email)||'N/A'}}]</label>
+</div>
+
+<div class="alert alert-danger text-center" *ngIf="modalTask?.request?.ownerDeclined">
+  OWNER DECLINED TO WORK WITH QMENU
+</div>
+
+<div class="alert {{status.isError ? 'alert-danger' : 'alert-warning'}}"
+  *ngFor="let status of (modalTask?.request?.statusHistory || [])">
+  {{status.time | ago : now}}: {{status.status}}
+</div>
+<div class="form-group mb-4">
+  <label>Comments:</label>
+  <div class="wrap pb-1" [innerHTML]="modalTask?.comments"></div>
+  <div class="input-group">
+    <input type="text" class="form-control" [(ngModel)]="comments" placeholder="your comments">
+    <div class="input-group-append">
+      <button class="btn btn-outline-secondary min-w-6" type="button" (click)="addComments(comments)">Add</button>
+    </div>
+  </div>
+</div>
+<hr>
+<h5 class="text-center">{{restaurant?.googleListing?.phone | phone}}</h5>
+<table class="table table-borderless table-sm text-center" *ngIf="restaurant?.people">
+  <!-- <thead>
+    <tr>
+      <th scope="col">Name</th>
+      <th scope="col">Position</th>
+      <th scope="col">Channels</th>
+      <th scope="col"></th>
+    </tr>
+  </thead> -->
+  <tbody>
+    <tr *ngFor="let person of restaurant.people">
+      <td>{{person.title}} {{person.name}}</td>
+      <td>{{join(person.roles)}}</td>
+      <td>
+        <div *ngFor="let c of person.channels || []">
+          {{c.type}}: {{c.value}}
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<hr>
+
+<div class="form-group">
+  <label>Verification Options:</label>
+  <!-- {{preferredVerificationOption | json}} -->
+  <div *ngIf="preferredVerificationOption" class="alert alert-secondary">
+    <div *ngIf="preferredVerificationOption.method === 'ADDRESS'">
+      Requested Postcard Verification {{preferredVerificationOption.createTime | ago : now}}
+      <div class="text-left">
+        <button class="btn btn-link pl-0" (click)="showNotifier = !showNotifier">Remind Restaurant Owner</button>
+      </div>
+      <div class="form-group" *ngIf="showNotifier">
+        <label>Notify Restaurant:</label>
+        <send-google-pin [restaurantId]="restaurant._id"></send-google-pin>
+      </div>
+    </div>
+
+    <div *ngIf="preferredVerificationOption.verificationMethod === 'PHONE_CALL'">
+      Should Call <b>{{preferredVerificationOption.phoneData.phoneNumber}}</b> to Verify
+    </div>
+    <div *ngIf="preferredVerificationOption.verificationMethod === 'EMAIL'">
+      Should Use Email <b>{{preferredVerificationOption.emailData.domainName}}</b> to Get PIN
+    </div>
+  </div>
+  <div *ngIf="!preferredVerificationOption" class="alert alert-secondary">
+    No verification option is preferred to use.
+  </div>
+
+  <div *ngIf="verificationOptions.length === 0">N/A</div>
+  <div *ngFor="let vo of verificationOptions || []"
+    class="{{isNonQmenuEmail(vo) ? 'opacity-30' : ''}} {{vo.verification ? 'text-success' : 'text-muted'}} mb-2 row">
+    <div class="col-6 text-nowrap">
+      <i class="pr-2 fas fa-{{vo.faClass}}"></i>
+      <span *ngIf="vo.phoneData?.phoneNumber">
+        {{vo.phoneData?.phoneNumber}}
+      </span>
+      <span *ngIf="vo.emailData?.domainName">
+        <a href="http://{{vo.emailData?.domainName}}" target="_blank">{{vo.emailData?.domainName}}</a>
+      </span>
+      <span *ngIf="vo.addressData?.address?.addressLines">
+        {{vo.addressData?.address?.addressLines[0]}}
+        <br>
+        <br>
+        Last notified: {{(modalTask.notification_status ? modalTask.notification_status[0].time : null) | ago: now}}
+        <br>
+        <button class="btn btn sm text-muted pl-0"
+          (click)="triggerCompleteNotificationHistory()">{{showCompleteNotificationHistory? "Less...": "More..."}}</button>
+        <div *qIf="showCompleteNotificationHistory">
+          <div *ngFor="let notification of modalTask.notification_status">
+            Notified by {{notification.user}} at {{notification.time | ago: now}}
+          </div>
+        </div>
+      </span>
+    </div>
+    <div class="col-6 text-right">
+      <button *ngIf="vo.phoneData?.phoneNumber" class="btn btn-primary btn-sm" [qLoading]="verifyingOption === vo"
+        (click)="trigger(modalTask, vo)">Trigger Google Call</button>
+      <button *ngIf="vo.emailData?.domainName" class="btn btn-primary btn-sm" [qLoading]="verifyingOption === vo"
+        (click)="trigger(modalTask, vo)">Trigger Email</button>
+      <button *ngIf="vo.addressData?.address?.addressLines" class="btn btn-primary btn-sm"
+        [qLoading]="verifyingOption === vo" (click)="trigger(modalTask, vo)">Trigger Postcard</button>
+      <button *ngIf="vo.addressData?.address?.addressLines" class="btn btn-primary btn-sm mt-2"
+        [qLoading]="verifyingOption === vo" (click)="triggerSendGooglePinMessage()">Send Google PIN Message</button>
+      <div class="card mt-2" *qIf="vo.addressData?.address?.addressLines && sendingGooglePinMessage">
+        <div class="card-body text-left">
+          <send-google-pin [restaurantId]="restaurant._id" (sendToLog)="logSendingGooglePinMessage($event)">
+          </send-google-pin>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <hr *ngIf="verifications && verifications.length > 0">
+  <div *ngFor="let vo of verifications || []" class="text-muted">
+    <small>
+      <i
+        class="pr-2 fas fa-{{vo.faClass}} {{isNonQmenuEmail(vo) ? 'opacity-30' : ''}} {{vo.verification ? 'text-success' : 'text-muted'}}"></i>
+      {{vo.state}} {{vo.createTime | ago : now}}
+    </small>
+  </div>
+</div>
+
+
+<div class="form-group mb-4">
+  <label>Google PINs:</label>
+  <div *ngFor="let ph of modalTask?.request?.pinHistory || []" class="row">
+    <div class="col-6 text-nowrap">
+      <h2 class="d-inline-block">{{ph.pin ? ph.pin : '(empty)'}} </h2> <span class="text-muted">{{ph.time | ago: now}}
+        {{ph.username}}</span>
+    </div>
+    <div class="col-6 text-right">
+      <button class="btn btn-outline-secondary" (click)="resetPin(ph)" *ngIf="ph.pin">Reset PIN</button>
+      <button class="btn btn-primary" (click)="completePin(ph)" *ngIf="ph.pin && !isPublished">Verify PIN</button>
+    </div>
+  </div>
+
+  <div class="input-group">
+    <input type="text" class="form-control" [(ngModel)]="pin" placeholder="PIN">
+    <div class="input-group-append">
+      <button class="btn btn-outline-secondary min-w-6" type="button" (click)="savePin()">Save PIN</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="form-group">
+  <label>Schedule Followup At:</label>
+  <input class="form-control" [owlDateTimeTrigger]="dt" [owlDateTime]="dt" [(ngModel)]="taskScheduledAt"
+    (ngModelChange)="scheduledAtUpdated($event)">
+  <owl-date-time #dt [hour12Timer]="true"></owl-date-time>
+  <div class="py-1 text-right">
+    <button type="button" class="btn btn-sm btn-info my-btn-narrow" *ngFor="let i of [1, 2, 6, 8]"
+      (click)="plusDay(i)">Today + {{i}}</button>
+  </div>
+</div>
+
+<div class="form-group alert alert-warning" *ngIf="modalTask">
+  <label>Change Assignee:</label>
+  <select [(ngModel)]="modalTask.assignee" class="form-control" (change)="assign(modalTask, modalTask.assignee)">
+    <option *ngFor="let assignee of assignees" [ngValue]="assignee">{{assignee}}</option>
+  </select>
+  <div class="text-right">
+    <button class="btn btn-link" (click)="toggleDecline()">Owner
+      {{modalTask?.request?.ownerDeclined ? 'AGREED' : 'DECLINED'}} to Work with qMenu?</button>
+  </div>
+</div>
+
+
+<div class="form-group">
+  <ng-container *ngIf="!modalTask?.result">
+    <label>If Done, Select Result:</label>
+    <q-simple-radio [(ngModel)]="taskResult" [equalWidth]="true" [values]="['CANCELED', 'CLOSED']">
+    </q-simple-radio>
+    <div class="text-right" *ngIf="taskResult">
+      <button class="btn btn-primary btn-sm" (click)="closeTask()">Confirm</button>
+    </div>
+  </ng-container>
+</div>
+
+<hr>
+<h4>Other Open Tasks</h4>
+<div *ngFor="let task  of relatedTasks || []" class="alert alert-warning">
+  <div *ngIf="task.name !== 'GMB Request'">{{task.name}}</div>
+  <div *ngIf="task.name === 'GMB Request'">
+    {{task.name}} <button class="btn btn-link" (click)="showDetails(task._id)">See Details...</button>
+  </div>
+  <div>
+    <app-gmb-account-hotlink [email]="task.request?.email || task.transfer?.toEmail"></app-gmb-account-hotlink>
+  </div>
+  <div class="text-muted my-text-small"> {{task.createdAt | ago: now}}<br>{{task._id}}</div>
+</div>
+<div *ngIf="!relatedTasks || relatedTasks.length === 0">
+  Not found
+</div>
+<hr>
+<div class="row ml-1">
+  <h4>Restaurant Logs</h4>
+  <button class="btn btn-link" (click)="showRTLogs =!showRTLogs">
+    <i class="fa fa-angle-right" *ngIf="!showRTLogs"></i>
+    <i class="fa fa-angle-down" *ngIf="showRTLogs"></i>
+  </button>
+</div>
+<table class="table table-sm" *ngIf="restaurant?.logs && showRTLogs">
+  <thead>
+    <tr>
+      <th scope="col">Date</th>
+      <th scope="col">Problem</th>
+      <th scope="col">Response</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let log of restaurant.logs">
+      <td>{{log.time | date: 'short'}}</td>
+      <td>{{log.problem}}</td>
+      <td>{{log.response}}</td>
+    </tr>
+  </tbody>
+</table>
+<div class="row ml-1">
+  <h4>View JSON</h4>
+  <button class="btn btn-link" (click)="showTaskJson =!showTaskJson">
+    <i class="fa fa-angle-right" *ngIf="!showTaskJson"></i>
+    <i class="fa fa-angle-down" *ngIf="showTaskJson"></i>
+  </button>
+</div>
+<div *ngIf="showTaskJson">
+  <pre>
+{{modalTask|json}}
+</pre>
+</div>

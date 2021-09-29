@@ -8,6 +8,7 @@ export class User {
   updatedAt: Date;
   disabled: boolean;
   languages: string;
+  ivrUsername?: string;
 
   constructor(user?: any) {
     if (user) {

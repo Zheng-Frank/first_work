@@ -1,11 +1,11 @@
 import {Component, EventEmitter, NgZone, OnInit, ViewChild} from '@angular/core';
-import {OrderCardComponent} from '../restaurants/order-card/order-card.component';
-import {Order, TimezoneHelper} from '@qmenu/ui';
+import {Order, Restaurant, TimezoneHelper} from '@qmenu/ui';
 import {ModalComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
 import {ApiService} from '../../services/api.service';
 import {GlobalService} from '../../services/global.service';
 import {AlertType} from '../../classes/alert-type';
 import {environment} from '../../../environments/environment';
+import {Log} from '../../classes/log';
 
 declare var $: any;
 
@@ -19,8 +19,8 @@ export class FraudDetectionComponent implements OnInit {
   @ViewChild('rejectModal') rejectModal: ModalComponent;
   @ViewChild('undoRejectModal') undoRejectModal: ModalComponent;
   @ViewChild('banModal') banModal: ModalComponent;
-
-  @ViewChild('orderCard') orderCard: OrderCardComponent;
+  @ViewChild('previousOrdersModal') previousOrdersModal: ModalComponent;
+  @ViewChild('logEditingModal') logEditingModal: ModalComponent;
   orderForModal = new Order();
   payment = {};
   cardSpecialOrder;
@@ -35,7 +35,10 @@ export class FraudDetectionComponent implements OnInit {
   undoOrder: any;
   isPostmatesStatusDelivered = false;
   createdAt;
+  previousOrders = [];
   showTip = false;
+  restaurant: Restaurant;
+  logInEditing = new Log();
 
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
@@ -81,7 +84,7 @@ export class FraudDetectionComponent implements OnInit {
 
   async search() {
 
-    let query = {'ccAddress.distanceToStore': {$gte: 200}} as object;
+    let query = {'paymentObj.method': {$ne: 'KEY_IN'}, 'ccAddress.distanceToStore': {$gte: 200}} as object;
 
     let toDate = new Date(), fromDate = new Date();
     fromDate.setDate(fromDate.getDate() - 1);
@@ -108,18 +111,47 @@ export class FraudDetectionComponent implements OnInit {
       limit: 150
     }, 50);
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
+    const previousOrders = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: {
+        'customerObj._id': { $in: customerIds }
+      },
+      projection: {
+        _id: 1,
+        customer: 1
+      },
+      sort: {
+        createdAt: -1
+      },
+      limit: 10000,
+    }).toPromise();
+    orders.forEach(order => {
+      order.previousOrders = [];
+      previousOrders.forEach(previousOrder => {
+        if (order.customer === previousOrder.customer && order._id !== previousOrder._id) {
+          order.previousOrders.push(previousOrder);
+        }
+      });
+    });
 
-    const blacklist = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    this.orders = await this.prepareOrders(orders, customerIds);
+  }
+
+  async getBlackList(customerIds) {
+    return await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'blacklist',
       query: {'value': {$in: customerIds}, disabled: {$ne: true}},
       projection: {disabled: 1, reasons: 1, value: 1, orders: 1},
       limit: 100000,
       sort: {createAt: 1}
     }).toPromise();
+  }
 
+  async prepareOrders(orders, customerIds) {
+    const blacklist = await this.getBlackList(customerIds);
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     // assemble back to order:
-    this.orders = orders.map(order => {
+    return orders.map(order => {
       order.restaurantAddress = this.restaurantAddress[order.restaurant];
       order.customer = order.customerObj;
       order.payment = order.paymentObj;
@@ -155,6 +187,25 @@ export class FraudDetectionComponent implements OnInit {
       return order.customer.phone;
     }
     return null;
+  }
+
+  async showPreviousOrders(previousOrders) {
+    let orders = [];
+    for (let i = 0; i < previousOrders.length; i++) {
+      const previousOrder = previousOrders[i];
+      const tempOrders = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "order",
+        query: {_id: {$oid: previousOrder._id}},
+        projection: {logs: 0},
+        sort: {createdAt: -1},
+        limit: 1
+      }).toPromise();
+      orders.push(tempOrders[0]);
+    }
+    const customerIds = orders.filter(order => order.customer).map(order => order.customer);
+    // assemble back to order:
+    this.previousOrders = await this.prepareOrders(orders, customerIds);
+    this.previousOrdersModal.show();
   }
 
   handleOnDisplayCreditCard(order) {
@@ -542,6 +593,47 @@ export class FraudDetectionComponent implements OnInit {
     }
 
     this.undoRejectModal.hide();
+  }
+
+  async addLog(order) {
+    this.logInEditing = new Log();
+    // @ts-ignore
+    this.logInEditing.relatedOrders = order.orderNumber.toString();
+    let [rt] = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {_id: { $oid: order.restaurantObj._id }},
+      projection: {
+        'name': 1, 'logo': 1, 'logs': 1,
+        'googleAddress.timezone': 1,
+        'googleAddress.formatted_address': 1,
+        'googleAddress.lat': 1,
+        'googleAddress.lng': 1,
+        'phones.phoneNumber': 1,
+        'channels.value': 1
+      },
+      limit: 1
+    }).toPromise();
+    this.restaurant = rt;
+    this.logEditingModal.show();
+  }
+
+  async onLogCreated(data) {
+    let logs = this.restaurant.logs || [];
+    data.log.time = new Date();
+    data.log.username = this._global.user.username;
+    logs.push(new Log(data.log));
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+      old: {_id: this.restaurant._id}, new: {_id: this.restaurant._id, logs}
+    }]).toPromise();
+    data.formEvent.acknowledge();
+    this.restaurant = null;
+    this.logInEditing = new Log();
+    this.logEditingModal.hide();
+  }
+  onLogCancel() {
+    this.restaurant = null;
+    this.logInEditing = new Log();
+    this.logEditingModal.hide();
   }
 
 }
