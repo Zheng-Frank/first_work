@@ -280,7 +280,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "Menus": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Menu Options": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Coupons": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-      "Orders": ['ADMIN', 'CSR'],
+      "Orders": ['ADMIN', 'CSR', 'MARKETER'],
       "Invoices": ['ADMIN', 'ACCOUNTANT', 'CSR'],
       "Logs": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
       "IVR": ['ADMIN', 'CSR'],
