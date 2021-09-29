@@ -3794,6 +3794,8 @@ export class DbScriptsComponent implements OnInit {
     console.log('closedRT', closedRT)
   }
 
+  // migrateOrderNotifications will migrate channel data for up to 10,000 RTs at a time. It is safe to run multiple times, 
+  // because it only ever attempts to operate on RTs that do not already have orderNotifications
   async migrateOrderNotifications() {
     const updatedOldNewPairs = [];
     const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
@@ -3811,15 +3813,16 @@ export class DbScriptsComponent implements OnInit {
     restaurants.forEach(r => {
       const orderNotifications = [];
       const channels = r.channels || [];
-      const preferredLanguage = r.preferredLanguage || "ENGLISH";
+      
       channels.forEach(channel => {
         if ((channel.notifications || []).includes("Order")) {
+          const preferredLanguage = channel.channelLanguage || channel.language|| r.preferredLanguage || "ENGLISH";
           orderNotifications.push(
             {
               channel: {
                 type: channel.type,
                 value: channel.value,
-                // language: preferredLanguage
+                language: preferredLanguage
               }
             }
           );
@@ -3831,6 +3834,7 @@ export class DbScriptsComponent implements OnInit {
         new: { _id: r._id, orderNotifications: orderNotifications }
       });
     });
+
     try {
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', updatedOldNewPairs).toPromise();
       this._global.publishAlert(
