@@ -18,13 +18,13 @@ export class MonitoringPromotionComponent implements OnInit {
 
   @ViewChild('importModal') importModal;
   @ViewChild('validateModal') validateModal;
-  rts: Restaurant[] = [];
+  rts = [];
   restaurant: Restaurant = null;
   gmbWebsiteOwner = '';
   generalGmbOwners = [];
   majorCompetitorGmbOwners = [];
   minorCompetitorGmbOwners = [];
-  filtered: Restaurant[] = [];
+  filtered: any[] = [];
   coupons = [];
   checkedCoupons = [];
   failedTypes = [];
@@ -200,14 +200,14 @@ export class MonitoringPromotionComponent implements OnInit {
     }
     if (this.scrapedOnly) {
       // @ts-ignore
-      this.filtered = this.filtered.filter(x => x.promotions && x.promotions.some(p => !!p.source));
+      this.filtered = this.filtered.filter(x => x.promotions && x.promotions.some(p => p && !!p.source));
     }
   }
 
   stat(rts) {
     this.rts = rts.filter(rt => {
       return !rt.promotions || !rt.promotions.length
-        || rt.promotions.some(x => !!x.source)
+        || rt.promotions.some(x => !x || !!x.source)
         || (rt.promotions.every(p => p.expiry && new Date(p.expiry).valueOf() < Date.now()));
     });
 
@@ -215,6 +215,9 @@ export class MonitoringPromotionComponent implements OnInit {
     const specificCountMap = {};
 
     this.rts.forEach(rt => {
+      if (rt.promotions && rt.promotions.some(x => !x || !x.id)) {
+        rt.hasError = true;
+      }
       if (rt.googleListing && rt.googleListing.gmbOwner) {
         const {gmbOwner} = rt.googleListing;
         if (generalCountMap.hasOwnProperty(gmbOwner)) {

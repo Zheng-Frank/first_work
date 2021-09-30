@@ -2,6 +2,14 @@
   margin: 1rem 0;
 }
 
+.rt-list .hili td {
+  background: red;
+  color: yellow;
+}
+.rt-list .hili td a {
+  color: yellow;
+}
+
 .toolbar {
   display: flex;
   align-items: center;
