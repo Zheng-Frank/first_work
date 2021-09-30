@@ -247,6 +247,7 @@ import { GmbTaskDetailComponent } from './components/gmbs2/gmb-task-detail/gmb-t
 import { CleanInsistedLinksComponent } from './components/clean-insisted-links/clean-insisted-links.component';
 import { PaymentMeansEditorComponent } from './components/restaurants/payment-means-editor/payment-means-editor.component';
 import { OrderlessSignupsComponent } from './components/monitoring/orderless-signups/orderless-signups.component';
+import { ExcessSmsNotificationsRtsComponent } from './components/monitoring/excess-sms-notifications-rts/excess-sms-notifications-rts.component';
 
 
 
@@ -463,7 +464,8 @@ import { OrderlessSignupsComponent } from './components/monitoring/orderless-sig
     GmbTaskDetailComponent,
     CleanInsistedLinksComponent,
     PaymentMeansEditorComponent,
-    OrderlessSignupsComponent
+    OrderlessSignupsComponent,
+    ExcessSmsNotificationsRtsComponent
   ],
   imports: [
     BrowserModule,
