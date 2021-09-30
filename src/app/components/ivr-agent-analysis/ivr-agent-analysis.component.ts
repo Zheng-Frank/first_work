@@ -1,10 +1,28 @@
-import { GlobalService } from 'src/app/services/global.service';
-import { Component, OnInit, ViewChild, QueryList, ViewChildren, ElementRef } from '@angular/core';
-import { ApiService } from 'src/app/services/api.service';
-import { environment } from 'src/environments/environment';
-import { Chart } from 'chart.js';
+import {GlobalService} from 'src/app/services/global.service';
+import {AfterViewInit, Component, ElementRef, OnInit, QueryList, ViewChildren} from '@angular/core';
+import {ApiService} from 'src/app/services/api.service';
+import {environment} from 'src/environments/environment';
+import {Chart} from 'chart.js';
 
+enum TimeRanges {
+  Last24Hours = 'Last 24 hours',
+  Last48Hours = 'Last 48 hours',
+  Last3Days = 'Last 3 days',
+  Last7Days = 'Last 7 days',
+  Last30Days = 'Last 30 days',
+  CustomDate = 'Custom'
+}
 
+enum SortFields {
+  TotalCalls = 'Total Calls',
+  TotalCallTime = 'Total Call Time',
+  AvgCallDuration = 'Avg Call Duration'
+}
+
+enum SortOrders {
+  Ascending = 'Ascending',
+  Descending = 'Descending'
+}
 
 @Component({
   selector: 'app-ivr-agent-analysis',
@@ -13,736 +31,288 @@ import { Chart } from 'chart.js';
 })
 export class IvrAgentAnalysisComponent implements OnInit {
 
-  @ViewChild('lineCanvas') lineCanvas;
-  @ViewChild('lineCanvas2') lineCanvas2;
   @ViewChildren('cmp') components: QueryList<ElementRef>;
 
+  startDate;
+  endDate;
+  timeRange = TimeRanges.Last24Hours;
+  sortBy = SortFields.TotalCallTime;
+  sortOrder = SortOrders.Descending;
+  list = [];
+  totalRecords = 0;
+  charts = [];
 
-  currentStartDay;
-  currentEndDay;
-  rawIvrData = null
-  agents;
-  totalLineTimes = []
-  entriesLength
-  agentMappedData = [];
-  objAgentMappedData = {}
-  sortBy = 'Total Call Time'
-  sorting = 'Descending'
-  criteria = 'Last 24 hours'
-  inputDateOne
-  inputDateTwo
-  validDate = true
-  showHistogram = false
-  showLine = true
-  agentMappingNames = {
-    alanxue: 'alan',
-    "alice.xie": "alice",
-    "amy.yang": "amy",
-    "annie.cheng": "annie",
-    "anny.fang": "anny",
-    "bikram.rai.csr": "bikram",
-    "bikram.rai.gmb": "bikram",
-    "carrie.li": "carrie",
-    "cathy.fu": "cathy",
-    "chris.xu": "chris",
-    "cici.yang": "cici",
-    "decenith": "decenith",
-    "demi.he": "demi",
-    "dixon.adair": "dixon.adair",
-    "dyney.yang": "dyney",
-    "emily.hu": "emily",
-    "felix.ou": "felix",
-    "garysui": "gary",
-    "gmb.test": "test, gmb",
-    "hayley.xiong": "hayley",
-    "iggy.susara": "iggy.susara",
-    "ivy.li": "ivy",
-    "jay": "jay.esplana",
-    "jennica.cuevas": "jennica.cuevas",
-    "jhon.medick": "jhon.medick",
-    "jhunno.flores": "jhunno.flores",
-    "joanan.yuan": "joanan",
-    "judy.song": "judy",
-    "julia.xiong": "julia",
-    "june.borah.csr": "june",
-    "june.borah.gmb": "june",
-    "kk.chen": "kk",
-    "lina.yang": "lina",
-    "lucy.yuan": "lucy",
-    "mary.zhang": "mary",
-    "max.yi": "max",
-    "may.lin": "may",
-    "merry.empic": "merry.empic",
-    "mia.yang": "mia",
-    "nicole.hu": "nicole",
-    "outbound": "Only, Outbound",
-    "piapi": "piapi",
-    "sacha.luo": "sacha",
-    "sajal.khati": "sajal",
-    "sandy.he": "sandy",
-    "sean": "Lyu, Sean",
-    "sherry.zhao": "sherry.zhao",
-    "sunny.fu": "sunny",
-    "vivi.hu": "vivi",
-    "yinghong.mo": "Mo, Yinghong"
-
+  get now(): string {
+    return this.dateStr(new Date());
   }
-  graphViewing = 'Total Calls'
-  // users is used to calculate agentMappingNames map, 
-  // using hard code of agentMappingNames, if user table doesn't has ivrUserName  
-  users = []; 
 
-  getAgent(key) {
-    if (key in this.agentMappingNames) {
-      return this.agentMappingNames[key]
+  get TimeRanges() {
+    return TimeRanges;
+  }
+  get timeRanges() {
+    return Object.values(TimeRanges);
+  }
+
+  get sortFields() {
+    return Object.values(SortFields);
+  }
+
+  get sortOrders() {
+    return Object.values(SortOrders);
+  }
+
+  constructor(private _api: ApiService, private _global: GlobalService) {
+  }
+
+  dateStr(dt, withTime = false) {
+    let [date, time] = new Date(dt).toISOString().split("T");
+    if (withTime) {
+      // only show in hours: 2021-09-30 12:00
+      return [date, time.substr(0, 2) + ":00"].join(" ");
+    }
+    return date;
+  }
+
+  localDateStr(origin, withTime) {
+    // 2021-09-30 12:00 or 2021-09-30
+    let [date, time] = origin.split(" ");
+    if (!withTime) {
+      return date;
+    }
+    let offset = new Date().getTimezoneOffset() / 60;
+    // get origin datetime in utc
+    date = new Date([date, time].join("T") + "Z");
+    let hour = Number(time.split(":")[0]) - offset;
+    if (hour >= 24) {
+      date.setDate(date.getDate() + 1);
+      hour -= 24;
+    } else if (hour < 0) {
+      date.setDate(date.getDate() - 1);
+      hour += 24;
+    }
+    // get the actual local date and time;
+    date = date.toISOString().split("T")[0];
+    time = (hour > 10 ? hour : "0" + hour) + ":00";
+    return [date, time].join(" ");
+  }
+
+  async changeDate() {
+    if (this.timeRange !== TimeRanges.CustomDate) {
+      let temp = new Date();
+      this.endDate = this.dateStr(temp);
+      let diffs = {
+        [TimeRanges.Last24Hours]: 1,
+        [TimeRanges.Last48Hours]: 2,
+        [TimeRanges.Last3Days]: 3,
+        [TimeRanges.Last7Days]: 7,
+        [TimeRanges.Last30Days]: 30
+      };
+      temp.setDate(temp.getDate() - diffs[this.timeRange]);
+      this.startDate = this.dateStr(temp);
+      await this.query();
     } else {
-      return key
+      this.startDate = this.endDate = undefined;
     }
   }
-  setGraphView(type) {
-    this.graphViewing = type
-    this.queryData(this.criteria)
+
+  calcDates(days) {
+    let start = this.startDate, end = this.endDate;
+    if (this.timeRange !== TimeRanges.CustomDate) {
+      let time = "T" + new Date().toISOString().split("T")[1];
+      start += time;
+      end += time;
+    }
+    let dates = [];
+    start = new Date(start);
+    end = new Date(end);
+    const iterateHours = (step) => {
+      while (start <= end) {
+        dates.push(this.dateStr(start, true));
+        start.setHours(start.getHours() + step);
+      }
+    };
+    const iterateDays = (step) => {
+      while (start <= end) {
+        dates.push(this.dateStr(start));
+        start.setDate(start.getDate() + step);
+      }
+    };
+    if (days <= 7) {
+      iterateHours(days);
+    } else {
+      iterateDays(Math.floor(days / 30));
+    }
+    return dates;
   }
 
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+  chartRefresh(el) {
+    let index = Number(el.dataset.index);
+    let item = this.list[index];
+    const OneDay = 24 * 3600 * 1000;
+    let days = Math.floor((new Date(this.endDate).valueOf() - new Date(this.startDate).valueOf()) / OneDay);
+    let withTime = days <= 7;
+    let dates = this.calcDates(days);
+    let datasets = Object.values(SortFields).map(label => {
+      let data = dates.map(date => {
+        let durations = item.durations.filter(d => this.dateStr(d.start, withTime) === date);
+        return {
+          [SortFields.TotalCalls]: durations.length,
+          [SortFields.TotalCallTime]: durations.reduce((a, c) => a + c.duration, 0),
+          [SortFields.AvgCallDuration]: Math.round(durations.reduce((a, c) => a + c.duration, 0) / durations.length)
+        }[label];
+      });
+      let yAxisID = label === SortFields.TotalCalls ? 'y-count' : 'y-time';
+      let color = {
+        [SortFields.TotalCalls]: '#c00',
+        [SortFields.TotalCallTime]: '#00AA4F',
+        [SortFields.AvgCallDuration]: '#26C9C9'
+      }[label];
+      return {label, yAxisID, borderColor: color, backgroundColor: color, data, fill: false};
+    });
+    let chart = new Chart(el, {
+      options: {
+        responsive: true,
+        tooltips: {mode: 'index', intersect: false},
+        stacked: false,
+        scales: {
+          yAxes: [
+            {id: "y-count", type: 'linear', display: true, position: 'left'},
+            {
+              id: "y-time",
+              type: 'linear',
+              display: true,
+              position: 'right',
 
-  changeDate() {
-    // console.log("DATE CHANGING 1 ", this.inputDateOne)
-    // console.log("DATE CHANGING 2 ", this.inputDateTwo)
-
-    let dateOne = new Date(this.inputDateOne)
-    let dateTwo = new Date(this.inputDateTwo)
-    // console.log("DATE 1", dateOne)
-    // console.log("DATE 2", dateTwo)
-
-
-    if (dateOne && dateTwo && (dateOne > dateTwo)) {
-      this.validDate = false
-    }
-
-    if (dateOne && dateTwo && (dateOne <= dateTwo)) {
-      this.validDate = true
-    }
-
-    if (dateOne && dateTwo) {
-      // console.log("QUERYING FOR THE DATA DATE 1 ", this.inputDateOne)
-      // console.log("QUERYING FOR THE DATA DATE 2", this.inputDateTwo)
-      this.queryData(this.criteria)
-    }
-
-  }
-
-  setSortBy(type) {
-    this.sortBy = type
-    this.sort(this.agentMappedData, this.sortBy, this.sorting)
-  }
-
-  setCriteria(type) {
-    // console.log("THIS IS THE TYPE ", type)
-    // console.log("INPUT DATE 1 ", this.inputDateOne)
-    // console.log("INPUT DATE 2 ", this.inputDateTwo)
-
-    switch (type) {
-      case 'customDate':
-        if (this.inputDateOne && this.inputDateTwo) {
-          this.queryData(this.criteria)
-        }
-        console.log("BOTH DATES NOT ENTERED")
-        this.criteria = 'Custom Date'
-        this.queryData(this.criteria)
-        break
-      case '24Hours':
-        this.criteria = 'Last 24 hours'
-        this.queryData(this.criteria)
-        break
-      case '48Hours':
-        this.criteria = 'Last 48 hours'
-        this.queryData(this.criteria)
-        break
-      case '3Days':
-        this.criteria = 'Last 3 days'
-        this.queryData(this.criteria)
-        break
-      case '7Days':
-        this.criteria = 'Last 7 days'
-        this.queryData(this.criteria)
-        break
-      case '30Days':
-        this.criteria = 'Last 30 days'
-        this.queryData(this.criteria)
-        break
-      default:
-        console.log("NO CRITERIA SPECIFIED")
-        break
-    }
-
-  }
-
-  processBarData(agentName) {
-
-    let dates = { dates: [], totalCalls: [], avgCallTime: [], totalCallTime: [] }
-
-    for (let x = this.currentStartDay; x <= this.currentEndDay; x += 86200000) {
-      // for each d
-      let callData = this.agents[agentName].callData
-      let inTimeFrame = 0
-      let counter = 0
-      let totalCallTime = 0
-      callData.forEach(call => {
-        if (Math.abs(new Date(call.start).getTime() - x) <= 55000000) {
-          totalCallTime += (new Date(call.end).getTime() - new Date(call.start).getTime()) / 1000 / 60
-          inTimeFrame += 1
-          counter += 1.5
-        }
-      })
-
-      dates['dates'].push(new Date(x).toDateString())
-      dates['totalCalls'].push(inTimeFrame)
-      totalCallTime ? dates['avgCallTime'].push(totalCallTime / counter) : dates['avgCallTime'].push(0)
-      totalCallTime ? dates['totalCallTime'].push(totalCallTime) : dates['totalCallTime'].push(0)
-    }
-    return dates
-  }
-
-  ngAfterViewInit() {
-    // print array of CustomComponent objects
-    this.components.changes.subscribe(
-      () => {
-
-        if (this.showLine) {
-          console.log("IN SUBSCRIPTION SHOW LINE IS TRUE")
-        }
-
-        if (this.showHistogram) {
-          console.log("IN SUBSCRIPTION SHOW HISTOGRAM")
-        }
-
-        if (!this.showLine && !this.showHistogram) {
-          console.log("IN SUBSCRIPTION AND NOTHING IS TO BE RENDERED")
-        }
-
-
-        let arr = (this.components.toArray())
-        // If less than 7 days render line graph, elsewise render histogram 
-        if (this.showHistogram) {
-          arr.forEach(el => {
-            let agent = el.nativeElement.innerHTML
-            let dates = this.processBarData(agent)
-            console.log("DATA ", dates)
-            let data;
-            let label
-            switch (this.graphViewing) {
-              case 'Total Calls':
-                data = dates['totalCalls']
-                label = '# of Calls per Day'
-                break
-              case "Avg Call Time":
-                data = dates['avgCallTime']
-                label = 'Avg Call Time Per Day in Minutes'
-                break
-              case 'Total Call Time':
-                data = dates['totalCallTime']
-                label = 'Total Call Time Per Day in Minutes'
-                break
-              default:
-                console.log("NO VIEWING SELECTED! ")
-                break
+              // grid line settings
+              grid: {
+                drawOnChartArea: false, // only want the grid lines for one axis to show up
+              },
             }
-            new Chart(el.nativeElement, {
-              type: 'bar',
-              data: {
-                labels: dates['dates'],
-                datasets: [{
-                  label,
-                  data,
-                  borderWidth: 1
-                }]
-              },
-              options: {
-                scales: {
-                  yAxes: [{
-                    ticks: {
-                      beginAtZero: true
-                    }
-                  }]
-                }
-              }
-            })
-          })
-        } else if (this.showLine) {
-          arr.forEach(el => {
-            let agent = el.nativeElement.innerHTML
-            console.log("THIS IS AGENT IN PROCESSING ", agent)
-            let data = this.processLineChartData(agent)
-            new Chart(el.nativeElement, {
-              options: {
-                scales: {
-                  yAxes: [{
-                    ticks: {
-                      max: 1,
-                      min: 0,
-                      spanGaps: true,
-                      stepSize: 1
-                    }
-                  }]
-                }
-              },
-              showTooltips: true,
-
-              type: 'line',
-              data: {
-                labels: this.totalLineTimes,
-                datasets: [
-                  {
-                    label: 'Activity Over 24 Hours',
-                    fill: true,
-                    lineTension: 0.1,
-                    backgroundColor: 'rgba(252, 3, 3,1.0)',
-                    borderCapStyle: 'butt',
-                    borderDash: [],
-                    borderDashOffset: 0.0,
-                    borderJoinStyle: 'miter',
-                    pointRadius: 1,
-                    stepSize: 1,
-                    pointHitRadius: 10,
-                    data: data,
-                    spanGaps: false,
-                  }
-                ]
-              }
-            });
-          })
-        } else {
-          console.log("NEITHER HISTORY NOR LINE IS SET TO RENDER")
+          ]
         }
-
-      }
-    );
-  }
-  reload() {
-    this.queryData(this.criteria)
+      },
+      type: 'line',
+      data: {labels: dates.map(d => this.localDateStr(d, withTime)), datasets}
+    });
+    this.charts.push(chart);
   }
 
-  populateLineTimePeriods(criteria) {
-    this.totalLineTimes = []
-    if (criteria == 'Custom Date' && (!this.inputDateOne || !this.inputDateTwo)) {
-      // console.log("THIS WAS CALLED BUT TWO DATES ARE NOT ENTERED YET ")
-      // console.log("DATE 1 POPULATE TIME PERIODS ", this.inputDateOne)
-      // console.log("DATE 2 POPULATE TIME PERIODS ", this.inputDateTwo)
+  async query() {
+    this.charts.forEach(chart => chart.destroy());
+    this.charts = [];
+    let ivrName = this._global.user.ivrUsername;
+    if (!this.isAdmin() && !ivrName) {
+      this.list = [];
+      this.totalRecords = 0;
+      return;
     }
-
-
-
-    let timePeriods: number[]
-    // AM 
-
-    let timePeriodsLength: number
-    let increments: number
-
-    switch (criteria) {
-      case 'Last 24 hours':
-        timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
-        timePeriodsLength = 12
-        increments = 1
-        break
-      case 'Last 48 hours':
-        timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
-        timePeriodsLength = 24
-        increments = 2
-        break
-      case 'Last 3 days':
-        timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
-        timePeriodsLength = 36
-        increments = 3
-        break
-      case 'Custom Date':
-        let dif = this.currentEndDay - this.currentStartDay
-
-        if (dif >= 0 && dif <= 86200000) {
-          timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
-          timePeriodsLength = 12
-          increments = 1
-        } else if (dif >= 86200000 && dif <= 172400000) {
-          timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
-          timePeriodsLength = 24
-          increments = 2
-        } else if (dif <= 258600000) {
-          timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
-          timePeriodsLength = 36
-          increments = 3
-        } else {
-          console.log("WE SHOULD NOT HAVE GOTTEN HERE")
-          timePeriods = [1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
-          timePeriodsLength = 36
-          increments = 3
-        }
-        break
-      default:
-        timePeriodsLength = 12
-        increments = 1
-        break
-
+    // if user input date invalid, the field will be undefined
+    if (!this.startDate || !this.endDate) {
+      return;
     }
-
-
-    for (let i = 0; i < timePeriodsLength; i++) {
-      for (let x = 0; x < 60; x += increments) {
-        let time: any = (timePeriods[i] + x)
-        time = time.toString()
-        let period = timePeriods[i]
-        if (period.toString().length === 3) {
-          time = `${time[0]}:${time[1]}${time[2]}`
-        } else {
-          time = `${time[0]}${time[1]}:${time[2]}${time[3]}`
-        }
-        this.totalLineTimes.push(time)
-      }
-    }
-    for (let i = 0; i < timePeriodsLength; i++) {
-      for (let x = 0; x < 60; x += increments) {
-        let time: any = (timePeriods[i] + x)
-        time = time.toString()
-        let period = timePeriods[i]
-        if (period.toString().length === 3) {
-          time = `${time[0]}:${time[1]}${time[2]}`
-        } else {
-          time = `${time[0]}${time[1]}:${time[2]}${time[3]}`
-        }
-        this.totalLineTimes.push(time)
-      }
-    }
-
-
-
-
-  }
-
-  populateBarTimePeriods() {
-
-    let days = Math.ceil((this.currentStartDay - this.currentEndDay) / 86200000)
-
-    console.log('IN POPULATE BAR TIME PERIODS WITH THESE NUMBER OF DAYS ', days)
-
-  }
-
-  async queryData(criteria) {
-
-
-    switch (criteria) {
-      case 'Custom Date':
-        let currentStartDay = new Date(this.inputDateOne);
-        currentStartDay.setHours(0, 0, 0, 0);
-        let currentEndDay = new Date(this.inputDateTwo)
-        this.currentStartDay = currentStartDay.getTime()
-        console.log("CURRENT START OF THE DAY CUSTOM QUERY", new Date(this.currentStartDay))
-        this.currentEndDay = currentEndDay.getTime()
-        console.log("CURRENT END OF THE DAY CUSTOM QUERY", new Date(this.currentEndDay))
-        break
-      case 'Last 24 hours':
-        currentStartDay = new Date();
-        currentStartDay.setHours(0, 0, 0, 0);
-        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 48)
-        console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
-        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 24)
-        console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
-        break
-      case 'Last 48 hours':
-        currentStartDay = new Date();
-        currentStartDay.setHours(0, 0, 0, 0);
-        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 72)
-        console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
-        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 24)
-        console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
-        break
-      case 'Last 3 days':
-        currentStartDay = new Date();
-        currentStartDay.setHours(0, 0, 0, 0);
-        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 96)
-        console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
-        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 24)
-        console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
-        break
-      case 'Last 7 days':
-        currentStartDay = new Date();
-        currentStartDay.setHours(0, 0, 0, 0);
-        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 192)
-        console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
-        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 24)
-        console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
-        break
-      case 'Last 30 days':
-        currentStartDay = new Date();
-        currentStartDay.setHours(0, 0, 0, 0);
-        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 744)
-        console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
-        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 24)
-        console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
-        break
-      default:
-        console.log("NO CURRENT DATE DETECTED")
-        currentStartDay = new Date();
-        currentStartDay.setHours(0, 0, 0, 0);
-        this.currentStartDay = new Date().setHours(currentStartDay.getHours() - 192)
-        console.log("CURRENT START OF THE DAY ", new Date(this.currentStartDay))
-        this.currentEndDay = new Date().setHours(currentStartDay.getHours() - 168)
-        console.log("CURRENT END OF THE DAY ", new Date(this.currentEndDay))
-        break
-
-    }
-
-
-    console.log("QUERY DATA WITH THIS DAY DIFFERENCE ", Math.ceil((this.currentEndDay - this.currentStartDay) / 87200000))
-    if (Math.abs(this.currentEndDay - this.currentStartDay) <= 260000000) {
-      console.log("PROCESSING LINE CHART DATA, LESS THAN EQUAL TO 3 DAYS")
-      console.log("LINE CHART THE MILLISECOND DIFFERENCE IS ", Math.abs(this.currentStartDay - this.currentEndDay))
-      this.showLine = true
-      this.showHistogram = false
-      this.populateLineTimePeriods(criteria)
-    } else if (Math.abs(this.currentEndDay - this.currentStartDay) >= 260000000) {
-      console.log("PROCESSING BAR CHART DATA, GREATER THAN EQUAL TO 3 DAYS")
-      console.log("BAR CHART MILLISECOND DIFFERENCE ", Math.abs(this.currentStartDay - this.currentEndDay))
-      this.showLine = false
-      this.showHistogram = true
-      this.populateBarTimePeriods()
+    let start = this.startDate, end = this.endDate;
+    if (this.timeRange === TimeRanges.CustomDate) {
+      // for custom date, we calc from start 00:00:00.000 to end 23:59:59.999
+      end = new Date(end);
+      end.setDate(end.getDate() + 1);
     } else {
-      this.showLine = false
-      this.showHistogram = false
-      console.log("SOME DATE IS UNDEFINED!!!!")
-      console.log("INPUT START DATE 1 ", new Date(this.currentStartDay))
-      console.log("INPUT END DATE ", new Date(this.currentEndDay))
+      // for last* range, we calc from (start date + cur time) to now
+      let time = "T" + new Date().toISOString().split("T")[1];
+      start += time;
+      end += time;
+    }
+    start = new Date(start).valueOf();
+    end = new Date(end).valueOf();
+    let query = {
+      Channel: 'VOICE',
+      createdAt: {$gte: start, $lt: end},
+      Agent: {$exists: true}
+    } as any;
+    if (this.isAdmin()) {
+      query['Agent.Username'] = {$exists: true};
+    } else {
+      query['Agent.Username'] = ivrName;
     }
 
-    let query = {};
-    if(this.isAdmin()){
-      query = {
-        "Channel": 'VOICE',
-        Agent: { $ne: null },
-        createdAt: {
-          $gt: this.currentStartDay,
-          $lt: this.currentEndDay
-        }
-      }
-    }else{
-      query = {
-        "Channel": 'VOICE',
-        "Agent.Username": this._global.user.ivrUsername,
-        createdAt: {
-          $gt: this.currentStartDay,
-          $lt: this.currentEndDay
-        }
-      }
-    }
-
-    let ivrData = await this._api
-      .getBatch(environment.qmenuApiUrl + "generic", {
-        resource: "amazon-connect-ctr",
+    let data = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+        resource: 'amazon-connect-ctr',
         query: query,
         projection: {
           'Agent.Username': 1,
           'ConnectedToSystemTimestamp': 1,
           'DisconnectTimestamp': 1,
           'Agent.AgentInteractionDuration': 1,
-          'Agent.AfterContactWorkDuration': 1
         },
-        limit: 50000,
-      }, 10000)
-    console.log("THE IVR DATA ", ivrData)
-    this.rawIvrData = ivrData
-    this.agents = this.processAgents(this.rawIvrData)
+        limit: 100000 // limit to 10w, contains 3~4 months data
+      }, 20000);
+    this.totalRecords = data.length;
+    let map = {} as {
+      [key: string]: {
+        totalCalls: number, totalCallTime: number, durations: any[]
+      }
+    };
+    let days = Math.floor((end - start) / (24 * 3600 * 1000));
+    data.forEach(item => {
+      let agent = item.Agent.Username;
+      map[agent] = map[agent] || {
+        totalCalls: 0,
+        totalCallTime: 0,
+        durations: []
+      };
+      map[agent].totalCalls += 1;
+      map[agent].totalCallTime += item.Agent.AgentInteractionDuration;
+      map[agent].durations.push({
+        start: item.ConnectedToSystemTimestamp,
+        end: item.DisconnectTimestamp,
+        duration: item.Agent.AgentInteractionDuration
+      });
+    });
+    this.list = Object.entries(map).map(([key, {totalCalls, totalCallTime, durations}]) => {
+      let avgCallDuration = totalCallTime / totalCalls;
+      let avgCallTimePerDay = totalCallTime / days;
+      return {agent: key, totalCalls, totalCallTime, avgCallDuration, avgCallTimePerDay, durations};
+    });
+    this.sort();
+    setTimeout(() => {
+      this.components.toArray().forEach(el => this.chartRefresh(el.nativeElement));
+    });
   }
 
-  isAdmin(){
+  isAdmin() {
     return this._global.user.roles.some(role => role === 'ADMIN');
   }
 
-  async getUsers(){
-    this.users = await this._api.getBatch(environment.qmenuApiUrl + "generic",{
-      resource:'user',
-      query:{
-        username: {
-          $exists: true
-        },
-        ivrUsername: {
-          $exists: true
-        }
-      },
-      projection:{
-        username:1,
-        ivrUsername:1
-      }
-    },10000000);
-    this.users.forEach(user=>{
-      // if ivrUsername from user table, replace or add it into the agentMappingNames.
-      this.agentMappingNames[user.ivrUsername] = user.username;
-    });
-  }
-  
   async ngOnInit() {
-    await this.getUsers();
-    await this.queryData(this.criteria);
+    await this.changeDate();
   }
 
-  processLineChartData(agentName) {
-    let data = []
-    for (let i = 0; i < 1440; i++) {
-      data.push(Number.NaN)
-    }
+  sort() {
+    const sortField = {
+      [SortFields.TotalCallTime]: 'totalCallTime',
+      [SortFields.TotalCalls]: 'totalCalls',
+      [SortFields.AvgCallDuration]: 'avgCallDuration'
+    }[this.sortBy];
+    const sortFunc = (a, b) => {
+      return this.sortOrder === SortOrders.Ascending ? a[sortField] - b[sortField] : b[sortField] - a[sortField];
+    };
+    this.list.sort(sortFunc);
+  }
 
-    // 
+  secondsToHms(duration) {
+    duration = Number(duration);
+    let h = Math.floor(duration / 3600);
+    let m = Math.floor(duration % 3600 / 60);
+    let s = Math.floor(duration % 3600 % 60);
 
-    // let example = this.agents.filter(agent => agent.)
-    // console.log("THIS IS THE AGENT NAME ", agentName)
-    // console.log("THIS IS THR AGENTS ", this.agents)
-    let example = this.agents[agentName].callData
-    // console.log("THIS IS THE EXAMPLE ", example)
-
-    let dayDistribution: number;
-    switch (this.criteria) {
-      case 'Last 24 hours':
-        dayDistribution = 86400000
-        break
-      case 'Last 48 hours':
-        dayDistribution = 172800000
-        break
-      case 'Last 3 days':
-        dayDistribution = 259200000
-        break
-      case 'Custom Date':
-        let time = this.currentStartDay - this.currentEndDay
-        if (time >= 0 && time <= 87200000) {
-          dayDistribution = 86400000
-        } else if (time >= 86400000 && time <= 173000000) {
-          dayDistribution = 172800000
-        } else {
-          dayDistribution = 259200000
-        }
-        break
-      default:
-        console.log("NO VALID DAY DISTRUBTION, criteria NOT FOUND")
-        break
-    }
-
-    example.forEach((callData) => {
-      if (callData && callData.start && callData.end) {
-        let unitOfTime = Math.floor(((new Date(callData.start).getTime() - this.currentStartDay) / dayDistribution) * 1440)
-        let lengthOfCall = (new Date(callData.end).getTime() - new Date(callData.start).getTime()) / 1000
-        let counter = unitOfTime
-        for (let i = 0; i <= lengthOfCall; i += 60) {
-          data[counter] = 1
-          counter += 1
-        }
-        data[counter] = 1
+    const format = (num, unit) => {
+      if (num > 0) {
+        return num + ([unit][num - 1] || (unit + 's'));
       }
-    })
-    return data
-  }
-
-  processAgents(rawIvrData) {
-
-
-    // Object representation
-    console.log("IN PROCESS AGENTS")
-    this.agents = [...new Set(rawIvrData.map(obj => obj.Agent.Username))]
-    // console.log("THESE ARE THE AGENTS ", this.agents)
-    let agent_mapped_data = {}
-    this.agents.forEach(agent => {
-      agent_mapped_data[agent] = {
-        totalCalls: 0,
-        callData: [],
-        totalCallTime: 0,
-      }
-    })
-
-    rawIvrData.map((data) => {
-      agent_mapped_data[data.Agent.Username].callData.push({
-        start: data.ConnectedToSystemTimestamp,
-        end: data.DisconnectTimestamp,
-        duration: data.Agent.AgentInteractionDuration,
-      })
-    })
-
-
-    // total calls + avg call time + total_calltime
-    for (const agentName in agent_mapped_data) {
-      agent_mapped_data[agentName]['totalCalls'] = agent_mapped_data[agentName]['callData'].length
-      let sum = 0
-      agent_mapped_data[agentName]['callData'].forEach(obj => {
-        sum += obj.duration
-      })
-      agent_mapped_data[agentName]['totalCallTime'] = sum;
-      agent_mapped_data[agentName]['avgCallTime'] = sum / agent_mapped_data[agentName]['totalCalls'];
-    }
-
-    // let sortedData = this.sort(agent_mapped_data, this.sortBy, this.sorting)
-
-    let arr_agent_mapped_data = []
-    for (const agentName in agent_mapped_data) {
-
-      arr_agent_mapped_data.push({
-        agentName: agentName,
-        totalCalls: agent_mapped_data[agentName]['totalCalls'],
-        totalCallTime: agent_mapped_data[agentName]['totalCallTime'],
-        avgCallTime: agent_mapped_data[agentName]['avgCallTime']
-      })
-    }
-    // TODO: Work with arrays, not objects
-    console.log("WE MADE IT THIS FAR ")
-    this.objAgentMappedData = agent_mapped_data
-    this.agentMappedData = this.sort(arr_agent_mapped_data, this.sortBy, this.sorting)
-    this.entriesLength = Object.keys(agent_mapped_data).length
-    return agent_mapped_data
-
-  }
-
-  setSorting(type) {
-    this.sorting = type
-    this.sort(this.agentMappedData, this.sortBy, this.sorting)
-  }
-
-  sort(agentArrayData, sortBy, sortType) {
-    // agentMappedData is the final data structure
-
-
-    switch (sortBy) {
-      case 'Total Call Time':
-        sortType !== 'Ascending' ? agentArrayData.sort((a, b) => b.totalCallTime - a.totalCallTime) : agentArrayData.sort((a, b) => a.totalCallTime - b.totalCallTime)
-        break
-      case 'Total Calls':
-        sortType !== 'Ascending' ? agentArrayData.sort((a, b) => b.totalCalls - a.totalCalls) : agentArrayData.sort((a, b) => a.totalCalls - b.totalCalls)
-        break
-      case 'Avg Call Time':
-        sortType !== 'Ascending' ? agentArrayData.sort((a, b) => b.avgCallTime - a.avgCallTime) : agentArrayData.sort((a, b) => a.avgCallTime - b.avgCallTime)
-        break
-      // case 'Meaningful Calls':
-      //   sortType !== 'Ascending' ? agentArrayData.sort((a, b) => b.avgCallTime - a.avgCallTime) : agentArrayData.sort((a, b) => a.avgCallTime - b.avgCallTime)
-      //   break
-      case 'Sales Produced':
-        console.log("NOT YET IMPLEMENTED YET")
-        sortType !== 'Ascending' ? null : null
-      default:
-    }
-
-    return agentArrayData
-
-  }
-
-  getData(agentName) {
-    return this.objAgentMappedData[agentName]
-  }
-
-  log(val) {
-    console.log(val)
-  }
-  secondsToHms(d) {
-    d = Number(d);
-    var h = Math.floor(d / 3600);
-    var m = Math.floor(d % 3600 / 60);
-    var s = Math.floor(d % 3600 % 60);
-
-    var hDisplay = h > 0 ? h + (h == 1 ? " hour, " : " hours, ") : "";
-    var mDisplay = m > 0 ? m + (m == 1 ? " minute, " : " minutes, ") : "";
-    var sDisplay = s > 0 ? s + (s == 1 ? " second" : " seconds") : "";
-    return hDisplay + mDisplay + sDisplay;
+      return '';
+    };
+    return [
+      format(h, 'hour'), format(m, 'minute'), format(s, 'second')
+    ].filter(x => !!x).join(', ');
   }
 
 }
