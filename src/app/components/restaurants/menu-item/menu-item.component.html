@@ -46,5 +46,8 @@
         </td>
       </tr>
     </table>
+    <div *ngIf="isShowMenuItemStats" class="col-12 text-right text-info order-count">
+      Ordered: {{mi?.orderCount || 0}}
+    </div>
   </div>
 </div>

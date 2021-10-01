@@ -53,7 +53,7 @@ export class MenusComponent implements OnInit {
   showPromotions = false;
   menuCleanHandleIDsOnly = true;
   menuJson = '';
-
+  isShowMenuItemStats = false;
 
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
@@ -181,6 +181,7 @@ export class MenusComponent implements OnInit {
     this.importCoupon = false;
     this.adjustingAllPrices = false;
     this.adjustingMenuOrders = false;
+    this.isShowMenuItemStats = false;
   }
 
   importMenus() {

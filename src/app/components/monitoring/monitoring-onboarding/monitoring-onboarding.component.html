@@ -62,7 +62,7 @@
       {{row.agent}}
     </td>
     <td>
-      {{row.restaurant.googleAddress?.timezone}}
+      {{getTimezoneCity(row.restaurant.googleAddress?.timezone)}}
     </td>
     <td class="text-nowrap">
       <ng-container *ngIf="row.accountAndStatuses[0]?.status === 'Published'">

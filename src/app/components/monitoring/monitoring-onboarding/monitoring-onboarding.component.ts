@@ -42,6 +42,10 @@ export class MonitoringOnboardingComponent implements OnInit {
     this.populate();
   }
 
+  getTimezoneCity(timezone){
+    return (timezone || '').split('/')[1] || '';
+  }
+
   async populate() {
     // all restaurant stubs
     let allRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
