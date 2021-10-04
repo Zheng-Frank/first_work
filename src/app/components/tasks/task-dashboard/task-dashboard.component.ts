@@ -24,7 +24,6 @@ export class TaskDashboardComponent {
       d.setDate(d.getDate() - days);
       return d;
     };
-
     const loadTasks = this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: "task",
       query: {
@@ -40,7 +39,6 @@ export class TaskDashboardComponent {
           }
         ]
       },
-
     }, 8000);
 
     const loadGmbBiz = this._api.getBatch(environment.qmenuApiUrl + 'generic', {
@@ -78,9 +76,6 @@ export class TaskDashboardComponent {
     if (this._global.user.roles.indexOf('GMB_SPECIALIST') < 0) {
       tasks = tasks.filter(t => t.assignee === this._global.user.username || (t.name !== "Apply GMB Ownership" && t.name !== "Transfer GMB Ownership" && t.name !== "Appeal Suspended GMB"))
     }
-
-    console.log('tasks', tasks);
-
     // stats:
     const closedTasks = tasks.filter(t => t.result === 'CLOSED');
     console.log('closedTasks', closedTasks);

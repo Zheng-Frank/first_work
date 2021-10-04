@@ -49,10 +49,33 @@ export class ImageManagerComponent implements OnInit {
   merging = false;
   normalizing = false;
   syncing = false;
+  removing = false;
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) { }
 
   async ngOnInit() {
     await this.reload();
+  }
+
+  async removeImagelessItems() {
+    this.removing = true;
+    const imageItems: ImageItem[] = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'image',
+      limit: 600000
+    }).toPromise();
+    const imagelessOnes = imageItems.filter(i => !i.images || i.images.length === 0);
+    console.log(imagelessOnes);
+    // if too many, we have to delete in batches because URL has length limit
+    for (let i = 0; i < imagelessOnes.length; i += 160) {
+      await this._api.delete(environment.qmenuApiUrl + "generic",
+        {
+          resource: 'image',
+          ids: imagelessOnes.slice(i, i + 160).map(item => item._id)
+        }
+      ).toPromise();
+    }
+
+    this.removing = false;
+    this.reload();
   }
 
   async normalizeAliases() {
@@ -175,8 +198,8 @@ export class ImageManagerComponent implements OnInit {
   async syncFromMenuItems() {
     this.syncing = true;
     const NUMBER_OF_RESTAURANTS = 4000;
-    const TOP_NUMBER_OF_CUISINES = 20;
-    const ITEM_APPEARANCE_THRESHOLD = 10;
+    const TOP_NUMBER_OF_CUISINES = 12;
+    const ITEM_APPEARANCE_THRESHOLD = 20;
 
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: "restaurant",
@@ -229,7 +252,7 @@ export class ImageManagerComponent implements OnInit {
         const root = entry[0];
         const aliasCounts = entry[1];
         const rootCount = aliasCounts[root];
-        const threshold = Math.ceil(rootCount * 0.02) + 3;
+        const threshold = Math.ceil(rootCount * 0.05) + 4;
         const filteredAliases = Object.keys(aliasCounts).filter(key => aliasCounts[key] >= threshold);
         const rootKey = Object.keys(aliasGroups).find(r => filteredAliases.some(a => aliasGroups[r].aliases.has(a)));
         if (rootKey) {
@@ -255,7 +278,7 @@ export class ImageManagerComponent implements OnInit {
     Object.keys(aliasGroups).forEach(a1 => Object.keys(aliasGroups).forEach(a2 => {
       if (aliasGroups[a1] && a1 !== a2 && a1.length >= 8) {
         const distance = ImageItem.levenshteinDistance(a1, a2);
-        if (distance <= 2) {
+        if (distance <= 1) {
           console.log(distance, a1, a2)
           aliasGroups[a1].count = aliasGroups[a1].count + aliasGroups[a2].count;
           aliasGroups[a1].cuisines = new Set([...aliasGroups[a1].cuisines, ...aliasGroups[a2].cuisines]);
@@ -495,7 +518,7 @@ export class ImageManagerComponent implements OnInit {
       aliases: img.aliases.split(',').filter(alias => alias).map(alias => alias.trim())
     }));
 
-    let repeated = this.hasRepeatAlias(newImages);
+    let repeated = []; // this.hasRepeatAlias(newImages); disabled repeat checking to allow enter anything temporarily
 
     if (repeated.length > 0) {
       return this._global.publishAlert(AlertType.Danger, `Aliases ${repeated.join(',')} repeat!`);
@@ -510,7 +533,7 @@ export class ImageManagerComponent implements OnInit {
 
   async updateAliases(row) {
     let others = this.rows.filter(x => x._id !== row._id);
-    let repeated = this.hasRepeatAlias([row], others);
+    let repeated = [];// this.hasRepeatAlias([row], others); temp disable to allow editing
 
     if (repeated.length > 0) {
       return this._global.publishAlert(AlertType.Danger, `Aliases ${repeated.join(',')} repeat!`);

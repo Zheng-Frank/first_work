@@ -16,8 +16,8 @@ export class ImageItem {
         const a1 = ImageItem.extractAliases(alias1).map(a => a.alias);
         const a2 = ImageItem.extractAliases(alias2).map(a => a.alias);
         const sharedAlias = a1.some(a => a2.indexOf(a) >= 0);
-        const distanceOk = a1.some(a => a2.some(b => a.length >= 8 && ImageItem.levenshteinDistance(a, b) <= 2));
-        // when levenshtein distance <=2, we call them the same thing
+        const distanceOk = a1.some(a => a2.some(b => a.length >= 8 && ImageItem.levenshteinDistance(a, b) <= 1));
+        // when levenshtein distance <=1, we call them the same thing, having other bigger numbers are causing too many false positives
         return sharedAlias || distanceOk;
     }
 
@@ -88,7 +88,7 @@ export class ImageItem {
                 cleaned = '';
             }
             // always test against longest word first, then single chars
-            const uselessChars = ['晚餐', '午餐', '套餐', '套装', '组合餐', '大盘', '小盘', '中盘', 'combo', ...Array.from('+.*/•,)(-[]0123456789大小中晚午\'')];
+            const uselessChars = ['晚餐', '午餐', '套餐', '套装', '组合餐', '组合', '大盘', '小盘', '中盘', 'dinner', 'lunch', 'family', 'combo', ...Array.from('+.*/•,)(-[]0123456789大小中晚午\'')];
             // b. clean start
             // eslint-disable-next-line no-loop-func
             while (uselessChars.some(c => cleaned.startsWith(c))) {
