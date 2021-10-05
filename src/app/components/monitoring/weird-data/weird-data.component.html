@@ -3,157 +3,58 @@
       <h1 class="text-center">Weird Data</h1>
     </h2>
     <div class="card-body">
-      <!--start pickupTimeEstimate weird data  -->
-      <h2>PickupTimeEstimate weird data </h2>
-      <table class="table mb-5">
-        <tbody>
-          <tr>
-            <th>name</th>
-            <th>pickupTimeEstimate</th>
-          </tr>
-          <!-- target="_blank" -->
-          <tr *ngFor="let data of pickupTimeEstimateExtremeList">
-            <td><a href="#/restaurants/{{data._id}}" target="_blank">{{data.name}}</a></td>
-            <td>{{data.pickupTimeEstimate||0}}</td>
-          </tr>
-        </tbody>
-      </table>
-      <!--end pickupTimeEstimate weird data  -->
-      <!--start deliveryTimeEstimate weird data  -->
-      <h2>DeliveryTimeEstimate weird data </h2>
-      <table class="table mb-5">
-        <tbody>
-          <tr>
-            <th>name</th>
-            <th>deliveryTimeEstimate</th>
-          </tr>
-          <tr *ngFor="let data of deliveryTimeEstimateExtremeList">
-            <td><a href="#/restaurants/{{data._id}}" target="_blank">{{data.name}}</a></td>
-            <td>{{data.deliveryTimeEstimate||0}}</td>
-          </tr>
-        </tbody>
-      </table>
-      <!--end deliveryTimeEstimate weird data  -->
-      <!--start taxRate weird data  -->
-      <h2>TaxRate weird data </h2>
-      <table class="table mb-5">
-        <tbody>
-          <tr>
-            <th>name</th>
-            <th>taxRate</th>
-          </tr>
-          <tr *ngFor="let data of taxRateExtremeList">
-            <td><a href="#/restaurants/{{data._id}}" target="_blank">{{data.name}}</a></td>
-            <td>{{data.taxRate||0}}</td>
-          </tr>
-        </tbody>
-      </table>
-      <!--end taxRate weird data  -->
-      <!--start ccMinimumCharge weird data  -->
-      <h2>CCMinimumCharge weird data </h2>
-      <table class="table mb-5">
-        <tbody>
-          <tr>
-            <th>name</th>
-            <th>ccMinimumCharge</th>
-          </tr>
-          <tr *ngFor="let data of ccMinimumChargeExtremeList">
-            <td><a href="#/restaurants/{{data._id}}" target="_blank">{{data.name}}</a></td>
-            <td>{{data.ccMinimumCharge||0}}</td>
-          </tr>
-        </tbody>
-      </table>
-      <!--end ccMinimumCharge weird data  -->
-      <!--start pickupMinimum weird data  -->
-      <h2>PickupMinimum weird data </h2>
-      <table class="table mb-5">
-        <tbody>
-          <tr>
-            <th>name</th>
-            <th>pickupMinimum</th>
-          </tr>
-          <tr *ngFor="let data of pickupMinimumExtremeList">
-            <td><a href="#/restaurants/{{data._id}}" target="_blank">{{data.name}}</a></td>
-            <td>{{data.pickupMinimum||0}}</td>
-          </tr>
-        </tbody>
-      </table>
-      <!--end pickupMinimum weird data  -->
-      <!--start deliveryMinimum weird data  -->
-      <h2>DeliveryMinimum weird data </h2>
-      <table class="table mb-5">
-        <tbody>
-          <tr>
-            <th>name</th>
-            <th>deliveryMinimum</th>
-          </tr>
-          <tr *ngFor="let data of deliveryMinimumExtremeList">
-            <td><a href="#/restaurants/{{data._id}}" target="_blank">{{data.name}}</a></td>
-            <td>{{data.deliveryMinimum||0}}</td>
-          </tr>
-        </tbody>
-      </table>
-      <!--end deliveryMinimum weird data  -->
-      <!--start deliveryMaxDistance weird data  -->
-      <h2>DeliveryMaxDistance weird data </h2>
-      <table class="table mb-5">
-        <tbody>
-          <tr>
-            <th>name</th>
-            <th>deliveryMaxDistance</th>
-          </tr>
-          <tr *ngFor="let data of deliveryMaxDistanceExtremeList">
-            <td><a href="#/restaurants/{{data._id}}" target="_blank">{{data.name}}</a></td>
-            <td>{{data.deliveryMaxDistance||0}}</td>
-          </tr>
-        </tbody>
-      </table>
-      <!--end deliveryMaxDistance weird data  -->
-      <!--start ccProcessingFlatFee weird data  -->
-      <h2>CCProcessingFlatFee weird data </h2>
-      <table class="table mb-5">
-        <tbody>
-          <tr>
-            <th>name</th>
-            <th>ccProcessingFlatFee</th>
-          </tr>
-          <tr *ngFor="let data of ccProcessingFlatFeeExtremeList">
-            <td><a href="#/restaurants/{{data._id}}" target="_blank">{{data.name}}</a></td>
-            <td>{{data.ccProcessingFlatFee||0}}</td>
-          </tr>
-        </tbody>
-      </table>
-      <!--end ccProcessingFlatFee weird data  -->
-      <!--start ccProcessingRate weird data  -->
-      <h2>CCProcessingRate weird data </h2>
-      <table class="table mb-5">
-        <tbody>
-          <tr>
-            <th>name</th>
-            <th>ccProcessingRate</th>
-          </tr>
-          <tr *ngFor="let data of ccProcessingRateExtremeList">
-            <td><a href="#/restaurants/{{data._id}}" target="_blank">{{data.name}}</a></td>
-            <td>{{data.ccProcessingRate||0}}</td>
-          </tr>
-        </tbody>
-      </table>
-      <!--end ccProcessingRate weird data  -->
-      <!--start surchargeAmount weird data  -->
-      <h2>SurchargeAmount weird data </h2>
-      <table class="table mb-5">
-        <tbody>
-          <tr>
-            <th>name</th>
-            <th>surchargeAmount</th>
-          </tr>
-          <tr *ngFor="let data of surchargeAmountExtremeList">
-            <td><a href="#/restaurants/{{data._id}}" target="_blank">{{data.name}}</a></td>
-            <td>{{data.surchargeAmount||0}}</td>
-          </tr>
-        </tbody>
-      </table>
-      <!--end surchargeAmount weird data  -->
-
+      <div class="col-12 text-right form-group">
+        <button class="btn btn-primary" (click)="populateExtremeData()"><i class="fas fa-sync"></i> Reload</button>
+      </div>
+      <ng-container *ngFor="let list of weridDataListObj | keyvalue">
+        <h2>{{getWeridDataKey(list.key)}} weird data </h2>
+        <table class="table mb-5">
+          <tbody>
+            <tr>
+              <th>name</th>
+              <th>{{getWeridDataKey(list.key)}}</th>
+              <th>logs</th>
+            </tr>
+            <tr *ngFor="let data of list.value">
+              <td><a href="#/restaurants/{{data._id}}" target="_blank">{{data.name}}</a></td>
+              <td>{{data[getWeridDataKey(list.key)]||0}}</td>
+              <td>
+                <table class="table table-sm">
+                  <tr>
+                    <th>Number</th>
+                    <th>User</th>
+                    <th>Timer</th>
+                    <th>Problem</th>
+                    <th>Response</th>
+                  </tr>
+                  <ng-container *ngFor="let log of data.logs">
+                    <tr *ngIf="log.type === 'weird-data-cleanup'">
+                      <td>{{data.logs.indexOf(log)+1}}</td>
+                      <td>{{log.username}}</td>
+                      <!-- <td>{{log.time | adjustedDate : 'MMM d h:mm a' : restaurant?.googleAddress?.timezone}}</td> -->
+                      <!-- TODO: 
+                        the above code will report an error, I have to handle it as follow,and 
+                      how to reslove to problem more perfect? -->
+                      <td>{{log.time | date : 'MMM d h:mm a'}}</td>
+                      <td>{{log.problem}}</td>
+                      <td>{{log.response}}</td>
+                    </tr>
+                  </ng-container>
+                </table>
+                <div>
+                  <button class="btn btn-primary" (click)="addLog(data)"><i class="fas fa-plus"></i>Add
+                    Log</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </ng-container>
     </div>
+    <!-- start with the log editing modal-->
+    <q-modal #logEditingModal>
+      <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="[]" [log]="logInEditing"
+        (success)="onSuccessAddLog($event)" (cancel)="onCancelAddLog()"></app-log-editor>
+    </q-modal>
+    <!-- end with the log editing modal -->
   </div>
