@@ -39,6 +39,7 @@ export class TaskDashboardComponent {
           }
         ]
       },
+      sort: { _id: 1 }, // strange issue, without sort, the list will not be complete for some reason. previously we modified getBatch but it will affect others so we gave up that idea
     }, 8000);
 
     const loadGmbBiz = this._api.getBatch(environment.qmenuApiUrl + 'generic', {

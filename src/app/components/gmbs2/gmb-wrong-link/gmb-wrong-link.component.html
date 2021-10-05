@@ -1,50 +1,62 @@
-<h1 class="text-center">Restaurants with Wrong GMB Links: ({{rows.length}})</h1>
+<h1 class="text-center">Restaurants with Wrong GMB Links: ({{filteredRows.length}})</h1>
+<div class="clearfix">
+  <div class="float-left form-inline py-2">
+    qMenu Website:
+    <select class="form-control mx-2" [(ngModel)]="websiteStatus" (change)="changeFilter()">
+      <option></option>
+      <option *ngFor="let ws of websiteStatuses" value="{{ws}}">{{ws}}</option>
+    </select>
+  </div>
 
-<q-table [rows]="rows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
-  <tr *tableRowTemplate="let row;" class="{{row.restaurant.accountLoc.location.role === 'MANAGER' ? 'alert-danger' : ''}}">
-    <td>{{rows.indexOf(row) + 1}}</td>
-
-    <td>
-      <a target="_blank" href="#/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
-      <br>
-      <small>{{row.restaurant.googleAddress?.formatted_address}}</small>
-    </td>
-    <td >
-      {{row.restaurant.accountLoc.location.role}}
-    </td>
-    <td>
-      {{row.restaurant.score}}
-    </td>
-    <td>
-      <app-gmb-account-hotlink [email]="row.restaurant.accountLoc.account.email"  [appealId]="row.restaurant.accountLoc.location.appealId">
-      </app-gmb-account-hotlink>
-    </td>
-    <td style="width: 100px;">
-      <small>
-        <span><b>qMenu:</b> <i>{{formatLink(row.restaurant.web.qmenuWebsite)}} </i>
-        </span>
+  <q-table [rows]="filteredRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+    <tr *tableRowTemplate="let row;"
+      class="{{row.restaurant.accountLoc.location.role === 'MANAGER' ? 'alert-danger' : ''}}">
+      <td>{{filteredRows.indexOf(row) + 1}}</td>
+      <td>
+        <a target="_blank" href="#/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
         <br>
-        <span><b>Restaurant:</b> <i>{{formatLink(row.restaurant.web.bizManagedWebsite)}} </i>
-        </span>
-      </small>
-    </td>
+        <small>{{row.restaurant.googleAddress?.formatted_address}}</small>
+      </td>
+      <td>
+        <small>{{row.restaurant.createdAt | ago : now}}</small>
+      </td>
+      <td>{{row.restaurant.agent}}</td>
+      <td>
+        {{row.restaurant.accountLoc.location.role}}
+      </td>
+      <td>
+        {{row.restaurant.score}}
+      </td>
+      <td>
+        <app-gmb-account-hotlink [email]="row.restaurant.accountLoc.account.email"
+          [appealId]="row.restaurant.accountLoc.location.appealId">
+        </app-gmb-account-hotlink>
+      </td>
+      <td style="width: 100px;">
+        <small>
+          <span><b>qMenu:</b> <i>{{formatLink(row.restaurant.web.qmenuWebsite)}} </i>
+          </span>
+          <br>
+          <span><b>Restaurant:</b> <i>{{formatLink(row.restaurant.web.bizManagedWebsite)}} </i>
+          </span>
+        </small>
+      </td>
 
-    <td id="fixedWidth">
-      <ul>
-        <li *ngFor="let log of listOfMatchingLogEntries(row.restaurant._id)">
-          <strong>{{log.username}}:</strong> {{log.log}} <i>({{log.createdAt | date : 'shortDate'}})</i>
+      <td id="fixedWidth">
+        <ul>
+          <li *ngFor="let log of listOfMatchingLogEntries(row.restaurant._id)">
+            <strong>{{log.username}}:</strong> {{log.log}} <i>({{log.createdAt | date : 'shortDate'}})</i>
 
-        </li>
-      </ul>
-      <table>
-        <tr>
-          <td><input type="text" class="form-control" placeholder="Add a new log ..." [(ngModel)]="row.content"
-              (keydown.enter)="addLog(row)"></td>
-          <td><button type="button" class="btn btn-outline-success btn-sm" (click)="addLog(row)">Submit</button>
-          </td>
-        </tr>
-      </table>
-
-    </td>
-  </tr>
-</q-table>
+          </li>
+        </ul>
+        <table>
+          <tr>
+            <td><input type="text" class="form-control" placeholder="Add a new log ..." [(ngModel)]="row.content"
+                (keydown.enter)="addLog(row)"></td>
+            <td><button type="button" class="btn btn-outline-success btn-sm" (click)="addLog(row)">Submit</button>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </q-table>
