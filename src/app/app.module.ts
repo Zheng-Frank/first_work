@@ -248,6 +248,7 @@ import { CleanInsistedLinksComponent } from './components/clean-insisted-links/c
 import { PaymentMeansEditorComponent } from './components/restaurants/payment-means-editor/payment-means-editor.component';
 import { OrderlessSignupsComponent } from './components/monitoring/orderless-signups/orderless-signups.component';
 import { ExcessSmsNotificationsRtsComponent } from './components/monitoring/excess-sms-notifications-rts/excess-sms-notifications-rts.component';
+import { MonitoringRtsLogsComponent } from './components/monitoring/monitoring-rts-logs/monitoring-rts-logs.component';
 
 
 
@@ -465,7 +466,8 @@ import { ExcessSmsNotificationsRtsComponent } from './components/monitoring/exce
     CleanInsistedLinksComponent,
     PaymentMeansEditorComponent,
     OrderlessSignupsComponent,
-    ExcessSmsNotificationsRtsComponent
+    ExcessSmsNotificationsRtsComponent,
+    MonitoringRtsLogsComponent
   ],
   imports: [
     BrowserModule,

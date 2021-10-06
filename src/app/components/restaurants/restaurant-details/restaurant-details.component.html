@@ -30,8 +30,30 @@
 </div>
 
 <div *ngIf="restaurant && readonly">
-  <app-restaurant-profile [restaurant]="restaurant" [editable]="false"></app-restaurant-profile>
-  <app-restaurant-gmb [restaurant]="restaurant" [displayFull]="false"></app-restaurant-gmb>
+  <div class="card">
+    <div class="card-header">
+      <ul class="nav nav-tabs card-header-tabs">
+        <li class="nav-item" *ngFor="let tab of tabs">
+          <a *ngIf="tab === 'Settings' || tab === 'GMB' || tab === 'Logs' "
+            class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
+            style="cursor: pointer;">{{tab}} <ng-container *ngIf="tab === 'Logs'">({{restaurant?.logs?.length || 0}})
+            </ng-container></a>
+        </li>
+      </ul>
+    </div>
+    <div class="card-body">
+      <div *ngIf="activeTab === 'Settings'">
+        <app-restaurant-profile [restaurant]="restaurant" [editable]="false"></app-restaurant-profile>
+      </div>
+      <div *ngIf="activeTab === 'GMB'">
+        <app-restaurant-gmb [restaurant]="restaurant" [displayFull]="false"></app-restaurant-gmb>
+      </div>
+      <div *ngIf="activeTab === 'Logs'">
+        <app-restaurant-logs [restaurant]="restaurant" (reload)="reload($event)"></app-restaurant-logs>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <div *ngIf="restaurant && !readonly">
