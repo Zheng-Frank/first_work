@@ -546,30 +546,35 @@ export class ImageManagerComponent implements OnInit {
   }
 
   async onUploadImage(event, row) {
-
     this.uploadImageError = undefined;
     let files = event.target.files;
     try {
       const data: any = await Helper.uploadImage(files, this._api, this._http);
       if (data && data.Location) {
+        // 10/6/2021 aws only returns Location, not Key anymore. We need to parse hat
+        // Location: https://chopst.s3.amazonaws.com/menuImage/1633533679457.jpg
+        // => https://s3.amazonaws.com/chopstresized/96_menuImage/1633533679457.jpg
+        const url = decodeURIComponent(data.Location);
+        const key = url.split('amazonaws.com/')[1];
+        const imageObj = { url };
+        const resolutions = [96, 128, 192, 256, 512, 768];
+        resolutions.forEach(res => imageObj[`url${res}`] = `https://s3.amazonaws.com/chopstresized/${res}_${key}`);
 
-        // https://s3.amazonaws.com/chopstresized/128_menuImage/1546284071756.jpg
-        // https://chopst.s3.amazonaws.com/menuImage/1475263127544.jpg
-        const imageObj = {
-          url: decodeURIComponent(data.Location),
-          url96: 'https://s3.amazonaws.com/chopstresized/96_' + data.Key,
-          url128: 'https://s3.amazonaws.com/chopstresized/128_' + data.Key,
-          url192: 'https://s3.amazonaws.com/chopstresized/192_' + data.Key,
-          url256: 'https://s3.amazonaws.com/chopstresized/256_' + data.Key,
-          url512: 'https://s3.amazonaws.com/chopstresized/512_' + data.Key,
-          url768: 'https://s3.amazonaws.com/chopstresized/768_' + data.Key
-        };
-        row.images = row.images || [];
-        row.images.push(imageObj);
+        const newImages = JSON.parse(JSON.stringify(row.images || []));
+        newImages.push(imageObj);
         await this._api.patch(environment.qmenuApiUrl + 'generic?resource=image', [{
           old: { _id: row._id },
-          new: { _id: row._id, images: row.images }
+          new: { _id: row._id, images: newImages }
         }]).toPromise();
+
+        // because it is going to take a little while for S3 to process the resized images, let's deplay a little bit
+        // otherwise 404 for those resized urls
+        // we are trying to load 192 images
+        const url192 = `https://s3.amazonaws.com/chopstresized/192_${key}`;
+        await Helper.waitUtilImageExists(url192);
+        // wait another 2 seconds after available
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        row.images = newImages;
       }
     } catch (err) {
       this.uploadImageError = err;
