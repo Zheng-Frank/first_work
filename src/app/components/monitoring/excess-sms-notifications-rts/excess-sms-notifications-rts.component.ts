@@ -25,7 +25,9 @@ export class ExcessSmsNotificationsRtsComponent implements OnInit {
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
-      label: "Channels"
+      label: "Channels",
+      paths: ['channels'],
+      sort: (a, b) => b.filter(channel => channel.type === 'SMS' && channel.notifications && channel.notifications.includes('Order')).length - a.filter(channel => channel.type === 'SMS' && channel.notifications && channel.notifications.includes('Order')).length
     }
   ];
   channelTypeToFaClassMap = {
@@ -58,7 +60,7 @@ export class ExcessSmsNotificationsRtsComponent implements OnInit {
         result => {
           // let's update original, assuming everything successful
           this.excessSMSRTs.forEach(restaurant => {
-            if(restaurant._id === rt._id){
+            if (restaurant._id === rt._id) {
               rt.channels = newChannels;
             }
           });
@@ -71,10 +73,10 @@ export class ExcessSmsNotificationsRtsComponent implements OnInit {
           this._global.publishAlert(AlertType.Danger, "Error updating to DB! " + error.message);
         }
       );
-      // it means this restaurant has a right channels configuration and should't appear in the table, if newChannels.length < 4 
-      if(newChannels.filter(channel=>channel.type === 'SMS' && channel.notification && channel.notification.includes('Order')).length < 4){ 
-        await this.aggregateExcessSMSRTs();
-      }  
+    // it means this restaurant has a right channels configuration and should't appear in the table, if newChannels.length < 4 
+    if (newChannels.filter(channel => channel.type === 'SMS' && channel.notification && channel.notification.includes('Order')).length < 4) {
+      await this.aggregateExcessSMSRTs();
+    }
   }
 
   join(values) {
@@ -109,9 +111,10 @@ export class ExcessSmsNotificationsRtsComponent implements OnInit {
       limit: 20000
     }).toPromise();
     this.excessSMSRTs = this.excessSMSRTs.filter(rt => (rt.channels || []).filter(c => c.type === 'SMS' && c.notifications && c.notifications.includes('Order')).length >= 4)
+    this.excessSMSRTs.sort((a,b)=>b.channels.filter(channel => channel.type === 'SMS' && channel.notifications && channel.notifications.includes('Order')).length - a.channels.filter(channel => channel.type === 'SMS' && channel.notifications && channel.notifications.includes('Order')).length);
   }
 
-  isSMSChannel(channel){
+  isSMSChannel(channel) {
     return channel.type === 'SMS' && channel.notifications && channel.notifications.includes('Order')
   }
 
