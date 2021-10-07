@@ -87,7 +87,7 @@
 </div>
 <div class="card text-left bg-light" *qIf="action==='overdue'">
   <div class="card-body">
-    * Last invoice spans over 2+ months, or having two consequent unpaid invoices. <strong>Total unpaid =
+    * Last invoice having two consequent unpaid invoices. <strong>Total unpaid =
       {{getTotalUnpaid() | currency:'USD':'symbol'}}</strong>
     <div class="text-right">
       <div class="pb-2 form-inline">
@@ -98,9 +98,9 @@
           <option>agent...</option>
           <option *ngFor="let agent of overdueAgents">{{agent}}</option>
         </select>
-        <select class="form-control mr-4" [(ngModel)]="overdueMonth">
-          <option>overdue months...</option>
-          <option *ngFor="let month of [2, 3, 4, 5]">{{month}}</option>
+        <select class="form-control mr-4" [(ngModel)]="overduePeriod">
+          <option>overdue periods...</option>
+          <option *ngFor="let period of [2, 3, 4, 5]">{{period}}</option>
         </select>
         <button class="btn btn-primary" (click)="populateOverdue()"><i class="fas fa-sync-alt"></i> Reload</button>
       </div>
@@ -144,7 +144,7 @@
             </tr>
           </table>
         </td>
-        <td class="text-nowrap">{{row.overdueMonths}} months</td>
+        <td class="text-nowrap">{{row.overduePeriods}}</td>
         <td>
           <table class="table table-borderless table-sm">
             <tr *ngFor="let log of row.restaurant.logs">
