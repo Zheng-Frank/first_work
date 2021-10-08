@@ -1,3 +1,13 @@
+/**
+ * visibility and editability hierarchy:
+ * tabs => sections
+ * compbination of role and ownership (agent itself) and timing (eg, +14 days? agent can't see payment means anymore)
+ * 
+ * ADMIN, CSR => everything
+ * agent itself => mostly everything (except sensitive order info)
+ * MARKETER => basic profile
+ * MARKETER_INTERNAL => basic profile + contacts + logs
+ */
 import { LanguageType } from '../../../classes/language-type';
 import { Component, OnInit, Input, OnDestroy, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -305,11 +315,11 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     this.activeTab = this._global.storeGet('restaurantDetailsTab') || 'Settings';
   }
   // show checkmark or x on gmb tab to indicate the restaurant has gmb or not
-  hasGMBAtPresent(){
-    if(this.restaurant.gmbOwnerHistory && this.restaurant.gmbOwnerHistory.length > 0){
+  hasGMBAtPresent() {
+    if (this.restaurant.gmbOwnerHistory && this.restaurant.gmbOwnerHistory.length > 0) {
       this.restaurant.gmbOwnerHistory.sort((a, b) => new Date(b.time).valueOf() - new Date(a.time).valueOf());
       return this.restaurant.gmbOwnerHistory[0].gmbOwner === 'qmenu';
-    }else{
+    } else {
       return false;
     }
   }
@@ -319,8 +329,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       .get(environment.qmenuApiUrl + "generic", {
         resource: "invoice",
         aggregate: [
-          {$match: {"restaurant.id": this.restaurant._id}},
-          {$count: "total"}
+          { $match: { "restaurant.id": this.restaurant._id } },
+          { $count: "total" }
         ]
       }).toPromise();
     this.invoicesCount = count.total;
@@ -569,6 +579,10 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     const roles = this._global.user.roles || [];
     let hasFullPrivilege = this.sectionVisibilityRolesMap[sectionName].filter(r => roles.indexOf(r) >= 0).length > 0;
     if (hasFullPrivilege) {
+      return true;
+    }
+    // TEMP emergent fix: MARKETER can see their own contacts! THIS IS TEMP AND SHOULD BE REMOVED once main logic is fixed
+    if (sectionName === 'contacts' && roles.includes('MARKETER')) {
       return true;
     }
     // marketer should can view rateSchedules in rts under his agent
