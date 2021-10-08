@@ -3801,8 +3801,9 @@ export class DbScriptsComponent implements OnInit {
     const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query: {
+        name: "Panda Cafe", // this line included for testing only, delete before deployment
         disabled: { $ne: true },
-        orderNotifications: null
+        // orderNotifications: null
       },
       projection: {
         channels: 1
@@ -3810,19 +3811,31 @@ export class DbScriptsComponent implements OnInit {
       limit: 10000
     }).toPromise();
 
-    restaurants.forEach(r => {
+    console.log(restaurants);
+
+    for (let r of restaurants) {
+      console.log(r._id.toString())
       const orderNotifications = [];
       const channels = r.channels || [];
-      
+      const printClients = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "print-client",
+        query: {
+          "restaurant._id": r._id.toString()
+        }
+      }).toPromise();
+
+      console.log(printClients);
+      console.log(channels);
+
       channels.forEach(channel => {
         if ((channel.notifications || []).includes("Order")) {
-          const preferredLanguage = channel.channelLanguage || channel.language|| r.preferredLanguage || "ENGLISH";
+          const preferredLanguage = channel.channelLanguage || channel.language || r.preferredLanguage || "ENGLISH";
           orderNotifications.push(
             {
               channel: {
                 type: channel.type,
                 value: channel.value,
-                language: preferredLanguage
+                // language: preferredLanguage
               }
             }
           );
@@ -3833,8 +3846,8 @@ export class DbScriptsComponent implements OnInit {
         old: { _id: r._id },
         new: { _id: r._id, orderNotifications: orderNotifications }
       });
-    });
 
+    }
     try {
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', updatedOldNewPairs).toPromise();
       this._global.publishAlert(
