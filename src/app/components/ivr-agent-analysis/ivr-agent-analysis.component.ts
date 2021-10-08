@@ -1,5 +1,5 @@
 import {GlobalService} from 'src/app/services/global.service';
-import {AfterViewInit, Component, ElementRef, OnInit, QueryList, ViewChildren} from '@angular/core';
+import {Component, ElementRef, OnInit, QueryList, ViewChildren} from '@angular/core';
 import {ApiService} from 'src/app/services/api.service';
 import {environment} from 'src/environments/environment';
 import {Chart} from 'chart.js';
@@ -41,6 +41,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
   list = [];
   totalRecords = 0;
   charts = [];
+  ivrUsers = {};
 
   get now(): string {
     return this.dateStr(new Date());
@@ -253,7 +254,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
     };
     let days = Math.floor((end - start) / (24 * 3600 * 1000));
     data.forEach(item => {
-      let agent = item.Agent.Username;
+      let ivrUsername = item.Agent.Username;
+      let agent = this.ivrUsers[ivrUsername] || ivrUsername;
       map[agent] = map[agent] || {
         totalCalls: 0,
         totalCallTime: 0,
@@ -282,7 +284,20 @@ export class IvrAgentAnalysisComponent implements OnInit {
     return this._global.user.roles.some(role => role === 'ADMIN');
   }
 
+  async getUsers() {
+    let users = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'user',
+      query: {ivrUsername: {$exists: true}},
+      projection: {username: 1, ivrUsername: 1},
+      limit: 1000
+    }).toPromise();
+    users.forEach(({username, ivrUsername}) => {
+      this.ivrUsers[ivrUsername] = username;
+    });
+  }
+
   async ngOnInit() {
+    await this.getUsers();
     await this.changeDate();
   }
 
