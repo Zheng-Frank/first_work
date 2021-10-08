@@ -38,7 +38,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
   sectionVisibilityRolesMap = {
     profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
-    contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
+    contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER_INTERNAL'],
     rateSchedules: ['ADMIN', 'RATE_EDITOR'],
     feeSchedules: ['ADMIN', 'RATE_EDITOR', 'MARKETER', 'CSR'],
     paymentMeans: ['ACCOUNTANT', 'CSR', 'MARKETER'],
@@ -314,19 +314,16 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     }
   }
   // show count of invoices of invoices tab
-  async getInvoicesCountOfRT(){
-    const invoices = await this._api
+  async getInvoicesCountOfRT() {
+    const [count] = await this._api
       .get(environment.qmenuApiUrl + "generic", {
         resource: "invoice",
-        query: {
-          "restaurant.id": this.restaurant._id
-        },
-        projection:{
-          _id: 1
-        },
-        limit:10000000000
+        aggregate: [
+          {$match: {"restaurant.id": this.restaurant._id}},
+          {$count: "total"}
+        ]
       }).toPromise();
-    this.invoicesCount = invoices.length;
+    this.invoicesCount = count.total;
   }
 
   ngOnDestroy() {
@@ -505,7 +502,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           (rt.gmbOwnerHistory || []).reverse();
           (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi && mi.name)));
           const canEdit = this._global.user.roles.some(r =>
-            ['ADMIN', 'MENU_EDITOR', 'CSR', 'ACCOUNTANT'].indexOf(r) >= 0) ||
+            ['ADMIN', 'MENU_EDITOR', 'CSR', 'ACCOUNTANT', 'MARKETER_INTERNAL'].indexOf(r) >= 0) ||
             (rt.rateSchedules).some(rs => rs.agent === 'invalid') ||
             (rt.rateSchedules || []).some(rs => rs.agent === this._global.user.username);
           this.readonly = !canEdit;
@@ -517,8 +514,10 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           // set timer of rt portal
           this.refreshTime();
           this.timer = setInterval(() => this.refreshTime(), this.refreshDataInterval);
-          // count of invoices of restaurant
-          this.getInvoicesCountOfRT();
+          // count of invoices of restaurant if user can see invoice tab
+          if (this.tabs.includes('Invoices')) {
+            this.getInvoicesCountOfRT();
+          }
         },
         error => {
           this.apiRequesting = false;
@@ -569,7 +568,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   isSectionVisible(sectionName) {
     const roles = this._global.user.roles || [];
     let hasFullPrivilege = this.sectionVisibilityRolesMap[sectionName].filter(r => roles.indexOf(r) >= 0).length > 0;
-
     if (hasFullPrivilege) {
       return true;
     }
