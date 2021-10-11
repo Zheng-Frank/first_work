@@ -3812,7 +3812,6 @@ export class DbScriptsComponent implements OnInit {
     }).toPromise();
 
     for (let r of restaurants) {
-      console.log(r._id.toString())
       const orderNotifications = [];
       const channels = r.channels || [];
       const printClients = await this._api.get(environment.qmenuApiUrl + "generic", {
