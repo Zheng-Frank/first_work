@@ -88,21 +88,33 @@ export class InvoiceMonthlyComponent implements OnInit {
     timeThreshold.setMonth(timeThreshold.getMonth() - 5);
 
     // get recent invoice: because we "roll", so we can use latest n invoices of a restaurant to decide of an invoice is overdue
-    const batchSize = 6000;
+    const batchSize = 20000;
     let skip = 0;
     const rtInvoicesList = [];
+    const query = {
+      createdAt: { $gt: { $date: timeThreshold } },
+      isCanceled: { $ne: true },
+      // isPaymentCompleted: { $ne: true },
+      isSent: true,
+      // balance: { $gt: 0 } // only when they owe us money! NOTE we should NOT use this because it could be negative & paid to all previous rolled over ones
+    };
+
+    // to speedup, we also need to know the first ever invoice. if it's included in the result, it's also done!
+    const [firstGoodInvoice] = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: "invoice",
+      query,
+      projection: {
+        _id: 1
+      },
+      sort: { _id: -1 },
+      limit: 1
+    }).toPromise();
     while (true) {
       const rtInvoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'invoice',
         aggregate: [
           {
-            $match: {
-              createdAt: { $gt: { $date: timeThreshold } },
-              isCanceled: { $ne: true },
-              // isPaymentCompleted: { $ne: true },
-              isSent: true,
-              // balance: { $gt: 0 } // only when they owe us money! NOTE we should NOT use this because it could be negative & paid to all previous rolled over ones
-            }
+            $match: query
           },
           {
             $project: {
@@ -125,6 +137,8 @@ export class InvoiceMonthlyComponent implements OnInit {
             }
           },
           { $sort: { _id: -1 } },
+          { $skip: skip },
+          { $limit: batchSize },
           {
             $group: {
               _id: '$restaurant.id',
@@ -144,13 +158,11 @@ export class InvoiceMonthlyComponent implements OnInit {
               'invoices.toDate': 1,
             } // _id is a composite key!
           },
-          { $skip: skip },
-          { $limit: batchSize },
         ]
       }).toPromise();
       rtInvoicesList.push(...rtInvoices);
       skip += batchSize;
-      if (rtInvoices.length === 0 || rtInvoices.length < batchSize) {
+      if (rtInvoices.length === 0 || rtInvoices.some(ri => ri.invoices.some(i => i._id === firstGoodInvoice._id))) {
         break;
       }
     }
