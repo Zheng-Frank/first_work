@@ -3801,17 +3801,15 @@ export class DbScriptsComponent implements OnInit {
     const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query: {
-        name: "Panda Cafe", // this line included for testing only, delete before deployment
         disabled: { $ne: true },
-        // orderNotifications: null
+        orderNotifications: null
       },
       projection: {
-        channels: 1
+        channels: 1,
+        customizedRenderingStyles: 1
       },
       limit: 10000
     }).toPromise();
-
-    console.log(restaurants);
 
     for (let r of restaurants) {
       console.log(r._id.toString())
@@ -3824,23 +3822,55 @@ export class DbScriptsComponent implements OnInit {
         }
       }).toPromise();
 
-      console.log(printClients);
-      console.log(channels);
-
       channels.forEach(channel => {
         if ((channel.notifications || []).includes("Order")) {
           const preferredLanguage = channel.channelLanguage || channel.language || r.preferredLanguage || "ENGLISH";
-          orderNotifications.push(
-            {
-              channel: {
-                type: channel.type,
-                value: channel.value,
-                // language: preferredLanguage
-              }
+          const newChannel = {
+            channel: {
+              type: channel.type,
+              value: channel.value,
+              //language: preferredLanguage
             }
-          );
+          }
+
+          if (channel.type === 'Fax' && r.customizedRenderingStyles) {
+            newChannel["customizedRenderingStyles"] = r.customizedRenderingStyles;
+          }
+
+          orderNotifications.push(newChannel);
         }
       });
+
+      printClients.forEach(pc => {
+        const printers = pc.printers || [];
+        printers.forEach(pr => {
+          const orderViews = pr.orderViews || [];
+          orderViews.forEach(ov => {
+            const copies = ov.copies;
+            const format = ov.format;
+            const templateName = ov.template;
+            const customizedRenderingStyles = ov.customizedRenderingStyles;
+            const guid = pc.guid;
+            const menuFilters = ov.menus;
+            const newNotification = {
+              channel: {
+                type: pc.type,
+                value: pr.name,
+                printClientId: pc._id,
+                ...guid ? { guid } : null
+              },
+              ...customizedRenderingStyles ? { customizedRenderingStyles } : null,
+              ...copies ? { copies } : null,
+              ...format ? { format } : null,
+              ...templateName ? { templateName } : null,
+              ...menuFilters ? { menuFilters } : null
+            };
+            orderNotifications.push(newNotification);
+          });
+        });
+      });
+
+      console.log(orderNotifications);
 
       updatedOldNewPairs.push({
         old: { _id: r._id },
