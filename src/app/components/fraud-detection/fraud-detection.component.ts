@@ -84,7 +84,13 @@ export class FraudDetectionComponent implements OnInit {
 
   async search() {
 
-    let query = {'paymentObj.method': {$ne: 'KEY_IN'}, 'ccAddress.distanceToStore': {$gte: 200}} as object;
+    let query = {
+      'paymentObj.method': {$ne: 'KEY_IN'},
+      $or: [
+        {'computed.total': {$gt: 150}}, // order total over $150
+        {'ccAddress.distanceToStore': {$gte: 200}} // billing address 200 miles from delivery address
+      ]
+    } as object;
 
     let toDate = new Date(), fromDate = new Date();
     fromDate.setDate(fromDate.getDate() - 1);

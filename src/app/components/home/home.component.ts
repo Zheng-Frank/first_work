@@ -200,10 +200,10 @@ export class HomeComponent implements OnInit {
   }
 
   isVisible(section) {
+    const publicSections = ["other-modules"];
     const sectionRolesMap = {
       ownership: ['ADMIN', 'CSR', 'MENU_EDITOR'],
       search: ['ADMIN', 'CSR', 'MENU_EDITOR', 'MARKETER'],
-      "other-modules": ['ADMIN', 'CSR'],
       "gmb-campaign": ['ADMIN'],
       "bulk-messaging": ['ADMIN'],
       "courier-availability": ['ADMIN', 'CSR', 'MARKETER'],
@@ -211,7 +211,7 @@ export class HomeComponent implements OnInit {
       "send-text-message": ['ADMIN', 'CSR', 'MENU_EDITOR', 'MARKETER'],
       "broadcasting": ['ADMIN', 'CSR'],
     };
-    return this._global.user.roles.some(r => sectionRolesMap[section].indexOf(r) >= 0);
+    return publicSections.includes(section) || this._global.user.roles.some(r => sectionRolesMap[section].indexOf(r) >= 0);
   }
 
   selectRestaurant(restaurant) {

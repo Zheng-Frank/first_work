@@ -2,7 +2,7 @@
  * visibility and editability hierarchy:
  * tabs => sections
  * compbination of role and ownership (agent itself) and timing (eg, +14 days? agent can't see payment means anymore)
- * 
+ *
  * ADMIN, CSR => everything
  * agent itself => mostly everything (except sensitive order info)
  * MARKETER => basic profile
@@ -298,7 +298,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "Tasks": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
       "Diagnostics": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
       "Others": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'] // make a superset and reorder authority in restaurant other page.
-    }
+    };
 
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
 
@@ -333,7 +333,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           { $count: "total" }
         ]
       }).toPromise();
-    this.invoicesCount = count.total;
+    this.invoicesCount = count ? count.total : 0;
   }
 
   ngOnDestroy() {
@@ -434,11 +434,11 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       return (rt.score || 0).toFixed(1);
     }
     if (!rt.score) {
-      return 'No Score'
+      return 'No Score';
     } else if (rt.score >= 0 && rt.score < 3) {
-      return 'Low'
+      return 'Low';
     } else if (rt.score >= 3 && rt.score < 6) {
-      return 'Medium'
+      return 'Medium';
     } else {
       return 'High';
     }

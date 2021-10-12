@@ -32,7 +32,7 @@ export class OtherModulesComponent implements OnInit {
     {name: 'Orderless Signups', route: 'orderless-signups', authRoles: ['CSR']},
     {name: 'Leads (Old)', route: 'leads-old', authRoles: ['MARKETER']},
     {name: 'My Leads (Old)', route: 'my-leads-old', authRoles: ['MARKETER']},
-    {name: 'Excess SMS Notifications', route: 'excess-sms-notifications-rts', authRoles:['CSR']}
+    {name: 'Excess SMS Notifications', route: 'excess-sms-notifications-rts', authRoles: ['CSR']}
   ];
 
   constructor(private _global: GlobalService) {

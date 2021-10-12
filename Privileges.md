@@ -12,7 +12,36 @@
 | GMB Campaign | `ADMIN` |
 | Bulk Messaging | `ADMIN` |
 | Broadcasting | `ADMIN`, `CSR` |
-| Other Modules | `ADMIN`, `CSR` |
+| Other Modules | Public |
+
+## Other Modules 
+
+| Module | Authorized Roles |
+|---------|------------------|
+| Json Schemas | `ADMIN`, `DEVELOPER ` |
+| Bootstrap 4 | `ADMIN`, `DEVELOPER ` |
+| UI Components Preview | `ADMIN`, `DEVELOPER ` |
+| Unconfirmed Orders | `ADMIN`, `CSR ` |
+| Bad Hours | `ADMIN`, `CSR ` |
+| Banned Customers | `ADMIN`, `CSR ` |
+| Fax Problems | `ADMIN`, `CSR ` |
+| Disabled Restaurants | `ADMIN`, `CSR ` |
+| Closed Restaurants | `ADMIN`, `CSR ` |
+| Manage Images | `ADMIN`, `CSR ` |
+| Restaurants Promotion | `ADMIN`, `CSR ` |
+| Email Problems | `ADMIN`, `CSR ` |
+| Postmates List (Old) | `ADMIN`, `CSR ` |
+| Postmates Orders | `ADMIN`, `CSR ` |
+| Weird Data | `ADMIN`, `CSR ` |
+| SEO Tracking (Coming Soon) | `ADMIN` |
+| API Logs Dashboard | `ADMIN` |
+| Fraud Detection | `ADMIN`,  `CSR ` |
+| Clean Menus | `ADMIN`,  `CSR ` |
+| Clean Insisted Link Restaurants | `ADMIN`, `CSR ` |
+| Orderless Signups | `ADMIN`,  `CSR ` |
+| Leads (Old) | `ADMIN`, `MARKETER ` |
+| My Leads (Old) | `ADMIN`, `MARKETER ` |
+| Excess SMS Notifications | `ADMIN`, `CSR ` |
 
 ## Restaurant
 
@@ -21,7 +50,7 @@ Editable if roles in {`ADMIN`, `MENU_EDITOR`, `CSR`, `ACCOUNTANT`, `MARKETER_INT
 or RT's agent is invalid or RT's agent is current user
 
 ### Restaurant Tabs
-| Section | Authorized Roles |
+| Tab | Authorized Roles |
 |---------|------------------|
 | Settings | `ADMIN`, `MENU_EDITOR`, `ACCOUNTANT`, `CSR`, `MARKETER`|
 | GMB | `ADMIN`, `MENU_EDITOR`, `CSR`, `MARKETER` |
