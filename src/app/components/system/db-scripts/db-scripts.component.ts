@@ -3828,7 +3828,8 @@ export class DbScriptsComponent implements OnInit {
             channel: {
               type: channel.type,
               value: channel.value,
-              //language: preferredLanguage
+              //language: preferredLanguage 
+              // language preference is currently not implemented for voice/fax/sms - no back-end code makes use of this property. 
             }
           }
 
