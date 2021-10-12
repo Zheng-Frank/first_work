@@ -234,4 +234,8 @@ export class LogEditorComponent implements OnInit {
     this.log.type === 'qr-dine-in' ? this.log.type = undefined : this.log.type = 'qr-dine-in';
   }
 
+  toggleWeirdDataCleanUp(){
+    this.log.type === 'weird-data-cleanup' ? this.log.type = undefined : this.log.type = 'weird-data-cleanup';
+  }
+
 }

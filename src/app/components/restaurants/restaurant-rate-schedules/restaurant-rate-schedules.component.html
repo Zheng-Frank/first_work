@@ -65,6 +65,7 @@
               </td>
               <td>
                 <input class="form-control" type="number" [(ngModel)]="rs.rate" placeholder="eg. 0.04">
+                <small class="text-danger" *ngIf="isRateInvalid('rate',rs.rate)">*** WARNING! Are you sure {{(100 * (rs.rate || 0)).toFixed(2)}}% is the correct value? ***</small>
               </td>
               <td>
                 <input class="form-control" type="number" [(ngModel)]="rs.fixed" placeholder="eg. 0.99">
@@ -74,8 +75,8 @@
               </td>
               <td>
                 <input class="form-control" type="number" [(ngModel)]="rs.commission" placeholder="eg. 0.15">
+                <small class="text-danger" *ngIf="isRateInvalid('commission',rs.commission)">*** WARNING! Are you sure {{(100 * (rs.commission || 0)).toFixed(2)}}% is the correct value? ***</small>
               </td>
-
             </tr>
             <tr>
           </tbody>

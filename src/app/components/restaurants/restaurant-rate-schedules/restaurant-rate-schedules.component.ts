@@ -17,10 +17,22 @@ export class RestaurantRateSchedulesComponent implements OnInit {
   @Input() users = [];
   editing = false;
   rateSchedulesInEditing = [];
-
+  // an object to control whether show percent waring message
+  percentValidationMap = {
+    'rate': 0.06,
+    'commission': 0.3
+  }
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
 
   ngOnInit() {
+  }
+
+   /**
+  *show the warning text: "*** WARNING! Are you sure [PERCENTAGE]% is the correct value? ***"
+  *if someone enter an incorrect percentage value 
+  */
+  isRateInvalid(rateType,rateValue){
+    return rateValue > this.percentValidationMap[rateType];
   }
 
   converting = false;

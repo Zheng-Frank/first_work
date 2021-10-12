@@ -13,16 +13,31 @@ import { lineSplit } from 'pdf-lib';
   styleUrls: ['./gmb-wrong-link.component.css']
 })
 export class GmbWrongLinkComponent implements OnInit {
-  isAdmin = false;
+  now = new Date();
   rows = [];
-  gmbLogs = {};
   filteredRows = [];
+  gmbLogs = {};
+  websiteStatus = 'any';
+  websiteStatuses = [
+    'any',
+    'missing',
+    'not missing'
+  ];
   myColumnDescriptors = [
     {
       label: "#"
     },
     {
       label: "qMenu Restaurant",
+    },
+    {
+      label: "Created",
+      paths: ['restaurant', 'createdAt'],
+      sort: (a, b) => a.valueOf() - b.valueOf()
+    },
+    {
+      label: "Agent",
+      paths: ['restaurant', 'agent'],
     },
     {
       label: "Role",
@@ -42,8 +57,9 @@ export class GmbWrongLinkComponent implements OnInit {
       label: "Notes",
     }
   ];
-  constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
-    this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
+  constructor(private _api: ApiService, private _global: GlobalService) {
+    // put a nice default of filtering of only missing qmenu website for marketers
+    this.websiteStatus = this._global.user.roles.some(r => r === 'MARKETER_INTERNAL') ? 'missing' : 'any'
   }
 
   async ngOnInit() {
@@ -51,10 +67,21 @@ export class GmbWrongLinkComponent implements OnInit {
     await this.refreshLogs();
   }
 
+  changeFilter() {
+    this.filteredRows = this.rows.filter(r => {
+      switch (this.websiteStatus) {
+        case 'missing':
+          return !r.restaurant.web || !r.restaurant.web.qmenuWebsite;
+        case 'not missing':
+          return r.restaurant.web && r.restaurant.web.qmenuWebsite;
+        default:
+          return true;
+      }
+    });
+  }
+
   async populate() {
     // restaurants -> gmbBiz -> published status
-
-
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: 'restaurant',
       projection: {
@@ -72,9 +99,10 @@ export class GmbWrongLinkComponent implements OnInit {
         "web.useBizMenuUrl": 1,
         "web.useBizOrderAheadUrl": 1,
         "web.useBizReservationUrl": 1,
-        "web.ignoreGmbOwnershipRequest": 1
+        "web.ignoreGmbOwnershipRequest": 1,
+        "rateSchedules.agent": 1,
       }
-    }, 20000);
+    }, 11000);
 
     // const restaurants = rawRestaurants.filter(r => r._id === "608ddea741bf021081ac586e");
 
@@ -123,9 +151,11 @@ export class GmbWrongLinkComponent implements OnInit {
     }));
 
     restaurants.map(r => {
+      r.createdAt = new Date(parseInt(r._id.substring(0, 8), 16) * 1000);
       if (r.googleListing && r.googleListing.cid) {
         r.accountLoc = cidAccountLocationMap[r.googleListing.cid];
       }
+      r.agent = (r.rateSchedules || []).map(rs => rs.agent).filter(a => a)[0];
     });
 
     const mismatchedRestaurants = restaurants.filter(restaurant => {
@@ -145,8 +175,8 @@ export class GmbWrongLinkComponent implements OnInit {
 
     const publishedMismatchedRestaurants = mismatchedRestaurants.filter(r => r.accountLoc && r.accountLoc.location.status === 'Published');
     // sort by name!
-
     this.rows = publishedMismatchedRestaurants.map(r => ({ restaurant: r })).sort((r1, r2) => r1.restaurant.name > r2.restaurant.name ? 1 : (r1.restaurant.name < r2.restaurant.name ? -1 : 0));
+    this.changeFilter();
   }
 
   isWebsiteOk(rt) {

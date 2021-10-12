@@ -1,0 +1,47 @@
+<div class="card">
+  <h2 class="card-title m-3">
+    <h1 class="text-center">Excess SMS Notifications ({{excessSMSRTs.length || 0}})</h1>
+  </h2>
+  <div class="card-body">
+    <div class="col-12 text-right form-group">
+      <button class="btn btn-primary" (click)="aggregateExcessSMSRTs()"><i class="fas fa-sync"></i> Reload</button>
+    </div>
+    <q-table [rows]="excessSMSRTs" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
+      [pageSize]="100000">
+      <tr *tableRowTemplate="let r;">
+        <td>{{excessSMSRTs.indexOf(r) + 1}}</td>
+        <td>
+          <a routerLink="/restaurants/{{r['_id']}}">{{r.name}} </a>
+        </td>
+        <td>
+          <table class="table table-borderless table-sm">
+            <thead>
+              <tr *ngIf="r.channels">
+                <th scope="col">Channel</th>
+                <th scope="col">Type</th>
+                <th scope="col">Notifications / Purpose</th>
+                <th scope="col">Channel Language</th>
+                <th scope="col">Operation</th>
+              </tr>
+            </thead>
+            <tbody>
+              <ng-container *ngFor="let channel of r.channels || []">
+                <tr *ngIf="isSMSChannel(channel)">
+                  <td>{{channel.value | tel}}</td>
+                  <td>
+                    <i class="{{channelTypeToFaClassMap[channel.type]}}"></i>
+                  </td>
+                  <td>{{join(channel.notifications)}}</td>
+                  <td>{{Languages[channel.language]}}</td>
+                  <td>
+                    <button class="btn btn-link p0" (click)="deleteChannel(r,channel)">Delete</button>
+                  </td>
+                </tr>
+              </ng-container>
+            </tbody>
+          </table>
+        </td>
+      </tr>
+    </q-table>
+  </div>
+</div>

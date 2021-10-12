@@ -51,7 +51,7 @@
   <!--category cards-->
   <app-menu-category *ngFor="let cat of menu.mcs" [mc]="cat" (onEditAllMenuItems)="editAllItems($event)"
     (onSortMis)="showMiSortingModal($event)" [menuOptions]="restaurant.menuOptions" (onMcClicked)="editMc($event)"
-    (onMiClicked)="editMi($event)" [menu]="menu" [restaurant]="restaurant">
+    (onMiClicked)="editMi($event)" [menu]="menu" [restaurant]="restaurant" [isShowMenuItemStats]="isShowMenuItemStats"> 
   </app-menu-category>
 
   <!--add category section-->

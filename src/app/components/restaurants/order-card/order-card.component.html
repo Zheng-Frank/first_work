@@ -85,23 +85,30 @@
   <!-- end with pc/phone icon -->
   <div class="card-block mt-3">
 
-    <h4 class="text-sm-center">
-      {{getCustomerName(order)}}
-    </h4>
-    <h6 class="text-center text-muted">{{order.id}}</h6>
-    <div class="text-danger text-sm-center pb-2" *ngIf="!order.customerPreviousOrderStatus">Note: New Customer</div>
-    <!-- 显示用户被禁止的理由(show the banned reson of customer if it exsits!) -->
-    <div *ngIf="order.customer?.bannedReasons" class="alert alert-danger">
-      <i class="fa fa-ban"></i> BANNED: {{getBannedReasons()}}
-    </div>
+    <ng-container *ngIf="showAllInfo()">
+      <h4 class="text-sm-center">
+        {{getCustomerName(order)}}
+      </h4>
+      <h6 class="text-center text-muted">{{order.id}}</h6>
+      <div class="text-danger text-sm-center pb-2" *ngIf="!order.customerPreviousOrderStatus">Note: New Customer</div>
+        <!-- 显示用户被禁止的理由(show the banned reson of customer if it exsits!) -->
+      <div *ngIf="order.customer?.bannedReasons" class="alert alert-danger">
+        <i class="fa fa-ban"></i> BANNED: {{getBannedReasons()}}
+      </div>
 
-    <h5 *ngIf="getCustomerPhoneNumber(order)" class="text-sm-center">
-      <a href="tel:{{getCustomerPhoneNumber(order)}}">{{getCustomerPhoneNumber(order) | tel}}</a>
-    </h5>
+      <h5 *ngIf="getCustomerPhoneNumber(order)" class="text-sm-center">
+        <a href="tel:{{getCustomerPhoneNumber(order)}}">{{getCustomerPhoneNumber(order) | tel}}</a>
+      </h5>
 
-    <h5 *ngIf="getCustomerEmail(order)" class="text-sm-center">
-      <a href="mailto:{{getCustomerEmail(order)}}">{{getCustomerEmail(order)}}</a>
-    </h5>
+      <h5 *ngIf="getCustomerEmail(order)" class="text-sm-center">
+        <a href="mailto:{{getCustomerEmail(order)}}">{{getCustomerEmail(order)}}</a>
+      </h5>
+    </ng-container>
+    <ng-container *ngIf="!showAllInfo()">
+      <div class="text-center text-warning mt-2 mb-2">
+        <strong>Customer Info Not Showing In Accordance with HIPAA Law</strong>
+      </div>
+    </ng-container>
     <div class="text-sm-center card-text">
       <span>{{getSubmittedTime(order) | adjustedDate : 'MMM d h:mm a' : restaurant.googleAddress.timezone}}</span>
       |
@@ -201,7 +208,7 @@
           Canceled by {{whoCancelOrder(order)}} on {{getOrderCanceledTime(order) | date:'yyyy-MM-dd HH:mm:ss'}}
         </span>
       </div>
-      <div class="text-right">
+      <div class="text-right" *ngIf="showAllInfo()">
         <hr>
         <a role="button" class="text-danger text-nowrap card-link" (click)="ban(order)" *ngIf="!isBanned(order)">
           <i class="fa fa-thumbs-down"></i> Ban</a>

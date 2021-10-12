@@ -221,6 +221,12 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   isComebackDateCorrectlySet = false;
   isTemporarilyDisabled;
   now = new Date().toISOString().split('T')[0];
+  // an object to control whether show percent waring message
+  percentValidationMap = {
+    'taxRate': 0.2,
+    'ccProcessingRate': 0.05,
+    'surchargeRate': 0.1
+  }
   @ViewChild('previewWebsiteModal') previewWebsiteModal:ModalComponent;
 
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient, private _prunedPatch: PrunedPatchService) {
@@ -390,6 +396,14 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
   displayWebsiteForMarketing() {
     return this._global.user.roles.includes('MARKETER') && !this.editable;
+  }
+
+  /**
+  *show the warning text: "*** WARNING! Are you sure [PERCENTAGE]% is the correct value? ***"
+  *if someone enter an incorrect percentage value 
+  */
+  isRateInvalid(rateType,rateValue){
+    return rateValue > this.percentValidationMap[rateType];
   }
 
   ok() {

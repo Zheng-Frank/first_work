@@ -45,6 +45,11 @@ export class OrderCardComponent implements OnInit {
   ngOnInit() {
   }
 
+  showAllInfo() {
+    let roles = this._global.user.roles || [];
+    return roles.includes('ADMIN') || roles.includes('CSR');
+  }
+
   getOrderOrigin(order){
     let origin = 'others'; // init a value which will be override later
     if (order.analytics) {
@@ -197,6 +202,9 @@ export class OrderCardComponent implements OnInit {
   }
 
   handleOnSetNewStatus(data) {
+    if (!this.showAllInfo()) {
+      return;
+    }
     this.onSetNewStatus.emit(data);
     // hide details if it is over
     if (data && data.status === 'CANCELED' || data && data.status === 'COMPLETED') {

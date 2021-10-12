@@ -9,7 +9,7 @@ import { AlertType } from 'src/app/classes/alert-type';
 import { Helper } from '../../../classes/helper';
 interface OverdueRow {
   unpaidToDate: Date;
-  overdueMonths: number;
+  overduePeriods: number;
   restaurant: any;
   lastInvoice: any;
   localTimeString: string;
@@ -36,7 +36,7 @@ export class InvoiceMonthlyComponent implements OnInit {
   overdueAgents = [];
   overdueAgent = "agent...";
   overdueStatus = "restaurant status...";
-  overdueMonth = "overdue months...";
+  overduePeriod = "overdue periods...";
 
   rolledButLaterCompletedRows = [];
   paymentSentButNotCompletedRows = [];
@@ -161,16 +161,20 @@ export class InvoiceMonthlyComponent implements OnInit {
       ri.restaurant = this.restaurantIdMap[ri._id];
       ri.lastInvoice = ri.invoices.sort((i2, i1) => new Date(i1.fromDate) > new Date(i2.fromDate) ? 1 : -1)[0];
       ri.unpaidToDate = this.getUnpaidToDate(ri.invoices, initUnpaidDate);
-      ri.overdueMonths = Math.ceil((new Date().valueOf() - ri.unpaidToDate.valueOf()) / (30 * 24 * 3600000))
+      ri.overduePeriods = ri.invoices.indexOf(ri.invoices.find(i => i.isPaymentCompleted));
+      if (ri.overduePeriods === -1) {
+        ri.overduePeriods = 5;
+      }
     });
 
     // now let's find overdue rows
-    const OVERDUE_THRESHOLD = 48 * 24 * 3600000;
     const HAVING_RECENT_INVOICES_TO_DATE_THRESHOLD = (31 + 10) * 24 * 3600000;
 
-    this.overdueRows = rtInvoicesList.filter(r =>
-      new Date(r.invoices[0].toDate).valueOf() + HAVING_RECENT_INVOICES_TO_DATE_THRESHOLD > new Date().valueOf() // at least having recently created invoices (some are too little to generate anything)
-      && r.unpaidToDate.valueOf() + OVERDUE_THRESHOLD < new Date().valueOf()); // overdue
+    this.overdueRows = rtInvoicesList.filter(r => {
+      const havingInvoicesLately = new Date(r.invoices[0].toDate).valueOf() + HAVING_RECENT_INVOICES_TO_DATE_THRESHOLD > new Date().valueOf();
+      const overdue = r.overduePeriods >= 2;
+      return havingInvoicesLately && overdue;
+    });
 
     // sort by total unpaid desc
     this.overdueRows.sort((row1, row2) => row2.lastInvoice.balance - row1.lastInvoice.balance);
@@ -596,8 +600,8 @@ export class InvoiceMonthlyComponent implements OnInit {
       if (this.overdueStatus === "enabled" && row.restaurant.disabled) {
         return false;
       }
-      if (+this.overdueMonth > 0) {
-        return row.overdueMonths === +this.overdueMonth;
+      if (+this.overduePeriod > 0) {
+        return row.overduePeriods === +this.overduePeriod;
       }
       return true;
     });

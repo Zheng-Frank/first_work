@@ -1,0 +1,71 @@
+<div class="card">
+  <h2 class="card-title m-3">
+    <h1 class="text-center">Logs of Restaurants({{filterRows.length || 0}})</h1>
+  </h2>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-6 form-inline form-group">
+        <label class="form-check-label" *ngIf="isAdmin()">
+          Users:
+          <select [(ngModel)]="user" class="form-control ml-1" (change)="filter()">
+            <option value="All">All</option>
+            <ng-container>
+              <option *ngFor="let u of users">{{u}}</option>
+            </ng-container>
+          </select>
+        </label>
+        <label class="form-check-label ml-2">
+          Restaurants:
+          <select [(ngModel)]="restaurantName" class="form-control ml-1" style="max-width: 200px;" (change)="filter()">
+            <option value="All">All</option>
+            <ng-container>
+              <option *ngFor="let name of restaurantNames">{{name}}</option>
+            </ng-container>
+          </select>
+        </label>
+        <label class="form-check-label ml-2">
+          Log Types:
+          <select [(ngModel)]="logType" class="form-control ml-1" (change)="filter()">
+            <option value="All">All</option>
+            <ng-container>
+              <option *ngFor="let type of logTypes">{{type}}</option>
+            </ng-container>
+          </select>
+        </label>
+      </div>
+      <div class="reload-position form-inline form-group">
+        <label>From:</label>
+        <input class="form-control ml-1" type="date" [(ngModel)]="fromDate">
+        <label class="ml-2">To:</label>
+        <input class="form-control ml-1" type="date" [(ngModel)]="toDate">
+        <button class="btn btn-primary ml-2" (click)="populateLogsOfRTs()"><i class="fas fa-sync"></i> Reload</button>
+      </div>
+    </div>
+    <q-table [rows]="filterRows" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
+      [pageSize]="100000">
+      <tr *tableRowTemplate="let r;">
+        <td>{{filterRows.indexOf(r) + 1}}</td>
+        <td>
+          <a routerLink="/restaurants/{{r['_id']}}">{{r.name}}</a>
+        </td>
+        <td>
+          <div class="text-right">
+            <button class="btn btn-primary form-group" (click)="createNewLog(r)">
+              <i class="fas fa-plus"></i> Add New Log</button>
+          </div>
+          <app-logs-table [restaurantLogs]="getReversedLogs(r)" [showRestaurant]="false" (select)="select($event)">
+          </app-logs-table>
+        </td>
+      </tr>
+    </q-table>
+    <!--the editing modal-->
+    <q-modal #logEditingModal>
+      <ng-container *ngIf="restaurant && logInEditing">
+        <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="[]" [log]="logInEditing"
+          (success)="onSuccessCreation($event)" (cancel)="onCancelCreation()">
+        </app-log-editor>
+      </ng-container>
+    </q-modal>
+
+  </div>
+</div>

@@ -81,5 +81,8 @@
   <q-form-builder #editingForm [object]="feeScheduleInEditing" [showDelete]="feeScheduleInEditing.id"
     [fieldDescriptors]="fieldDescriptors" (change)="formChanged($event)" (submit)="submit($event)"
     (cancel)="cancel($event)" (remove)="remove($event)">
+    <div *ngIf="isRateInvalid()" class="text-right">
+      <small class="text-danger">*** WARNING! Are you sure {{(100 * (this.feeScheduleInEditing.rate || 0)).toFixed(1)}}% is the correct value for the rate field? ***</small>
+    </div>
   </q-form-builder>
 </q-modal>

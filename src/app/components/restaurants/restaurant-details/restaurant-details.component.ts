@@ -274,6 +274,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       }
     ]
   ];
+  invoicesCount = 0;
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
     const tabVisibilityRolesMap = {
@@ -282,7 +283,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "Menus": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Menu Options": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Coupons": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-      "Orders": ['ADMIN', 'CSR'],
+      "Orders": ['ADMIN', 'CSR', 'MARKETER'],
       "Invoices": ['ADMIN', 'ACCOUNTANT', 'CSR'],
       "Logs": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
       "IVR": ['ADMIN', 'CSR'],
@@ -304,6 +305,30 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.activeTab = this._global.storeGet('restaurantDetailsTab') || 'Settings';
+  }
+  // show checkmark or x on gmb tab to indicate the restaurant has gmb or not
+  hasGMBAtPresent(){
+    if(this.restaurant.gmbOwnerHistory && this.restaurant.gmbOwnerHistory.length > 0){
+      this.restaurant.gmbOwnerHistory.sort((a, b) => new Date(b.time).valueOf() - new Date(a.time).valueOf());
+      return this.restaurant.gmbOwnerHistory[0].gmbOwner === 'qmenu';
+    }else{
+      return false;
+    }
+  }
+  // show count of invoices of invoices tab
+  async getInvoicesCountOfRT(){
+    const invoices = await this._api
+      .get(environment.qmenuApiUrl + "generic", {
+        resource: "invoice",
+        query: {
+          "restaurant.id": this.restaurant._id
+        },
+        projection:{
+          _id: 1
+        },
+        limit:10000000000
+      }).toPromise();
+    this.invoicesCount = invoices.length;
   }
 
   ngOnDestroy() {
@@ -498,6 +523,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           // set timer of rt portal
           this.refreshTime();
           this.timer = setInterval(() => this.refreshTime(), this.refreshDataInterval);
+          // count of invoices of restaurant
+          this.getInvoicesCountOfRT();
         },
         error => {
           this.apiRequesting = false;

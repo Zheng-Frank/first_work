@@ -1,13 +1,27 @@
-import {environment} from '../../environments/environment';
-import {ApiService} from '../services/api.service';
-import {Address} from '@qmenu/ui';
-import {HttpClient} from '@angular/common/http';
+import { environment } from '../../environments/environment';
+import { ApiService } from '../services/api.service';
+import { Address } from '@qmenu/ui';
+import { HttpClient } from '@angular/common/http';
 
-const FULL_LOCALE_OPTS = {year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit'};
+const FULL_LOCALE_OPTS = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit' };
 
 export class Helper {
 
-  static FULL_DATETIME_LOCALE_OPTS = FULL_LOCALE_OPTS;
+    static FULL_DATETIME_LOCALE_OPTS = FULL_LOCALE_OPTS;
+
+    // try to wait until a given resource is ready (useful when upload an image but not knowing when the image is ready)
+    static async waitUtilImageExists(url: string, timeout = 10000) {
+        const timeoutT = new Date(new Date().valueOf() + timeout);
+        while (new Date() < timeoutT) {
+            try {
+                await fetch(url);
+                return true;
+            } catch (error) {
+            };            
+            await new Promise(resolve => setTimeout(resolve, 500 * 1));
+        }
+        return false;
+    }
 
     static async uploadImage(files: File[], _api: ApiService, _http: HttpClient) {
         // let's take only the first file so far (possible for multiple files in future)
@@ -24,7 +38,7 @@ export class Helper {
                 const response = await _api.get(environment.appApiUrl + apiPath).toPromise();
                 const presignedUrl = response['url'];
                 await _http.put(presignedUrl, file).toPromise();
-                return {Location: presignedUrl.slice(0, presignedUrl.indexOf('?'))};
+                return { Location: presignedUrl.slice(0, presignedUrl.indexOf('?')) };
             } catch (error) {
                 throw new Error('Failed to get presigned Url');
             }
@@ -126,9 +140,9 @@ export class Helper {
     static processBatchedPromises(promises): any {
         return Promise.all(promises.map(p => new Promise((resolve, reject) => {
             p.then(data => {
-                resolve({result: data, success: true});
+                resolve({ result: data, success: true });
             }).catch(error => {
-                resolve({result: error, success: false});
+                resolve({ result: error, success: false });
             });
         })));
     }
@@ -276,8 +290,8 @@ export class Helper {
     static getOffsetNumToEST(timezone: string) {
         if (timezone) {
             const now = new Date();
-            const offset = (new Date(now.toLocaleString('en-US', {timeZone: timezone, ...FULL_LOCALE_OPTS})).valueOf()
-                - new Date(now.toLocaleString('en-US', {timeZone: 'America/New_York', ...FULL_LOCALE_OPTS})).valueOf()) / 3600000;
+            const offset = (new Date(now.toLocaleString('en-US', { timeZone: timezone, ...FULL_LOCALE_OPTS })).valueOf()
+                - new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York', ...FULL_LOCALE_OPTS })).valueOf()) / 3600000;
             if (offset > 0) {
                 return '+' + offset;
             } else {
@@ -296,7 +310,7 @@ export class Helper {
      * @param timezone
      */
     static adjustDate(datetime: Date, timezone?: string) {
-        return new Date(datetime.toLocaleString('en-US', {timeZone: timezone, ...FULL_LOCALE_OPTS}));
+        return new Date(datetime.toLocaleString('en-US', { timeZone: timezone, ...FULL_LOCALE_OPTS }));
     }
 
     static sanitizedName(menuItemName) {

@@ -1,0 +1,8 @@
+::ng-deep th:nth-child(2) {
+  width: 25%;
+}
+
+.reload-position{
+    position: absolute;
+    right: 25px;
+}

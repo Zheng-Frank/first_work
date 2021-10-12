@@ -37,6 +37,16 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   firstNotifications = true;
   secondNotifications = true;
   checkingPostmatesAvailability = false;
+  now = new Date(); // to tell if a delivery hours is expired
+
+  isDeliveryHoursExpired(hour) {
+    return hour.toTime && this.now > hour.toTime;
+  }
+
+  // control whether show delivery start time and end time 
+  hasDeliveryHours(){
+    return (this.restaurant.deliveryHours || []).filter(h => h.occurence === 'WEEKLY' && !this.isDeliveryHoursExpired(h)).length > 0;
+  }
 
   getDistance(lat1, lng1, lat2, lng2) {
     var radLat1 = lat1 * Math.PI / 180.0;
@@ -237,7 +247,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
       "courier",
       "deliveryArea",
       "deliveryEndMinutesBeforeClosing",
-      "deliveryFrom",
+      "deliveryFromTime",
       "deliveryHours",
       "deliverySettings",
       "taxOnDelivery",
