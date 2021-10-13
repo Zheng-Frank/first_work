@@ -89,6 +89,9 @@ export class ExcessSmsNotificationsRtsComponent implements OnInit {
       aggregate: [
         {
           '$match': {
+            'disabled': {
+              '$ne': true
+            },
             'channels.type': 'SMS',
             'channels.notifications': {
               '$exists': true,
