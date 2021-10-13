@@ -3,7 +3,8 @@ import { ApiService } from "../../services/api.service";
 import { environment } from "../../../environments/environment";
 import { GlobalService } from "../../services/global.service";
 import { Router } from '@angular/router';
-import {AlertType} from '../../classes/alert-type';
+import { AlertType } from '../../classes/alert-type';
+import { HttpClient } from '@angular/common/http';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -23,7 +24,7 @@ export class HomeComponent implements OnInit {
   checkingPostmatesAvailability;
   addressToCheckAvailability = '';
   messageTemplates = [
-    [{title: 'Custom'}],
+    [{ title: 'Custom' }],
     [
       {
         title: 'QR Biz link',
@@ -146,25 +147,18 @@ export class HomeComponent implements OnInit {
   }
 
   isVisible(section) {
+    const publicSections = ["other-modules"];
     const sectionRolesMap = {
-      email: ['ADMIN', 'CSR', 'MENU_EDITOR'],
-      template: ['ADMIN', 'CSR', 'MENU_EDITOR'],
+      ownership: ['ADMIN', 'CSR', 'MENU_EDITOR'],
       search: ['ADMIN', 'CSR', 'MENU_EDITOR', 'MARKETER'],
-     // "fax-problems": ['ADMIN', 'CSR'],
-     // "email-problems": ['ADMIN', 'CSR'],
-     // "unconfirmed-orders": ['ADMIN', 'CSR'],
-      "other-modules": ['ADMIN', 'CSR'],
-     // "image-manager": ['ADMIN'],
       "gmb-campaign": ['ADMIN'],
       "bulk-messaging": ['ADMIN'],
       "courier-availability": ['ADMIN', 'CSR', 'MARKETER'],
+      "send-fax": ["ADMIN", 'CSR'],
       "send-text-message": ['ADMIN', 'CSR', 'MENU_EDITOR', 'MARKETER'],
       "broadcasting": ['ADMIN', 'CSR'],
-      "awaiting-onboarding": ['ADMIN', 'MENU_EDITOR'],
-      // "disabled-restaurants": ['ADMIN'],
-      // "monitoring-hours": ['ADMIN', 'CSR']
     };
-    return this._global.user.roles.some(r => sectionRolesMap[section].indexOf(r) >= 0);
+    return publicSections.includes(section) || this._global.user.roles.some(r => sectionRolesMap[section].indexOf(r) >= 0);
   }
 
   selectRestaurant(restaurant) {

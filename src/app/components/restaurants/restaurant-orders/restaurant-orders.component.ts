@@ -328,12 +328,33 @@ export class RestaurantOrdersComponent implements OnInit {
         query['customerObj.phone'] = this.searchText.trim();
       }
     }
+
+    const orderQueryProjection = {
+      logs: 0
+    };
+
+    if (this._global.user.roles.every(role => role !== 'ADMIN' && role !== 'CSR')) {
+      const additionalExcludedFields = [
+        "ccAddress",
+        "customer",
+        "customerObj.email",
+        "customerObj.firstName",
+        "customerObj.lastName",
+        "customerObj.phone",
+        "paymentObj.card",
+        "paymentObj.stripeObject",
+        "paymentObj.token.card",
+        "restaurantObj"
+      ];
+
+      additionalExcludedFields.forEach(field => {
+        orderQueryProjection[field] = 0;
+      });
+    }
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: query,
-      projection: {//返回除logs以外的所有行
-        logs: 0,
-      },
+      projection: orderQueryProjection,
       sort: {
         createdAt: -1
       },

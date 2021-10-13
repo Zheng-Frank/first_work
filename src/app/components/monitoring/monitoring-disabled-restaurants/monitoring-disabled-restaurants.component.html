@@ -3,6 +3,10 @@
     <h1 class="text-center">Disabled Restaurants ({{restaurants.length || 0}})</h1>
   </h2>
   <div class="card-body">
+    <div class="form-inline ml-2 form-group">
+      <input class="form-check-input" type="checkbox" (change)='showLast2Logs = !showLast2Logs'>
+      <label class="form-check-label"> Show last 2 RT logs</label>
+    </div>
     <q-table [rows]="restaurants" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
       [pageSize]="100000">
       <tr *tableRowTemplate="let r;">
@@ -12,15 +16,28 @@
           <div class="text-muted">
             <small>{{r.googleAddress?.formatted_address}}</small>
           </div>
+          <div *ngIf="showLast2Logs">
+            <app-logs-table class="log-table" [restaurantLogs]="getRestaurantLogs(r)"></app-logs-table>
+          </div>
         </td>
         <td>
           {{(r.rateSchedules || [])[0]?.agent || 'N/A'}}
         </td>
         <td>
-          {{getTime(r.createdAt) | dateTz: 'MMM d, yyyy' : r.googleAddress?.timezone }}
+          <ng-container *ngIf="r.createdAt">
+            {{getTime(r.createdAt) | dateTz: 'MMM d, yyyy' : r.googleAddress?.timezone }}
+          </ng-container>
+          <ng-container *ngIf="!r.createdAt">
+            N/A
+          </ng-container>
         </td>
         <td>
-          {{getTime(r.disabledAt) | dateTz: 'MMM d, yyyy' : r.googleAddress?.timezone }}
+          <ng-container *ngIf="r.disabledAt">
+            {{getTime(r.disabledAt) | dateTz: 'MMM d, yyyy' : r.googleAddress?.timezone }}
+          </ng-container>
+          <ng-container *ngIf="!r.disabledAt">
+            N/A
+          </ng-container>
         </td>
         <td>
           {{r.lifetime}}

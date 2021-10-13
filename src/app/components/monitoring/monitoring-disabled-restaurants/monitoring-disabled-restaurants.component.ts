@@ -40,9 +40,17 @@ export class MonitoringDisabledRestaurantsComponent implements OnInit {
     constructor(private _api: ApiService, private _global: GlobalService) { }
 
     restaurants = [];
+    showLast2Logs = false;
 
     ngOnInit() {
         this.refreshRestaurant();
+    }
+     // app-log-table component need to a particular format
+    getRestaurantLogs(restaurant){
+        return [...new Set(restaurant.logs.map(log=>({
+            restaurant: restaurant,
+            log: log
+        })))]
     }
 
     async refreshRestaurant() {
@@ -60,7 +68,10 @@ export class MonitoringDisabledRestaurantsComponent implements OnInit {
                 'rateSchedules.agent': 1,
                 createdAt: 1,
                 updatedAt: 1,
-                disabledAt: 1
+                disabledAt: 1,
+                logs: {
+                    $slice: -2
+                }
             },
             sort: {
                 createdAt: -1

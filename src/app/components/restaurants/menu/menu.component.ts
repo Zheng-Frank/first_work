@@ -21,6 +21,7 @@ export class MenuComponent implements OnInit {
   @Output() onVisitMenuOptions = new EventEmitter();
   @Input() menu: Menu;
   @Input() restaurant: Restaurant;
+  @Input() isShowMenuItemStats = false; // control whether show menu items' stats
 
   @ViewChild('mcModal') mcModal: ModalComponent;
   @ViewChild('miModal') miModal: ModalComponent;

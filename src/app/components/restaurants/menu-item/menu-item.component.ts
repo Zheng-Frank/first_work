@@ -11,6 +11,7 @@ export class MenuItemComponent implements OnInit {
   @Input() menuOptions: MenuOption[] = [];
   @Input() menu: Menu;
   @Input() restaurant: Restaurant;
+  @Input() isShowMenuItemStats = false; // control whether show menu items' stats
 
   constructor() { }
 

@@ -1,3 +1,13 @@
+/**
+ * visibility and editability hierarchy:
+ * tabs => sections
+ * compbination of role and ownership (agent itself) and timing (eg, +14 days? agent can't see payment means anymore)
+ *
+ * ADMIN, CSR => everything
+ * agent itself => mostly everything (except sensitive order info)
+ * MARKETER => basic profile
+ * MARKETER_INTERNAL => basic profile + contacts + logs
+ */
 import { LanguageType } from '../../../classes/language-type';
 import { Component, OnInit, Input, OnDestroy, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -38,7 +48,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
   sectionVisibilityRolesMap = {
     profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
-    contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
+    contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER_INTERNAL'],
     rateSchedules: ['ADMIN', 'RATE_EDITOR'],
     feeSchedules: ['ADMIN', 'RATE_EDITOR', 'MARKETER', 'CSR'],
     paymentMeans: ['ACCOUNTANT', 'CSR', 'MARKETER'],
@@ -272,6 +282,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       }
     ]
   ];
+  invoicesCount = 0;
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
     const tabVisibilityRolesMap = {
@@ -280,14 +291,14 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "Menus": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Menu Options": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
       "Coupons": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-      "Orders": ['ADMIN', 'CSR'],
+      "Orders": ['ADMIN', 'CSR', 'MARKETER'],
       "Invoices": ['ADMIN', 'ACCOUNTANT', 'CSR'],
       "Logs": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
       "IVR": ['ADMIN', 'CSR'],
       "Tasks": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
       "Diagnostics": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
       "Others": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'] // make a superset and reorder authority in restaurant other page.
-    }
+    };
 
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
 
@@ -302,6 +313,27 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.activeTab = this._global.storeGet('restaurantDetailsTab') || 'Settings';
+  }
+  // show checkmark or x on gmb tab to indicate the restaurant has gmb or not
+  hasGMBAtPresent() {
+    if (this.restaurant.gmbOwnerHistory && this.restaurant.gmbOwnerHistory.length > 0) {
+      this.restaurant.gmbOwnerHistory.sort((a, b) => new Date(b.time).valueOf() - new Date(a.time).valueOf());
+      return this.restaurant.gmbOwnerHistory[0].gmbOwner === 'qmenu';
+    } else {
+      return false;
+    }
+  }
+  // show count of invoices of invoices tab
+  async getInvoicesCountOfRT() {
+    const [count] = await this._api
+      .get(environment.qmenuApiUrl + "generic", {
+        resource: "invoice",
+        aggregate: [
+          { $match: { "restaurant.id": this.restaurant._id } },
+          { $count: "total" }
+        ]
+      }).toPromise();
+    this.invoicesCount = count ? count.total : 0;
   }
 
   ngOnDestroy() {
@@ -402,11 +434,11 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       return (rt.score || 0).toFixed(1);
     }
     if (!rt.score) {
-      return 'No Score'
+      return 'No Score';
     } else if (rt.score >= 0 && rt.score < 3) {
-      return 'Low'
+      return 'Low';
     } else if (rt.score >= 3 && rt.score < 6) {
-      return 'Medium'
+      return 'Medium';
     } else {
       return 'High';
     }
@@ -480,7 +512,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           (rt.gmbOwnerHistory || []).reverse();
           (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi && mi.name)));
           const canEdit = this._global.user.roles.some(r =>
-            ['ADMIN', 'MENU_EDITOR', 'CSR', 'ACCOUNTANT'].indexOf(r) >= 0) ||
+            ['ADMIN', 'MENU_EDITOR', 'CSR', 'ACCOUNTANT', 'MARKETER_INTERNAL'].indexOf(r) >= 0) ||
             (rt.rateSchedules).some(rs => rs.agent === 'invalid') ||
             (rt.rateSchedules || []).some(rs => rs.agent === this._global.user.username);
           this.readonly = !canEdit;
@@ -492,6 +524,10 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           // set timer of rt portal
           this.refreshTime();
           this.timer = setInterval(() => this.refreshTime(), this.refreshDataInterval);
+          // count of invoices of restaurant if user can see invoice tab
+          if (this.tabs.includes('Invoices')) {
+            this.getInvoicesCountOfRT();
+          }
         },
         error => {
           this.apiRequesting = false;
@@ -542,8 +578,11 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   isSectionVisible(sectionName) {
     const roles = this._global.user.roles || [];
     let hasFullPrivilege = this.sectionVisibilityRolesMap[sectionName].filter(r => roles.indexOf(r) >= 0).length > 0;
-
     if (hasFullPrivilege) {
+      return true;
+    }
+    // TEMP emergent fix: MARKETER can see their own contacts! THIS IS TEMP AND SHOULD BE REMOVED once main logic is fixed
+    if (sectionName === 'contacts' && roles.includes('MARKETER')) {
       return true;
     }
     // marketer should can view rateSchedules in rts under his agent

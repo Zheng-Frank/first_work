@@ -1,0 +1,3 @@
+::ng-deep td:nth-child(5){
+    max-width: 150px !important;
+}

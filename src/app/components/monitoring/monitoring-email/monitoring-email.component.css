@@ -1,0 +1,16 @@
+
+.filter .input-group label {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem;
+  margin-bottom: 0;
+}
+
+.form-control.email-input {
+  width: 15rem;
+  display: inline-block;
+}
+
+a.customer-link {
+  color: #349A9C;
+}

@@ -80,16 +80,24 @@
               </tr>
 
               <!--end add bolck-->
-              <tr *ngIf="restaurant.deliveryFromTime">
-                <th class="text-left">Start Time:</th>
-                <td class="pl-1">
-                  {{restaurant.deliveryFromTime | adjustedDate : 'h:mm a' : restaurant.googleAddress.timezone}}
-                </td>
-              </tr>
-              <tr>
-                <th class="text-left">End Time:</th>
-                <td class="pl-1">{{getDeliveryEndString()}}</td>
-              </tr>
+              <ng-container *ngIf="!hasDeliveryHours()">
+                <tr *ngIf="restaurant.deliveryFromTime">
+                  <th class="text-left">Start Time:</th>
+                  <td class="pl-1">
+                    {{restaurant.deliveryFromTime | adjustedDate : 'h:mm a' : restaurant.googleAddress.timezone}}
+                  </td>
+                </tr>
+                <tr *ngIf="!restaurant.deliveryFromTime">
+                  <th class="text-left">Start Time:</th>
+                  <td class="pl-1">
+                    At business open
+                  </td>
+                </tr>
+                <tr>
+                  <th class="text-left">End Time:</th>
+                  <td class="pl-1">{{getDeliveryEndString()}}</td>
+                </tr>
+              </ng-container>
               <tr>
                 <th class="text-left">Delivery Open Hours:</th>
                 <td>

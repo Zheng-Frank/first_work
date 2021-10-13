@@ -1,6 +1,5 @@
 <h1 class="text-center">qMenu Portal</h1>
 
-<!-- <app-holiday-monitor></app-holiday-monitor> -->
 <div class="card-group">
   <div class="card" *ngIf="isVisible('search')">
     <div class="card-body">
@@ -10,7 +9,7 @@
     </div>
   </div>
 
-  <div class="card" *ngIf="isVisible('email')">
+  <div class="card" *ngIf="isVisible('ownership')">
     <div class="card-body">
       <h5 class="card-title">
         <i class="fas fa-exchange-alt"></i> Change ownership
@@ -57,7 +56,7 @@
       <h5 class="card-title"><i class="fa fa-comments"></i> Send Text Message</h5>
       <div class="mt-3">
         <label>Send to: </label>
-        <input class="form-control" type="tel" [(ngModel)]="textPhoneNumber" >
+        <input class="form-control" type="tel" [(ngModel)]="textPhoneNumber">
       </div>
       <div class="mt-3">
         <label>Message Template: </label>
@@ -73,10 +72,12 @@
       </div>
       <div class="mt-3">
         <label>SMS Content:</label>
-        <textarea [disabled]="messageTemplate.title !== 'Custom'" rows="10" class="form-control" [(ngModel)]="messageTemplate.content"></textarea>
+        <textarea [disabled]="messageTemplate.title !== 'Custom'" rows="10" class="form-control"
+          [(ngModel)]="messageTemplate.content"></textarea>
       </div>
       <div class="mt-3">
-        <button (click)="sendText()" [disabled]="!isPhoneValid() || !messageTemplate.content" class="btn btn-primary btn-block">Send</button>
+        <button (click)="sendText()" [disabled]="!isPhoneValid() || !messageTemplate.content"
+          class="btn btn-primary btn-block">Send</button>
       </div>
     </div>
   </div>
@@ -84,10 +85,16 @@
 </div>
 
 <div class="card-group m-1">
+  <div class="card" *ngIf="isVisible('send-fax')">
+    <div class="card-body">
+      <app-send-fax></app-send-fax>
+    </div>
+  </div>
   <div class="card" *ngIf="isVisible('gmb-campaign')">
     <div class="card-body">
       <h5 class="card-title">
-        <i class="far fa-address-book"></i> GMB Campaign</h5>
+        <i class="far fa-address-book"></i> GMB Campaign
+      </h5>
       <app-gmb-campaign></app-gmb-campaign>
     </div>
   </div>
@@ -97,20 +104,20 @@
   <div class="card" *ngIf="isVisible('bulk-messaging')">
     <div class="card-body">
       <h5 class="card-title">
-        <i class="far fa-comment-dots"></i> Bulk Messaging</h5>
+        <i class="far fa-comment-dots"></i> Bulk Messaging
+      </h5>
       <!-- enable prefer language restaurants -->
       <app-bulk-messaging [ePLRestaurants]="restaurantList"></app-bulk-messaging>
     </div>
   </div>
 </div>
 
-
-
 <div class="card-group m-1">
   <div class="card" *ngIf="isVisible('broadcasting')">
     <div class="card-body">
       <h5 class="card-title">
-        <i class="fas fa-bullhorn"></i> Broadcasting</h5>
+        <i class="fas fa-bullhorn"></i> Broadcasting
+      </h5>
       <app-broadcasting-editor></app-broadcasting-editor>
     </div>
   </div>
@@ -119,69 +126,9 @@
   <div class="card" *ngIf="isVisible('other-modules')">
     <div class="card-body">
       <h5 class="card-title">
-        <i class="fa fa-th"></i> Other Modules</h5>
+        <i class="fa fa-th"></i> Other Modules
+      </h5>
       <app-other-modules></app-other-modules>
     </div>
   </div>
 </div>
-
-<!-- <div class="card-group">
-  <div class="card" *ngIf="isVisible('unconfirmed-orders')">
-    <div class="card-body">
-      <h5 class="card-title">
-        <i class="fas fa-exclamation"></i> Unconfirmed Orders</h5>
-      <app-monitoring-unconfirmed-orders></app-monitoring-unconfirmed-orders>
-    </div>
-  </div>
-</div>
-
-<div class="card-group">
-  <div class="card" *ngIf="isVisible('fax-problems')">
-    <div class="card-body">
-      <h5 class="card-title">
-        <i class="fas fa-exclamation"></i> Fax Problems</h5>
-      <app-monitoring-fax></app-monitoring-fax>
-    </div>
-  </div>
-  <div class="card" *ngIf="isVisible('email-problems')">
-    <div class="card-body">
-      <h5 class="card-title">
-        <i class="fas fa-exclamation"></i> Email Problems</h5>
-      <app-monitoring-email></app-monitoring-email>
-    </div>
-  </div>
-</div>
-
-
-<div class="card-group" *ngIf="isVisible('monitoring-hours')">
-  <div class="card">
-    <div class="card-body">
-      <h5 class="card-title">
-        <i class="far fa-images"></i> Bad Hours</h5>
-      <app-monitoring-hours></app-monitoring-hours>
-    </div>
-  </div>
-</div>
-
-
-
-<div class="card-group">
-  <div class="card" *ngIf="isVisible('disabled-restaurants')">
-    <div class="card-body">
-      <h5 class="card-title">
-        <i class="far fa-images"></i> Disabled Restaurants</h5>
-      <app-monitoring-disabled-restaurants></app-monitoring-disabled-restaurants>
-    </div>
-  </div>
-</div>
-
-<div class="card-group">
-  <div class="card" *ngIf="isVisible('image-manager')">
-    <div class="card-body">
-      <h5 class="card-title">
-        <i class="far fa-images"></i> Manage Images</h5>
-      <app-image-manager></app-image-manager>
-    </div>
-  </div>
-</div>
--->

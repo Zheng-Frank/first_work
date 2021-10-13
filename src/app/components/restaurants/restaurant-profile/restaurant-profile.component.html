@@ -882,6 +882,7 @@
             </label>
             <div class="pl-1 col-7">
               <input type="number" [(ngModel)]="taxRate" class="form-control">
+              <small class="text-danger" *ngIf="isRateInvalid('taxRate',taxRate)">*** WARNING! Are you sure {{taxRate|percentage}} is the correct value? ***</small>
             </div>
           </div>
           <div class="form-group row">
@@ -1151,6 +1152,10 @@
                 <label>rate</label>
                 <input type="number" style="width: auto;" [(ngModel)]="surchargeRate" class="form-control"
                   placeholder="rate">
+                <ng-container *ngIf="isRateInvalid('surchargeRate',surchargeRate)">
+                  <small class="text-danger">*** WARNING! Are you sure {{surchargeRate|percentage}} is the correct value? ***</small>
+                  <br/>
+                </ng-container>
                 <small>* This is money charged to customer for every online order and the collected
                   money goes to restaurant.
                   <i class="fas fa-exclamation"></i> It may drive customers away.</small>
@@ -1170,6 +1175,7 @@
               </label>
               <div class="pl-1 col-7">
                 <input type="number" [(ngModel)]="ccProcessingRate" class="form-control" placeholder="rate">
+                <small class="text-danger" *ngIf="isRateInvalid('ccProcessingRate',ccProcessingRate)">*** WARNING! Are you sure {{ccProcessingRate|percentage}} is the correct value? ***</small>
               </div>
             </div>
             <div class="form-group row">
@@ -1629,7 +1635,10 @@
         <div class="form-group row  text-right">
           <div class="col-12">
             <button class="btn btn-secondary" (click)="cancel()">Cancel</button>
-            <button class="btn btn-primary ml-2" [disabled]="!isEmailValid()" (click)="ok()">OK</button>
+            <button class="btn btn-primary ml-2" [disabled]="!isEmailValid() || requiredFieldsMissing()"
+              (click)="ok()">OK</button>
+          </div>
+          <div *ngIf="requiredFieldsMissing()" class="text-danger font-weight-bold">Missing required field(s): {{requiredFieldsMissing()}}
           </div>
         </div>
       </div>
