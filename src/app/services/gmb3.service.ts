@@ -431,4 +431,18 @@ export class Gmb3Service {
     // later. Maybe we should consider listings of restaurant instead!!!
   }
 
+  async checkGmbOwnership(restaurantId: string) {
+    try {
+      return await this._api.post(environment.appApiUrl + "gmb/generic", {
+        name: "check-gmb-api-ownership",
+        payload: {
+          "restaurantId": restaurantId
+        }
+      }).toPromise();
+    } catch (error) {
+      console.error(`Error. Couldn't retrieve GMB ownership`, error);
+      return false;
+    }
+  }
+
 }

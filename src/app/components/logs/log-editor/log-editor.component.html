@@ -165,4 +165,22 @@
       <label class="form-check-label" for="id-resolved"> Resolved</label>
     </div>
   </div>
+
+  <h6 class="text-danger mb-3" style="cursor: pointer" (click)="showSpecialized = !showSpecialized">{{!showSpecialized ? 'Show' : 'Hide'}} Specialized...</h6>
+  <div *qIf="showSpecialized">
+    <div class="mb-3 ml-3">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="id-qr-dine-in"
+               [checked]="log.type === 'qr-dine-in'" (change)='toggleQRDineIn()'>
+        <label class="form-check-label" for="id-qr-dine-in">QR Dine-In</label>
+      </div>
+    </div>
+    <div class="mb-3 ml-3">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="id-cleanup-insisted"
+               [checked]="log.type === 'cleanup-insisted'" (change)='toggleInsistedLink()'>
+        <label class="form-check-label" for="id-cleanup-insisted">Insisted Link Cleanup</label>
+      </div>
+    </div>
+  </div>
 </q-form-builder>
