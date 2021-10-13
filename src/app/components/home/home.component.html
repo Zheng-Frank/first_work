@@ -87,29 +87,7 @@
 <div class="card-group m-1">
   <div class="card" *ngIf="isVisible('send-fax')">
     <div class="card-body">
-      <h5 class="card-title"><i class="fa fa-fax"></i> Send Fax</h5>
-      <div class="mt-3">
-        <label>Send to: </label>
-        <input class="form-control" type="tel" [(ngModel)]="faxNumber">
-      </div>
-      <div class="mt-3">
-        <label>Send Type: </label>
-        <select class="form-control" [(ngModel)]="sendFaxType">
-          <option value="upload">Upload</option>
-          <option value="html">HTML</option>
-        </select>
-      </div>
-      <div class="mt-3" *ngIf="sendFaxType === 'upload'">
-        <input type="file" (change)="upload($event)">
-      </div>
-      <div class="mt-3" *ngIf="sendFaxType === 'html'">
-        <label>HTML Content:</label>
-        <textarea rows="10" class="form-control" [(ngModel)]="faxHTML"></textarea>
-      </div>
-      <div class="mt-3">
-        <button (click)="sendFax()" [disabled]="!sendFaxReady()" class="btn btn-primary btn-block"
-          [qLoading]="sendingFax">Send</button>
-      </div>
+      <app-send-fax></app-send-fax>
     </div>
   </div>
   <div class="card" *ngIf="isVisible('gmb-campaign')">
