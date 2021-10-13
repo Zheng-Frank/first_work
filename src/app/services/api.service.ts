@@ -52,7 +52,7 @@ export class ApiService {
    */
   async getBatch(api, payload, batchSize) {
 
-    let batchPayload = { ...payload };
+    let batchPayload = { /*sort: { _id: 1 },*/ ...payload }; // 10/5/2021 revert back to not sorting anything
     const payloadLimit = batchPayload.limit || Number.MAX_VALUE; //old limit
 
     const result = [];

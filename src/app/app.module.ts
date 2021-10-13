@@ -243,6 +243,11 @@ import { MyLeads2Component } from './components/leads/my-leads2/my-leads2.compon
 import { CleanMenusComponent } from './components/monitoring/clean-menus/clean-menus.component';
 import { RestaurantIvrListComponent } from './components/restaurants/restaurant-ivr-list/restaurant-ivr-list.component';
 import { LeadDetailsComponent } from './components/leads/lead-details/lead-details.component';
+import { GmbTaskDetailComponent } from './components/gmbs2/gmb-task-detail/gmb-task-detail.component';
+import { CleanInsistedLinksComponent } from './components/clean-insisted-links/clean-insisted-links.component';
+import { PaymentMeansEditorComponent } from './components/restaurants/payment-means-editor/payment-means-editor.component';
+import { OrderlessSignupsComponent } from './components/monitoring/orderless-signups/orderless-signups.component';
+import { ExcessSmsNotificationsRtsComponent } from './components/monitoring/excess-sms-notifications-rts/excess-sms-notifications-rts.component';
 
 
 
@@ -455,7 +460,12 @@ import { LeadDetailsComponent } from './components/leads/lead-details/lead-detai
     LeadDashboard2Component,
     MyLeads2Component,
     RestaurantIvrListComponent,
-    LeadDetailsComponent
+    LeadDetailsComponent,
+    GmbTaskDetailComponent,
+    CleanInsistedLinksComponent,
+    PaymentMeansEditorComponent,
+    OrderlessSignupsComponent,
+    ExcessSmsNotificationsRtsComponent
   ],
   imports: [
     BrowserModule,

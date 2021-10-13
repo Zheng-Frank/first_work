@@ -21,12 +21,13 @@ export class MenuComponent implements OnInit {
   @Output() onVisitMenuOptions = new EventEmitter();
   @Input() menu: Menu;
   @Input() restaurant: Restaurant;
+  @Input() isShowMenuItemStats = false; // control whether show menu items' stats
 
   @ViewChild('mcModal') mcModal: ModalComponent;
   @ViewChild('miModal') miModal: ModalComponent;
   @ViewChild('mcSortingModal') mcSortingModal: ModalComponent;
   @ViewChild('miSortingModal') miSortingModal: ModalComponent;
-  
+
   @ViewChild('beverageSectionModal') beverageSectionModal: ModalComponent;
 
   @ViewChild('mcEditor') mcEditor: MenuCategoryEditorComponent;
@@ -231,7 +232,7 @@ export class MenuComponent implements OnInit {
         if (menu.id === this.menu.id) {
           menu.mcs = menu.mcs || [];
            // check if mc name exist already
-          if ((menu.mcs && menu.mcs.length > 0 && menu.mcs.some(x => x.name.trim().toLowerCase() === mc.name.trim().toLowerCase())) && mc.name.trim().toLowerCase() === 'beverages') {
+          if ((menu.mcs && menu.mcs.length > 0 && menu.mcs.some(x => x.name && x.name.trim().toLowerCase() === mc.name.trim().toLowerCase())) && mc.name.trim().toLowerCase() === 'beverages') {
             repeated = true;
             this.mcModal.hide();
             this.beverageSectionModal.show();

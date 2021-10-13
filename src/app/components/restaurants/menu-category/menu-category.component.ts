@@ -12,6 +12,7 @@ export class MenuCategoryComponent implements OnInit {
   @Input() menu: Menu;
   @Input() menuOptions: MenuOption[] = [];
   @Input() serveTimeFilter: string;
+  @Input() isShowMenuItemStats = false;// control whether show menu items' stats
   @Output() onMiClicked = new EventEmitter();
   @Output() onMcClicked = new EventEmitter();
   @Output() onEditAllMenuItems = new EventEmitter();

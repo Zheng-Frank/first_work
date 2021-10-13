@@ -1,0 +1,19 @@
+<div>
+  <h3 class="text-center mb-3">Orderless Signups ({{filtered.length}})</h3>
+  <div class="mb-2 row">
+    <div class="col-3">
+      <select class="form-control" [(ngModel)]="agent" (change)="filter()">
+        <option [value]="''">All Sales Agent</option>
+        <option *ngFor="let user of agents" value="{{user}}">{{user}}</option>
+      </select>
+    </div>
+  </div>
+  <table class="table table-bordered">
+    <tbody>
+      <tr *ngFor="let rt of filtered">
+        <td><a class="btn-link" target="_blank" [routerLink]="'/restaurants/' + rt._id">{{rt.name}}</a></td>
+        <td>{{rt.salesAgent}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

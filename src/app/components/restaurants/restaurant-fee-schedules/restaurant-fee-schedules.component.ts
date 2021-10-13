@@ -107,7 +107,10 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     label: "Charge Basis (收费基准)",
     required: true,
     inputType: "single-select",
-    items: []
+    items: [],
+    validate: ()=>{
+      return this.chargeBasisDescriptor.items.some(item=>item.object === this.feeScheduleInEditing.chargeBasis);
+    }
   };
 
   rateDescriptor = {
@@ -149,7 +152,8 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
       { object: OrderPaymentMethod.Stripe, text: "CC: restaurant using stripe", selected: false },
     ]
   };
-
+  
+  unsuitRate = 0.06;
 
   constructor(private _currencyPipe: CurrencyPipe, private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) {
     this.username = this._global.user.username;
@@ -174,6 +178,16 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   }
 
   ngOnInit() { }
+
+   /**
+  *show the warning text: "*** WARNING! Are you sure [PERCENTAGE]% is the correct value? ***"
+  *if someone enter an incorrect percentage value 
+  */
+  isRateInvalid(){
+    return [ChargeBasis.OrderSubtotal, ChargeBasis.OrderPreTotal,
+      ChargeBasis.OrderTotal,ChargeBasis.Commission]
+      .includes(this.feeScheduleInEditing.chargeBasis) && this.feeScheduleInEditing.rate > this.unsuitRate;
+  }
 
   getUserRoles() {
     return this._global.user.roles || [];

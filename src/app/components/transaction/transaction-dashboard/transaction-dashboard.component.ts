@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { Transaction } from 'src/app/classes/transaction';
 import { AlertType } from 'src/app/classes/alert-type';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 
 @Component({
   selector: 'app-transaction-dashboard',
@@ -12,6 +13,8 @@ import { AlertType } from 'src/app/classes/alert-type';
 })
 export class TransactionDashboardComponent implements OnInit {
 
+  @ViewChild('editModal') editModal: ModalComponent;
+
   payers = ['qmenu', 'gary', 'chris'];
   payees = ['sam', 'lucy', 'mike', 'kevin', 'charity', 'gary', 'chris', 'james', 'qmenu'];
   paymentMeans = ['payoneer', 'paypal', 'wechat', 'check', 'cash'];
@@ -19,7 +22,6 @@ export class TransactionDashboardComponent implements OnInit {
 
   transactions = [];
   transactionInEditing: any = {};
-  editing = false;
   selectedPayer;
   selectedPayee;
 
@@ -60,7 +62,31 @@ export class TransactionDashboardComponent implements OnInit {
     {
       label: 'Input Date'
     }
-  ]
+  ];
+
+  payerFieldDescriptor = {
+    field: "payer", //
+    label: "Payer (from)",
+    required: true,
+    inputType: "select",
+    items: this.payers.sort().map(payer => ({
+      object: payer,
+      text: payer,
+      selected: false
+    }))
+  };
+
+  payeeFieldDescriptor = {
+    field: "payee", //
+    label: "Payee (to)",
+    required: true,
+    inputType: "select",
+    items: this.payees.sort().map(payee => ({
+      object: payee,
+      text: payee,
+      selected: false
+    }))
+  };
 
   fieldDescriptors = [
     {
@@ -69,28 +95,8 @@ export class TransactionDashboardComponent implements OnInit {
       required: true,
       inputType: "date"
     },
-    {
-      field: "payer", //
-      label: "Payer (from)",
-      required: true,
-      inputType: "single-select",
-      items: this.payers.sort().map(payer => ({
-        object: payer,
-        text: payer,
-        selected: false
-      }))
-    },
-    {
-      field: "payee", //
-      label: "Payee (to)",
-      required: true,
-      inputType: "single-select",
-      items: this.payees.sort().map(payee => ({
-        object: payee,
-        text: payee,
-        selected: false
-      }))
-    },
+    this.payerFieldDescriptor,
+    this.payeeFieldDescriptor,
     {
       field: "amount", //
       label: "Amount",
@@ -101,7 +107,7 @@ export class TransactionDashboardComponent implements OnInit {
       field: "currency", //
       label: "Currency",
       inputType: "single-select",
-      items: ['USD', 'CNY'].map(s => ({ object: s, text: s, selected: false }))
+      items: ['USD', 'CNY', 'PHP'].map(s => ({ object: s, text: s, selected: false }))
     },
     {
       field: "exchangeRate", //
@@ -134,6 +140,11 @@ export class TransactionDashboardComponent implements OnInit {
     this.populate();
   }
 
+  add() {
+    this.transactionInEditing = {};
+    this.editModal.show();
+  }
+
   async populate() {
     const transactions = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'transaction',
@@ -143,8 +154,18 @@ export class TransactionDashboardComponent implements OnInit {
     this.transactions.sort((t1, t2) => t1.time.valueOf() - t2.time.valueOf());
     this.payers = [... new Set(this.transactions.map(t => t.payer))].sort();
     this.payees = [... new Set(this.transactions.map(t => t.payee))].sort();
+    // re-bind the form payer and payees
+    this.payeeFieldDescriptor.items = this.payers.sort().map(payer => ({
+      object: payer,
+      text: payer,
+      selected: false
+    }));
+    this.payeeFieldDescriptor.items = this.payees.sort().map(payer => ({
+      object: payer,
+      text: payer,
+      selected: false
+    }));
   }
-
 
   async formSubmit(event) {
     // MUST:
@@ -170,16 +191,13 @@ export class TransactionDashboardComponent implements OnInit {
     this.transactions.push(transaction);
 
     this._global.publishAlert(AlertType.Success, 'Added transaction');
+    this.editModal.hide();
     return event.acknowledge(null);
 
   }
 
   changeFilter() {
 
-  }
-
-  toggleEditing() {
-    this.editing = !this.editing;
   }
 
   getFilteredTransactions() {

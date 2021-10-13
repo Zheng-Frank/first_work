@@ -122,16 +122,23 @@
   </div>
   <div class="mb-3">
     <div class="form-check">
-      <input class="form-check-input" type="checkbox" id="id-hours-of-operation" 
-      [checked]="log.type === 'hours-of-operation'" (change)='toggleHoursOfOperation()'>
+      <input class="form-check-input" type="checkbox" id="id-hours-of-operation"
+        [checked]="log.type === 'hours-of-operation'" (change)='toggleHoursOfOperation()'>
       <label class="form-check-label" for="id-hours-of-operation">Hours Of Operation</label>
     </div>
   </div>
   <div class="mb-3">
     <div class="form-check">
-      <input class="form-check-input" type="checkbox" id="id-hours-of-operation" 
-      [checked]="log.type === 'qr-dine-in'" (change)='toggleQRDineIn()'>
-      <label class="form-check-label" for="id-hours-of-operation">QR Dine-In</label>
+      <input class="form-check-input" type="checkbox" id="id-qr-dine-in" [checked]="log.type === 'qr-dine-in'"
+        (change)='toggleQRDineIn()'>
+      <label class="form-check-label" for="id-qr-dine-in">QR Dine-In</label>
+    </div>
+  </div>
+  <div class="mb-3">
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="id-weird-data-cleanup" [checked]="log.type === 'weird-data-cleanup'"
+        (change)='toggleWeirdDataCleanUp()'>
+      <label class="form-check-label" for="id-weird-data-cleanup">Weird Data Cleanup</label>
     </div>
   </div>
   <div class="card border-info p-3 mb-2" *qIf="hasGMBCall">

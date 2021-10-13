@@ -3,7 +3,8 @@ import { ApiService } from "../../services/api.service";
 import { environment } from "../../../environments/environment";
 import { GlobalService } from "../../services/global.service";
 import { Router } from '@angular/router';
-import {AlertType} from '../../classes/alert-type';
+import { AlertType } from '../../classes/alert-type';
+import { HttpClient } from '@angular/common/http';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -23,7 +24,7 @@ export class HomeComponent implements OnInit {
   checkingPostmatesAvailability;
   addressToCheckAvailability = '';
   messageTemplates = [
-    [{title: 'Custom'}],
+    [{ title: 'Custom' }],
     [
       {
         title: 'QR Biz link',
@@ -87,8 +88,13 @@ export class HomeComponent implements OnInit {
   ];
   messageTemplate = { title: '', content: '' };
   textPhoneNumber = '';
+  faxNumber = '';
+  sendFaxType = 'upload';
+  faxHTML = '';
+  faxFile = null;
+  sendingFax = false;
 
-  constructor(private _router: Router, private _api: ApiService, private _global: GlobalService) {
+  constructor(private _router: Router, private _api: ApiService, private _global: GlobalService, private _http: HttpClient) {
     this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
     this.isMenuEditor = _global.user.roles.some(r => r === 'MENU_EDITOR');
   }
@@ -98,6 +104,69 @@ export class HomeComponent implements OnInit {
     this.restaurantList = await this._global.getCachedRestaurantListForPicker();
     // const result = await this._api.get2(environment.qmenuApiUrl + 'generic2', {a: 123, b: 456, c: 789}).toPromise();
     // console.log(result);
+  }
+
+  upload(event) {
+    this.faxFile = event.target.files[0];
+  }
+
+  sendFaxReady() {
+    return this.sendFaxType && this.faxNumber
+      && this.faxNumber.replace(/\D+/g, '').length === 10
+      && ({ 'upload': this.faxFile, 'html': this.faxHTML }[this.sendFaxType]);
+  }
+
+  async sendFax() {
+    this.sendingFax = true;
+    // mediaUrl HAS to be a URL of PDF. if we have HTML content, we need to "host" it somewhere
+    const loadParameters = {
+      'content-type': 'text/html; charset=utf-8',
+      body: this.faxHTML,
+    }
+
+    const url = `${environment.appApiUrl}events/echo?${Object.keys(loadParameters).map(k => `${k}=${encodeURIComponent(loadParameters[k])}`).join('&')}`;
+    let mediaUrl = `${environment.utilsApiUrl}render-url?url=${encodeURIComponent(url)}&format=pdf`;
+
+    if (this.sendFaxType === 'upload') {
+      const apiPath = `utils/qmenu-uploads-s3-signed-url?file=${this.faxFile.name}`;
+      // Get presigned url
+      const response = await this._api.get(environment.appApiUrl + apiPath).toPromise();
+      const presignedUrl = response['url'];
+      const fileLocation = presignedUrl.slice(0, presignedUrl.indexOf('?'));
+      await this._http.put(presignedUrl, this.faxFile).toPromise();
+      // if it's already PDF, then we can directly send it to fax service.
+      // otherwise we need to get a PDF version of the uploaded file (fileLocation) from our renderer service
+      // please upload an image or text or html file for the following test
+      if (fileLocation.toLowerCase().endsWith('pdf')) {
+        mediaUrl = fileLocation;
+      } else {
+        mediaUrl = `${environment.utilsApiUrl}render-url?url=${encodeURIComponent(fileLocation)}&format=pdf`;
+      }
+    }
+
+    let faxNumber = this.faxNumber.replace(/\D+/g, '');
+    let job = {
+      name: "send-fax",
+      params: {
+        to: faxNumber,
+        mediaUrl,
+        providerName: "twilio",
+        trigger: {
+          "id": this._global.user._id,
+          "name": this._global.user.username,
+          "source": "CSR",
+          "module": "Send Fax"
+        }
+      }
+    };
+    await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [job]).toPromise();
+    this._global.publishAlert(AlertType.Success, 'Fax sent success');
+    this.sendFaxType = 'upload';
+    // do not clear the fax number or content!
+    // this.faxHTML = '';
+    // this.faxNumber = ''; 
+    this.faxFile = null;
+    this.sendingFax = false;
   }
 
   changeTpl(e) {
@@ -146,25 +215,18 @@ export class HomeComponent implements OnInit {
   }
 
   isVisible(section) {
+    const publicSections = ["other-modules"];
     const sectionRolesMap = {
-      email: ['ADMIN', 'CSR', 'MENU_EDITOR'],
-      template: ['ADMIN', 'CSR', 'MENU_EDITOR'],
+      ownership: ['ADMIN', 'CSR', 'MENU_EDITOR'],
       search: ['ADMIN', 'CSR', 'MENU_EDITOR', 'MARKETER'],
-     // "fax-problems": ['ADMIN', 'CSR'],
-     // "email-problems": ['ADMIN', 'CSR'],
-     // "unconfirmed-orders": ['ADMIN', 'CSR'],
-      "other-modules": ['ADMIN', 'CSR'],
-     // "image-manager": ['ADMIN'],
       "gmb-campaign": ['ADMIN'],
       "bulk-messaging": ['ADMIN'],
       "courier-availability": ['ADMIN', 'CSR', 'MARKETER'],
+      "send-fax": ["ADMIN", 'CSR'],
       "send-text-message": ['ADMIN', 'CSR', 'MENU_EDITOR', 'MARKETER'],
       "broadcasting": ['ADMIN', 'CSR'],
-      "awaiting-onboarding": ['ADMIN', 'MENU_EDITOR'],
-      // "disabled-restaurants": ['ADMIN'],
-      // "monitoring-hours": ['ADMIN', 'CSR']
     };
-    return this._global.user.roles.some(r => sectionRolesMap[section].indexOf(r) >= 0);
+    return publicSections.includes(section) || this._global.user.roles.some(r => sectionRolesMap[section].indexOf(r) >= 0);
   }
 
   selectRestaurant(restaurant) {

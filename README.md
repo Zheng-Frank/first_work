@@ -1,6 +1,10 @@
 # If: FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory
 
 set NODE_OPTIONS=--max_old_space_size=4096
+
+
+# See common used roles and corresponding privileges settings in [Privileges.md](Privileges.md)
+
 # admin4
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 6.0.0-rc.4.

@@ -8,7 +8,7 @@
     </button>
     <div *ngIf="showAdditionalFunctions">
       <button class="btn btn-link" (click)="hideAdditionalFunction()">Hide additional functions...</button>
-      <div class="text-right">
+      <div class="row">
         <button class="btn btn-link" (click)="importCoupon = !importCoupon">Import Coupons (采集优惠券)</button>
         <button class="btn btn-link" (click)="importMenu = !importMenu">Import Menus (采集菜单)</button>
         <button class="btn btn-link" (click)="importJson = !importJson">Override JSON (JSON替换导入)</button>
@@ -25,6 +25,7 @@
           <button class="btn btn-link" (click)="adjustingMenuOrders = !adjustingMenuOrders">Adjust Menu Orders
             (调整菜单次序)</button>
           <button class="btn btn-link" (click)="doRemoveUnnessarySpace()">Remove spaces (去掉空格)</button>
+          <button class="btn btn-link" (click)="isShowMenuItemStats = true">Item stats (菜单项统计)</button>
         </ng-container>
         <ng-container *ngIf="getMenus().length === 0">
         </ng-container>
@@ -143,7 +144,7 @@
   <div class="tab-content">
     <div *ngFor="let menu of getMenus()" class="tab-pane  {{getActiveId() == menu.id ? 'active' : ''}} pt-1"
       role="tabpanel">
-      <app-menu [restaurant]="restaurant" [menu]="menu" (onEdit)="edit($event)"
+      <app-menu [restaurant]="restaurant" [menu]="menu" (onEdit)="edit($event)" [isShowMenuItemStats]="isShowMenuItemStats"
         (onVisitMenuOptions)="visitMenuOptions()"></app-menu>
     </div>
     <div class="tab-pane  {{!getActiveId() ? 'active' : ''}} pt-1" role="tabpanel">

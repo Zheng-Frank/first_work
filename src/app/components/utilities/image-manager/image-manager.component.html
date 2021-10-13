@@ -27,8 +27,13 @@
         <!-- end with show no image items -->
       </div>
       <div class="col-5 text-right">
-           <!-- <button class="btn btn-primary" *ngIf="isAdmin()" (click)="scrape()"><i class="fa fas fa-sync"></i> Scrape Common Items Async</button> -->
-        <button class="btn btn-primary" (click)="openAddRecordsModal()">+ Add New Records</button>
+        <button class="btn btn-link" (click)="mergeDuplicates()" [qLoading]="merging">Merge Duplicates</button>
+        <button class="btn btn-link" (click)="normalizeAliases()" [qLoading]="normalizing">Normalize Aliases</button>
+        <button class="btn btn-link" (click)="removeImagelessItems()" [qLoading]="removing">Remove Imageless Items</button>
+        <button class="btn btn-link" (click)="syncFromMenuItems()" [qLoading]="syncing">Sync from Latest
+          Menu Items</button>
+        <button class="btn btn-primary" (click)="openAddRecordsModal()">+ Add New</button>
+
       </div>
     </div>
     <table class="table table-striped">
@@ -49,13 +54,17 @@
           {{i+1}}
         </td>
         <td>
-          <q-values [(ngModel)]="row.aliases" (ngModelChange)="updateAliases(row)"></q-values>
-          <div class="row ml-1 mt-2" *ngIf="row.menuCount || row.orderCount">
-            <span class="mr-2" *ngIf="orderBy === 'Menu frequency'">Menu Frequency: {{row.menuCount || 0}}</span>
-            <span *ngIf="orderBy === 'Order frequency'">Order Frequency: {{row.orderCount || 0}}</span>
+          <div class="my-text-big">
+            <q-values [(ngModel)]="row.aliases" (ngModelChange)="updateAliases(row)"></q-values>
           </div>
-          <div class="row ml-1 mt-2 text-warning" *ngIf="row.cuisines">
-            <span>Cuisines: {{row.cuisines.join(', ').toString()}}</span>
+          <div class="my-text-small">
+            <div *ngIf="row.menuCount || row.orderCount">
+              <span class="mr-2">Menu Frequency: {{row.menuCount || 0}},</span>
+              <span>Ordered Frequency: {{row.orderCount || 0}}</span>
+            </div>
+            <div *ngIf="row.cuisines">
+              <span>{{row.cuisines.join(', ').toString()}}</span>
+            </div>
           </div>
         </td>
         <td class="pl-1">
@@ -128,8 +137,10 @@
         <div class="row mt-2" *ngFor="let img of newImages;let i = index;">
           <input type="text" class="form-control col-10" [(ngModel)]="img.aliases"
             placeholder="Enter comma separed values!">
-          <button class="btn btn-link col-1 btn-sm" (click)="deleteNewLine(i)" *ngIf="newImages.length > 1"><i class="fa fa-minus"></i></button>
-          <button class="btn btn-link col-1 btn-sm" *ngIf="(i===newImages.length-1)&&(newImages.length<10)"  (click)="createNewLine()">
+          <button class="btn btn-link col-1 btn-sm" (click)="deleteNewLine(i)" *ngIf="newImages.length > 1"><i
+              class="fa fa-minus"></i></button>
+          <button class="btn btn-link col-1 btn-sm" *ngIf="(i===newImages.length-1)&&(newImages.length<10)"
+            (click)="createNewLine()">
             <i class="fa fa-plus"></i>
           </button>
         </div>

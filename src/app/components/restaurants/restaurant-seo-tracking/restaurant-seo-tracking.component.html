@@ -3,30 +3,30 @@
 </h2>
 <div class="mb-3 form-inline">
   <button class="btn btn-primary" (click)="scrape()">Scrape provider rankings</button>
-  <ng-container *ngIf="startDates.length>0 && endDates.length>0">
+  <ng-container *ngIf="dates.length > 1">
     <label class="form-check-label mr-2 ml-2">Start Date
       <select [(ngModel)]="startDate" class="form-control ml-1" (change)="calcRankRowsByDate()">
-        <option *ngFor="let date of startDates">{{date}}</option>
+        <option *ngFor="let date of dates.slice(0, this.dates.length - 1)">{{date}}</option>
       </select>
     </label>
     <label class="form-check-label mr-2">End Date
       <select [(ngModel)]="endDate" class="form-control ml-1" (change)="calcRankRowsByDate()">
-        <option *ngFor="let date of endDates">{{date}}</option>
+        <option *ngFor="let date of dates.slice(1)">{{date}}</option>
       </select>
     </label>
   </ng-container>
-  <label class="form-check-label ml-2" *ngIf="createdAts.length === 1">
-    Show in {{createdAts[0]}}
+  <label class="form-check-label ml-2" *ngIf="dates.length === 1">
+    Show in {{dates[0]}}
   </label>
 </div>
-<div *ngIf="filterSpecificRankingRows.length > 0">
+<div *ngIf="rows.length > 0">
   {{getqMenuCondition()}}
 </div>
-<div *ngIf="filterSpecificRankingRows.length === 0">
+<div *ngIf="rows.length === 0">
   Specific Ranking list is empty.
 </div>
-<ng-container *ngIf="filterSpecificRankingRows.length > 0">
-  <q-table [rows]="filterSpecificRankingRows" [tableColumnDescriptors]="specificColumnDescriptors" [compact]="true"
+<ng-container *ngIf="rows.length > 0">
+  <q-table [rows]="rows" [tableColumnDescriptors]="cols" [compact]="true"
     [pageSize]="100000">
     <tr *tableRowTemplate="let row;">
       <td>
@@ -39,7 +39,7 @@
         {{row?.newRanking}}
       </td>
       <td>
-        {{row?.upDown}}
+        {{row?.change}}
       </td>
     </tr>
   </q-table>

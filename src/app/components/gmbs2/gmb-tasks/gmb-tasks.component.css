@@ -12,3 +12,11 @@
 .opacity-30 {
   opacity: 0.3;
 }
+
+::ng-deep .modal-header {
+  text-align: center;
+}
+
+::ng-deep .modal-dialog {
+  max-width: 70%;
+}

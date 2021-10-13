@@ -222,12 +222,25 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   isComebackDateCorrectlySet = false;
   isTemporarilyDisabled;
   now = new Date().toISOString().split('T')[0];
-  @ViewChild('previewWebsiteModal') previewWebsiteModal: ModalComponent;
+  // an object to control whether show percent waring message
+  percentValidationMap = {
+    'taxRate': 0.2,
+    'ccProcessingRate': 0.05,
+    'surchargeRate': 0.1
+  }
+  @ViewChild('previewWebsiteModal') previewWebsiteModal:ModalComponent;
+
 
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient, private _prunedPatch: PrunedPatchService) {
   }
 
   ngOnInit() {
+    if(!this.restaurant.preferredLanguage){
+      this.preferredLanguages.unshift({
+        value: "",
+        text: ""
+      });
+    }
     this.selfSignupRegistered = this.restaurant.selfSignup && this.restaurant.selfSignup.registered;
 
     if (this.restaurant.disabled && this.restaurant['comebackDate'] === undefined) {
@@ -299,7 +312,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
     // special fields
     this.images = this.restaurant.images || [];
-    this.preferredLanguage = this.preferredLanguages.filter(z => z.value === (this.restaurant.preferredLanguage || 'ENGLISH'))[0];
+    this.preferredLanguage = this.preferredLanguages.filter(z => z.value === (this.restaurant.preferredLanguage))[0];
 
     // website broadcast expiration field
     // 2021-07-15T04:00:00.000Z
@@ -387,6 +400,14 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     return this._global.user.roles.includes('MARKETER') && !this.editable;
   }
 
+  /**
+  *show the warning text: "*** WARNING! Are you sure [PERCENTAGE]% is the correct value? ***"
+  *if someone enter an incorrect percentage value 
+  */
+  isRateInvalid(rateType,rateValue){
+    return rateValue > this.percentValidationMap[rateType];
+  }
+
   ok() {
     const oldObj = { _id: this.restaurant['_id'] } as any;
     const newObj = { _id: this.restaurant['_id'] } as any;
@@ -421,7 +442,12 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     });
 
     // make sure types are correct!
-    newObj.taxRate = +this.taxRate || undefined;
+    // can not use isNaN because isNaN(null) is false
+    if(this.taxRate < 0){
+      return this._global.publishAlert(AlertType.Danger,"Please don't enter a negative number!");
+    }else{
+      newObj.taxRate = this.taxRate === 0 ? 0 : !this.taxRate ? undefined : this.taxRate > 1 ? 1 : this.taxRate;
+    }
     newObj.surchargeAmount = +this.surchargeAmount || undefined;
     newObj.pickupTimeEstimate = +this.pickupTimeEstimate || undefined;
     newObj.deliveryTimeEstimate = +this.deliveryTimeEstimate || undefined;
@@ -444,6 +470,9 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     }
 
     newObj.preferredLanguage = (this.preferredLanguage && this.preferredLanguage.value) || undefined;
+    if(!newObj.preferredLanguage){
+      return this._global.publishAlert(AlertType.Danger,"Please select a standard language(请选择餐馆的标准语言)!");
+    }
     // update those two fields!
     newObj.images = this.images;
     delete oldObj['images'];
