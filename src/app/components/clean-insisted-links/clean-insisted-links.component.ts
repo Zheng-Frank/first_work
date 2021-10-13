@@ -54,24 +54,36 @@ export class CleanInsistedLinksComponent implements OnInit {
   async loadRestaurants() {
     this.insistedRestaurants = (await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: "restaurant",
-      query: {
-        disabled: { $ne: true },
-        $or: [
-          { "web.useBizWebsite": { $eq: true } },
-          { "web.useBizMenuUrl": { $eq: true } },
-          { "web.useBizOrderAheadUrl": { $eq: true } },
-          { "web.useBizReservationUrl": { $eq: true } },
-        ]
-      },
-      projection: {
-        "googleListing.place_id": 1,
-        "googleAddress.timezone": 1,
-        _id: 1,
-        disabled: 1,
-        logs: 1,
-        name: 1,
-        web: 1,
-      },
+      aggregate: [
+        {
+          '$match': {
+            disabled: {$ne: true},
+            $or: [
+              // {"web.bizManagedWebsite": {$exists: true, $ne: ""}},
+              {"web.menuUrl": {$exists: true, $ne: ""}},
+              {"web.orderAheadUrl": {$exists: true, $ne: ""}},
+              {"web.reservationUrl": {$exists: true, $ne: ""}}
+            ],
+          }
+        },
+        {
+          $project: {
+            "googleListing.place_id": 1,
+            "googleAddress.timezone": 1,
+            _id: 1,
+            disabled: 1,
+            logs: {
+              $filter: {
+                input: "$logs",
+                as: "log",
+                cond: { $eq: ["$$log.type", "cleanup-insisted"] }
+              }
+            },
+            name: 1,
+            web: 1,
+          }
+        }
+      ],
     }, 1000));
 
     Promise.all(this.insistedRestaurants.map(async restaurant => {
