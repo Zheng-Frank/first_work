@@ -87,7 +87,7 @@ export class FraudDetectionComponent implements OnInit {
     let query = {
       'paymentObj.method': {$ne: 'KEY_IN'},
       $or: [
-        {'computed.total': {$gt: 150}}, // order total over $150
+        {'computed.total': {$gt: 120}}, // order total over $120
         {'ccAddress.distanceToStore': {$gte: 200}} // billing address 200 miles from delivery address
       ]
     } as object;
