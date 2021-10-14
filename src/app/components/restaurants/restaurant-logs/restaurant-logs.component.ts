@@ -22,7 +22,7 @@ export class RestaurantLogsComponent implements OnInit {
   logInEditing = new Log();
   logInEditingOriginal;
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch : PrunedPatchService) {
+  constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
   ngOnInit() {
@@ -111,7 +111,7 @@ export class RestaurantLogsComponent implements OnInit {
   }
 
   patch(oldRestaurant, updatedRestaurant, acknowledge) {
-    this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant',
+    this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant',
       [{old: {_id: oldRestaurant._id, logs: oldRestaurant.logs}, new: {_id: updatedRestaurant._id, logs: updatedRestaurant.logs}}])
       .subscribe(
         result => {
