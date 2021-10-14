@@ -300,7 +300,7 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
   }
 
   updateOrderNotifications(channel) {
-    const newOrderNotifications = JSON.parse(JSON.stringify(this.restaurant.orderNotifications)) || [];
+    const newOrderNotifications = JSON.parse(JSON.stringify(this.restaurant.orderNotifications || [])) ;
     // if this channel has had order notifications turned OFF during this round of editing, we want to delete any orderNotifications associated with this channel
     const notificationsTurnedOff = (this.channelBeforeEditing.notifications || []).includes('Order') && !(channel.notifications || []).includes('Order');
     if (notificationsTurnedOff) {
