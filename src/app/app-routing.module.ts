@@ -84,8 +84,9 @@ import { LeadDashboard2Component } from './components/leads/lead-dashboard2/lead
 import { MyLeads2Component } from './components/leads/my-leads2/my-leads2.component';
 import { CleanMenusComponent } from './components/monitoring/clean-menus/clean-menus.component';
 import { FraudDetectionComponent } from './components/fraud-detection/fraud-detection.component';
-import {CleanInsistedLinksComponent} from "./components/clean-insisted-links/clean-insisted-links.component";
-import {OrderlessSignupsComponent} from './components/monitoring/orderless-signups/orderless-signups.component';
+import { CleanInsistedLinksComponent } from "./components/clean-insisted-links/clean-insisted-links.component";
+import { OrderlessSignupsComponent } from './components/monitoring/orderless-signups/orderless-signups.component';
+import { SalesMetricsComponent } from './components/sales-metrics/sales-metrics.component';
 
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component },
@@ -182,6 +183,7 @@ const routes: Routes = [
   { path: 'fraud-detection', component: FraudDetectionComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'orderless-signups', component: OrderlessSignupsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'excess-sms-notifications-rts', component: ExcessSmsNotificationsRtsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  { path: 'sales-metrics', component: SalesMetricsComponent },
   { path: '**', redirectTo: '/home' }
 
 ];

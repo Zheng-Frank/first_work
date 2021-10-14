@@ -249,7 +249,7 @@ import { PaymentMeansEditorComponent } from './components/restaurants/payment-me
 import { OrderlessSignupsComponent } from './components/monitoring/orderless-signups/orderless-signups.component';
 import { ExcessSmsNotificationsRtsComponent } from './components/monitoring/excess-sms-notifications-rts/excess-sms-notifications-rts.component';
 import { SendFaxComponent } from './components/send-fax/send-fax.component';
-
+import { SalesMetricsComponent } from './components/sales-metrics/sales-metrics.component';
 
 
 @NgModule({
@@ -467,7 +467,8 @@ import { SendFaxComponent } from './components/send-fax/send-fax.component';
     PaymentMeansEditorComponent,
     OrderlessSignupsComponent,
     ExcessSmsNotificationsRtsComponent,
-    SendFaxComponent
+    SendFaxComponent,
+    SalesMetricsComponent
   ],
   imports: [
     BrowserModule,
