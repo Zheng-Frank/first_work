@@ -1,66 +1,83 @@
 <h1 class="card-title text-center pt-4 pb-2"> Clean Insisted Links ({{rows.length}})</h1>
 
 <div class="form-group row">
-  <label class="col-md-1 col-form-label"> Gmb Status:</label>
-  <div class="col-md-2">
+  <div class="col-8 form-inline">
+    <label class="col-form-label mr-1"> Gmb Status:</label>
     <select class="form-control" [(ngModel)]="filterBy" (change)="filter()">
       <option [ngValue]="'All'" selected>All</option>
-      <option [ngValue]="'Ownership'">Ownsership</option>
+      <option [ngValue]="'Ownership'">Ownership</option>
       <option [ngValue]="'NoOwnership'">No Ownership</option>
     </select>
+  </div>
+  <div class="col-4 text-right">
+    <button class="btn btn-primary" (click)="loadRestaurants()"><i class="fas fa-sync"></i> Reload</button>
   </div>
 </div>
 
 <q-table [rows]="rows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="100000">
   <tr *tableRowTemplate="let row;">
-    <td style="width: 30%">
+    <td style="width: 10%">
       <div class="d-flex flex-column">
         <a href="/#/restaurants/{{row._id}}">{{row.name}}</a>
         <small class="text-muted">Id: {{row._id}}</small>
       </div>
     </td>
 
-    <td>
-      <div *ngIf="row.hasGmbOwnership" class="text-success">Ownership</div>
-      <div *ngIf="!row.hasGmbOwnership" class="text-danger">No Ownsership</div>
+    <td style="width: 10%">
+      <div *ngIf="row.hasGmbOwnership" class="text-success">&#10004;</div>
+      <div *ngIf="!row.hasGmbOwnership" class="text-danger">&#10008;</div>
     </td>
 
-    <td>
-      <div class="form-group row" style="max--width: 30%;">
-        <label class="col-3 col-form-label pt-0">Restaurant Managed Website</label>
-        <div class="col-9 text-left">
-          <q-edit-label [value]="row.web?.bizManagedWebsite" (edit)="onEdit($event, row, 'bizManagedWebsite')"></q-edit-label>
-          <div *ngIf="row.web?.bizManagedWebsite" class="pt-2">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="id_useBizWebsite" [checked]="row.web?.useBizWebsite" (change)="toggle($event, row, 'useBizWebsite')">
-              <label class="form-check-label" for="id_useBizWebsite"> Insisted Website</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="menuUrl" [checked]="row.web?.useBizMenuUrl" (change)="toggle($event, row, 'useBizMenuUrl')">
-              <label class="form-check-label" for="menuUrl"> Insisted Menu Url</label>
-              <q-edit-label [value]="row.web?.menuUrl" (edit)="onEdit($event, row, 'menuUrl')"></q-edit-label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="orderAheadUrl" [checked]="row.web?.useBizOrderAheadUrl" (change)="toggle($event, row, 'useBizOrderAheadUrl')">
-              <label class="form-check-label" for="orderAheadUrl"> Insisted Order Url</label>
-              <q-edit-label [value]="row.web?.orderAheadUrl" (edit)="onEdit($event, row, 'orderAheadUrl')"></q-edit-label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="reservationUrl" [checked]="row.web?.useBizReservationUrl" (change)="toggle($event, row, 'useBizReservationUrl')">
-              <label class="form-check-label" for="reservationUrl"> Insisted Reservation Url</label>
-              <q-edit-label [value]="row.web?.reservationUrl" (edit)="onEdit($event, row, 'reservationUrl')"></q-edit-label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="id_useBizWebsiteForAll" [checked]="row.web?.useBizWebsiteForAll" (change)="toggle($event, row, 'useBizWebsiteForAll')">
-              <label class="form-check-label" for="id_useBizWebsiteForAll"> Insisted All</label>
-            </div>
-          </div>
-
-        </div>
+    <td class="width:30%;">
+      <div class="form-inline">
+        <label class="pr-1">QM Domain</label>
+        <q-edit-label [value]="row.web?.qmenuWebsite" class="q-label-layout"
+          (edit)="onEdit($event, row,'qmenuWebsite')">
+        </q-edit-label>
       </div>
+      <div class="form-inline">
+        <label class="pr-1">RT Website</label>
+        <q-edit-label [value]="row.web?.bizManagedWebsite" class="q-label-layout"
+          (edit)="onEdit($event, row, 'bizManagedWebsite')">
+        </q-edit-label>
+      </div>
+      <ng-container *ngIf="row.web?.bizManagedWebsite">
+        <div class="form-inline pt-2">
+          <input type="checkbox" id="id_useBizWebsite" [checked]="row.web?.useBizWebsite"
+            (change)="toggle($event, row, 'useBizWebsite')">
+          <label for="id_useBizWebsite" class="pl-1 pr-1"> Insisted Website</label>
+        </div>
+        <div class="form-inline">
+          <input type="checkbox" id="menuUrl" [checked]="row.web?.useBizMenuUrl"
+            (change)="toggle($event, row, 'useBizMenuUrl')">
+          <label for="menuUrl" class="pl-1 pr-1"> Insisted Menu Url</label>
+          <q-edit-label [value]="row.web?.menuUrl" class="q-label-layout" (edit)="onEdit($event, row, 'menuUrl')">
+          </q-edit-label>
+        </div>
+        <div class="form-inline">
+          <input type="checkbox" id="orderAheadUrl" [checked]="row.web?.useBizOrderAheadUrl"
+            (change)="toggle($event, row, 'useBizOrderAheadUrl')">
+          <label for="orderAheadUrl" class="pl-1 pr-1"> Insisted Order Url</label>
+          <q-edit-label [value]="row.web?.orderAheadUrl" class="q-label-layout"
+            (edit)="onEdit($event, row, 'orderAheadUrl')"></q-edit-label>
+        </div>
+        <div class="form-inline">
+          <input type="checkbox" id="reservationUrl" [checked]="row.web?.useBizReservationUrl"
+            (change)="toggle($event, row, 'useBizReservationUrl')">
+          <label for="reservationUrl" class="pl-1 pr-1"> Insisted Reservation Url</label>
+          <q-edit-label [value]="row.web?.reservationUrl" class="q-label-layout"
+            (edit)="onEdit($event, row, 'reservationUrl')">
+          </q-edit-label>
+        </div>
+        <div class="form-inline">
+          <input type="checkbox" id="id_useBizWebsiteForAll" [checked]="row.web?.useBizWebsiteForAll"
+            (change)="toggle($event, row, 'useBizWebsiteForAll')">
+          <label for="id_useBizWebsiteForAll" class="pl-1 pr-1"> Insisted All</label>
+        </div>
+      </ng-container>
     </td>
 
-    <td>
+    <td style="width: 50%;">
       <ng-container>
         <table class="table table-sm">
           <tr>
@@ -91,5 +108,6 @@
 
 
 <q-modal #logEditingModal>
-  <app-log-editor #myLogEditor [restaurant]="activeRestaurant" [restaurantList]="[]" [log]="logInEditing" (success)="onSuccessAddLog($event)" (cancel)="onCancelAddLog()"></app-log-editor>
+  <app-log-editor #myLogEditor [restaurant]="activeRestaurant" [restaurantList]="[]" [log]="logInEditing"
+    (success)="onSuccessAddLog($event)" (cancel)="onCancelAddLog()"></app-log-editor>
 </q-modal>
