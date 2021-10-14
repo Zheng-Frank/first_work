@@ -203,7 +203,14 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     // always having channel and order types otions
     if (this.notificationInEditing.channel) {
       this.notificationFieldDescriptors = [...this.validFieldDescriptorMap[this.notificationInEditing.channel.type]];
+
+      if (this.notificationInEditing.channel.type === 'phoenix') {
+        // explicitly show default setting values on phoenix print notifications, if the notification doesn't already have a property set
+        this.notificationInEditing.format = this.notificationInEditing.format || 'png';
+        this.notificationInEditing.templateName = this.notificationInEditing.templateName || 'default'
+      }
     }
+
     // let's also remove irrelevant fields
     const uselessFields = Object.keys(this.notificationInEditing).filter(k => !this.notificationFieldDescriptors.map(fd => fd.field).some(f => f === k));
     uselessFields.map(f => delete this.notificationInEditing[f]);
