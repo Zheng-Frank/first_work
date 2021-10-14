@@ -3806,7 +3806,7 @@ export class DbScriptsComponent implements OnInit {
       projection: {
         channels: 1,
         customizedRenderingStyles: 1
-      }    
+      }
     }, 5000);
 
     restaurants = restaurants.filter(r => {
@@ -3869,8 +3869,8 @@ export class DbScriptsComponent implements OnInit {
                 },
                 ...customizedRenderingStyles ? { customizedRenderingStyles } : null,
                 ...copies ? { copies } : null,
-                ...format ? { format } : null,
-                ...templateName ? { templateName } : null,
+                ...format ? { format } : { format: 'png' },
+                ...templateName ? { templateName } : { templateName: 'default' },
                 ...menuFilters ? { menuFilters } : null
               };
               orderNotifications.push(newNotification);
