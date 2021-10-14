@@ -3798,18 +3798,16 @@ export class DbScriptsComponent implements OnInit {
   // because it only ever attempts to operate on RTs that do not already have orderNotifications
   async migrateOrderNotifications() {
     const updatedOldNewPairs = [];
-    let restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
+    let restaurants = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query: {
-        disabled: { $ne: true },
         orderNotifications: null
       },
       projection: {
         channels: 1,
         customizedRenderingStyles: 1
-      },
-      limit: 10000
-    }).toPromise();
+      }    
+    }, 5000);
 
     restaurants = restaurants.filter(r => {
       let id = r._id.toString();
