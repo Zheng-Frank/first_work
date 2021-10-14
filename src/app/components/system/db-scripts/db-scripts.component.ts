@@ -3798,7 +3798,7 @@ export class DbScriptsComponent implements OnInit {
   // because it only ever attempts to operate on RTs that do not already have orderNotifications
   async migrateOrderNotifications() {
     const updatedOldNewPairs = [];
-    const restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
+    let restaurants = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       query: {
         disabled: { $ne: true },
@@ -3810,6 +3810,14 @@ export class DbScriptsComponent implements OnInit {
       },
       limit: 10000
     }).toPromise();
+
+    restaurants = restaurants.filter(r => {
+      let id = r._id.toString();
+      const rtArray = [
+        "58ba1a8d9b4e441100d8cdc1"];
+
+      return rtArray.includes(id);
+    })
 
     for (let r of restaurants) {
       const orderNotifications = [];
@@ -3841,32 +3849,35 @@ export class DbScriptsComponent implements OnInit {
         }
       });
 
-      printClients.forEach(pc => {
+      printClients.filter(pc => ((pc || {}).printers || []).some(printer => printer.autoPrintCopies && printer.autoPrintCopies > 0)).forEach(pc => {
         const printers = pc.printers || [];
+
         printers.forEach(pr => {
-          const orderViews = pr.orderViews || [];
-          orderViews.forEach(ov => {
-            const copies = ov.copies;
-            const format = ov.format;
-            const templateName = ov.template;
-            const customizedRenderingStyles = ov.customizedRenderingStyles;
-            const guid = pc.guid;
-            const menuFilters = ov.menus;
-            const newNotification = {
-              channel: {
-                type: pc.type,
-                value: pr.name,
-                printClientId: pc._id,
-                ...guid ? { guid } : null
-              },
-              ...customizedRenderingStyles ? { customizedRenderingStyles } : null,
-              ...copies ? { copies } : null,
-              ...format ? { format } : null,
-              ...templateName ? { templateName } : null,
-              ...menuFilters ? { menuFilters } : null
-            };
-            orderNotifications.push(newNotification);
-          });
+          if (pr.autoPrintCopies && pr.autoPrintCopies > 0) {
+            const orderViews = pr.orderViews || [];
+            orderViews.forEach(ov => {
+              const copies = ov.copies;
+              const format = ov.format;
+              const templateName = ov.template;
+              const customizedRenderingStyles = ov.customizedRenderingStyles;
+              const guid = pc.guid;
+              const menuFilters = ov.menus;
+              const newNotification = {
+                channel: {
+                  type: pc.type,
+                  value: pr.name,
+                  printClientId: pc._id,
+                  ...guid ? { guid } : null
+                },
+                ...customizedRenderingStyles ? { customizedRenderingStyles } : null,
+                ...copies ? { copies } : null,
+                ...format ? { format } : null,
+                ...templateName ? { templateName } : null,
+                ...menuFilters ? { menuFilters } : null
+              };
+              orderNotifications.push(newNotification);
+            });
+          }
         });
       });
 
