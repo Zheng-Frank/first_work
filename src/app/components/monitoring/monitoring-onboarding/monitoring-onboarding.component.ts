@@ -1,4 +1,4 @@
-import { Menu } from '@qmenu/ui';
+import { Menu, TimezoneHelper } from '@qmenu/ui';
 import { AlertType } from 'src/app/classes/alert-type';
 import { User } from './../../../classes/user';
 import { Component, OnInit } from '@angular/core';
@@ -40,6 +40,19 @@ export class MonitoringOnboardingComponent implements OnInit {
   now = new Date();
   ngOnInit() {
     this.populate();
+  }
+
+  // our salesperson only wants to know what is the time offset
+  // between local place and the location of restaurant
+  getTimeOffsetByTimezone(timezone){
+    if(timezone){
+      let localTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), timezone);
+      let ESTTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), 'America/New_York');
+      let offset = (ESTTime.valueOf() - localTime.valueOf())/(3600*1000);
+      return offset > 0 ? "+"+offset.toFixed(0) : offset.toFixed(0);
+    }else{
+      return 'N/A';
+    }
   }
 
   getTimezoneCity(timezone){
