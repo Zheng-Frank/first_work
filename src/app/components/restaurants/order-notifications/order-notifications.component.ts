@@ -312,7 +312,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
   async printTestOrder() {
     const channel = this.notificationInEditing.channel;
     const printClients = await this.retrievePrintClients();
-    const matchedClient = printClients.find(pc => pc._id === channel.printClientId)
+    const matchedClient = printClients.find(pc => pc._id === channel.printClientId);
     const matchedPrinter = (matchedClient.printers || []).find(p => p.name === channel.value);
     try {
       switch (channel.type) {
@@ -398,8 +398,11 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     }
   }
 
-  previewTestOrder() {
-    console.log('preview test order');
+  async previewTestOrder() {
+    const channel = this.notificationInEditing.channel;
+    const printClients = await this.retrievePrintClients();
+    const matchedClient = printClients.find(pc => pc._id === channel.printClientId);
+    window.open(this.getTestOrderRenderingUrl(matchedClient), "_blank", "scrollbars=yes,resizable=yes,top=500,left=500,width=500,height=500");
   }
 
   editingPrintNotification() {
@@ -409,13 +412,12 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
   getTestOrderRenderingUrl(matchedClient) {
     const format = this.notificationInEditing.format || 'png';
     const customizedRenderingStyles = encodeURIComponent(this.notificationInEditing.customizedRenderingStyles || '');
-    const menus = encodeURIComponent(JSON.stringify(this.restaurant.menus || []));
     const template = this.notificationInEditing.template === 'chef' ? 'restaurantOrderPosChef' : 'restaurantOrderPos';
 
     let url = `${environment.legacyApiUrl.replace('https', 'http')}utilities/order/${environment.testOrderId}?format=pos&injectedStyles=${customizedRenderingStyles}`;
     if (format === 'esc' || format === 'gdi' || format === 'pdf' || (matchedClient.info && matchedClient.info.version && matchedClient.info.version.split(".")[0] >= 3)) {
       // ONLY newest phoenix support chef view so for now
-      url = `${environment.utilsApiUrl}renderer?orderId=${environment.testOrderId}&template=${template}&format=${format}&customizedRenderingStyles=${customizedRenderingStyles}&menus=${menus}`;
+      url = `${environment.utilsApiUrl}renderer?orderId=${environment.testOrderId}&template=${template}&format=${format}&customizedRenderingStyles=${customizedRenderingStyles}`;
       if (format === 'pdf') {
         url = `${environment.utilsApiUrl}renderer?orderId=${environment.testOrderId}&template=restaurantOrderFax&format=${format}&customizedRenderingStyles=${customizedRenderingStyles}`;
       }
