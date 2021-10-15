@@ -172,7 +172,12 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
       const isTypeUnique = printClients.filter(p => p.type === pc.type).length === 1;
       pc.printers.map(printer => {
         this.channelDescriptor.items.push({
-          object: { type: pc.type, value: printer.name, printClientId: pc._id, guid: pc.guid },
+          object: {
+            type: pc.type,
+            value: printer.name,
+            printClientId: pc._id,
+            guid: pc.guid
+          },
           text: `Printer: ${pc.type}${isTypeUnique ? '' : ' → ' + (pc.guid || pc._id)} → ${printer.name}`
         });
       })
@@ -304,8 +309,93 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     }).toPromise();
   }
 
-  printTestOrder() {
-    console.log('print test order');
+  async printTestOrder() {
+    const channel = this.notificationInEditing.channel;
+    const printClients = await this.retrievePrintClients();
+    const matchedClient = printClients.find(pc => pc._id === channel.printClientId)
+    const matchedPrinter = (matchedClient.printers || []).find(p => p.name === channel.value);
+    try {
+      switch (channel.type) {
+        case 'fei-e':
+          const feieParams = {
+            sn: channel.value,
+            key: matchedPrinter.key,
+            orderId: environment.testOrderId,
+            copies: channel.copies || 1,
+            trigger: {
+              id: this._global.user._id,
+              name: this._global.user.username,
+              source: 'CSR',
+              module: "cloud print - print test order"
+            }
+          };
+
+          await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+            name: "send-order-fei-e",
+            params: feieParams
+          }]).toPromise();
+
+          this._global.publishAlert(AlertType.Info, "Print job sent");
+          break;
+
+        case 'longhorn':
+          const longhornParams = {
+            printerName: matchedPrinter.name,
+            orderId: environment.testOrderId,
+            copies: matchedClient.autoPrintCopies || 1,
+            format: matchedPrinter.settings.DefaultPageSettings.PrintableArea.Width > 480 ? 'pdf' : 'png',
+            trigger: {
+              id: this._global.user._id,
+              name: this._global.user.username,
+              source: "CSR",
+              module: "cloud print - print test order"
+            }
+          };
+
+          await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+            name: "send-order-longhorn",
+            params: longhornParams
+          }]).toPromise();
+
+          this._global.publishAlert(AlertType.Info, "Print job sent");
+          break;
+
+        case 'phoenix':
+          const format = this.notificationInEditing.format || 'png';
+          const url = this.getTestOrderRenderingUrl(matchedClient);
+          const phoenixParams = {
+            printClientId: matchedClient._id,
+            data: {
+              "type": "PRINT",
+              data: {
+                printerName: matchedPrinter.name,
+                format: format.toUpperCase(), // for back compatibility
+                url: url,
+                copies: this.notificationInEditing.copies || 1 // default to 1
+              }
+            },
+            trigger: {
+              id: this._global.user._id,
+              name: this._global.user.username,
+              source: "CSR",
+              module: "cloud print - print test order"
+            }
+          };
+
+          await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
+            name: "send-phoenix",
+            params: phoenixParams
+          }]).toPromise();
+
+          this._global.publishAlert(AlertType.Info, "Print job sent");
+          break;
+        default:
+          alert('not yet impelemented');
+      }
+    } catch (error) {
+      console.error(error);
+      this._global.publishAlert(AlertType.Danger, "Error while trying to print test order");
+    }
   }
 
   previewTestOrder() {
@@ -313,6 +403,23 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
   }
 
   editingPrintNotification() {
-    return ['fei-e', 'phoenix', 'longhorn'].some(el => (this.notificationInEditing.channel || {}).type === el)
+    return ['fei-e', 'phoenix', 'longhorn'].some(el => (this.notificationInEditing.channel || {}).type === el);
+  }
+
+  getTestOrderRenderingUrl(matchedClient) {
+    const format = this.notificationInEditing.format || 'png';
+    const customizedRenderingStyles = encodeURIComponent(this.notificationInEditing.customizedRenderingStyles || '');
+    const menus = encodeURIComponent(JSON.stringify(this.restaurant.menus || []));
+    const template = this.notificationInEditing.template === 'chef' ? 'restaurantOrderPosChef' : 'restaurantOrderPos';
+
+    let url = `${environment.legacyApiUrl.replace('https', 'http')}utilities/order/${environment.testOrderId}?format=pos&injectedStyles=${customizedRenderingStyles}`;
+    if (format === 'esc' || format === 'gdi' || format === 'pdf' || (matchedClient.info && matchedClient.info.version && matchedClient.info.version.split(".")[0] >= 3)) {
+      // ONLY newest phoenix support chef view so for now
+      url = `${environment.utilsApiUrl}renderer?orderId=${environment.testOrderId}&template=${template}&format=${format}&customizedRenderingStyles=${customizedRenderingStyles}&menus=${menus}`;
+      if (format === 'pdf') {
+        url = `${environment.utilsApiUrl}renderer?orderId=${environment.testOrderId}&template=restaurantOrderFax&format=${format}&customizedRenderingStyles=${customizedRenderingStyles}`;
+      }
+    }
+    return url;
   }
 }
