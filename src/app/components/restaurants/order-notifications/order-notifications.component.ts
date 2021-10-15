@@ -303,4 +303,16 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
       limit: 100
     }).toPromise();
   }
+
+  printTestOrder() {
+    console.log('print test order');
+  }
+
+  previewTestOrder() {
+    console.log('preview test order');
+  }
+
+  editingPrintNotification() {
+    return ['fei-e', 'phoenix', 'longhorn'].some(el => (this.notificationInEditing.channel || {}).type === el)
+  }
 }
