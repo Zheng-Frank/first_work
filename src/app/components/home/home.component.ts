@@ -4,7 +4,6 @@ import { environment } from "../../../environments/environment";
 import { GlobalService } from "../../services/global.service";
 import { Router } from '@angular/router';
 import { AlertType } from '../../classes/alert-type';
-import { HttpClient } from '@angular/common/http';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -154,7 +153,7 @@ export class HomeComponent implements OnInit {
       "gmb-campaign": ['ADMIN'],
       "bulk-messaging": ['ADMIN'],
       "courier-availability": ['ADMIN', 'CSR', 'MARKETER'],
-      "send-fax": ["ADMIN", 'CSR'],
+      "send-fax": ["ADMIN", 'CSR', 'MARKETER', 'MARKETER_INTERNAL'],
       "send-text-message": ['ADMIN', 'CSR', 'MENU_EDITOR', 'MARKETER'],
       "broadcasting": ['ADMIN', 'CSR'],
     };

@@ -8,7 +8,7 @@
 | Change ownership | `ADMIN`, `CSR`, `MENU_EDITOR` |
 | Postmates availability | `ADMIN`, `CSR`, `MARKETER` |
 | Send Text Message | `ADMIN`, `CSR`, `MENU_EDITOR`, `MARKETER` |
-| Send Fax | `ADMIN`, `CSR`|
+| Send Fax | `ADMIN`, `CSR`, `MARKETER`, `MARKETER_INTERNAL` |
 | GMB Campaign | `ADMIN` |
 | Bulk Messaging | `ADMIN` |
 | Broadcasting | `ADMIN`, `CSR` |
