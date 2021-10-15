@@ -25,8 +25,12 @@
   <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="editModal.hide()">
     <span aria-hidden="true">×</span>
   </button>
-  <h5 class="card-title">Add New Transaction</h5>
-  <q-form-builder [object]="transactionInEditing" [showDelete]="false" [fieldDescriptors]="fieldDescriptors"
+  <h5 class="card-title">
+    <ng-container *ngIf="!transactionInEditing._id">Add New Transaction</ng-container>
+    <ng-container *ngIf="transactionInEditing._id">Edit Transaction</ng-container>
+  </h5>
+  <q-form-builder [object]="transactionInEditing" [showDelete]="false"
+                  [fieldDescriptors]="fieldDescriptors" (change)="formChange()"
                   (submit)="formSubmit($event)" (cancel)="editModal.hide()">
   </q-form-builder>
 </q-modal>
@@ -47,5 +51,6 @@
     </td>
     <td>{{transaction.inputUsername}}</td>
     <td>{{transaction.inputTime | date : 'shortDate'}}</td>
+    <td><a *ngIf="canEdit(transaction.inputTime)" (click)="edit(transaction)" class="btn-link">Edit</a></td>
   </tr>
 </q-table>
