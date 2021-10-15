@@ -69,6 +69,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'serviceSettings',
     "doNotHideUselessMenuItems",
     "notificationExpiry",
+    "web"
   ];
   controlExpiry = false; // a flag to contorl broadcast expiry date input showing or not.
   notificationExpiry: string; // this value is needed to decide when shows the broadcast on customer pwa.
@@ -401,20 +402,24 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   }
 
   /**
-  *show the warning text: "*** WARNING! Are you sure [PERCENTAGE]% is the correct value? ***"
-  *if someone enter an incorrect percentage value 
-  */
+   *show the warning text: "*** WARNING! Are you sure [PERCENTAGE]% is the correct value? ***"
+   *if someone enter an incorrect percentage value
+   */
   isRateInvalid(rateType,rateValue){
     return rateValue > this.percentValidationMap[rateType];
   }
 
-  ok() {
+  async ok() {
     const oldObj = { _id: this.restaurant['_id'] } as any;
-    const newObj = { _id: this.restaurant['_id'] } as any;
+    let newObj = { _id: this.restaurant['_id'] } as any;
     this.fields.map(field => {
       oldObj[field] = this.restaurant[field];
       newObj[field] = this[field];
     });
+
+    const newObjCopy = JSON.parse(JSON.stringify(newObj));
+    newObjCopy['web']['template']['sectionATitle'] = this['name'];
+    newObj = newObjCopy;
 
     if (this.isTemporarilyDisabled === 'Yes') {
       newObj.comebackDate = newObj.comebackDate === null ? null : new Date(newObj.comebackDate);
