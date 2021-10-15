@@ -43,7 +43,7 @@ export class MonitoringOnboardingComponent implements OnInit {
   }
 
   // our salesperson only wants to know what is the time offset
-  // between local place and the location of restaurant
+  // between EST and the location of restaurant
   getTimeOffsetByTimezone(timezone){
     if(timezone){
       let localTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), timezone);

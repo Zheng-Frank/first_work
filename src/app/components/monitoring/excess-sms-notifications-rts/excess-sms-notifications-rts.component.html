@@ -14,6 +14,9 @@
           <a routerLink="/restaurants/{{r['_id']}}">{{r.name}} </a>
         </td>
         <td>
+          {{getTimezoneCity(r.googleAddress?.timezone)}} ({{getTimeOffsetByTimezone(r.googleAddress?.timezone)}})
+        </td>
+        <td>
           <table class="table table-borderless table-sm">
             <thead>
               <tr *ngIf="r.channels">

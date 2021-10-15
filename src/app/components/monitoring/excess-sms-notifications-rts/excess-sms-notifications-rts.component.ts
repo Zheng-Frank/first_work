@@ -1,3 +1,4 @@
+import { TimezoneHelper } from '@qmenu/ui';
 import { Helper } from './../../../classes/helper';
 import { AlertType } from './../../../classes/alert-type';
 import { filter } from 'rxjs/operators';
@@ -25,6 +26,9 @@ export class ExcessSmsNotificationsRtsComponent implements OnInit {
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
+      label: 'Timezone (as Offset to EST)'
+    },
+    {
       label: "Channels",
       paths: ['channels'],
       sort: (a, b) => b.filter(channel => channel.type === 'SMS' && channel.notifications && channel.notifications.includes('Order')).length - a.filter(channel => channel.type === 'SMS' && channel.notifications && channel.notifications.includes('Order')).length
@@ -37,6 +41,7 @@ export class ExcessSmsNotificationsRtsComponent implements OnInit {
     'Fax': 'fas fa-fax'
   };
   Languages = { ENGLISH: 'English', CHINESE: 'Chinese' };
+  now = new Date();
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
@@ -83,6 +88,23 @@ export class ExcessSmsNotificationsRtsComponent implements OnInit {
     return (values || []).join(', ');
   }
 
+   // our salesperson only wants to know what is the time offset
+  // between EST and the location of restaurant
+  getTimeOffsetByTimezone(timezone){
+    if(timezone){
+      let localTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), timezone);
+      let ESTTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), 'America/New_York');
+      let offset = (ESTTime.valueOf() - localTime.valueOf())/(3600*1000);
+      return offset > 0 ? "+"+offset.toFixed(0) : offset.toFixed(0);
+    }else{
+      return 'N/A';
+    }
+  }
+
+  getTimezoneCity(timezone){
+    return (timezone || '').split('/')[1] || '';
+  }
+
   async aggregateExcessSMSRTs() {
     this.excessSMSRTs = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
@@ -107,7 +129,8 @@ export class ExcessSmsNotificationsRtsComponent implements OnInit {
         {
           '$project': {
             'name': 1,
-            'channels': 1
+            'channels': 1,
+            'googleAddress.timezone': 1
           }
         }
       ],
