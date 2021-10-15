@@ -3812,7 +3812,10 @@ export class DbScriptsComponent implements OnInit {
     restaurants = restaurants.filter(r => {
       let id = r._id.toString();
       const rtArray = [
-        "58ba1a8d9b4e441100d8cdc1"];
+        // "60353b24d3580b5554087e4f", // red panda cafe
+        "58ba1a8d9b4e441100d8cdc1", // demo
+        // "57c4dc97a941661100c642b4" // panda cafe
+      ];
 
       return rtArray.includes(id);
     })
@@ -3860,6 +3863,7 @@ export class DbScriptsComponent implements OnInit {
               const customizedRenderingStyles = ov.customizedRenderingStyles;
               const guid = pc.guid;
               const menuFilters = ov.menus;
+              const info = pc.info;
               const newNotification = {
                 channel: {
                   type: pc.type,
@@ -3871,7 +3875,8 @@ export class DbScriptsComponent implements OnInit {
                 ...copies ? { copies } : null,
                 ...format ? { format } : { format: 'png' },
                 ...templateName ? { templateName } : { templateName: 'default' },
-                ...menuFilters ? { menuFilters } : null
+                ...menuFilters ? { menuFilters } : null,
+                ...info ? { info } : null
               };
               orderNotifications.push(newNotification);
             });
