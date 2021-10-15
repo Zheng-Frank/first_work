@@ -3813,7 +3813,7 @@ export class DbScriptsComponent implements OnInit {
       let id = r._id.toString();
       const rtArray = [
         // "60353b24d3580b5554087e4f", // red panda cafe
-        "58ba1a8d9b4e441100d8cdc1", // demo
+        "57f9a4c0cf366c11006d4076", // demo
         // "57c4dc97a941661100c642b4" // panda cafe
       ];
 
@@ -3827,7 +3827,8 @@ export class DbScriptsComponent implements OnInit {
         resource: "print-client",
         query: {
           "restaurant._id": r._id.toString()
-        }
+        },
+        limit: 100
       }).toPromise();
 
       channels.forEach(channel => {
