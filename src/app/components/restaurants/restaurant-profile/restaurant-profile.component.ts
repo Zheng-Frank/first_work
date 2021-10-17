@@ -418,7 +418,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     });
 
     const newObjCopy = JSON.parse(JSON.stringify(newObj));
-    newObjCopy['web']['template']['sectionATitle'] = this['name'];
+    newObjCopy['web']['template'] = this['name'];
+    newObjCopy.sectionATitle = this['name'];
     newObj = newObjCopy;
 
     if (this.isTemporarilyDisabled === 'Yes') {
