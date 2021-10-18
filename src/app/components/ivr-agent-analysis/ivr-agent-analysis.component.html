@@ -34,6 +34,14 @@
       </select>
     </div>
   </div>
+
+  <div class="col-auto">
+    <div class="input-group">
+      <label>Show Charts: </label>
+      <input type="checkbox" [(ngModel)]="showCharts" (change)="toggleCharts()">
+    </div>
+  </div>
+
 </div>
 <div class="row ivr-filters" *ngIf="timeRange === TimeRanges.CustomDate">
   <div class="col-auto">
@@ -55,5 +63,7 @@
   <div>Avg Call Duration: {{ secondsToHms(item.avgCallDuration) }}</div>
   <div>Total Call Time: {{ secondsToHms(item.totalCallTime) }}</div>
   <div>Avg Call Time per Day: {{ secondsToHms(item.avgCallTimePerDay) }}</div>
-  <canvas width="800" height="240" #cmp [attr.data-index]="i"></canvas>
+  <ng-container *ngIf="showCharts">
+    <canvas width="800" height="240" #cmp [attr.data-index]="i"></canvas>
+  </ng-container>
 </div>

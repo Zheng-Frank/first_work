@@ -52,6 +52,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
   charts = [];
   ivrUsers = {};
   userRoleMap = {};
+  showCharts = false;
 
   get now(): string {
     return this.dateStr(new Date());
@@ -347,7 +348,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
     ].filter(x => !!x).join(', ');
   }
 
-  filter() {
+  async filter() {
     this.filteredList = this.list;
     this.filteredTotalRecords = this.totalRecords;
 
@@ -355,7 +356,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
       return;
     }
     if (this.agentType === 'CSR') {
-      this.filteredList = this.list.filter(agent => agent.roles.some(role => role === 'CSR'));
+      this.filteredList = this.list.filter(agent => (agent.roles || []).some(role => role === 'CSR'));
       this.filteredTotalRecords = this.filteredList.reduce((prev, val) => prev + val.totalCalls, 0);
       return;
     }
@@ -367,5 +368,10 @@ export class IvrAgentAnalysisComponent implements OnInit {
       return;
     }
 
+    await this.changeDate();
+  }
+
+  async toggleCharts() {
+    await this.changeDate(); // calling changeDate() is a hack that 
   }
 }
