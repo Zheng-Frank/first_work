@@ -372,6 +372,6 @@ export class IvrAgentAnalysisComponent implements OnInit {
   }
 
   async toggleCharts() {
-    await this.changeDate(); // calling changeDate() is a hack that 
+    await this.changeDate(); // calling changeDate() is a hack that can "trick" ChartJS into re-rendering views
   }
 }
