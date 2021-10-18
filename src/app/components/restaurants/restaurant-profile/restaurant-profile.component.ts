@@ -417,9 +417,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       newObj[field] = this[field];
     });
 
-    const newObjCopy = JSON.parse(JSON.stringify(newObj));
-    newObjCopy['web']['template'] = this['name'];
-    newObjCopy.sectionATitle = this['name'];
+    let newObjCopy = JSON.parse(JSON.stringify(newObj));
+    newObjCopy = {  ...newObjCopy, web: { ...(newObjCopy.web), template: { ...(newObjCopy.web && newObjCopy.web.template),  sectionATitle: this['name']  }} };
     newObj = newObjCopy;
 
     if (this.isTemporarilyDisabled === 'Yes') {
