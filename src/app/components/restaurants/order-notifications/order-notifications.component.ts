@@ -170,7 +170,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     // we MAY contain multiple SAME typed clients. If so, we need to indicate their guid or _id
     printClients.map(pc => {
       const isTypeUnique = printClients.filter(p => p.type === pc.type).length === 1;
-      pc.printers.map(printer => {
+      (pc.printers || []).map(printer => {
         this.channelDescriptor.items.push({
           object: {
             type: pc.type,
@@ -197,7 +197,6 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
 
       // 2. menuFilters
       this.menuFilters = n.menuFilters || [];
-
     }
     // re-org UI
     this.updateFormEditor();
@@ -212,12 +211,18 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
       if (this.notificationInEditing.channel.type === 'phoenix') {
         // explicitly show default setting values on phoenix print notifications, if the notification doesn't already have a property set
         this.notificationInEditing.format = this.notificationInEditing.format || 'png';
-        this.notificationInEditing.templateName = this.notificationInEditing.templateName || 'default'
+        this.notificationInEditing.templateName = this.notificationInEditing.templateName || 'default';
       }
     }
 
     // let's also remove irrelevant fields
     const uselessFields = Object.keys(this.notificationInEditing).filter(k => !this.notificationFieldDescriptors.map(fd => fd.field).some(f => f === k));
+    const infoIndex = uselessFields.findIndex(entry => entry === 'info');
+    if (infoIndex >= 0 ) {
+      // we don't want to create a visible UI section for the notification's "info" property, but if it exists we want to preserve it
+      // remove the uselessFields entry for 'info' property so that it won't be deleted on the next line
+      uselessFields.splice(infoIndex, 1); 
+    }
     uselessFields.map(f => delete this.notificationInEditing[f]);
   }
 
@@ -237,7 +242,6 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     if (cloned.channel.type === 'phoenix' && this.menuFilters.length > 0) {
       cloned.menuFilters = JSON.parse(JSON.stringify(this.menuFilters));
     }
-
 
     this.patchDiff(this.orderNotifications, oldOrderNotifications);
     this.modalNotification.hide();
