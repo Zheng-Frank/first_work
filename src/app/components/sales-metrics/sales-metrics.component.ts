@@ -21,9 +21,9 @@ export class SalesMetricsComponent implements OnInit {
 
   currentPublishedTotal;
 
-  isSuperUser = false;
   username;
   usernames = [];
+  ivrUsers = [];
 
   rolledInvoiceIdsSet = new Set();
   myColumnDescriptors = [
@@ -148,286 +148,48 @@ export class SalesMetricsComponent implements OnInit {
 
 
   async ngOnInit() {
-    this.isSuperUser = ['gary', 'chris', 'mo', 'dixon.adair', 'jackson.todd'].indexOf(this._global.user.username) >= 0;
+
     this.username = this._global.user.username;
     this.usernames = [this.username];
-    if (this.isSuperUser) {
-      const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-        resource: 'restaurant',
-        projection: {
-          "rateSchedules.agent": 1
-        }
-      }, 6000);
-      const userSet = new Set();
-      restaurants.map(r => {
-        (r.rateSchedules || []).map(rs => {
-          if (rs.agent) {
-            userSet.add(rs.agent);
-          }
-        });
-      });
 
-      this.usernames = [...userSet];
-      this.usernames.sort();
-    }
-    this.populate();
-  }
-
-  async computeBonus() {
-    // see google doc: https://docs.google.com/spreadsheets/d/1qEVa0rMYZsVZZs0Fpu1ItnaNsYfwt6i51EdQuDt753A/edit#gid=0
-    const policiesMap = {
-      sam: [
-        {
-          to: new Date('12/16/2018'),
-          base: 150
-        },
-        {
-          from: new Date('1/1/2019'),
-          base: 75,
-          bonusThresholds: {
-            4: 150,
-            2: 75,
-            1: 50
-          }
-        },
-        {
-          from: new Date('9/27/2019'),
-          base: 0
-        },
-      ],
-
-      kevin: [
-        {
-          to: new Date('7/16/2018'),
-          base: 150
-        },
-        {
-          from: new Date('7/17/2018'),
-          base: 60,
-          bonusThresholds: {
-            2: 150,
-            1: 50
-          }
-        },
-      ],
-
-
-      james: [
-        {
-          to: new Date('6/1/2018'),
-          base: 150
-        },
-        {
-          from: new Date('7/1/2018'),
-          base: 50,
-          bonusThresholds: {
-            2: 150,
-            1: 50
-          }
-        },
-        {
-          from: new Date('4/1/2020'),
-          base: 0
-        },
-      ],
-
-      jason: [
-        {
-          base: 50,
-          bonusThresholds: {
-            2: 150,
-            1: 50
-          }
-        },
-      ],
-      andy: [
-        {
-          from: new Date('7/1/2018'),
-          base: 50,
-          bonusThresholds: {
-            2: 150,
-            1: 50
-          }
-        },
-        {
-          to: new Date('6/1/2018'),
-          base: 150
-        },
-      ],
-
-      billy: [
-        {
-          base: 0
-        },
-      ],
-      mike: [
-        {
-          base: 150
-        }
-      ],
-      charity: [
-        {
-          from: new Date('7/1/2018'),
-          base: 40,
-          bonusThresholds: {
-            3: 40
-          }
-        },
-        {
-          to: new Date('6/1/2018'),
-          base: 80
-        },
-      ],
-    };
-
-    let uncomputedRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {
-        salesBonus: null
-      },
       projection: {
-        name: 1,
-        salesBase: 1,
-        rateSchedules: 1,
-        createdAt: 1,
-        previousRestaurantId: 1
+        "rateSchedules.agent": 1
       }
-    }, 6000)
-
-    // uncomputedRestaurants = uncomputedRestaurants.filter(r => r._id === '5b5bfd764f600614008fcff5');
-
-    console.log(uncomputedRestaurants);
-    // uncomputedRestaurants.length = 80;
-    // update salesBase
-    const updatedRestaurantPairs = [];
-    for (let r of uncomputedRestaurants) {
-      const createdAt = new Date(r.createdAt);
-      let updated = false;
-      let appliedPolicy;
-      if (r.rateSchedules && r.rateSchedules.length > 0) {
-        const agent = r.rateSchedules[r.rateSchedules.length - 1].agent;
-
-        const policies = policiesMap[agent] || [];
-        for (let i = 0; i < policies.length; i++) {
-          const policy = policies[i];
-          const from = policy.from || new Date(0);
-          const to = policy.to || new Date();
-          if (createdAt > from && createdAt < to) {
-            appliedPolicy = policy;
-            if (r.salesBase !== policy.base) {
-              r.salesBase = policy.base;
-              updated = true;
-              break;
-            }
-          }
+    }, 6000);
+    const userSet = new Set();
+    restaurants.map(r => {
+      (r.rateSchedules || []).map(rs => {
+        if (rs.agent) {
+          userSet.add(rs.agent);
         }
-      }
-      // compute three month thing!
-      if (appliedPolicy && appliedPolicy.bonusThresholds && new Date().valueOf() - createdAt.valueOf() > 3 * 30 * 24 * 3600000) {
-        // query orders and apply calculations
-        const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
-          resource: 'order',
-          query: {
-            restaurant: { $oid: r._id },
-          },
-          projection: {
-            createdAt: 1
-          },
-          limit: 500, // 4 * 120 = max 480
-          sort: {
-            createdAt: 1
-          }
-        }).toPromise();
-        r.salesBonus = 0;
-        r.salesThreeMonthAverage = 0;
+      });
+    });
 
-        if (orders.length > 0) {
-          const firstCreatedAt = new Date(orders[0].createdAt);
-          let counter = 1;
-          const months3 = 90 * 24 * 3600000;
-          orders.map(order => {
-            if (new Date(order.createdAt).valueOf() - months3 < firstCreatedAt.valueOf()) {
-              counter++;
-            }
-          });
-          r.salesThreeMonthAverage = counter / 90.0;
+    this.usernames = [...userSet];
+    this.usernames.sort();
 
-          const thresholds = Object.keys(appliedPolicy.bonusThresholds).map(key => +key);
-          thresholds.sort().reverse();
-          for (let threshold of thresholds) {
-            if (r.salesThreeMonthAverage > threshold) {
-              r.salesBonus = appliedPolicy.bonusThresholds[threshold + ''];
-              console.log('Found bonus!');
-              console.log(r);
-              break;
-            }
-          }
-        }
-        updated = true;
-      }
-
-      if (updated) {
-
-        const newR: any = {
-          _id: r._id,
-          salesBase: r.salesBase
-        };
-
-        if (r.salesBonus !== undefined) {
-          newR.salesBonus = r.salesBonus;
-        }
-
-        if (r.salesThreeMonthAverage !== undefined) {
-          newR.salesThreeMonthAverage = r.salesThreeMonthAverage;
-        }
-
-        // 10/11/2019 if there is a previousRestaurantId, and previousRestaurant has the same agent, we clear both salesBase and sales bonus!
-        if (r.previousRestaurantId) {
-          // const previousRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
-          //   resource: 'restaurant',
-          //   query: {
-          //     _id: { $oid: r.previousRestaurantId }
-          //   },
-          //   projection: {
-          //     name: 1,
-          //     rateSchedules: 1,
-          //   },
-          //   limit: 1
-          // }).toPromise();
-
-          // const newRtAgent = (r.rateSchedules[r.rateSchedules.length - 1].agent || '').toLowerCase();
-          // const previousRtHasSameAgent = previousRestaurants.some(rt => (rt.rateSchedules || []).some(rs => (rs.agent || '').toLowerCase() === newRtAgent));
-          // if (previousRtHasSameAgent) {
-          //   newR.salesBase = 0;
-          //   newR.salesBonus = 0;
-          // }
-          newR.salesBase = 0;
-          newR.salesBonus = 0;
-        }
-
-        updatedRestaurantPairs.push({
-          old: {
-            _id: r._id
-          },
-          new: newR
-        });
-      }
-    }; // end for each restaurant
-
-    console.log(updatedRestaurantPairs);
-
-    if (updatedRestaurantPairs.length > 0) {
-      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', updatedRestaurantPairs).toPromise();
-    }
-
+    this.populateUser();
   }
-
 
   changeUser() {
-    this.populate();
+    this.populateUser();
   }
 
-  async populate() {
+  async getUsers() {
+    let users = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'user',
+      query: {ivrUsername: {$exists: true}},
+      projection: {username: 1, ivrUsername: 1},
+      limit: 1000
+    }).toPromise();
+    users.forEach(({username, ivrUsername}) => {
+      this.ivrUsers[ivrUsername] = username;
+    });
+  }
+
+  async populateUser() {
 
     this.result = [];
     const myUsername = this.username;
@@ -532,7 +294,7 @@ export class SalesMetricsComponent implements OnInit {
         projection: {
           isCanceled: 1,
           commission: 1,
-          feesForQmenu:1,
+          feesForQmenu: 1,
           fromDate: 1,
           toDate: 1,
           isPaymentCompleted: 1,
