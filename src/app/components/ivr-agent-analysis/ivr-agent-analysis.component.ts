@@ -271,6 +271,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
     }, 20000);
     this.totalRecords = data.length;
 
+
     this.restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: rtQuery,
@@ -281,6 +282,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
       limit: 100000
     }).toPromise();
 
+    console.log(this.restaurants);
     let map = {} as {
       [key: string]: {
         totalCalls: number, totalCallTime: number, durations: any[]
@@ -352,7 +354,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
     const sortField = {
       [SortFields.TotalCallTime]: 'totalCallTime',
       [SortFields.TotalCalls]: 'totalCalls',
-      [SortFields.AvgCallDuration]: 'avgCallDuration', 
+      [SortFields.AvgCallDuration]: 'avgCallDuration',
       [SortFields.RestaurntSignUps]: 'rtCount'
     }[this.sortBy];
     const sortFunc = (a, b) => {
@@ -403,5 +405,17 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
   async toggleCharts() {
     await this.changeDate(); // calling changeDate() is a hack that can "trick" ChartJS into re-rendering views
+  }
+
+  newSignUpCount() {
+    // only count sign-ups for agents whose stats are currently displayed on the page. otherwise, we may have a mismatch
+    // between the total count displayed at the top of the page and the total of the individual agents' numbers 
+    return (this.restaurants || []).reduce((prev, val) => {
+      const displayedUsers = this.filteredList.map(item => item.agent);
+      if (displayedUsers.includes(val.rateSchedules[0].agent)) {
+        return prev + 1;
+      }
+      return prev;
+    }, 0);
   }
 }
