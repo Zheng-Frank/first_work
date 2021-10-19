@@ -282,7 +282,6 @@ export class IvrAgentAnalysisComponent implements OnInit {
       limit: 100000
     }).toPromise();
 
-    console.log(this.restaurants);
     let map = {} as {
       [key: string]: {
         totalCalls: number, totalCallTime: number, durations: any[]
