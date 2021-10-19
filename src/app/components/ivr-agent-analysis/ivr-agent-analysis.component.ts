@@ -328,7 +328,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
     const sortFunc = (a, b) => {
       return this.sortOrder === SortOrders.Ascending ? a[sortField] - b[sortField] : b[sortField] - a[sortField];
     };
-    this.list.sort(sortFunc);
+    this.filteredList.sort(sortFunc);
   }
 
   secondsToHms(duration) {
