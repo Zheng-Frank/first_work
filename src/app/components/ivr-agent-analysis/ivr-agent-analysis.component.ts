@@ -22,7 +22,8 @@ enum AgentTypes {
 enum SortFields {
   TotalCalls = 'Total Calls',
   TotalCallTime = 'Total Call Time',
-  AvgCallDuration = 'Avg Call Duration'
+  AvgCallDuration = 'Avg Call Duration',
+  RestaurntSignUps = 'Restaurant Sign Ups'
 }
 
 enum SortOrders {
@@ -303,7 +304,6 @@ export class IvrAgentAnalysisComponent implements OnInit {
       });
     });
 
-    console.log(this.restaurants);
     this.list = Object.entries(map).map(([key, { totalCalls, totalCallTime, durations }]) => {
       let avgCallDuration = totalCallTime / totalCalls;
       let avgCallTimePerDay = totalCallTime / days;
@@ -352,7 +352,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
     const sortField = {
       [SortFields.TotalCallTime]: 'totalCallTime',
       [SortFields.TotalCalls]: 'totalCalls',
-      [SortFields.AvgCallDuration]: 'avgCallDuration'
+      [SortFields.AvgCallDuration]: 'avgCallDuration', 
+      [SortFields.RestaurntSignUps]: 'rtCount'
     }[this.sortBy];
     const sortFunc = (a, b) => {
       return this.sortOrder === SortOrders.Ascending ? a[sortField] - b[sortField] : b[sortField] - a[sortField];

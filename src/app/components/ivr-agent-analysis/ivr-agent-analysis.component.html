@@ -63,7 +63,7 @@
   <div>Avg Call Duration: {{ secondsToHms(item.avgCallDuration) }}</div>
   <div>Total Call Time: {{ secondsToHms(item.totalCallTime) }}</div>
   <div>Avg Call Time per Day: {{ secondsToHms(item.avgCallTimePerDay) }}</div>
-  <div>Restaurants Signed Up: {{ item.rtCount }}</div>
+  <div>Restaurant Sign Ups: {{ item.rtCount }}</div>
   <ng-container *ngIf="showCharts">
     <canvas width="800" height="240" #cmp [attr.data-index]="i"></canvas>
   </ng-container>
