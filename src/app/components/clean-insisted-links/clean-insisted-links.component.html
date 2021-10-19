@@ -22,8 +22,10 @@
         <small class="text-muted">Id: {{row._id}}</small>
       </div>
     </td>
-
-    <td style="width: 10%">
+    <td style="width: 12%;">
+      {{getTimezoneCity(row.googleAddress?.timezone)}} ({{getTimeOffsetByTimezone(row.googleAddress?.timezone)}})
+    </td>
+    <td style="width: 8%">
       <div *ngIf="row.hasGmbOwnership" class="text-success">&#10004;</div>
       <div *ngIf="!row.hasGmbOwnership" class="text-danger">&#10008;</div>
     </td>
@@ -77,11 +79,10 @@
       </ng-container>
     </td>
 
-    <td style="width: 50%;">
+    <td style="width: 40%;">
       <ng-container>
         <table class="table table-sm">
           <tr>
-            <th>Number</th>
             <th>User</th>
             <th>Time</th>
             <th>Problem</th>
@@ -89,7 +90,6 @@
           </tr>
           <ng-container *ngFor="let log of row.logs">
             <tr *ngIf="log.type === 'cleanup-insisted'">
-              <td>{{row.logs.indexOf(log)+1}}</td>
               <td>{{log.username}}</td>
               <td>{{log.time | adjustedDate : 'MMM d h:mm a' : row.googleAddress.timezone}}</td>
               <td>{{log.problem}}</td>
