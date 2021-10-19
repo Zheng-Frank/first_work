@@ -22,7 +22,8 @@ enum AgentTypes {
 enum SortFields {
   TotalCalls = 'Total Calls',
   TotalCallTime = 'Total Call Time',
-  AvgCallDuration = 'Avg Call Duration'
+  AvgCallDuration = 'Avg Call Duration',
+  RestaurntSignUps = 'Restaurant Sign Ups'
 }
 
 enum SortOrders {
@@ -53,6 +54,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
   ivrUsers = {};
   userRoleMap = {};
   showCharts = false;
+
+  restaurants = [];
 
   get now(): string {
     return this.dateStr(new Date());
@@ -250,6 +253,11 @@ export class IvrAgentAnalysisComponent implements OnInit {
       query['Agent.Username'] = ivrName;
     }
 
+    const rtQuery = {
+      createdAt: { $gte: { $date: start }, $lt: { $date: end } },
+      "rateSchedules.agent": { $exists: true }
+    };
+
     let data = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'amazon-connect-ctr',
       query: query,
@@ -262,6 +270,18 @@ export class IvrAgentAnalysisComponent implements OnInit {
       limit: 100000 // limit to 10w, contains 3~4 months data
     }, 20000);
     this.totalRecords = data.length;
+
+
+    this.restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: rtQuery,
+      projection: {
+        'createdAt': 1,
+        'rateSchedules.agent': 1,
+      },
+      limit: 100000
+    }).toPromise();
+
     let map = {} as {
       [key: string]: {
         totalCalls: number, totalCallTime: number, durations: any[]
@@ -288,7 +308,16 @@ export class IvrAgentAnalysisComponent implements OnInit {
     this.list = Object.entries(map).map(([key, { totalCalls, totalCallTime, durations }]) => {
       let avgCallDuration = totalCallTime / totalCalls;
       let avgCallTimePerDay = totalCallTime / days;
-      return { agent: key, totalCalls, totalCallTime, avgCallDuration, avgCallTimePerDay, durations, roles: this.userRoleMap[key] };
+      return {
+        agent: key,
+        totalCalls,
+        totalCallTime,
+        avgCallDuration,
+        avgCallTimePerDay,
+        durations,
+        roles: this.userRoleMap[key],
+        rtCount: (this.restaurants || []).filter(rt => rt.rateSchedules.some(sch => sch.agent === key)).length
+      }
     });
     this.sort();
     this.filter();
@@ -314,6 +343,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
     });
   }
 
+
   async ngOnInit() {
     await this.getUsers();
     await this.changeDate();
@@ -323,7 +353,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
     const sortField = {
       [SortFields.TotalCallTime]: 'totalCallTime',
       [SortFields.TotalCalls]: 'totalCalls',
-      [SortFields.AvgCallDuration]: 'avgCallDuration'
+      [SortFields.AvgCallDuration]: 'avgCallDuration',
+      [SortFields.RestaurntSignUps]: 'rtCount'
     }[this.sortBy];
     const sortFunc = (a, b) => {
       return this.sortOrder === SortOrders.Ascending ? a[sortField] - b[sortField] : b[sortField] - a[sortField];
@@ -362,7 +393,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
     }
     if (this.agentType === 'Sales') {
       this.filteredList = this.list.filter(agent => {
-        return ['MARKETER', 'MARKETER_INTERNAL', 'MARKETER_EXTERNAL'].some(applicableRole => agent.roles.some(agentRole => agentRole === applicableRole));
+        return ['MARKETER', 'MARKETER_INTERNAL', 'MARKETER_EXTERNAL'].some(applicableRole => (agent.roles || []).some(agentRole => agentRole === applicableRole));
       });
       this.filteredTotalRecords = this.filteredList.reduce((prev, val) => prev + val.totalCalls, 0);
       return;
@@ -373,5 +404,17 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
   async toggleCharts() {
     await this.changeDate(); // calling changeDate() is a hack that can "trick" ChartJS into re-rendering views
+  }
+
+  newSignUpCount() {
+    // only count sign-ups for agents whose stats are currently displayed on the page. otherwise, we may have a mismatch
+    // between the total count displayed at the top of the page and the total of the individual agents' numbers 
+    return (this.restaurants || []).reduce((prev, val) => {
+      const displayedUsers = this.filteredList.map(item => item.agent);
+      if (displayedUsers.includes(val.rateSchedules[0].agent)) {
+        return prev + 1;
+      }
+      return prev;
+    }, 0);
   }
 }
