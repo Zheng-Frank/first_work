@@ -54,6 +54,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
   userRoleMap = {};
   showCharts = false;
 
+  restaurants = [];
+
   get now(): string {
     return this.dateStr(new Date());
   }
@@ -250,6 +252,11 @@ export class IvrAgentAnalysisComponent implements OnInit {
       query['Agent.Username'] = ivrName;
     }
 
+    const rtQuery = {
+      createdAt: { $gte: { $date: start }, $lt: { $date: end } },
+      "rateSchedules.agent": { $exists: true }
+    };
+
     let data = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'amazon-connect-ctr',
       query: query,
@@ -262,6 +269,17 @@ export class IvrAgentAnalysisComponent implements OnInit {
       limit: 100000 // limit to 10w, contains 3~4 months data
     }, 20000);
     this.totalRecords = data.length;
+
+    this.restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: rtQuery,
+      projection: {
+        'createdAt': 1,
+        'rateSchedules.agent': 1,
+      },
+      limit: 100000
+    }).toPromise();
+
     let map = {} as {
       [key: string]: {
         totalCalls: number, totalCallTime: number, durations: any[]
@@ -285,10 +303,20 @@ export class IvrAgentAnalysisComponent implements OnInit {
       });
     });
 
+    console.log(this.restaurants);
     this.list = Object.entries(map).map(([key, { totalCalls, totalCallTime, durations }]) => {
       let avgCallDuration = totalCallTime / totalCalls;
       let avgCallTimePerDay = totalCallTime / days;
-      return { agent: key, totalCalls, totalCallTime, avgCallDuration, avgCallTimePerDay, durations, roles: this.userRoleMap[key] };
+      return {
+        agent: key,
+        totalCalls,
+        totalCallTime,
+        avgCallDuration,
+        avgCallTimePerDay,
+        durations,
+        roles: this.userRoleMap[key],
+        rtCount: (this.restaurants || []).filter(rt => rt.rateSchedules.some(sch => sch.agent === key)).length
+      }
     });
     this.sort();
     this.filter();
@@ -313,6 +341,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
       this.userRoleMap[username] = roles;
     });
   }
+
 
   async ngOnInit() {
     await this.getUsers();
