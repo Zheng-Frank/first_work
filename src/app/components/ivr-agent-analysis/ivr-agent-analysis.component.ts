@@ -392,7 +392,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
     }
     if (this.agentType === 'Sales') {
       this.filteredList = this.list.filter(agent => {
-        return ['MARKETER', 'MARKETER_INTERNAL', 'MARKETER_EXTERNAL'].some(applicableRole => agent.roles.some(agentRole => agentRole === applicableRole));
+        return ['MARKETER', 'MARKETER_INTERNAL', 'MARKETER_EXTERNAL'].some(applicableRole => (agent.roles || []).some(agentRole => agentRole === applicableRole));
       });
       this.filteredTotalRecords = this.filteredList.reduce((prev, val) => prev + val.totalCalls, 0);
       return;
