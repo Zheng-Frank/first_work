@@ -35,16 +35,16 @@
   <tr *tableRowTemplate="let rt" class="w-100 {{(filteredRows.indexOf(rt) + 1) % 2 !== 0 ? 'table-row-bg': ''}}">
 
     <!-- count -->
-    <td>
+    <td style="width: 2%">
       <div class="h-100 d-flex flex-column justify-content-center">
         {{ filteredRows.indexOf(rt) + 1 }}
       </div>
     </td>
 
     <!-- restaurant name -->
-    <td>
+    <td style="width: 20%">
       <div class="h-100 d-flex flex-column justify-content-center">
-        <a href="{{ rt.url }}" target="_blank">{{ rt.yelpName }}</a>
+        <a href="{{ rt.url }}" target="_blank">{{ desanitizeHtml(rt.yelpName) }}</a>
         <div class="text-muted">
 
           <!-- <div>Yelp Id : {{ rt.yid }}</div> -->
@@ -52,22 +52,29 @@
           <div *ngIf="!rt.url">
             <div class="text-danger">NO MATCHING URL YET ({{rt.qMenuName}})</div>
           </div>
-          <div><span>Yelp URL:</span><q-edit-label [value]="rt.url" (edit)="onAssignYelpUrl($event, 'url', rt)"></q-edit-label></div>
+          <div><p>Yelp URL:</p><q-edit-label [value]="rt.url" (edit)="onAssignYelpUrl($event, 'url', rt)" style="max-width: 100%; word-break: break-all;"></q-edit-label></div>
           <div *ngIf="rt.url && !rt.yid" class="text-danger">WAITING TO BE CRAWLED</div>
           <div><a routerLink="/restaurants/{{ rt._id }}" target="_blank"><i class="fas fa-external-link-alt"></i> qMenu restaurant page</a></div>
           <div>{{rt._id}}</div>
         </div>
         <div class="text-muted">
-          <small>{{ rt.googleFormattedAddress }}</small>
+          <small>{{ desanitizeHtml(rt.googleFormattedAddress) }}</small>
         </div>
         <div class="text-muted" *ngIf="!rt.isSameAddress">
-          <small class="text-primary">{{getYelpFormattedAddress(rt.location)}}</small>
+          <small class="text-primary">{{ desanitizeHtml(getYelpFormattedAddress(rt.location))}}</small>
+        </div>
+
+        <small class="pt-2">Website:</small>
+        <div class="small" style="max-width: 100%; word-break: break-all;">Q: <a href="http://{{rt.qmenuWebsite}}" target="_blank">{{rt.qmenuWebsite}}</a></div>
+        <div class="small" style="max-width: 100%; word-break: break-all;">Y: <a href="http://{{rt.website}}" target="_blank">{{rt.website}}</a></div>
+        <div *ngIf="rt.isRTPublished">
+          <button class="btn btn-link p-0 mt-1" (click)="injectWebsite(rt)"> Inject Desired Website </button>
         </div>
       </div>
     </td>
 
     <!-- time zone -->
-    <td>
+    <td style="width: 2%">
       {{rt.timezone | timezoneOffset}}
     </td>
 
@@ -87,7 +94,7 @@
 
 
     <!-- account -->
-    <td >
+    <td style="width: 10%">
       <div class="h-100" class="d-flex flex-column">
         <div *ngIf='rt.isRTPublished; else rtNotPublished'>
           <div>
@@ -125,18 +132,18 @@
     </td>
 
     <!-- Website -->
-    <td>
-      <div class="d-flex flex-column">
-        <div class="small">Q: <a href="http://{{rt.qmenuWebsite}}" target="_blank">{{rt.qmenuWebsite}}</a></div>
-        <div class="small">Y: <a href="http://{{rt.website}}" target="_blank">{{rt.website}}</a></div>
-        <div *ngIf="rt.isRTPublished">
-          <button class="btn btn-link p-0 mt-1" (click)="injectWebsite(rt)"> Inject Desired Website </button>
-        </div>
-      </div>
-    </td>
+<!--    <td style="15%">-->
+<!--      <div class="d-flex flex-column">-->
+<!--        <div class="small" style="max-width: 100%; word-break: break-all;">Q: <a href="http://{{rt.qmenuWebsite}}" target="_blank">{{rt.qmenuWebsite}}</a></div>-->
+<!--        <div class="small" style="max-width: 100%; word-break: break-all;">Y: <a href="http://{{rt.website}}" target="_blank">{{rt.website}}</a></div>-->
+<!--        <div *ngIf="rt.isRTPublished">-->
+<!--          <button class="btn btn-link p-0 mt-1" (click)="injectWebsite(rt)"> Inject Desired Website </button>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </td>-->
 
     <!-- Logs -->
-    <td>
+    <td style="width: 35%">
       <div *ngIf="rt.isRequested" class="h-100 d-flex flex-column justify-content-center mr-3">
         <div>
           <small class="font-italic" *ngIf="(rt.logs || []).length === 0">No logs yet.</small>
@@ -155,7 +162,7 @@
     </td>
 
     <!-- Reload Single -->
-    <td >
+    <td style="width: 1%">
       <div *ngIf="rt.isRequested" class="h-100 d-flex flex-column justify-content-center">
         <div class="h-100 d-flex flex-column justify-content-center">
           <button class="btn btn-link" (click)="refreshSingle(rt._id, rt.yid, rt.yelpEmail)" [qLoading]="refreshing"><i

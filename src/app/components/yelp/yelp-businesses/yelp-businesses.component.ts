@@ -19,9 +19,9 @@ export class YelpBusinessesComponent implements OnInit {
   filteredRows = [];
   refreshing = false;
   username = '';
-  restaurantStatus = "All";
+  restaurantStatus = "Claimable";
   Q_Y_WebsiteStatus = "All"; // Add filter to Yelp Biz page to filter for "Q / Y website" condition，it is the sign.
-  searchText; // restaurant id 
+  searchText; // restaurant id
   pagination = false;
 
   myColumnDescriptors = [
@@ -51,13 +51,13 @@ export class YelpBusinessesComponent implements OnInit {
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
-      label: 'Yelp Status',
+      label: 'Status',
       // paths: ['claimedStatus'],
       // sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
-    {
-      label: 'Website'
-    },
+    // {
+    //   label: 'Website'
+    // },
     {
       label: 'Logs'
     },
@@ -75,6 +75,10 @@ export class YelpBusinessesComponent implements OnInit {
 
   ngOnInit() {
 
+  }
+
+  desanitizeHtml(theString) {
+    return (theString || '').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
   }
 
   async loginYelp(email, yid, url) {
@@ -113,7 +117,7 @@ export class YelpBusinessesComponent implements OnInit {
   }
 
   hasSameAddress(googleFormattedAddress, yelpFormattedAddress) {
-    return googleFormattedAddress === yelpFormattedAddress;
+    return this.desanitizeHtml(googleFormattedAddress) === this.desanitizeHtml(yelpFormattedAddress);
   }
 
   getYelpFormattedAddress(location) {
@@ -136,7 +140,7 @@ export class YelpBusinessesComponent implements OnInit {
     switch (this.restaurantStatus) {
       case 'Claimable':
       case 'Reclaimable':
-        this.filteredRows = this.flatRows.filter(r => r.claimedStatus === 'Open' || r.claimedStatus === 'Reclaimable');
+        this.filteredRows = this.flatRows.filter(r => (r.claimedStatus === 'Open' || r.claimedStatus === 'Reclaimable') && !r.isRTPublished);
         break;
 
       case 'Published':
@@ -173,15 +177,16 @@ export class YelpBusinessesComponent implements OnInit {
         this.filteredRows = this.filteredRows;
         break;
     }
-    
+
     this.refreshing = false;
 
   }
+
    // search restaurant with id
-  search(){
-    if(this.searchText != ""){
-      this.filteredRows = this.flatRows.filter(r=>r._id === this.searchText);
-    }else{ // if there are not any searchText in the input ,should show the filter content with the other selects
+  search() {
+    if (this.searchText != "") {
+      this.filteredRows = this.flatRows.filter(r => r._id === this.searchText);
+    } else { // if there are not any searchText in the input ,should show the filter content with the other selects
       this.filter();
     }
   }
@@ -294,7 +299,6 @@ export class YelpBusinessesComponent implements OnInit {
     }
 
   }
-
 
   async addLog(yelpId, currentLog) {
 
