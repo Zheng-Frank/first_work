@@ -51,7 +51,19 @@
             </div>
           </div>
         </div>
-
+        <!-- start with social media links panel -->
+        <ng-container *ngFor="let link of restaurant.web?.socialMediaLinks">
+          <ng-container *ngFor="let obj of link|keyvalue">
+            <div class="form-group row" *ngIf="obj.value">
+              <label class="col-4 col-form-label pt-0">{{obj.key}} Media Link</label>
+              <div class="col-8 text-left">
+                <q-edit-label [value]="obj.value" (edit)="onEditSocialMediaLinks($event,obj.key)">
+                </q-edit-label>
+              </div>
+            </div>
+          </ng-container>
+        </ng-container>
+        <!-- end with social media links panel -->
         <div class="text-right">
           <div *ngIf="retrievedObj" class="mb-2">
             <span
@@ -60,14 +72,27 @@
               class="text-{{requesterEmail === retrievedObj.email ? 'success' : 'warning'}}">{{retrievedObj.email}}</span>
           </div>
 
+          <div class="row">
+            <div class="col-6 text-right">
+              <button class="btn btn-primary" (click)="openSocialMediaLinkModal()" [qLoading]="apiRequesting">Add Social
+                Media Links</button>
+            </div>
+            <div class="col-6 text-left">
+              <button class="btn btn-primary ml-2" (click)="injectWebsiteAws()" [qLoading]="apiRequesting">Publish
+                Website to AWS</button>
+            </div>
+          </div>
+          <div class="row mt-1">
+            <div class="col-6 text-right">
+              <button class="btn btn-primary" (click)="syncGmb(['HOURS_REGULAR', 'HOURS_SPECIAL_OPEN'])"
+                [qLoading]="apiRequesting">Sync GMB Menu Hours</button>
+            </div>
+            <div class="col-6 text-left">
+              <button class="btn btn-primary" (click)="syncGmb(['SERVICE_SETTINGS'])" [qLoading]="apiRequesting">Sync
+                GMB Service Settings</button>
+            </div>
+          </div>
 
-
-          <button class="btn btn-primary" (click)="injectWebsiteAws()" [qLoading]="apiRequesting">Publish
-            Website to AWS</button>
-          <button class="btn btn-primary" (click)="syncGmb(['HOURS_REGULAR', 'HOURS_SPECIAL_OPEN'])" [qLoading]="apiRequesting">Sync GMB Menu
-            Hours</button>
-          <button class="btn btn-primary" (click)="syncGmb(['SERVICE_SETTINGS'])" [qLoading]="apiRequesting">Sync GMB Service Settings</button>
-  
           <div class="alert alert-danger my-2 text-left"
             *ngIf="!restaurant?.web?.qmenuWebsite || restaurant?.web?.qmenuWebsite?.indexOf('qmenu') > 0">
             <h2 class="text-center">COSTLY ACTION. USE EXTREME CAUTION! 务必非常仔细以防止造成重大损失!</h2>
@@ -96,4 +121,31 @@
       </ng-container>
     </li>
   </ul>
+  <!-- start with social media link modal -->
+  <q-modal #socialMediaLinksModal>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">Add Social Media Links</h4>
+    <hr>
+    <div class="container">
+      <div class="row mt-2" *ngFor="let link of socialMediaLinks;let i = index;">
+        <ng-container *ngIf="!socialMediaLinkExists(link.text)">
+          <label class="col-3 mt-2">{{link.text}}</label>
+          <input type="text" class="form-control col-9" [(ngModel)]="link.value"
+            placeholder="Enter social media links' value!">
+        </ng-container>
+      </div>
+      <div class="row alert alert-info"
+        *ngIf="!noSocialMediaLinks() && socialMediaLinks.length === restaurant.web.socialMediaLinks.length">
+        All Needed Social Media Links Exist.
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end p-4">
+      <button class="btn btn-secondary mr-2" (click)="cancelAddSocialMediaLinks()">Cancel</button>
+      <button class="btn btn-primary" (click)="addSocialMediaLinks()">OK</button>
+    </div>
+  </q-modal>
+  <!-- end with social media link modal -->
 </div>
