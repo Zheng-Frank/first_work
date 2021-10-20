@@ -192,8 +192,78 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     deliverySettings: 'Delivery Settings',
     preferredLanguage: 'Preferred Language'
   };
-  messageTemplates = [
-    [
+  messageTemplates = {
+    'Owner APP': [
+      {
+        title: "Biz App (Android)",
+        subject: "Biz App (Android)",
+        smsContent: "https://play.google.com/store/apps/details?id=qmenu.Owner&hl=en_US&gl=US",
+        emailContent: "https://play.google.com/store/apps/details?id=qmenu.Owner&hl=en_US&gl=US"
+      },
+      {
+        title: "Biz App (iOS)",
+        subject: "Biz App (iOS)",
+        smsContent: "https://apps.apple.com/us/app/qmenu-owner/id1476098960",
+        emailContent: "https://apps.apple.com/us/app/qmenu-owner/id1476098960"
+      },
+      {
+        title: "Biz App (website)",
+        subject: "Biz App (website)",
+        smsContent: "https://biz.qmenu.us/#/",
+        emailContent: "https://biz.qmenu.us/#/"
+      },
+      {
+        title: "Biz App User Guide (Eng)",
+        subject: "Biz App User Guide",
+        smsContent: "https://drive.google.com/file/d/1SFsJDVLWP62g0-Sr6bNPwv7dHbG_HFJ6/view?usp=sharing",
+        emailContent: "https://drive.google.com/file/d/1SFsJDVLWP62g0-Sr6bNPwv7dHbG_HFJ6/view?usp=sharing"
+      },
+      {
+        title: "Biz App User Guide (中)",
+        subject: "Biz App 用户指南",
+        smsContent: "https://drive.google.com/file/d/1HbRUtZYEMKQD_lfi7XRRK7DQqhc06MkA/view?usp=sharing",
+        emailContent: "https://drive.google.com/file/d/1HbRUtZYEMKQD_lfi7XRRK7DQqhc06MkA/view?usp=sharing"
+      }
+    ],
+    'GMB Notices': [
+      {
+        title: 'First GMB Notice (中)',
+        subject: '谷歌推广明信片',
+        smsContent: '你好，这里是QMenu，为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到。在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信，发给我们这个5位数号码 (请注意，此短信不能接受照片)，或者给我们的客服打电话 404-382-9768。多谢！',
+        emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到。在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 <strong>855-759-2648</strong> 或者给我们的客服打电话 <strong>404-382-9768</strong>。多谢！'
+      },
+      {
+        title: 'First GMB Notice (Eng)',
+        subject: 'Google promote postcard',
+        smsContent: 'This is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks.',
+        emailContent: 'Hi, <br/>&nbsp;&nbsp;&nbsp;&nbsp;This is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong> or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
+      },
+      {
+        title: 'First GMB Notice (中/Eng)',
+        subject: '谷歌推广明信片(Google promote postcard)',
+        smsContent: '你好,这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片). 或者给我们的客服打电话 404-382-9768. 多谢!\nThis is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard or call us at 404-382-9768. Thanks.',
+        emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到。在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 855-759-2648 或者给我们的客服打电话 404-382-9768。多谢！<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;Hi,<br/>This is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong> or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
+      },
+      {
+        title: 'Second GMB Notice (中)',
+        subject: '谷歌推广明信片',
+        smsContent: '你好,这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片), 或者给我们的客服打电话 404-382-9768. 多谢!',
+        emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 <strong>855-759-2648</strong> 或者给我们的客服打电话 <strong>404-382-9768</strong>。<br/>多谢！'
+      },
+      {
+        title: 'Second GMB Notice (Eng)',
+        subject: 'Google promote postcard',
+        smsContent: 'This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks.',
+        emailContent: 'Hi,<br/>&nbsp;&nbsp;&nbsp;&nbsp;This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong> or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
+      },
+      {
+        title: 'Second GMB Notice (中/Eng)',
+        subject: '谷歌推广明信片(Google promote postcard)',
+        smsContent: '你好，这里是QMenu，为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信，发给我们这个5位数号码 (请注意，此短信不能接受照片)或者给我们的客服打电话 404-382-9768。 多谢！\n          This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard (Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks.',
+        emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 <strong>855-759-2648</strong> 或者给我们的客服打电话 <strong>404-382-9768</strong>。<br/>多谢！<br/><br/>Hi,<br/>&nbsp;&nbsp;&nbsp;&nbsp;This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong>, or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
+      }
+    ],
+    'QR Dine-in': [
       {
         title: 'QR Biz link',
         subject: 'QR Biz link',
@@ -242,46 +312,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
         smsContent: '看看 qMenu 的扫码点餐系统提供的所有好处：https://pro-bee-beepro-messages.s3.amazonaws.com/474626/454906/1210649/6204156.html',
         emailContent: '看看 qMenu 的扫码点餐系统提供的所有好处：https://pro-bee-beepro-messages.s3.amazonaws.com/474626/454906/1210649/6204156.html'
       },
-    ],
-    [
-      {
-        title: 'First GMB Notice (中)',
-        subject: '谷歌推广明信片',
-        smsContent: '你好，这里是QMenu，为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到。在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信，发给我们这个5位数号码 (请注意，此短信不能接受照片)，或者给我们的客服打电话 404-382-9768。多谢！',
-        emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到。在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 <strong>855-759-2648</strong> 或者给我们的客服打电话 <strong>404-382-9768</strong>。多谢！'
-      },
-      {
-        title: 'First GMB Notice (Eng)',
-        subject: 'Google promote postcard',
-        smsContent: 'This is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks.',
-        emailContent: 'Hi, <br/>&nbsp;&nbsp;&nbsp;&nbsp;This is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong> or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
-      },
-      {
-        title: 'First GMB Notice (中/Eng)',
-        subject: '谷歌推广明信片(Google promote postcard)',
-        smsContent: '你好,这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片). 或者给我们的客服打电话 404-382-9768. 多谢!\nThis is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard or call us at 404-382-9768. Thanks.',
-        emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到。在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 855-759-2648 或者给我们的客服打电话 404-382-9768。多谢！<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;Hi,<br/>This is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong> or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
-      },
-      {
-        title: 'Second GMB Notice (中)',
-        subject: '谷歌推广明信片',
-        smsContent: '你好,这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片), 或者给我们的客服打电话 404-382-9768. 多谢!',
-        emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 <strong>855-759-2648</strong> 或者给我们的客服打电话 <strong>404-382-9768</strong>。<br/>多谢！'
-      },
-      {
-        title: 'Second GMB Notice (Eng)',
-        subject: 'Google promote postcard',
-        smsContent: 'This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks.',
-        emailContent: 'Hi,<br/>&nbsp;&nbsp;&nbsp;&nbsp;This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong> or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
-      },
-      {
-        title: 'Second GMB Notice (中/Eng)',
-        subject: '谷歌推广明信片(Google promote postcard)',
-        smsContent: '你好，这里是QMenu，为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信，发给我们这个5位数号码 (请注意，此短信不能接受照片)或者给我们的客服打电话 404-382-9768。 多谢！\n          This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard (Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks.',
-        emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 <strong>855-759-2648</strong> 或者给我们的客服打电话 <strong>404-382-9768</strong>。<br/>多谢！<br/><br/>Hi,<br/>&nbsp;&nbsp;&nbsp;&nbsp;This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong>, or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
-      }
     ]
-  ];
+  };
   invoicesCount = 0;
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {

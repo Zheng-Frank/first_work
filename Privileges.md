@@ -33,7 +33,7 @@
 | Postmates List (Old) | `ADMIN`, `CSR ` |
 | Postmates Orders | `ADMIN`, `CSR ` |
 | Weird Data | `ADMIN`, `CSR ` |
-| SEO Tracking (Coming Soon) | `ADMIN` |
+| SEO Tracking | `ADMIN` |
 | API Logs Dashboard | `ADMIN` |
 | Fraud Detection | `ADMIN`,  `CSR ` |
 | Clean Menus | `ADMIN`,  `CSR ` |
