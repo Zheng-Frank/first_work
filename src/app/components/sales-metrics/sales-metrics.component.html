@@ -1,117 +1,70 @@
-
-  <label>Impersonate:</label>
-  <select class="form-control mr-4" [(ngModel)]="username" (change)="changeUser()">
-    <option *ngFor="let username of usernames">{{username}}</option>
-  </select>
-  <div class="pt-1">
-    <button class="btn btn-primary" (click)="computeBonus()">Compute Bonus</button>
-  </div>
-
-<h1 class="text-center">Team Stats</h1>
-
-<div class="card-group">
-  
-
-  <div class="card">
-    <div class="card-body">
-      <h5>Current GMB: {{currentPublishedTotal}}, Had GMB: {{hadGainedBySalesTotal + hadGainedByQmenuTotal}}
-        ({{hadGainedBySalesTotal}} from sales + {{hadGainedByQmenuTotal}} from qMenu)</h5>
-      <div>
-        <q-table [rows]="result" [tableColumnDescriptors]="gmbColumnDescriptors" [compact]="true">
-          <tr *tableRowTemplate="let each;">
-            <td>{{each.month}}
-            </td>
-            <td>{{each.rts}}</td>
-            <td>{{each.gmbGainedBySales}}</td>
-            <td>{{each.gmbGainedByQmenu}}</td>
-            <td>{{each.published}}</td>
-          </tr>
-        </q-table>
-      </div>
+<h2 class="text-center">Agent Call Stats Dashboard ({{filteredList.length}} agents, {{filteredTotalRecords}} records, {{newSignUpCount()}} new sign-ups)</h2>
+<div class="row ivr-filters">
+  <div class="col-auto">
+    <div class="input-group">
+      <label>View:</label>
+      <select class="custom-select " [(ngModel)]="timeRange" (change)="changeDate()">
+        <option *ngFor="let item of timeRanges" [value]="item">{{item}}</option>
+      </select>
     </div>
   </div>
+  <div class="col-auto">
+    <div class="input-group">
+      <label>Sort By:</label>
+      <select class="custom-select " [(ngModel)]="sortBy" (change)="sort()">
+        <option *ngFor="let item of sortFields" [value]="item">{{item}}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="col-auto">
+    <div class="input-group">
+      <label>Filter By Agent Role:</label>
+      <select class="custom-select " [(ngModel)]="agentType" (change)="filter()">
+        <option *ngFor="let item of agentTypes" [value]="item">{{item}}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="col-auto">
+    <div class="input-group">
+      <label>Sort Order:</label>
+      <select class="custom-select " [(ngModel)]="sortOrder" (change)="sort()">
+        <option *ngFor="let item of sortOrders" [value]="item">{{item}}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="col-auto">
+    <div class="input-group">
+      <label>Show Charts: </label>
+      <input type="checkbox" [(ngModel)]="showCharts" (change)="toggleCharts()">
+    </div>
+  </div>
+
 </div>
-
-
-<q-table [rows]="rows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
-  <tr *tableRowTemplate="let row;" class="{{row.restaurant.disabled ? 'bg-warning' : ''}}">
-    <th>{{rows.indexOf(row) + 1}}</th>
-    <td class="text-nowrap {{row.restaurant.disabled ? 'app-muted' : ''}}">
-      <a target="_blank" href="#/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
-      <div>
-        <small>{{row.restaurant.googleAddress?.formatted_address | removeUsa}}</small>
-      </div>
-    </td>
-    <td>{{row.restaurant.createdAt | date: 'shortDate' }}</td>
-
-    <td class="text-nowrap">
-      <button class="btn btn-link" (click)="row.showDetails = !row.showDetails">{{row.invoices.length}}
-        <i class="fas fa-caret-down"></i>
-      </button>
-      <table class="table table-borderless table-sm" *ngIf="row.showDetails">
-        <tr *ngFor="let invoice of row.invoices" class="{{isRolledOrPaid(invoice) ? 'text-success' : 'text-danger'}}">
-          <td>
-            <a target="_blank" href="#/invoices/{{invoice._id}}">{{invoice.fromDate | date:'MMM d yyyy'}} -
-              {{invoice.toDate | date:'MMM d'}}</a>
-          </td>
-          <td>
-            {{(invoice.commission >0 ? invoice.commission: invoice.commission + invoice.feesForQmenu || 0) - (invoice.adjustment - invoice.transactionAdjustment) | currency:'USD':'symbol'}}            
-          </td>
-        </tr>
-      </table>
-    </td>
-    <td>{{row.rate | percent}}
-      <span *ngIf="row.fixed"> + {{row.fixed | currency:'USD':'symbol'}}</span>
-    </td>
-    <td>{{row.notCollected | currency:'USD':'symbol'}}</td>
-
-    <td>{{row.collected | currency:'USD':'symbol'}}</td>
-    <td>{{row.commission | percent}}</td>
-    <td>{{row.earned | currency:'USD':'symbol'}}</td>
-    <td>{{row.notEarned | currency:'USD':'symbol'}}</td>
-    <td>
-      <span *ngIf="row.restaurant.salesBase">{{row.qualifiedSalesBase | currency:'USD':'symbol'}}</span>
-    </td>
-    <td>
-      <span *ngIf="row.restaurant.salesBonus">
-
-        {{row.qualifiedSalesBonus | currency:'USD':'symbol'}}
-        <div>
-          <small>avg. {{row.restaurant.salesThreeMonthAverage | number:'1.1-1'}} / day</small>
-        </div>
-      </span>
-    </td>
-    <th>{{row.subtotal | currency:'USD':'symbol'}}</th>
-
-    <td>
-      <span class="text-success" *ngIf="row.restaurant.gmbOrigin">✔</span>
-      <span class="text-danger" *ngIf="!row.restaurant.gmbOrigin">✘</span>
-    </td>
-    <td>
-      <ng-container *ngIf="row.restaurant.gmbOrigin">
-        {{row.restaurant.gmbOrigin.origin}}<br>
-        {{row.restaurant.gmbOrigin.time | date: 'shortDate' }}
-      </ng-container>
-    </td>
-    <td class="text-center">
-      <img *ngIf="row.published" [attr.src]="'/assets/images/qmenu.png'" alt="qmenu" height="16px">
-      <img *ngIf="row.suspended" [attr.src]="'/assets/images/qmenu-gray.png'" alt="qmenu" height="16px">
-      <span *ngIf="!row.published && !row.suspended">?</span>
-    </td>
-    <td>
-      <div>
-        Google:
-        <a href="{{row.restaurant.googleListing?.gmbWebsite}}" title="{{row.restaurant.googleListing?.gmbWebsite}}"
-          target="_blank">{{row.restaurant.googleListing?.gmbWebsite}}</a>
-      </div>
-
-      <div>
-        qMenu:
-        <a href="{{row.restaurant.web?.qmenuWebsite}}" title="{{row.restaurant.web?.qmenuWebsite}}"
-          target="_blank">{{row.restaurant.web?.qmenuWebsite}}</a>
-      </div>
-    </td>
-
-  </tr>
-
-</q-table>
+<div class="row ivr-filters" *ngIf="timeRange === TimeRanges.CustomDate">
+  <div class="col-auto">
+    <div class="input-group">
+      <label>Date:</label>
+      <input class="form-control" [(ngModel)]="startDate" [max]="endDate" type="date" />
+      <span>~</span>
+      <input class="form-control" [(ngModel)]="endDate" [min]="startDate" [max]="now" type="date" />
+    </div>
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-primary" (click)="query()" [disabled]="!this.startDate || !this.endDate" type="button">OK</button>
+  </div>
+</div>
+<div *ngFor="let item of filteredList; let i = index;" class="card-body">
+  <hr />
+  <div>Agent Name: <b>{{ item.agent }}</b></div>
+  <div>Total Calls: {{ item.totalCalls }}</div>
+  <div>Avg Call Duration: {{ secondsToHms(item.avgCallDuration) }}</div>
+  <div>Total Call Time: {{ secondsToHms(item.totalCallTime) }}</div>
+  <div>Avg Call Time per Day: {{ secondsToHms(item.avgCallTimePerDay) }}</div>
+  <div>Restaurant Sign Ups: {{ item.rtCount }}</div>
+  <ng-container *ngIf="showCharts">
+    <canvas width="800" height="240" #cmp [attr.data-index]="i"></canvas>
+  </ng-container>
+</div>
