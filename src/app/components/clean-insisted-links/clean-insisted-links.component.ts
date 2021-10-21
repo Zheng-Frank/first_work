@@ -1,3 +1,4 @@
+import { TimezoneHelper } from '@qmenu/ui';
 import {Component, OnInit, ViewChild} from '@angular/core';
 import { ApiService } from "../../services/api.service";
 import { GlobalService } from "../../services/global.service";
@@ -31,6 +32,9 @@ export class CleanInsistedLinksComponent implements OnInit {
       sort: (a, b) => new Date(a || 0) > new Date(b || 0) ? 1 : -1,
     },
     {
+      label: 'Timezone (as Offset to EST)'
+    },
+    {
       label: "GMB Status",
       paths: ['hasGmbOwnership'],
       sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
@@ -44,11 +48,28 @@ export class CleanInsistedLinksComponent implements OnInit {
       label: "Logs",
     },
   ];
-
+  now = new Date();
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service, private _prunedPatch: PrunedPatchService) { }
 
   ngOnInit() {
     this.loadRestaurants();
+  }
+
+  getTimezoneCity(timezone){
+    return (timezone || '').split('/')[1] || '';
+  }
+
+    // our salesperson only wants to know what is the time offset
+  // between EST and the location of restaurant
+  getTimeOffsetByTimezone(timezone){
+    if(timezone){
+      let localTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), timezone);
+      let ESTTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), 'America/New_York');
+      let offset = (ESTTime.valueOf() - localTime.valueOf())/(3600*1000);
+      return offset > 0 ? "+"+offset.toFixed(0) : offset.toFixed(0);
+    }else{
+      return 'N/A';
+    }
   }
 
   async loadRestaurants() {
@@ -63,7 +84,7 @@ export class CleanInsistedLinksComponent implements OnInit {
               {"web.menuUrl": {$exists: true, $ne: ""}},
               {"web.orderAheadUrl": {$exists: true, $ne: ""}},
               {"web.reservationUrl": {$exists: true, $ne: ""}}
-            ],
+            ]
           }
         },
         {
@@ -164,24 +185,41 @@ export class CleanInsistedLinksComponent implements OnInit {
     }
   }
 
-  addLog(row) {
+  async addLog(row) {
     this.logInEditing = new Log({ type: 'cleanup-insisted', time: new Date() });
     this.activeRestaurant = row;
+    let activeRestaurantLogs = await this.getRestaurantLogs(this.activeRestaurant._id); 
+    this.activeRestaurant.logs = activeRestaurantLogs;
     this.logEditingModal.show();
+  }
+  
+  // load old logs of restaurant which need to be updated to ensure the integrity of data.
+  async getRestaurantLogs(rtId){
+    let restaurant = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        _id: {
+          $oid:rtId
+        }
+      },
+      projection: {
+        logs: 1
+      },
+      limit: 1
+    }).toPromise();
+    return restaurant[0].logs || [];
   }
 
   onSuccessAddLog(event) {
     event.log.time = event.log.time ? event.log.time : new Date();
     event.log.username = event.log.username ? event.log.username : this._global.user.username;
-
-    const oldRestaurant = { _id: this.activeRestaurant._id, logs: [...this.activeRestaurant.logs] };
+    this.activeRestaurant.logs.push(event.log);
 
     const newRestaurant = { _id: this.activeRestaurant._id, logs: [...this.activeRestaurant.logs] };
-    newRestaurant.logs.push(event.log);
 
     this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant',
       [{
-        old: { _id: oldRestaurant._id, logs: oldRestaurant.logs },
+        old: { _id: this.activeRestaurant._id },
         new: { _id: newRestaurant._id, logs: newRestaurant.logs }
        }]).subscribe(result => {
           this.rows.find(r => r._id === this.activeRestaurant._id).logs = [...newRestaurant.logs];

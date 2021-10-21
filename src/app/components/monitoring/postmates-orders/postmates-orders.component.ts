@@ -19,6 +19,16 @@ enum filterTypes {
   Previous24Hours = 'Previous 24 Hours',
   Custom = 'Custom'
 }
+
+enum EnumSearchTypes {
+  CustomerPhone = 'Customer Phone',
+  PostmatesID = 'Postmates ID',
+  RestaurantID = 'Restautant ID',
+  OrderID = 'Order ID',
+  DriverCanceled = 'Driver Canceled',
+  NoDriverAssigned = 'No Driver Assigned'
+}
+
 @Component({
   selector: 'app-postmates-orders',
   templateUrl: './postmates-orders.component.html',
@@ -56,7 +66,7 @@ export class PostmatesOrdersComponent implements OnInit {
   cancelError = '';
   undoOrder: any;
   isPostmatesStatusDelivered = false;
-  searchTypes = ['Customer Phone', 'Postmates ID', 'Restautant ID', 'Order ID'];
+  searchTypes = [EnumSearchTypes.CustomerPhone, EnumSearchTypes.PostmatesID, EnumSearchTypes.RestaurantID, EnumSearchTypes.OrderID, EnumSearchTypes.DriverCanceled, EnumSearchTypes.NoDriverAssigned];
   dateType = filterTypes.Last24Hours;
   dateSearchTypes = [filterTypes.Last24Hours, filterTypes.Previous24Hours, filterTypes.Custom];
   type = 'Order ID';//  concrete search type
@@ -74,6 +84,7 @@ export class PostmatesOrdersComponent implements OnInit {
     "channels": 1
   };
   showExplanation = false;
+  restaurantsForOrders = [];
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
   /**
@@ -83,8 +94,9 @@ export class PostmatesOrdersComponent implements OnInit {
     this.cardSpecialOrder = order;
     this.changeOrderTypeModal.show();
   }
-  ngOnInit() {
-    this.populateOrders();
+  async ngOnInit() {
+    await this.getRestaurantsForOrders();
+    await this.populateOrders();
     this.onNewOrderReceived.subscribe(
       d => this.showNotifier(d)
     );
@@ -111,9 +123,6 @@ export class PostmatesOrdersComponent implements OnInit {
       let query = {};
       if (this.dateType === filterTypes.Last24Hours) {
         query = {
-          restaurant: {
-            $exists: true
-          },
           'delivery.id': {
             $exists: true
           },
@@ -130,9 +139,6 @@ export class PostmatesOrdersComponent implements OnInit {
         } as any;
       } else if (this.dateType === filterTypes.Previous24Hours) {
         query = {
-          restaurant: {
-            $exists: true
-          },
           'delivery.id': {
             $exists: true
           },
@@ -144,16 +150,13 @@ export class PostmatesOrdersComponent implements OnInit {
             createdAt: {
               $lte: { $date: new Date(new Date().valueOf() - 24 * 3600 * 1000) }
             }
-          }
-          ]
+          }]
         } as any;
       }
 
-      if (!this.searchText) {
-
-      } else if (this.type == 'Postmates ID' && this.searchText) {
+      if (this.type === EnumSearchTypes.PostmatesID && this.searchText) {
         query['delivery.id'] = this.searchText.trim();
-      } else if (this.type == 'Customer Phone' && this.searchText) {
+      } else if (this.type === EnumSearchTypes.CustomerPhone && this.searchText) {
         if (this.searchText.indexOf('-') != -1) { //to make  it support query order with phone number using - to split
           let str_arr = this.searchText.trim().split('-');
           let queryStr = '';
@@ -164,14 +167,49 @@ export class PostmatesOrdersComponent implements OnInit {
         } else { //the situation of the phone number don't have '-'
           query['customerObj.phone'] = this.searchText.trim();
         }
-      } else if (this.type == 'Restautant ID' && this.searchText) {
+      } else if (this.type === EnumSearchTypes.RestaurantID && this.searchText) {
         query['restaurant'] = {
           $oid: this.searchText
         }
-      } else if (this.type == 'Order ID' && this.searchText) {
+      } else if (this.type === EnumSearchTypes.OrderID && this.searchText) {
         query['_id'] = {
           $oid: this.searchText
         }
+      } else if (this.type === EnumSearchTypes.DriverCanceled) {
+        query['type'] = {
+          $eq: 'DELIVERY'
+        }
+        query['$and'].push({
+          'delivery.courier': {
+            $ne: null
+          },
+        },
+          {
+            'delivery.courier': {
+              $exists: true
+            }
+          });
+        query['delivery.status'] = {
+          $eq: 'canceled'
+        }
+      } else if (this.type === EnumSearchTypes.NoDriverAssigned) {
+        query['type'] = {
+          $eq: 'DELIVERY'
+        }
+        query['courierId'] = {
+          $exists: true
+        }
+        query['courierName'] = 'Postmates'
+        query['$and'].push({
+          'delivery.courier': {
+            $eq: null
+          }
+        },
+          {
+            'delivery.courier': {
+              $exists: true
+            }
+          });
       }
 
       // ISO-Date()
@@ -184,8 +222,11 @@ export class PostmatesOrdersComponent implements OnInit {
         sort: {
           createdAt: -1
         },
+        limit: 200
       }, 100);
+      console.log(orders.length);
       const customerIds = orders.filter(order => order.customer).map(order => order.customer);
+      console.log(customerIds);
       // the cutomerIds array is very large and need to slice it.
       const split_arr = (arr, len) => {
         var newArr = [];
@@ -194,10 +235,11 @@ export class PostmatesOrdersComponent implements OnInit {
         }
         return newArr;
       }
-      var tempCustomerIds = split_arr(customerIds, parseInt(String(customerIds.length / 3)));
+      var tempCustomerIds = split_arr(customerIds, Math.ceil(customerIds.length / 3));
       let blacklist = [];
       let previousOrders = [];
       for (let i = 0; i < tempCustomerIds.length; i++) {
+        // get blocked customers and assign back to each order blacklist reasons
         const subBlackList = await this._api.get(environment.qmenuApiUrl + "generic", {
           resource: "blacklist",
           query: {
@@ -240,16 +282,11 @@ export class PostmatesOrdersComponent implements OnInit {
           }
         });
       });
-      const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-        resource: 'restaurant',
-        query: {
-        },
-        projection: this.restaurantProjection
-      }, 5000);
+
       const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
       // assemble back to order:
       this.orders = orders.map(order => {
-        let restaurant = restaurants.find(restaurant => restaurant._id === order.restaurant);
+        let restaurant = this.restaurantsForOrders.find(restaurant => restaurant._id === order.restaurant);
         restaurant.channels && (restaurant.channels = restaurant.channels.filter(channel => channel.type && channel.type === 'Phone' && channel.notifications && channel.notifications.includes('Business')));
         order.restaurant = restaurant;
         order.orderNumber = order.orderNumber;
@@ -315,6 +352,11 @@ export class PostmatesOrdersComponent implements OnInit {
     return tostr.join('-');
   }
 
+  // show order search input only if this.type is not Driver Canceled Order or No Driver Assigned
+  showOrderSearchInput() {
+    return this.type !== EnumSearchTypes.NoDriverAssigned && this.type !== EnumSearchTypes.DriverCanceled;
+  }
+
   /**
    *
    * this function is used to filter order by createdAt
@@ -332,9 +374,6 @@ export class PostmatesOrdersComponent implements OnInit {
     const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(to + " 00:00:00.000"), 'America/New_York');
 
     const query = {
-      restaurant: {
-        $exists: true
-      },
       'delivery.id': {
         $exists: true
       },
@@ -348,11 +387,10 @@ export class PostmatesOrdersComponent implements OnInit {
         }
       }]
     } as any;
-    if (!this.searchText) {
 
-    } else if (this.type == 'Postmates ID' && this.searchText) {
+    if (this.type === EnumSearchTypes.PostmatesID && this.searchText) {
       query['delivery.id'] = this.searchText.trim();
-    } else if (this.type == 'Customer Phone' && this.searchText) {
+    } else if (this.type === EnumSearchTypes.CustomerPhone && this.searchText) {
       if (this.searchText.indexOf('-') != -1) { //to make  it support query order with phone number using - to split
         let str_arr = this.searchText.trim().split('-');
         let queryStr = '';
@@ -363,14 +401,49 @@ export class PostmatesOrdersComponent implements OnInit {
       } else { //the situation of the phone number don't have '-'
         query['customerObj.phone'] = this.searchText.trim();
       }
-    } else if (this.type == 'Restautant ID' && this.searchText) {
+    } else if (this.type === EnumSearchTypes.RestaurantID && this.searchText) {
       query['restaurant'] = {
         $oid: this.searchText
       }
-    } else if (this.type == 'Order ID' && this.searchText) {
+    } else if (this.type === EnumSearchTypes.OrderID && this.searchText) {
       query['_id'] = {
         $oid: this.searchText
       }
+    } else if (this.type === EnumSearchTypes.DriverCanceled) {
+      query['type'] = {
+        $eq: 'DELIVERY'
+      }
+      query['$and'].push({
+        'delivery.courier': {
+          $ne: null
+        },
+      },
+        {
+          'delivery.courier': {
+            $exists: true
+          }
+        });
+      query['delivery.status'] = {
+        $eq: 'canceled'
+      }
+    } else if (this.type === EnumSearchTypes.NoDriverAssigned) {
+      query['type'] = {
+        $eq: 'DELIVERY'
+      }
+      query['courierId'] = {
+        $exists: true
+      }
+      query['courierName'] = 'Postmates'
+      query['$and'].push({
+        'delivery.courier': {
+          $eq: null
+        }
+      },
+      {
+        'delivery.courier': {
+          $exists: true
+        }
+      });
     }
     // ISO-Date()
     const orders = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
@@ -381,10 +454,11 @@ export class PostmatesOrdersComponent implements OnInit {
       },
       sort: {
         createdAt: -1
-      }
+      },
+      limit: 200
     }, 100);
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
-
+    // get blocked customers and assign back to each order blacklist reasons
     const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "blacklist",
       query: {
@@ -414,7 +488,7 @@ export class PostmatesOrdersComponent implements OnInit {
       sort: {
         createdAt: -1
       },
-      limit: 10000,
+      limit: 5000,
     }).toPromise();
     orders.forEach(order => {
       order.previousOrders = [];
@@ -424,16 +498,11 @@ export class PostmatesOrdersComponent implements OnInit {
         }
       });
     });
-    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: {
-      },
-      projection: this.restaurantProjection
-    }, 5000);
+
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     // assemble back to order:
     this.orders = orders.map(order => {
-      let restaurant = restaurants.find(restaurant => restaurant._id === order.restaurant);
+      let restaurant = this.restaurantsForOrders.find(restaurant => restaurant._id === order.restaurant);
       restaurant.channels && (restaurant.channels = restaurant.channels.filter(channel => channel.type && channel.type === 'Phone' && channel.notifications && channel.notifications.includes('Business')));
       order.restaurant = restaurant;
       order.orderNumber = order.orderNumber;
@@ -482,6 +551,15 @@ export class PostmatesOrdersComponent implements OnInit {
   search() {
     this.populateOrders();
   }
+  // request api only once is ok to make sure which order is which restaurant
+  async getRestaurantsForOrders() {
+    this.restaurantsForOrders = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+      },
+      projection: this.restaurantProjection
+    }, 5000);
+  }
 
   /**
      *
@@ -489,19 +567,13 @@ export class PostmatesOrdersComponent implements OnInit {
      */
   async populateOrders() {
     const query = {
-      restaurant: {
-        $exists: true
-      },
       'delivery.id': {
         $exists: true
       }
     } as any;
-
-    if (!this.searchText) {
-
-    } else if (this.type == 'Postmates ID' && this.searchText) {
+    if (this.type === EnumSearchTypes.PostmatesID && this.searchText) {
       query['delivery.id'] = this.searchText.trim();
-    } else if (this.type == 'Customer Phone' && this.searchText) {
+    } else if (this.type === 'Customer Phone' && this.searchText) {
       if (this.searchText.indexOf('-') != -1) { //to make  it support query order with phone number using - to split
         let str_arr = this.searchText.trim().split('-');
         let queryStr = '';
@@ -512,16 +584,50 @@ export class PostmatesOrdersComponent implements OnInit {
       } else { //the situation of the phone number don't have '-'
         query['customerObj.phone'] = this.searchText.trim();
       }
-    } else if (this.type == 'Restautant ID' && this.searchText) {
+    } else if (this.type === EnumSearchTypes.RestaurantID && this.searchText) {
       query['restaurant'] = {
         $oid: this.searchText
       }
-    } else if (this.type == 'Order ID' && this.searchText) {
+    } else if (this.type === EnumSearchTypes.OrderID && this.searchText) {
       query['_id'] = {
         $oid: this.searchText
       }
+    } else if (this.type === EnumSearchTypes.DriverCanceled) {
+      query['type'] = {
+        $eq: 'DELIVERY'
+      }
+      query['$and'] = [{
+        'delivery.courier': {
+          $ne: null
+        },
+      },
+      {
+        'delivery.courier': {
+          $exists: true
+        }
+      }]
+      query['delivery.status'] = {
+        $eq: 'canceled'
+      }
+    } else if (this.type === EnumSearchTypes.NoDriverAssigned) {
+      query['type'] = {
+        $eq: 'DELIVERY'
+      }
+      query['courierId'] = {
+        $exists: true
+      }
+      query['courierName'] = 'Postmates'
+      query['$and'] = [{
+        'delivery.courier': {
+          $eq: null
+        }
+      },
+      {
+        'delivery.courier': {
+          $exists: true
+        }
+      }]
     }
-
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: query,
@@ -534,9 +640,8 @@ export class PostmatesOrdersComponent implements OnInit {
       limit: 50
     }).toPromise();
 
-    // get blocked customers and assign back to each order blacklist reasons
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
-
+    // get blocked customers and assign back to each order blacklist reasons
     const blacklist = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "blacklist",
       query: {
@@ -545,8 +650,7 @@ export class PostmatesOrdersComponent implements OnInit {
       },
       projection: {
         disabled: 1,
-        reasons: 1, //
-        // reasons: {$slice: -10}, 数组里面前两个
+        reasons: 1,
         value: 1,
         orders: 1
       },
@@ -567,7 +671,7 @@ export class PostmatesOrdersComponent implements OnInit {
       sort: {
         createdAt: -1
       },
-      limit: 10000,
+      limit: 5000,
     }).toPromise();
     orders.forEach(order => {
       order.previousOrders = [];
@@ -578,16 +682,10 @@ export class PostmatesOrdersComponent implements OnInit {
       });
     });
 
-    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: {
-      },
-      projection: this.restaurantProjection
-    }, 5000);
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
     // assemble back to order:
     this.orders = orders.map(order => {
-      let restaurant = restaurants.find(restaurant => restaurant._id === order.restaurant);
+      let restaurant = this.restaurantsForOrders.find(restaurant => restaurant._id === order.restaurant);
       restaurant.channels && (restaurant.channels = restaurant.channels.filter(channel => channel.type && channel.type === 'Phone' && channel.notifications && channel.notifications.includes('Business')));
       order.restaurant = restaurant;
       order.orderNumber = order.orderNumber;
@@ -600,7 +698,6 @@ export class PostmatesOrdersComponent implements OnInit {
       order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
       return new Order(order);
     });
-
   }
 
   /**
@@ -609,7 +706,9 @@ export class PostmatesOrdersComponent implements OnInit {
    */
   async handleOnOpenPreviousOrdersModal(prevoiusOrders) {
     let orders = [];
-    for (let i = 0; i < prevoiusOrders.length; i++) {
+    prevoiusOrders.sort((a, b) => new Date(b.createdAt).valueOf() - new Date(a.createdAt).valueOf());
+    let preOrdersLength = prevoiusOrders.length > 10 ? 10 : prevoiusOrders.length;
+    for (let i = 0; i < preOrdersLength; i++) {
       const prevoiusOrder = prevoiusOrders[i];
       const tempOrders = await this._api.get(environment.qmenuApiUrl + "generic", {
         resource: "order",
@@ -650,15 +749,10 @@ export class PostmatesOrdersComponent implements OnInit {
     }).toPromise();
 
     const customerIdBannedReasonsDict = blacklist.reduce((dict, item) => (dict[item.value] = item, dict), {});
-    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: {
-      },
-      projection: this.restaurantProjection
-    }, 5000);
+
     // assemble back to order:
     this.previousOrders = orders.map(order => {
-      let restaurant = restaurants.find(restaurant => restaurant._id === order.restaurant);
+      let restaurant = this.restaurantsForOrders.find(restaurant => restaurant._id === order.restaurant);
       restaurant.channels && (restaurant.channels = restaurant.channels.filter(channel => channel.type && channel.type === 'Phone'));
       order.restaurant = restaurant;
       order.orderNumber = order.orderNumber;
@@ -671,7 +765,6 @@ export class PostmatesOrdersComponent implements OnInit {
       order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
       return new Order(order);
     });
-    console.log(this.previousOrders);
     this.previousOrdersModal.show();
   }
   //this order may be don't exist in this 50 orders,we should find it in our database.

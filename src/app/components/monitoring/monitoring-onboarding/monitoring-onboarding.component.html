@@ -37,7 +37,7 @@
     <th>Restaurant</th>
     <th>Created</th>
     <th class="text-nowrap">Sales Agent</th>
-    <th>Timezone</th>
+    <th>Timezone (as Offset to EST)</th>
     <th>GMB</th>
     <th class="text-nowrap">Has Menu</th>
     <th class="text-nowrap">Has Order</th>
@@ -62,7 +62,7 @@
       {{row.agent}}
     </td>
     <td>
-      {{getTimezoneCity(row.restaurant.googleAddress?.timezone)}}
+      {{getTimezoneCity(row.restaurant.googleAddress?.timezone)}} ({{getTimeOffsetByTimezone(row.restaurant.googleAddress?.timezone)}})
     </td>
     <td class="text-nowrap">
       <ng-container *ngIf="row.accountAndStatuses[0]?.status === 'Published'">

@@ -7,9 +7,8 @@
     <i class="fa fa-clipboard" (click)="copyToClipboard(order)" style="cursor:pointer;"></i>
   </div>
   <!-- start with previous orders -->
-  <div class="previous-orders-box" *ngIf="order.previousOrders[1]">
-    <a href="javascript:void(0)" (click)="openPreviousOrdersModal(order)">{{order.previousOrders.length}} previous
-      orders</a>
+  <div class="previous-orders-box" *ngIf="order.previousOrders && order.previousOrders[1]">
+    <a href="javascript:void(0)" (click)="openPreviousOrdersModal(order)">{{order.previousOrders.length}} pre orders</a>
   </div>
   <!-- end with previous orders -->
   <!-- start with the order caming time. -->
@@ -85,7 +84,7 @@
       <span *ngIf="order?.paymentObj?.stripeObject?.spreedlyGatewayToken"> (SPRE)</span>
       <span *ngIf="order?.paymentObj?.paypalClientId"> (PAYPAL)</span>
     </div>
-    <div class="text-uppercase highlight" *ngIf="displayRestaurantNotice()">
+    <div class="text-uppercase highlight" *ngIf="order.restaurantNotice">
       <strong>{{order.restaurantNotice}}</strong>
     </div>
     <div class="text-sm-center card-text" *ngIf="order.address?.apt">

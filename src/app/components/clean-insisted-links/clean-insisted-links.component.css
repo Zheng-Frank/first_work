@@ -1,15 +1,4 @@
-/*:host ::ng-deep th:nth-child(1) {*/
-/*  max-width: 5% !important;*/
-/*}*/
-
-/*:host ::ng-deep th:nth-child(2) {*/
-/*  width: 5% !important;*/
-/*}*/
-
-/*:host ::ng-deep th:nth-child(3) {*/
-/*  max-width: 20% !important;*/
-/*}*/
-
-/*:host ::ng-deep th:nth-child(4) {*/
-/*  max-width: 20% !important;*/
-/*}*/
+.q-label-layout {
+  max-width: 100%;
+  word-break: break-all;
+}

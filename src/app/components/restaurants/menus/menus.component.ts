@@ -617,8 +617,8 @@ export class MenusComponent implements OnInit {
       const myOldMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
       const myNewMenus = JSON.parse(JSON.stringify(newMenus));
 
-      if (myNewMenus.length !== myOldMenus.length) {
-        /* Different lengths means a new menu has been added. We don't want to delete any categories on the new menu,
+      if (myNewMenus.length > myOldMenus.length) {
+        /* new menus increased means a new menu has been added. We don't want to delete any categories on the new menu,
         because it could be a copy of an existing one. The new menu will always be in the last index position of myNewMenus*/
         const newMenu = myNewMenus[myNewMenus.length - 1];
         myNewMenus.map(m => {
@@ -672,7 +672,7 @@ export class MenusComponent implements OnInit {
     const oldMenus = this.restaurant.menus || [];
     const newMenus = JSON.parse(JSON.stringify(oldMenus));
     newMenus.map(menu => (menu.mcs || []).map(mc => (mc.mis || []).map(mi => {
-      /* the following is obsolete: 
+      /* the following is obsolete:
           Image origin: "CSR", "RESTAURANT", "IMAGE-PICKER"
           only inject image when no existing image with origin as "CSR", "RESTAURANT", or overwrite images with origin as "IMAGE-PICKER"
       */

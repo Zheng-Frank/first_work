@@ -11,7 +11,7 @@
         <select [(ngModel)]="type" class="form-control mr-3 col-2" style="min-width:180px;max-width:180px;">
           <option *ngFor="let type of searchTypes" [value]="type">{{type}}</option>
         </select>
-        <input type="text" [(ngModel)]="searchText" style="min-width:300px;max-width:300px;" class="form-control col-7"
+        <input *ngIf="showOrderSearchInput()" type="text" [(ngModel)]="searchText" style="min-width:300px;max-width:300px;" class="form-control col-7"
           placeholder="Please input">
         <div class="form-inline" *ngIf="showAdvancedSearch">
           <select [(ngModel)]="dateType" class="form-control mr-3 ml-2">
@@ -33,10 +33,10 @@
             (mouseout)="showExplanation = false">
             <div *ngIf="showExplanation" class="left talk radius">
               <p>
-                Only the latest 50 orders will be displayed. If unable to find a Postmates order when searching by date, this may be due to use of EST timezone.
+                The latest 50 orders will be displayed in first query and can only display orders up to 200. If unable to find a Postmates order when searching by date, this may be due to use of EST timezone.
               </p>
               -------------<br>
-              <p>只显示最新的50个订单。如果在按日期搜索时找不到邮递订单，这可能是由于使用了EST时区。</p>
+              <p>在第一次查询中只显示最新的50个订单，并且最多只能显示200条最新的订单。如果在按日期搜索时找不到邮递订单，这可能是由于使用了EST时区。</p>
             </div>
           </i>
         </div>
@@ -111,6 +111,9 @@
         </button>
         <h4 class="text-center">Previous Orders</h4>
         <hr>
+        <div class="row alert alert-danger m-1 p-1" style="border-radius:2px;">
+          Only up to the latest 10 orders from a customer will be displayed.(仅显示来自客户的最新10个订单。)
+        </div>
         <!-- row has negative margins and we need to remove them! -->
         <ng-container *ngFor="let previousOrder of previousOrders">
           <app-postmates-order-card [restaurant]="previousOrder?.restaurant" [order]="previousOrder"

@@ -25,27 +25,32 @@
   <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="editModal.hide()">
     <span aria-hidden="true">×</span>
   </button>
-  <h5 class="card-title">Add New Transaction</h5>
-  <q-form-builder [object]="transactionInEditing" [showDelete]="false" [fieldDescriptors]="fieldDescriptors"
+  <h5 class="card-title">
+    <ng-container *ngIf="!transactionInEditing._id">Add New Transaction</ng-container>
+    <ng-container *ngIf="transactionInEditing._id">Edit Transaction</ng-container>
+  </h5>
+  <q-form-builder [object]="transactionInEditing" [showDelete]="false"
+                  [fieldDescriptors]="fieldDescriptors" (change)="formChange()"
                   (submit)="formSubmit($event)" (cancel)="editModal.hide()">
   </q-form-builder>
 </q-modal>
 
-<q-table [rows]="getFilteredTransactions()" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
-  <tr *tableRowTemplate="let transaction;">
-    <td>{{getFilteredTransactions().indexOf(transaction) + 1}}</td>
-    <td>{{transaction.time | date : 'shortDate'}}</td>
-    <td>{{transaction.payer}}</td>
-    <td>{{transaction.payee}}</td>
-    <th>{{(transaction.amount / transaction.exchangeRate) | currency: 'USD' :'symbol'}}</th>
-    <td>{{transaction.amount | currency: transaction.currency :'symbol-narrow'}}</td>
-    <td>{{transaction.currency}}</td>
-    <td>{{transaction.exchangeRate}}</td>
-    <td>{{transaction.means}}</td>
-    <td class="text-truncate">
-      <pre>{{transaction.description}}</pre>
-    </td>
-    <td>{{transaction.inputUsername}}</td>
-    <td>{{transaction.inputTime | date : 'shortDate'}}</td>
-  </tr>
-</q-table>
+<div class="transaction-table">
+  <q-table [rows]="getFilteredTransactions()" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+    <tr *tableRowTemplate="let transaction;">
+      <td>{{getFilteredTransactions().indexOf(transaction) + 1}}</td>
+      <td>{{transaction.time | date : 'shortDate'}}</td>
+      <td>{{transaction.payer}}</td>
+      <td>{{transaction.payee}}</td>
+      <th>{{(transaction.amount / transaction.exchangeRate) | currency: 'USD' :'symbol'}}</th>
+      <td>{{transaction.amount | currency: transaction.currency :'symbol-narrow'}}</td>
+      <td>{{transaction.currency}}</td>
+      <td>{{transaction.exchangeRate}}</td>
+      <td>{{transaction.means}}</td>
+      <td class="text-break">{{transaction.description}}</td>
+      <td>{{transaction.inputUsername}}</td>
+      <td>{{transaction.inputTime | date : 'shortDate'}}</td>
+      <td><a *ngIf="canEdit(transaction.inputTime)" (click)="edit(transaction)" class="btn-link">Edit</a></td>
+    </tr>
+  </q-table>
+</div>

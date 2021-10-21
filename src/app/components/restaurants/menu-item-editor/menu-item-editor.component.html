@@ -53,7 +53,7 @@
           </div>
         </div>
     </div>
-  
+
     <!--price-->
     <div class="form-group">
       <label>Pricing:</label>
@@ -111,16 +111,31 @@
      <div *ngIf="mi.imageObjs">
        <div *ngFor="let img of mi.imageObjs" class="pr-1 pb-1" style="display:inline-block; position:relative">
          <img class="img-thumbnail app-thumbnail-h-6" src="{{img.originalUrl}}">
-         <button (click)="deleteImage(img)" class="btn btn-secondary fas fa-times" style="position:absolute; top:0px; right:1rem; opacity:0.7"></button>
-         <button (click)="deleteImage(img)" class="btn btn-link fas fa-times text-danger" style="position:absolute; top:0px; right:1rem"></button>
+         <button (click)="deleteImage(img)" class="btn btn-secondary text-danger" style="position:absolute; top:0px; right:0.3rem; opacity:0.7">
+           <i class="fas fa-times"></i>
+         </button>
        </div>
      </div>
-     <div *ngIf="uploadImageError">
-       <span class="text-danger">{{uploadImageError}}</span>
-     </div>
-     <input type="file" (change)="onUploadImageChange($event)" />
+    <div class="mb-2">
+      <label><input type="radio" value="upload" [checked]="imageMode === 'upload'" (click)="imageMode = 'upload'"> Upload</label>
+      <label><input type="radio" value="url" [checked]="imageMode === 'url'" (click)="imageMode = 'url'"> Url</label>
+    </div>
+     <ng-container *ngIf="imageMode === 'upload'">
+       <div *ngIf="uploadImageError">
+         <span class="text-danger">{{uploadImageError}}</span>
+       </div>
+       <input type="file" (change)="onUploadImageChange($event)" />
+     </ng-container>
+    <ng-container *ngIf="imageMode === 'url'">
+      <div class="input-group">
+        <input class="form-control" type="text" [(ngModel)]="inputtedImageUrl">
+        <div class="input-group-append">
+          <a class="btn btn-link" (click)="previewImage()">Preview</a>
+        </div>
+      </div>
+    </ng-container>
      <div><small class="text-warning">Image may take time to show</small></div>
- 
+
      <div *ngIf="!mi.id" class="form-group pt-1">
        <label for="inventory">Inventory (库存量)</label>
        <input [(ngModel)]="mi.inventory" type="number" class="form-control" id="inventory" placeholder="eg. 12">
@@ -180,10 +195,10 @@
   </div>
 
   <div class="text-right">
-    <button type="button" class="btn btn-link" (click)="cancel()" data-dismiss="modal">  
+    <button type="button" class="btn btn-link" (click)="cancel()" data-dismiss="modal">
           Cancel
     </button>
-    <button *ngIf="mi.id" type="button" class="btn btn-link" (click)="delete()"> 
+    <button *ngIf="mi.id" type="button" class="btn btn-link" (click)="delete()">
       <span class="text-danger"> Delete</span>
     </button>
     <button type="button" class="btn btn-primary" (click)="ok()" [disabled]="!isValid()">

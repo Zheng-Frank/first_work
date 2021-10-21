@@ -1,10 +1,20 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { Component, OnInit, Input, ViewChild } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { environment } from '../../../../environments/environment'
 import { GlobalService } from '../../../services/global.service';
 import { Helper } from 'src/app/classes/helper';
 import { AlertType } from 'src/app/classes/alert-type';
 import { CacheService } from 'src/app/services/cache.service';
+
+enum socialMediaLinkTypes {
+  FACEBOOK = 'Facebook',
+  TWITTER = 'Twitter',
+  INSTAGRAM = 'Instagram',
+  WECHAT = 'WeChat',
+  WHATSAPP = 'Whatsapp'
+}
+
 @Component({
   selector: 'app-email-code-reader',
   templateUrl: './email-code-reader.component.html',
@@ -13,6 +23,7 @@ import { CacheService } from 'src/app/services/cache.service';
 
 export class EmailCodeReaderComponent implements OnInit {
 
+  @ViewChild('socialMediaLinksModal') socialMediaLinksModal: ModalComponent;
   @Input() restaurant;
 
   submitClicked = false;
@@ -24,7 +35,8 @@ export class EmailCodeReaderComponent implements OnInit {
   qmButtonTemplate = '';
   isCopiedToClipboard = false;
   showCompleteButtonSnippet = false;
-
+  socialMediaLinks = [{ text: socialMediaLinkTypes.FACEBOOK, value: '' }, { text: socialMediaLinkTypes.TWITTER, value: '' }, { text: socialMediaLinkTypes.INSTAGRAM, value: '' }, { text: socialMediaLinkTypes.WECHAT, value: '' }, { text: socialMediaLinkTypes.WHATSAPP, value: '' }];
+  existsSocialMediaLinks = [];
   constructor(private _api: ApiService, private _cache: CacheService, private _global: GlobalService) { }
 
   async ngOnInit() {
@@ -43,7 +55,112 @@ export class EmailCodeReaderComponent implements OnInit {
       }
       this._cache.set('templateNames', this.templateNames, 300 * 60);
     }
+    /**
+     * this.restaurant.web.socialMediaLinks example:
+     * [ {"Facebook": "111"},{"Twitter": "123"}]
+     * 
+     */
+    this.populateExistingSocialMedia();
+  }
 
+  // need a existing social media link collection to check whether show input using to add media link 
+  populateExistingSocialMedia() {
+    this.existsSocialMediaLinks = [];
+    if (!this.noSocialMediaLinks()) {
+      this.restaurant.web.socialMediaLinks.forEach(link => {
+        Object.keys(link).forEach(key => {
+          if (this.existsSocialMediaLinks.indexOf(key) === -1) {
+            this.existsSocialMediaLinks.push(key);
+          }
+        });
+      });
+    }
+  }
+
+  // Shouldn't show social media link, if it exists in web property of restaurant
+  socialMediaLinkExists(linkText) {
+    return !this.noSocialMediaLinks() ? this.existsSocialMediaLinks.some(link => link === linkText) : false;
+  }
+
+  // restaurant don't have any social media data
+  noSocialMediaLinks() {
+    return this.restaurant.web ? !this.restaurant.web.socialMediaLinks || (this.restaurant.web.socialMediaLinks && this.restaurant.web.socialMediaLinks.length === 0) : true;
+  }
+
+  // open socialLinkModal to add new social media links
+  openSocialMediaLinkModal() {
+    this.socialMediaLinks.forEach(link => link.value = '');
+    this.socialMediaLinksModal.show();
+  }
+
+  async onEditSocialMediaLinks(event, field: string) {
+    let updatedRT = JSON.parse(JSON.stringify(this.restaurant));
+    // update social media links array of web of restaurant
+    // update old exsiting one and delete empty value social media links 
+    updatedRT.web.socialMediaLinks.forEach(link => {
+      let key = Object.keys(link)[0];
+      // it will add a "" to value of link,
+      // if newValue of event reflecting boolean balue is false, which something is wrong
+      if (key === field) {
+        link[key] = event.newValue;
+      }
+    });
+    updatedRT.web.socialMediaLinks = updatedRT.web.socialMediaLinks.filter(link => link[Object.keys(link)[0]]);
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+      old: { _id: this.restaurant._id },
+      new: { _id: this.restaurant._id, web: updatedRT.web }
+    }]).toPromise();
+
+    // update this restaurant local value
+    this.restaurant.web.socialMediaLinks = updatedRT.web.socialMediaLinks;
+    this.populateExistingSocialMedia();
+    this._global.publishAlert(AlertType.Success, 'Updated');
+
+  }
+
+  addSocialMediaLinks() {
+    // contruct the social media links array which web property of restaurant need
+    let updatedRT = JSON.parse(JSON.stringify(this.restaurant));
+    if (this.noSocialMediaLinks()) {
+      updatedRT.web.socialMediaLinks = [];
+    }
+    this.socialMediaLinks.forEach(link => {
+      if (link.value) {
+        let obj = {};
+        obj[link.text] = link.value;
+        // keep only unique social media link types
+        updatedRT.web.socialMediaLinks.push(obj);
+      }
+    });
+    // update social media links of web of this restaurant 
+    this._api
+      .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+        old: {
+          _id: this.restaurant._id
+        }, new: {
+          _id: this.restaurant._id,
+          web: updatedRT.web
+        }
+      }])
+      .subscribe(
+        result => {
+          // let's update original, assuming everything successful
+          this.restaurant.web.socialMediaLinks = updatedRT.web.socialMediaLinks;
+          this.populateExistingSocialMedia();
+          this._global.publishAlert(
+            AlertType.Success,
+            "Add social media links successfully"
+          );
+        },
+        error => {
+          this._global.publishAlert(AlertType.Danger, "Error updating to DB! " + error.message);
+        }
+      );
+    this.socialMediaLinksModal.hide();
+  }
+
+  cancelAddSocialMediaLinks() {
+    this.socialMediaLinksModal.hide();
   }
 
   ngOnChanges() {
@@ -156,6 +273,7 @@ background-image: linear-gradient(to right,#cd2730,#fa4b00,#cd2730);' href="http
         return;
       }
     }
+
     try {
       newWeb[field] = newValue;
       if (field === 'qmenuPop3Password' && event.newValue && event.newValue.length < 20) {
