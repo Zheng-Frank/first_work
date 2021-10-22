@@ -42,6 +42,7 @@
 | Leads (Old) | `ADMIN`, `MARKETER ` |
 | My Leads (Old) | `ADMIN`, `MARKETER ` |
 | Excess SMS Notifications | `ADMIN`, `CSR ` |
+| Restaurants by Provider | `ADMIN`, `CSR ` |
 
 ## Restaurant
 
