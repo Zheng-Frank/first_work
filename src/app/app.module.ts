@@ -220,6 +220,7 @@ import { NotificationEditorComponent } from './components/notification-editor/no
 import { TimezoneOffsetPipe } from './pipes/timezone-offset.pipe';
 import { AddNewLogComponent } from './components/restaurants/seamless-integration/add-new-log/add-new-log.component';
 import { QrRestaurantListComponent } from './components/restaurants/qr-restaurant-list/qr-restaurant-list.component';
+import { OrderNotificationsComponent } from './components/restaurants/order-notifications/order-notifications.component';
 import { RestaurantStatsComponent } from './components/restaurants/restaurant-stats/restaurant-stats.component';
 import { WeirdDataComponent } from './components/monitoring/weird-data/weird-data.component';
 import { RestaurantTranslationsComponent } from './components/restaurants/restaurant-translations/restaurant-translations.component';
@@ -250,6 +251,8 @@ import { OrderlessSignupsComponent } from './components/monitoring/orderless-sig
 import { ExcessSmsNotificationsRtsComponent } from './components/monitoring/excess-sms-notifications-rts/excess-sms-notifications-rts.component';
 import { SendFaxComponent } from './components/send-fax/send-fax.component';
 import { SalesMetricsComponent } from './components/sales-metrics/sales-metrics.component';
+import { RtsByProviderComponent } from './components/monitoring/rts-by-provider/rts-by-provider.component';
+
 
 
 @NgModule({
@@ -430,6 +433,8 @@ import { SalesMetricsComponent } from './components/sales-metrics/sales-metrics.
     IvrAgentAnalysisComponent,
     CsvGeneratorComponent,
     RestaurantQrSettingsComponent,
+    OrderNotificationsComponent,
+    QrRestaurantListComponent,
     NotificationDashboardComponent,
     NotificationEditorComponent,
     RestaurantStatsComponent,
@@ -468,7 +473,8 @@ import { SalesMetricsComponent } from './components/sales-metrics/sales-metrics.
     OrderlessSignupsComponent,
     ExcessSmsNotificationsRtsComponent,
     SendFaxComponent,
-    SalesMetricsComponent
+    SalesMetricsComponent,
+    RtsByProviderComponent
   ],
   imports: [
     BrowserModule,

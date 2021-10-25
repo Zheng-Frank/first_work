@@ -63,6 +63,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     webSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER', 'GMB'],
     restaurantManagedWebSettings: ['ADMIN', 'GMB_SPECIALIST', 'MENU_EDITOR'],
     restaurantChains: ['ADMIN', 'CSR'],
+    orderNotifications: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER']
   };
 
   projections = {
@@ -116,6 +117,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     name: 1,
     notes: 1,
     notification: 1,
+    orderNotifications: 1,
     paymentMeans: 1,
     people: 1,
     pickupMinimum: 1,
@@ -373,6 +375,10 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     if (this.timer) {
       clearInterval(this.timer);
     }
+  }
+
+  updateRestaurant(rt) {
+    this.restaurant = new Restaurant(rt);
   }
 
   async diagnose() {
