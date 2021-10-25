@@ -3812,9 +3812,7 @@ export class DbScriptsComponent implements OnInit {
     restaurants = restaurants.filter(r => {
       let id = r._id.toString();
       const rtArray = [
-        // "60353b24d3580b5554087e4f", // red panda cafe
-        "57f9a4c0cf366c11006d4076", // demo
-        // "57c4dc97a941661100c642b4" // panda cafe
+        "5a2b1654f159fa1400902cc9", "58884aaf7945f91100bad519","60db92ef5f322f680d0d0ff6","57e9574c1d1ef2110045e665","5ad71728ca38201400531812"
       ];
 
       return rtArray.includes(id);
