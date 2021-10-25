@@ -49,6 +49,7 @@ export class SalesMetricsComponent implements OnInit {
   filteredList = [];
   totalRecords = 0;
   filteredTotalRecords = 0;
+  churchTotal = 0;
   ivrUsers = {};
   userRoleMap = {};
 
@@ -253,6 +254,7 @@ export class SalesMetricsComponent implements OnInit {
     this.list = Object.entries(map).map(([key, { totalCalls, totalCallTime, durations }]) => {
       let avgCallDuration = totalCallTime / totalCalls;
       let avgCallTimePerDay = totalCallTime / days;
+      const agentRts = (this.restaurants || []).filter(rt => rt.rateSchedules.some(sch => sch.agent === key));
       return {
         agent: key,
         totalCalls,
@@ -261,10 +263,8 @@ export class SalesMetricsComponent implements OnInit {
         avgCallTimePerDay,
         durations,
         roles: this.userRoleMap[key],
-        rtCount: (this.restaurants || []).filter(rt => rt.rateSchedules.some(sch => sch.agent === key)).length,
-        churnCount: (this.restaurants || []).filter(rt => {
-
-        })
+        rtCount: agentRts.length,
+        churnCount: agentRts.filter(rt => this.wasRtLostInTimePeriod(rt)).length
       }
     });
     this.sort();
@@ -363,10 +363,48 @@ export class SalesMetricsComponent implements OnInit {
     }, 0);
   }
 
+  churnCount() {
+    return (this.restaurants || []).reduce((prev, val) => {
+      const displayedUsers = this.filteredList.map(item => item.agent);
+      if (displayedUsers.includes(val.rateSchedules[0].agent) && this.wasRtLostInTimePeriod(val)) {
+        return prev + 1;
+      }
+      return prev;
+    }, 0);
+  }
+
   displayTimeRange() {
     if (this.timeRange !== 'Custom') {
       return 'the ' + this.timeRange;
     }
     return 'custom date range';
+  }
+
+  wasRtLostInTimePeriod(rt) {
+
+    if (!this.startDate || !this.endDate) {
+      return false;
+    }
+    if (!rt.disabledAt) {
+      return false;
+    }
+    let start = this.startDate, end = this.endDate;
+    if (this.timeRange === TimeRanges.CustomDate) {
+      // for custom date, we calc from start 00:00:00.000 to end 23:59:59.999
+      end = new Date(end);
+      end.setDate(end.getDate() + 1);
+    } else {
+      // for last* range, we calc from (start date + cur time) to now
+      let time = "T" + new Date().toISOString().split("T")[1];
+      start += time;
+      end += time;
+    }
+    start = new Date(start).valueOf();
+    end = new Date(end).valueOf();
+    if (start < new Date(rt.disabledAt).valueOf()) {
+      return true;
+    }
+    return false;
+
   }
 }

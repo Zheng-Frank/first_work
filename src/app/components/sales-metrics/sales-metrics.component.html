@@ -49,6 +49,7 @@
 <div>Agents Who Have Placed at Least One Call: {{filteredList.length}}</div>
 <div> Total Calls Placed: {{filteredTotalRecords}}</div>
 <div> New Restaurant Sign-Ups: {{newSignUpCount()}}</div>
+<div> Restaurants Lost: {{churnCount()}}</div>
 
 
 <div *ngFor="let item of filteredList; let i = index;" class="card-body">
@@ -59,5 +60,6 @@
   <div>Total Call Time: {{ secondsToHms(item.totalCallTime) }}</div>
   <div>Avg Call Time per Day: {{ secondsToHms(item.avgCallTimePerDay) }}</div>
   <div>Restaurant Sign Ups: {{ item.rtCount }}</div>
+  <div>Restaurants Lost to Churn: {{item.churnCount }} </div>
 
 </div>
