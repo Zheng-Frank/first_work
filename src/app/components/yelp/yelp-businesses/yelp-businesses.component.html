@@ -1,6 +1,6 @@
 <h1 class="text-center">Restaurants ({{ filteredRows.length }})</h1>
 
-<div *ngIf="!isAdmin" class="row d-flex align-items-center">
+<div *ngIf="isAdmin" class="row d-flex align-items-center">
   <div class="col-md-7 d-flex align-items-center">
     <div class="clearfix my-2 float-left form-inline limit-width-height">
       <label class="mr-2"> Status:</label>
