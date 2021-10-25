@@ -21,7 +21,6 @@ export class WeirdDataComponent implements OnInit {
     taxRateExtremeList: [],
     ccMinimumChargeExtremeList: [],
     pickupMinimumExtremeList: [],
-    deliveryMinimumExtremeList: [],
     deliveryMaxDistanceExtremeList: [],
     ccProcessingFlatFeeExtremeList: [],
     ccProcessingRateExtremeList: [],
@@ -47,10 +46,6 @@ export class WeirdDataComponent implements OnInit {
     pickupMinimumExtremeList: {
       projection: { _id: 1, "name": 1, "pickupMinimum": 1, "logs": 1 },
       sort: { "pickupMinimum": -1 }
-    },
-    deliveryMinimumExtremeList: {
-      projection: { _id: 1, "name": 1, "deliveryMinimum": 1, "logs": 1 },
-      sort: { "deliveryMinimum": -1 }
     },
     deliveryMaxDistanceExtremeList: {
       projection: { _id: 1, "name": 1, "deliveryMaxDistance": 1, "logs": 1 },

@@ -1,24 +1,55 @@
 <div class="card">
   <h2 class="card-title m-3">
-    <!-- <a [routerLink]="['/home']"><i class="fa fa-arrow-left"> Back </i></a> -->
-    <h1 class="text-center">Email Problems ({{badSnsEventRows.length}})</h1>
+    <h1 class="text-center">Email Problems ({{filtered.length}})</h1>
   </h2>
   <div class="card-body">
-    <button class="btn btn-primary" (click)="findFailedEmails()">Execute</button>
-    <br/> <br/> <br/>
-    <q-table [rows]="badSnsEventRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+    <div class="mb-2 row filter">
+      <div class="col-auto"><button class="btn btn-primary" (click)="query()">Execute</button></div>
+      <div class="col-auto">
+        <div class="input-group">
+          <label>Show</label>
+          <select class="custom-select" [(ngModel)]="entityType" (change)="filter()">
+            <option value="">All</option>
+            <option value="{{entityTypes.Restaurant}}">Restaurants</option>
+            <option value="{{entityTypes.Customer}}">Customers</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <q-table [rows]="filtered" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
       <tr *tableRowTemplate="let row;">
         <td>
-          <a target="_blank" href="#/restaurants/{{getRestaurant(row)?._id}}">{{getRestaurant(row)?.name}}</a>
-          <div><small>{{getRestaurant(row)?._id}}</small></div>
+          <i class="fa fa-{{getEntityIcon(row.entityType)}}"></i>
         </td>
         <td>
-          {{row.params.mail.destination[0]}}
+          <a *ngIf="row.entityType === entityTypes.Restaurant" target="_blank" href="#/restaurants/{{row.entityId}}">
+            {{row.entityName}}
+          </a>
+          <a *ngIf="row.entityType === entityTypes.Customer" class="customer-link" (click)="showCustomer(row.entityId)">
+            {{row.entityName}}
+          </a>
+          <div><small>{{row.entityId}}</small></div>
         </td>
         <td>
-          {{ row.params.notificationType}}
+          <ng-container *ngIf="row.entityType && editing.email !== row.email">
+            <i class="fa fa-edit" (click)="edit(row.entityType, row.entityId, row.email)"></i>
+            {{row.email}}
+          </ng-container>
+          <ng-container *ngIf="row.entityType && editing.email === row.email">
+            <div>
+              <input [(ngModel)]="edited" class="form-control email-input" />
+              <button class="btn btn-link" (click)="save()">Save</button>
+              <button class="btn btn-link" (click)="cancel()">Cancel</button>
+            </div>
+          </ng-container>
+        </td>
+        <td>
+          {{ row.notificationType}}
         </td>
       </tr>
     </q-table>
   </div>
 </div>
+<q-modal [title]="'Customer Info'" #customerModal (close)="customerInfo = {}">
+  <pre>{{customerInfo | json}}</pre>
+</q-modal>

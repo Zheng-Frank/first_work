@@ -75,6 +75,8 @@ export class LogEditorComponent implements OnInit {
   customerPhone: string;
   relatedOrderIds: string[];
 
+  showSpecialized = false;
+
   constructor(private _api: ApiService, private _global: GlobalService) {
 
   }
@@ -234,6 +236,9 @@ export class LogEditorComponent implements OnInit {
     this.log.type === 'qr-dine-in' ? this.log.type = undefined : this.log.type = 'qr-dine-in';
   }
 
+  toggleInsistedLink() {
+    this.log.type === 'cleanup-insisted' ? this.log.type = undefined : this.log.type = 'cleanup-insisted';
+  }
   toggleWeirdDataCleanUp(){
     this.log.type === 'weird-data-cleanup' ? this.log.type = undefined : this.log.type = 'weird-data-cleanup';
   }

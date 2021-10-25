@@ -1,3 +1,13 @@
+/**
+ * visibility and editability hierarchy:
+ * tabs => sections
+ * compbination of role and ownership (agent itself) and timing (eg, +14 days? agent can't see payment means anymore)
+ *
+ * ADMIN, CSR => everything
+ * agent itself => mostly everything (except sensitive order info)
+ * MARKETER => basic profile
+ * MARKETER_INTERNAL => basic profile + contacts + logs
+ */
 import { LanguageType } from '../../../classes/language-type';
 import { Component, OnInit, Input, OnDestroy, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -38,7 +48,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
   sectionVisibilityRolesMap = {
     profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
-    contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
+    contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER_INTERNAL'],
     rateSchedules: ['ADMIN', 'RATE_EDITOR'],
     feeSchedules: ['ADMIN', 'RATE_EDITOR', 'MARKETER', 'CSR'],
     paymentMeans: ['ACCOUNTANT', 'CSR', 'MARKETER'],
@@ -184,8 +194,78 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     deliverySettings: 'Delivery Settings',
     preferredLanguage: 'Preferred Language'
   };
-  messageTemplates = [
-    [
+  messageTemplates = {
+    'Owner APP': [
+      {
+        title: "Biz App (Android)",
+        subject: "Biz App (Android)",
+        smsContent: "https://play.google.com/store/apps/details?id=qmenu.Owner&hl=en_US&gl=US",
+        emailContent: "https://play.google.com/store/apps/details?id=qmenu.Owner&hl=en_US&gl=US"
+      },
+      {
+        title: "Biz App (iOS)",
+        subject: "Biz App (iOS)",
+        smsContent: "https://apps.apple.com/us/app/qmenu-owner/id1476098960",
+        emailContent: "https://apps.apple.com/us/app/qmenu-owner/id1476098960"
+      },
+      {
+        title: "Biz App (website)",
+        subject: "Biz App (website)",
+        smsContent: "https://biz.qmenu.us/#/",
+        emailContent: "https://biz.qmenu.us/#/"
+      },
+      {
+        title: "Biz App User Guide (Eng)",
+        subject: "Biz App User Guide",
+        smsContent: "https://drive.google.com/file/d/1SFsJDVLWP62g0-Sr6bNPwv7dHbG_HFJ6/view?usp=sharing",
+        emailContent: "https://drive.google.com/file/d/1SFsJDVLWP62g0-Sr6bNPwv7dHbG_HFJ6/view?usp=sharing"
+      },
+      {
+        title: "Biz App User Guide (中)",
+        subject: "Biz App 用户指南",
+        smsContent: "https://drive.google.com/file/d/1HbRUtZYEMKQD_lfi7XRRK7DQqhc06MkA/view?usp=sharing",
+        emailContent: "https://drive.google.com/file/d/1HbRUtZYEMKQD_lfi7XRRK7DQqhc06MkA/view?usp=sharing"
+      }
+    ],
+    'GMB Notices': [
+      {
+        title: 'First GMB Notice (中)',
+        subject: '谷歌推广明信片',
+        smsContent: '你好，这里是QMenu，为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到。在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信，发给我们这个5位数号码 (请注意，此短信不能接受照片)，或者给我们的客服打电话 404-382-9768。多谢！',
+        emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到。在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 <strong>855-759-2648</strong> 或者给我们的客服打电话 <strong>404-382-9768</strong>。多谢！'
+      },
+      {
+        title: 'First GMB Notice (Eng)',
+        subject: 'Google promote postcard',
+        smsContent: 'This is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks.',
+        emailContent: 'Hi, <br/>&nbsp;&nbsp;&nbsp;&nbsp;This is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong> or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
+      },
+      {
+        title: 'First GMB Notice (中/Eng)',
+        subject: '谷歌推广明信片(Google promote postcard)',
+        smsContent: '你好,这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片). 或者给我们的客服打电话 404-382-9768. 多谢!\nThis is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard or call us at 404-382-9768. Thanks.',
+        emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到。在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 855-759-2648 或者给我们的客服打电话 404-382-9768。多谢！<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;Hi,<br/>This is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong> or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
+      },
+      {
+        title: 'Second GMB Notice (中)',
+        subject: '谷歌推广明信片',
+        smsContent: '你好,这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片), 或者给我们的客服打电话 404-382-9768. 多谢!',
+        emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 <strong>855-759-2648</strong> 或者给我们的客服打电话 <strong>404-382-9768</strong>。<br/>多谢！'
+      },
+      {
+        title: 'Second GMB Notice (Eng)',
+        subject: 'Google promote postcard',
+        smsContent: 'This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks.',
+        emailContent: 'Hi,<br/>&nbsp;&nbsp;&nbsp;&nbsp;This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong> or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
+      },
+      {
+        title: 'Second GMB Notice (中/Eng)',
+        subject: '谷歌推广明信片(Google promote postcard)',
+        smsContent: '你好，这里是QMenu，为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信，发给我们这个5位数号码 (请注意，此短信不能接受照片)或者给我们的客服打电话 404-382-9768。 多谢！\n          This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard (Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks.',
+        emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 <strong>855-759-2648</strong> 或者给我们的客服打电话 <strong>404-382-9768</strong>。<br/>多谢！<br/><br/>Hi,<br/>&nbsp;&nbsp;&nbsp;&nbsp;This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong>, or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
+      }
+    ],
+    'QR Dine-in': [
       {
         title: 'QR Biz link',
         subject: 'QR Biz link',
@@ -234,46 +314,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
         smsContent: '看看 qMenu 的扫码点餐系统提供的所有好处：https://pro-bee-beepro-messages.s3.amazonaws.com/474626/454906/1210649/6204156.html',
         emailContent: '看看 qMenu 的扫码点餐系统提供的所有好处：https://pro-bee-beepro-messages.s3.amazonaws.com/474626/454906/1210649/6204156.html'
       },
-    ],
-    [
-      {
-        title: 'First GMB Notice (中)',
-        subject: '谷歌推广明信片',
-        smsContent: '你好，这里是QMenu，为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到。在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信，发给我们这个5位数号码 (请注意，此短信不能接受照片)，或者给我们的客服打电话 404-382-9768。多谢！',
-        emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到。在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 <strong>855-759-2648</strong> 或者给我们的客服打电话 <strong>404-382-9768</strong>。多谢！'
-      },
-      {
-        title: 'First GMB Notice (Eng)',
-        subject: 'Google promote postcard',
-        smsContent: 'This is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks.',
-        emailContent: 'Hi, <br/>&nbsp;&nbsp;&nbsp;&nbsp;This is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong> or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
-      },
-      {
-        title: 'First GMB Notice (中/Eng)',
-        subject: '谷歌推广明信片(Google promote postcard)',
-        smsContent: '你好,这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片). 或者给我们的客服打电话 404-382-9768. 多谢!\nThis is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard or call us at 404-382-9768. Thanks.',
-        emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到。在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 855-759-2648 或者给我们的客服打电话 404-382-9768。多谢！<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;Hi,<br/>This is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong> or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
-      },
-      {
-        title: 'Second GMB Notice (中)',
-        subject: '谷歌推广明信片',
-        smsContent: '你好,这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片), 或者给我们的客服打电话 404-382-9768. 多谢!',
-        emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 <strong>855-759-2648</strong> 或者给我们的客服打电话 <strong>404-382-9768</strong>。<br/>多谢！'
-      },
-      {
-        title: 'Second GMB Notice (Eng)',
-        subject: 'Google promote postcard',
-        smsContent: 'This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks.',
-        emailContent: 'Hi,<br/>&nbsp;&nbsp;&nbsp;&nbsp;This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong> or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
-      },
-      {
-        title: 'Second GMB Notice (中/Eng)',
-        subject: '谷歌推广明信片(Google promote postcard)',
-        smsContent: '你好，这里是QMenu，为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信，发给我们这个5位数号码 (请注意，此短信不能接受照片)或者给我们的客服打电话 404-382-9768。 多谢！\n          This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard (Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks.',
-        emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 <strong>855-759-2648</strong> 或者给我们的客服打电话 <strong>404-382-9768</strong>。<br/>多谢！<br/><br/>Hi,<br/>&nbsp;&nbsp;&nbsp;&nbsp;This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong>, or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
-      }
     ]
-  ];
+  };
   invoicesCount = 0;
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
@@ -290,7 +332,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "Tasks": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
       "Diagnostics": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
       "Others": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'] // make a superset and reorder authority in restaurant other page.
-    }
+    };
 
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
 
@@ -307,28 +349,25 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     this.activeTab = this._global.storeGet('restaurantDetailsTab') || 'Settings';
   }
   // show checkmark or x on gmb tab to indicate the restaurant has gmb or not
-  hasGMBAtPresent(){
-    if(this.restaurant.gmbOwnerHistory && this.restaurant.gmbOwnerHistory.length > 0){
+  hasGMBAtPresent() {
+    if (this.restaurant.gmbOwnerHistory && this.restaurant.gmbOwnerHistory.length > 0) {
       this.restaurant.gmbOwnerHistory.sort((a, b) => new Date(b.time).valueOf() - new Date(a.time).valueOf());
       return this.restaurant.gmbOwnerHistory[0].gmbOwner === 'qmenu';
-    }else{
+    } else {
       return false;
     }
   }
   // show count of invoices of invoices tab
-  async getInvoicesCountOfRT(){
-    const invoices = await this._api
+  async getInvoicesCountOfRT() {
+    const [count] = await this._api
       .get(environment.qmenuApiUrl + "generic", {
         resource: "invoice",
-        query: {
-          "restaurant.id": this.restaurant._id
-        },
-        projection:{
-          _id: 1
-        },
-        limit:10000000000
+        aggregate: [
+          { $match: { "restaurant.id": this.restaurant._id } },
+          { $count: "total" }
+        ]
       }).toPromise();
-    this.invoicesCount = invoices.length;
+    this.invoicesCount = count ? count.total : 0;
   }
 
   ngOnDestroy() {
@@ -433,11 +472,11 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       return (rt.score || 0).toFixed(1);
     }
     if (!rt.score) {
-      return 'No Score'
+      return 'No Score';
     } else if (rt.score >= 0 && rt.score < 3) {
-      return 'Low'
+      return 'Low';
     } else if (rt.score >= 3 && rt.score < 6) {
-      return 'Medium'
+      return 'Medium';
     } else {
       return 'High';
     }
@@ -511,7 +550,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           (rt.gmbOwnerHistory || []).reverse();
           (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi && mi.name)));
           const canEdit = this._global.user.roles.some(r =>
-            ['ADMIN', 'MENU_EDITOR', 'CSR', 'ACCOUNTANT'].indexOf(r) >= 0) ||
+            ['ADMIN', 'MENU_EDITOR', 'CSR', 'ACCOUNTANT', 'MARKETER_INTERNAL'].indexOf(r) >= 0) ||
             (rt.rateSchedules).some(rs => rs.agent === 'invalid') ||
             (rt.rateSchedules || []).some(rs => rs.agent === this._global.user.username);
           this.readonly = !canEdit;
@@ -523,8 +562,10 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           // set timer of rt portal
           this.refreshTime();
           this.timer = setInterval(() => this.refreshTime(), this.refreshDataInterval);
-          // count of invoices of restaurant
-          this.getInvoicesCountOfRT();
+          // count of invoices of restaurant if user can see invoice tab
+          if (this.tabs.includes('Invoices')) {
+            this.getInvoicesCountOfRT();
+          }
         },
         error => {
           this.apiRequesting = false;
@@ -575,8 +616,11 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   isSectionVisible(sectionName) {
     const roles = this._global.user.roles || [];
     let hasFullPrivilege = this.sectionVisibilityRolesMap[sectionName].filter(r => roles.indexOf(r) >= 0).length > 0;
-
     if (hasFullPrivilege) {
+      return true;
+    }
+    // TEMP emergent fix: MARKETER can see their own contacts! THIS IS TEMP AND SHOULD BE REMOVED once main logic is fixed
+    if (sectionName === 'contacts' && roles.includes('MARKETER')) {
       return true;
     }
     // marketer should can view rateSchedules in rts under his agent

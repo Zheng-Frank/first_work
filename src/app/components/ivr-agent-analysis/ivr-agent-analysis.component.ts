@@ -1,8 +1,8 @@
-import {GlobalService} from 'src/app/services/global.service';
-import {AfterViewInit, Component, ElementRef, OnInit, QueryList, ViewChildren} from '@angular/core';
-import {ApiService} from 'src/app/services/api.service';
-import {environment} from 'src/environments/environment';
-import {Chart} from 'chart.js';
+import { GlobalService } from 'src/app/services/global.service';
+import { Component, ElementRef, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { ApiService } from 'src/app/services/api.service';
+import { environment } from 'src/environments/environment';
+import { Chart } from 'chart.js';
 
 enum TimeRanges {
   Last24Hours = 'Last 24 hours',
@@ -13,10 +13,17 @@ enum TimeRanges {
   CustomDate = 'Custom'
 }
 
+enum AgentTypes {
+  All = 'All',
+  Sales = 'Sales',
+  CSR = 'CSR'
+}
+
 enum SortFields {
   TotalCalls = 'Total Calls',
   TotalCallTime = 'Total Call Time',
-  AvgCallDuration = 'Avg Call Duration'
+  AvgCallDuration = 'Avg Call Duration',
+  RestaurntSignUps = 'Restaurant Sign Ups'
 }
 
 enum SortOrders {
@@ -35,12 +42,20 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
   startDate;
   endDate;
+  agentType = AgentTypes.All;
   timeRange = TimeRanges.Last24Hours;
   sortBy = SortFields.TotalCallTime;
   sortOrder = SortOrders.Descending;
   list = [];
+  filteredList = [];
   totalRecords = 0;
+  filteredTotalRecords = 0;
   charts = [];
+  ivrUsers = {};
+  userRoleMap = {};
+  showCharts = false;
+
+  restaurants = [];
 
   get now(): string {
     return this.dateStr(new Date());
@@ -59,6 +74,10 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
   get sortOrders() {
     return Object.values(SortOrders);
+  }
+
+  get agentTypes() {
+    return Object.values(AgentTypes);
   }
 
   constructor(private _api: ApiService, private _global: GlobalService) {
@@ -167,16 +186,16 @@ export class IvrAgentAnalysisComponent implements OnInit {
         [SortFields.TotalCallTime]: '#00AA4F',
         [SortFields.AvgCallDuration]: '#26C9C9'
       }[label];
-      return {label, yAxisID, borderColor: color, backgroundColor: color, data, fill: false};
+      return { label, yAxisID, borderColor: color, backgroundColor: color, data, fill: false };
     });
     let chart = new Chart(el, {
       options: {
         responsive: true,
-        tooltips: {mode: 'index', intersect: false},
+        tooltips: { mode: 'index', intersect: false },
         stacked: false,
         scales: {
           yAxes: [
-            {id: "y-count", type: 'linear', display: true, position: 'left'},
+            { id: "y-count", type: 'linear', display: true, position: 'left' },
             {
               id: "y-time",
               type: 'linear',
@@ -192,7 +211,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
         }
       },
       type: 'line',
-      data: {labels: dates.map(d => this.localDateStr(d, withTime)), datasets}
+      data: { labels: dates.map(d => this.localDateStr(d, withTime)), datasets }
     });
     this.charts.push(chart);
   }
@@ -225,27 +244,44 @@ export class IvrAgentAnalysisComponent implements OnInit {
     end = new Date(end).valueOf();
     let query = {
       Channel: 'VOICE',
-      createdAt: {$gte: start, $lt: end},
-      Agent: {$exists: true}
+      createdAt: { $gte: start, $lt: end },
+      Agent: { $exists: true }
     } as any;
     if (this.isAdmin()) {
-      query['Agent.Username'] = {$exists: true};
+      query['Agent.Username'] = { $exists: true };
     } else {
       query['Agent.Username'] = ivrName;
     }
 
+    const rtQuery = {
+      createdAt: { $gte: { $date: start }, $lt: { $date: end } },
+      "rateSchedules.agent": { $exists: true }
+    };
+
     let data = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-        resource: 'amazon-connect-ctr',
-        query: query,
-        projection: {
-          'Agent.Username': 1,
-          'ConnectedToSystemTimestamp': 1,
-          'DisconnectTimestamp': 1,
-          'Agent.AgentInteractionDuration': 1,
-        },
-        limit: 100000 // limit to 10w, contains 3~4 months data
-      }, 20000);
+      resource: 'amazon-connect-ctr',
+      query: query,
+      projection: {
+        'Agent.Username': 1,
+        'ConnectedToSystemTimestamp': 1,
+        'DisconnectTimestamp': 1,
+        'Agent.AgentInteractionDuration': 1,
+      },
+      limit: 100000 // limit to 10w, contains 3~4 months data
+    }, 20000);
     this.totalRecords = data.length;
+
+
+    this.restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: rtQuery,
+      projection: {
+        'createdAt': 1,
+        'rateSchedules.agent': 1,
+      },
+      limit: 100000
+    }).toPromise();
+
     let map = {} as {
       [key: string]: {
         totalCalls: number, totalCallTime: number, durations: any[]
@@ -253,7 +289,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
     };
     let days = Math.floor((end - start) / (24 * 3600 * 1000));
     data.forEach(item => {
-      let agent = item.Agent.Username;
+      let ivrUsername = item.Agent.Username;
+      let agent = this.ivrUsers[ivrUsername] || ivrUsername;
       map[agent] = map[agent] || {
         totalCalls: 0,
         totalCallTime: 0,
@@ -267,12 +304,23 @@ export class IvrAgentAnalysisComponent implements OnInit {
         duration: item.Agent.AgentInteractionDuration
       });
     });
-    this.list = Object.entries(map).map(([key, {totalCalls, totalCallTime, durations}]) => {
+
+    this.list = Object.entries(map).map(([key, { totalCalls, totalCallTime, durations }]) => {
       let avgCallDuration = totalCallTime / totalCalls;
       let avgCallTimePerDay = totalCallTime / days;
-      return {agent: key, totalCalls, totalCallTime, avgCallDuration, avgCallTimePerDay, durations};
+      return {
+        agent: key,
+        totalCalls,
+        totalCallTime,
+        avgCallDuration,
+        avgCallTimePerDay,
+        durations,
+        roles: this.userRoleMap[key],
+        rtCount: (this.restaurants || []).filter(rt => rt.rateSchedules.some(sch => sch.agent === key)).length
+      }
     });
     this.sort();
+    this.filter();
     setTimeout(() => {
       this.components.toArray().forEach(el => this.chartRefresh(el.nativeElement));
     });
@@ -282,7 +330,22 @@ export class IvrAgentAnalysisComponent implements OnInit {
     return this._global.user.roles.some(role => role === 'ADMIN');
   }
 
+  async getUsers() {
+    let users = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'user',
+      query: { ivrUsername: { $exists: true } },
+      projection: { username: 1, ivrUsername: 1, roles: 1 },
+      limit: 1000
+    }).toPromise();
+    users.forEach(({ username, ivrUsername, roles }) => {
+      this.ivrUsers[ivrUsername] = username;
+      this.userRoleMap[username] = roles;
+    });
+  }
+
+
   async ngOnInit() {
+    await this.getUsers();
     await this.changeDate();
   }
 
@@ -290,12 +353,13 @@ export class IvrAgentAnalysisComponent implements OnInit {
     const sortField = {
       [SortFields.TotalCallTime]: 'totalCallTime',
       [SortFields.TotalCalls]: 'totalCalls',
-      [SortFields.AvgCallDuration]: 'avgCallDuration'
+      [SortFields.AvgCallDuration]: 'avgCallDuration',
+      [SortFields.RestaurntSignUps]: 'rtCount'
     }[this.sortBy];
     const sortFunc = (a, b) => {
       return this.sortOrder === SortOrders.Ascending ? a[sortField] - b[sortField] : b[sortField] - a[sortField];
     };
-    this.list.sort(sortFunc);
+    this.filteredList.sort(sortFunc);
   }
 
   secondsToHms(duration) {
@@ -315,4 +379,42 @@ export class IvrAgentAnalysisComponent implements OnInit {
     ].filter(x => !!x).join(', ');
   }
 
+  async filter() {
+    this.filteredList = this.list;
+    this.filteredTotalRecords = this.totalRecords;
+
+    if (this.agentType === 'All') {
+      return;
+    }
+    if (this.agentType === 'CSR') {
+      this.filteredList = this.list.filter(agent => (agent.roles || []).some(role => role === 'CSR'));
+      this.filteredTotalRecords = this.filteredList.reduce((prev, val) => prev + val.totalCalls, 0);
+      return;
+    }
+    if (this.agentType === 'Sales') {
+      this.filteredList = this.list.filter(agent => {
+        return ['MARKETER', 'MARKETER_INTERNAL', 'MARKETER_EXTERNAL'].some(applicableRole => (agent.roles || []).some(agentRole => agentRole === applicableRole));
+      });
+      this.filteredTotalRecords = this.filteredList.reduce((prev, val) => prev + val.totalCalls, 0);
+      return;
+    }
+
+    await this.changeDate();
+  }
+
+  async toggleCharts() {
+    await this.changeDate(); // calling changeDate() is a hack that can "trick" ChartJS into re-rendering views
+  }
+
+  newSignUpCount() {
+    // only count sign-ups for agents whose stats are currently displayed on the page. otherwise, we may have a mismatch
+    // between the total count displayed at the top of the page and the total of the individual agents' numbers 
+    return (this.restaurants || []).reduce((prev, val) => {
+      const displayedUsers = this.filteredList.map(item => item.agent);
+      if (displayedUsers.includes(val.rateSchedules[0].agent)) {
+        return prev + 1;
+      }
+      return prev;
+    }, 0);
+  }
 }

@@ -1635,7 +1635,10 @@
         <div class="form-group row  text-right">
           <div class="col-12">
             <button class="btn btn-secondary" (click)="cancel()">Cancel</button>
-            <button class="btn btn-primary ml-2" [disabled]="!isEmailValid()" (click)="ok()">OK</button>
+            <button class="btn btn-primary ml-2" [disabled]="!isEmailValid() || requiredFieldsMissing()"
+              (click)="ok()">OK</button>
+          </div>
+          <div *ngIf="requiredFieldsMissing()" class="text-danger font-weight-bold">Field(s) with missing or incorrect value: {{requiredFieldsMissing()}}
           </div>
         </div>
       </div>

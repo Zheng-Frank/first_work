@@ -81,7 +81,7 @@ export class GmbAccountListComponent implements OnInit {
         isYelpEmail: 1,
         isDefenseAccount: 1
       }
-    }, 35);
+    }, 20);
     // add 24 hours suspended and duplicate!
     accountList.map(a => {
       let suspendedInPastDay = 0;

@@ -1,10 +1,12 @@
-import { Component, OnInit, Input, Output, EventEmitter, OnChanges, ViewChild, ElementRef } from '@angular/core';
-import { Mi, Item, MenuOption } from '@qmenu/ui';
-import { SelectorComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-import { Helper } from '../../../classes/helper';
-import { Router } from '@angular/router';
-import { ApiService } from '../../../services/api.service';
-import { HttpClient } from '@angular/common/http';
+import {Component, EventEmitter, Input, OnChanges, OnInit, Output, ViewChild} from '@angular/core';
+import {Item, MenuOption, Mi} from '@qmenu/ui';
+import {SelectorComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
+import {Helper} from '../../../classes/helper';
+import {Router} from '@angular/router';
+import {ApiService} from '../../../services/api.service';
+import {HttpClient} from '@angular/common/http';
+import {GlobalService} from '../../../services/global.service';
+import {AlertType} from '../../../classes/alert-type';
 
 declare var $: any;
 @Component({
@@ -33,14 +35,16 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
     uploadImageError: string;
     availabilityValues = ['Available', 'Unavailable'];
 
-    startupAction = undefined;  //'Yes', 'No', or undefined
+    startupAction = undefined;  // 'Yes', 'No', or undefined
     finishedChoosingStartupAction = false;
     existingMis = [];
 
     showDetails = false;
     searchText = null;
+    imageMode = "upload"; // upload / url
+    inputtedImageUrl = '';
 
-    constructor(private _router: Router, private _api: ApiService, private _http: HttpClient) {
+    constructor(private _router: Router, private _global: GlobalService, private _api: ApiService, private _http: HttpClient) {
 
     }
     ngOnInit() {
@@ -146,26 +150,43 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
         this.mi.imageObjs.splice(this.mi.imageObjs.indexOf(img), 1);
     }
 
+  async previewImage() {
+    if (!this.inputtedImageUrl) {
+      return;
+    }
+    const res = await this._http.get(this.inputtedImageUrl, {responseType: 'blob' as 'json'}).toPromise();
+    // @ts-ignore
+    let type = res.type;
+    const blob = new Blob([res], { type });
+    let ext = type.split("/")[1], name = Date.now() + "." + ext;
+    const file = new File([blob], name, {type});
+    const data: any = await Helper.uploadImage([file], this._api, this._http);
+    this.onImageUploaded(data);
+  }
+
+  onImageUploaded(data) {
+    if (data && data.Location) {
+      this.mi.imageObjs = this.mi.imageObjs || [];
+      // infer 3 Urls
+      this.mi.imageObjs.push({
+        originalUrl: data.Location,
+        thumbnailUrl: Helper.getThumbnailUrl(data.Location),
+        normalUrl: Helper.getNormalResUrl(data.Location),
+        origin: 'CSR'
+      });
+    } else {
+      this._global.publishAlert(AlertType.Danger, "Image upload failed.");
+      console.log('uploaded...', data);
+    }
+  }
+
     async onUploadImageChange(event) {
         this.uploadImageError = undefined;
         let files = event.target.files;
         try {
             const data: any = await Helper.uploadImage(files, this._api, this._http);
-            if (data && data.Location) {
-                this.mi.imageObjs = this.mi.imageObjs || [];
-                // infer 3 Urls
-                this.mi.imageObjs.push({
-                    originalUrl: data.Location,
-                    thumbnailUrl: Helper.getThumbnailUrl(data.Location),
-                    normalUrl: Helper.getNormalResUrl(data.Location),
-                    origin: 'CSR'
-                });
-            }
-            else {
-                console.log("The data was null");
-            }
-        }
-        catch (err) {
+            this.onImageUploaded(data);
+        } catch (err) {
             this.uploadImageError = err;
         }
 

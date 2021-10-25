@@ -12,7 +12,9 @@ import { ImageItem } from 'src/app/classes/image-item';
 enum orderByTypes {
   NAME = 'Name',
   menuFrequency = 'Menu frequency',
-  orderFrequency = 'Order frequency'
+  orderFrequency = 'Order frequency',
+  numberAliases = 'Number of aliases',
+  numberImages = 'Number of images'
 }
 enum hasImagesTypes {
   All = 'All',
@@ -38,7 +40,7 @@ export class ImageManagerComponent implements OnInit {
   images = [];
   cuisineTypes = [];
   cuisineType = '';
-  orderBys = [orderByTypes.NAME, orderByTypes.menuFrequency, orderByTypes.orderFrequency];
+  orderBys = [orderByTypes.NAME, orderByTypes.menuFrequency, orderByTypes.orderFrequency, orderByTypes.numberAliases, orderByTypes.numberImages];
   orderBy = orderByTypes.NAME;
   showImagesItemsTypes = [hasImagesTypes.All, hasImagesTypes.WithImage, hasImagesTypes.WithoutImage];
   noImagesFlag = hasImagesTypes.All;// control whether show no image items. 
@@ -401,6 +403,13 @@ export class ImageManagerComponent implements OnInit {
         break;
       case orderByTypes.orderFrequency:
         this.filterRows.sort((a, b) => (b.orderCount || 0) - (a.orderCount || 0));
+        break;
+      case orderByTypes.numberAliases:
+        this.filterRows.sort((a, b) => (b.aliases || []).length - (a.aliases || []).length);
+        break;
+      case orderByTypes.numberImages:
+        this.filterRows.sort((a, b) => (b.images && a.images) ? b.images.filter(image => image.url192).length - a.images.filter(image => image.url192).length :
+         (b.images && !a.images) ? 1 : (!b.images && a.images) ? -1 : 0);
         break;
       default:
         break;

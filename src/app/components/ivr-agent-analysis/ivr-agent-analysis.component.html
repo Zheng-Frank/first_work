@@ -1,4 +1,4 @@
-<h2 class="text-center">Agent Call Stats Dashboard ({{list.length}} agents, {{totalRecords}} records)</h2>
+<h2 class="text-center">Agent Call Stats Dashboard ({{filteredList.length}} agents, {{filteredTotalRecords}} records, {{newSignUpCount()}} new sign-ups)</h2>
 <div class="row ivr-filters">
   <div class="col-auto">
     <div class="input-group">
@@ -16,6 +16,16 @@
       </select>
     </div>
   </div>
+
+  <div class="col-auto">
+    <div class="input-group">
+      <label>Filter By Agent Role:</label>
+      <select class="custom-select " [(ngModel)]="agentType" (change)="filter()">
+        <option *ngFor="let item of agentTypes" [value]="item">{{item}}</option>
+      </select>
+    </div>
+  </div>
+
   <div class="col-auto">
     <div class="input-group">
       <label>Sort Order:</label>
@@ -24,6 +34,14 @@
       </select>
     </div>
   </div>
+
+  <div class="col-auto">
+    <div class="input-group">
+      <label>Show Charts: </label>
+      <input type="checkbox" [(ngModel)]="showCharts" (change)="toggleCharts()">
+    </div>
+  </div>
+
 </div>
 <div class="row ivr-filters" *ngIf="timeRange === TimeRanges.CustomDate">
   <div class="col-auto">
@@ -38,12 +56,15 @@
     <button class="btn btn-primary" (click)="query()" [disabled]="!this.startDate || !this.endDate" type="button">OK</button>
   </div>
 </div>
-<div *ngFor="let item of list; let i = index;" class="card-body">
+<div *ngFor="let item of filteredList; let i = index;" class="card-body">
   <hr />
   <div>Agent Name: <b>{{ item.agent }}</b></div>
   <div>Total Calls: {{ item.totalCalls }}</div>
   <div>Avg Call Duration: {{ secondsToHms(item.avgCallDuration) }}</div>
   <div>Total Call Time: {{ secondsToHms(item.totalCallTime) }}</div>
   <div>Avg Call Time per Day: {{ secondsToHms(item.avgCallTimePerDay) }}</div>
-  <canvas width="800" height="240" #cmp [attr.data-index]="i"></canvas>
+  <div>Restaurant Sign Ups: {{ item.rtCount }}</div>
+  <ng-container *ngIf="showCharts">
+    <canvas width="800" height="240" #cmp [attr.data-index]="i"></canvas>
+  </ng-container>
 </div>

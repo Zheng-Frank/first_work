@@ -21,6 +21,20 @@ export class DbScriptsComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) { }
   ngOnInit() { }
 
+  async removeMenuCleanedField() {
+    const rts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {menuCleaned: {$exists: true}},
+      projection: {_id: 1, menuCleaned: 1},
+      limit: 20000
+    }).toPromise();
+    console.log('rts with menuCleaned field...', rts.map(rt => rt._id));
+    const patchList = rts.map(rt => ({old: rt, new: { _id: rt._id }}));
+    if (patchList.length > 0) {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+    }
+  }
+
   async importSalaries() {
     const mylines = `PASTE ACTUAL LINES HERE`;
 
@@ -517,7 +531,7 @@ export class DbScriptsComponent implements OnInit {
 
     const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: { disabled: { $ne: true }, menuCleaned: { $ne: true } },
+      query: { disabled: { $ne: true } },
       projection: { 'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, 'menus.mcs.mis.number': 1, name: 1, translations: 1 }
     }, 500);
 

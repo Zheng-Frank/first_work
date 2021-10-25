@@ -9,6 +9,8 @@ enum EmailContentModes {
   Editing, Preview
 }
 
+const EmptyTemplate = {title: "", smsContent: "", subject: "", emailContent: ""};
+
 @Component({
   selector: 'app-send-message',
   templateUrl: './send-message.component.html',
@@ -21,24 +23,46 @@ export class SendMessageComponent {
   @Input() allowCustomTemplate = false;
   @Output() success = new EventEmitter();
   targets = [];
-  template = {title: "", smsContent: "", subject: "", emailContent: ""};
+  template = {...EmptyTemplate};
+  templateType = "";
   emailContentMode = EmailContentModes.Editing;
   customTemplate = {title: "Custom", smsContent: '', subject: '', emailContent: ''};
 
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
+  get templateTypes() {
+    let types = Object.keys(this.templates);
+    if (this.allowCustomTemplate) {
+      types.unshift("Custom");
+    }
+    return types;
+  }
+
+  changeTplType(type) {
+    this.templateType = type;
+    if (type === 'Custom') {
+      this.template = {...this.customTemplate};
+    } else {
+      this.template = this.templates[type][0];
+    }
+  }
+
   cleanup() {
     this.targets = [];
-    this.template = {title: "", smsContent: "", subject: "", emailContent: ""};
+    this.template = {...EmptyTemplate};
+    if (this.allowCustomTemplate) {
+      this.templateType = "Custom";
+      this.template = {...this.customTemplate};
+    }
     this.emailContentMode = EmailContentModes.Editing;
   }
 
   onShow() {
     this.cleanup();
-    let flatted = (this.allowCustomTemplate ? [this.customTemplate] : []).concat(...this.templates);
-    if (flatted.length === 1) {
-      this.template = flatted[0];
+    if (!this.allowCustomTemplate && this.templateTypes.length === 1) {
+      this.templateType = this.templateTypes[0];
+      this.template = this.templates[this.templateType][0];
     }
     if (this.channels.length === 1) {
       this.targets.push(this.channels[0]);
@@ -79,8 +103,7 @@ export class SendMessageComponent {
   }
 
   changeTpl(e) {
-    this.template = (this.allowCustomTemplate ? [this.customTemplate] : [])
-      .concat(...this.templates).find(x => x.title === e.target.value);
+    this.template = this.templates[this.templateType].find(x => x.title === e.target.value);
   }
 
   hasEmail() {
