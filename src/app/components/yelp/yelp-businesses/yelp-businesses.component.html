@@ -1,6 +1,6 @@
 <h1 class="text-center">Restaurants ({{ filteredRows.length }})</h1>
 
-<div class="row d-flex align-items-center">
+<div *ngIf="!isAdmin" class="row d-flex align-items-center">
   <div class="col-md-7 d-flex align-items-center">
     <div class="clearfix my-2 float-left form-inline limit-width-height">
       <label class="mr-2"> Status:</label>
@@ -32,7 +32,7 @@
 </div>
 
 <q-table [rows]="filteredRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="pagination ? 100 : 100000">
-  <tr *tableRowTemplate="let rt" class="w-100 {{(filteredRows.indexOf(rt) + 1) % 2 !== 0 ? 'table-row-bg': ''}}">
+  <tr *tableRowTemplate="let rt" class="w-100 pt-4 {{(filteredRows.indexOf(rt) + 1) % 2 !== 0 ? 'table-row-bg': ''}}">
 
     <!-- count -->
     <td style="width: 2%">

@@ -24,6 +24,8 @@ export class YelpBusinessesComponent implements OnInit {
   searchText; // restaurant id
   pagination = false;
 
+  isAdmin = false;
+
   myColumnDescriptors = [
     {
       label: '#'
@@ -70,7 +72,7 @@ export class YelpBusinessesComponent implements OnInit {
     this.populate();
     this.username = this._global.user.username;
 
-    // this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
+    this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
   }
 
   ngOnInit() {
