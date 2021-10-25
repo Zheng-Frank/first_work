@@ -220,6 +220,7 @@ import { NotificationEditorComponent } from './components/notification-editor/no
 import { TimezoneOffsetPipe } from './pipes/timezone-offset.pipe';
 import { AddNewLogComponent } from './components/restaurants/seamless-integration/add-new-log/add-new-log.component';
 import { QrRestaurantListComponent } from './components/restaurants/qr-restaurant-list/qr-restaurant-list.component';
+import { OrderNotificationsComponent } from './components/restaurants/order-notifications/order-notifications.component';
 import { RestaurantStatsComponent } from './components/restaurants/restaurant-stats/restaurant-stats.component';
 import { WeirdDataComponent } from './components/monitoring/weird-data/weird-data.component';
 import { RestaurantTranslationsComponent } from './components/restaurants/restaurant-translations/restaurant-translations.component';
@@ -431,6 +432,8 @@ import { RtsByProviderComponent } from './components/monitoring/rts-by-provider/
     IvrAgentAnalysisComponent,
     CsvGeneratorComponent,
     RestaurantQrSettingsComponent,
+    OrderNotificationsComponent,
+    QrRestaurantListComponent,
     NotificationDashboardComponent,
     NotificationEditorComponent,
     RestaurantStatsComponent,

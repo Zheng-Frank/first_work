@@ -3808,6 +3808,119 @@ export class DbScriptsComponent implements OnInit {
     console.log('closedRT', closedRT)
   }
 
+  // migrateOrderNotifications will migrate channel data for up to 10,000 RTs at a time. It is safe to run multiple times, 
+  // because it only ever attempts to operate on RTs that do not already have orderNotifications
+  async migrateOrderNotifications() {
+    const updatedOldNewPairs = [];
+    let restaurants = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+      resource: "restaurant",
+      query: {
+        orderNotifications: null
+      },
+      projection: {
+        channels: 1,
+        customizedRenderingStyles: 1
+      }
+    }, 5000);
+
+    restaurants = restaurants.filter(r => {
+      let id = r._id.toString();
+      const rtArray = [
+        "5a2b1654f159fa1400902cc9", "58884aaf7945f91100bad519","60db92ef5f322f680d0d0ff6","57e9574c1d1ef2110045e665","5ad71728ca38201400531812"
+      ];
+
+      return rtArray.includes(id);
+    })
+
+    for (let r of restaurants) {
+      const orderNotifications = [];
+      const channels = r.channels || [];
+      const printClients = await this._api.get(environment.qmenuApiUrl + "generic", {
+        resource: "print-client",
+        query: {
+          "restaurant._id": r._id.toString()
+        },
+        limit: 100
+      }).toPromise();
+
+      channels.forEach(channel => {
+        if ((channel.notifications || []).includes("Order")) {
+          const preferredLanguage = channel.channelLanguage || channel.language || r.preferredLanguage || "ENGLISH";
+          const newChannel = {
+            channel: {
+              type: channel.type,
+              value: channel.value,
+              //language: preferredLanguage 
+              // language preference is currently not implemented for voice/fax/sms - no back-end code makes use of this property. 
+            }
+          }
+
+          if (channel.type === 'Fax' && r.customizedRenderingStyles) {
+            newChannel["customizedRenderingStyles"] = r.customizedRenderingStyles;
+          }
+
+          orderNotifications.push(newChannel);
+        }
+      });
+
+      printClients.filter(pc => ((pc || {}).printers || []).some(printer => printer.autoPrintCopies && printer.autoPrintCopies > 0)).forEach(pc => {
+        const printers = pc.printers || [];
+
+        printers.forEach(pr => {
+          if (pr.autoPrintCopies && pr.autoPrintCopies > 0) {
+            const orderViews = pr.orderViews || [];
+            orderViews.forEach(ov => {
+              const copies = ov.copies;
+              const format = ov.format;
+              const templateName = ov.template;
+              const customizedRenderingStyles = ov.customizedRenderingStyles;
+              const guid = pc.guid;
+              const menuFilters = ov.menus;
+              const info = pc.info;
+              const newNotification = {
+                channel: {
+                  type: pc.type,
+                  value: pr.name,
+                  printClientId: pc._id,
+                  ...guid ? { guid } : null
+                },
+                ...customizedRenderingStyles ? { customizedRenderingStyles } : null,
+                ...copies ? { copies } : null,
+                ...format ? { format } : { format: 'png' },
+                ...templateName ? { templateName } : { templateName: 'default' },
+                ...menuFilters ? { menuFilters } : null,
+                ...info ? { info } : null
+              };
+              orderNotifications.push(newNotification);
+            });
+          }
+        });
+      });
+
+      console.log(orderNotifications);
+
+      updatedOldNewPairs.push({
+        old: { _id: r._id },
+        new: { _id: r._id, orderNotifications: orderNotifications }
+      });
+
+    }
+    try {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', updatedOldNewPairs).toPromise();
+      this._global.publishAlert(
+        AlertType.Success,
+        `Settings updated for ${updatedOldNewPairs.length} restaurants.`
+      );
+    } catch (error) {
+      this._global.publishAlert(
+        AlertType.Danger,
+        `Error in updating database:`
+      );
+      console.log(error);
+    }
+
+  }
+
   async deletePastClosedHours() {
     let restaurants = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: 'restaurant',

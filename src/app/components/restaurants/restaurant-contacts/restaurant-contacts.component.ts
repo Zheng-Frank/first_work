@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ViewChild } from '@angular/core';
+import { Component, OnInit, Input, ViewChild, OnChanges, Output, EventEmitter } from '@angular/core';
 import { Restaurant } from '@qmenu/ui';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { ApiService } from "../../../services/api.service";
@@ -16,10 +16,11 @@ import { FormSubmit } from '@qmenu/ui/classes';
   templateUrl: './restaurant-contacts.component.html',
   styleUrls: ['./restaurant-contacts.component.css']
 })
-export class RestaurantContactsComponent implements OnInit {
+export class RestaurantContactsComponent implements OnInit, OnChanges {
 
   @Input() restaurant: Restaurant;
   @Input() viewOnly = false;
+  @Output() updateRestaurant = new EventEmitter();
 
   @ViewChild('modalPerson') modalPerson: ModalComponent;
   @ViewChild('modalChannel') modalChannel: ModalComponent;
@@ -28,6 +29,7 @@ export class RestaurantContactsComponent implements OnInit {
   personInEditing: Person = {} as Person;
 
   channelInEditing: Channel = {} as Channel;
+  channelBeforeEditing: Channel = {} as Channel;
 
   notes: string;
   channelFieldDescriptors = [
@@ -64,14 +66,14 @@ export class RestaurantContactsComponent implements OnInit {
   ];
 
   languageDescriptor = {
-      field: "language",
-      label: "Language",
-      required: false,
-      inputType: "single-select",
-      items: [
-        { object: "ENGLISH", text: "English", selected: false },
-        { object: "CHINESE", text: "Chinese", selected: false }
-      ]
+    field: "language",
+    label: "Language",
+    required: false,
+    inputType: "single-select",
+    items: [
+      { object: "ENGLISH", text: "English", selected: false },
+      { object: "CHINESE", text: "Chinese", selected: false }
+    ]
   };
 
   personFieldDescriptors = [
@@ -135,6 +137,33 @@ export class RestaurantContactsComponent implements OnInit {
     this.crm = this.restaurant.crm;
   }
 
+  ngOnChanges() {
+    this.synchronizeNotificationData();
+  }
+
+  synchronizeNotificationData() {
+    const notifications = this.restaurant.orderNotifications || [];
+    (this.restaurant.channels || []).map(ch => {
+      const notificationMatch = notifications.find(n => n.channel.value === ch.value && n.channel.type === ch.type);
+      if (notificationMatch) {
+        if (!ch.notifications) {
+          ch.notifications = ['Order']
+        } else if (!ch.notifications.includes('Order')) {
+          ch.notifications.push('Order');
+        }
+      } else {
+        // this block of code will delete the 'Order' entry from a given channel's notifications array if the following conditions are met:
+        // 1) the restaurant has at least one orderNotification
+        // 2) no orderNotifications are associated with this channel (by being in this else block, we already know this condition is satisified)
+        const channelOrderNotificationIndex = ch.notifications.indexOf('Order');
+        if (channelOrderNotificationIndex >= 0 && notifications.length >= 1) {
+          ch.notifications.splice(channelOrderNotificationIndex, 1);
+        }
+      }
+      return ch;
+    });
+  }
+
   resetPersonFieldDescriptors() {
     this.personFieldDescriptors.map(fd => {
       if (fd.field === 'channels') {
@@ -148,13 +177,13 @@ export class RestaurantContactsComponent implements OnInit {
 
   // get all CRM users
   getCrms() {
-        this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'user', query: '{"roles": "CRM"}', limit: 1000,  }).subscribe(
-          result => {
-              this.crms = result.sort((r1, r2) => r1.username > r2.username ? 1 : -1);
-          },
-          error => {
-            this._global.publishAlert(AlertType.Danger, 'Error pulling CRM users from API');
-          });
+    this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'user', query: '{"roles": "CRM"}', limit: 1000, }).subscribe(
+      result => {
+        this.crms = result.sort((r1, r2) => r1.username > r2.username ? 1 : -1);
+      },
+      error => {
+        this._global.publishAlert(AlertType.Danger, 'Error pulling CRM users from API');
+      });
   }
 
   getPersonWithTitle(person) {
@@ -170,8 +199,10 @@ export class RestaurantContactsComponent implements OnInit {
       this.channelInEditing = {
         index: -1 // we use index as Id since JSON doesn't have Id for each obj,
       } as Channel;
+      this.channelBeforeEditing = JSON.parse(JSON.stringify(this.channelInEditing));
     } else {
       this.channelInEditing = JSON.parse(JSON.stringify(channel));
+      this.channelBeforeEditing = JSON.parse(JSON.stringify(channel));
       this.channelInEditing.index = this.restaurant.channels.indexOf(channel);
     }
     this.languageDescriptor.items.forEach(x => x.selected = false);
@@ -241,7 +272,7 @@ export class RestaurantContactsComponent implements OnInit {
 
     // currently language only support for Phone
     if (this.channelInEditing.type !== 'Phone') {
-      this.channelInEditing.language = undefined;
+      delete this.channelInEditing.language;
     }
 
 
@@ -257,21 +288,55 @@ export class RestaurantContactsComponent implements OnInit {
     // we need to remove temp index!
     delete this.channelInEditing.index;
 
-    this.patchDiff('channels', newChannels);
+    // we also want to update this RT's orderNotifications property. updateOrderNotifications function takes care of 
+    // logic to make sure records are updated appropriately
+    this.updateOrderNotifications(this.channelInEditing)
 
+    this.patchDiff('channels', newChannels);
+    this.channelBeforeEditing = null;
     event.acknowledge(null);
     this.modalChannel.hide();
 
   }
 
+  updateOrderNotifications(channel) {
+    const newOrderNotifications = JSON.parse(JSON.stringify(this.restaurant.orderNotifications || [])) ;
+    // if this channel has had order notifications turned OFF during this round of editing, we want to delete any orderNotifications associated with this channel
+    const notificationsTurnedOff = (this.channelBeforeEditing.notifications || []).includes('Order') && !(channel.notifications || []).includes('Order');
+    if (notificationsTurnedOff) {
+      let matchingNotificationIndex = (this.restaurant.orderNotifications || []).findIndex(n => n.channel.value === channel.value && n.channel.type === channel.type);
+      if (matchingNotificationIndex >= 0) {
+        newOrderNotifications.splice(matchingNotificationIndex, 1); // deleting orderNotification
+      }
+    } else {
+      let notificationMatch = (this.restaurant.orderNotifications || []).find(n => n.channel.value === channel.value && n.channel.type === channel.type);
+      if (!notificationMatch && (channel.notifications || []).includes('Order')) {
+        newOrderNotifications.push({
+          channel: {
+            type: channel.type,
+            value: channel.value
+          }
+        });
+      }
+    }
+
+    this.patchDiff('orderNotifications', newOrderNotifications);
+  }
+
   removeChannel(event: FormSubmit) {
-
-
     const oldChannel = this.restaurant.channels[this.channelInEditing.index];
     this.updatePeopleOnChannelChange('DELETE', oldChannel);
 
     const newChannels = this.restaurant.channels.slice(0);
     newChannels.splice(this.channelInEditing.index, 1);
+
+    const notificationMatchIndex = (this.restaurant.orderNotifications || []).findIndex(n => n.channel.value === oldChannel.value && n.channel.type === oldChannel.type);
+    
+    if (notificationMatchIndex >= 0) {
+      const newNotifications = this.restaurant.orderNotifications.slice(0);
+      newNotifications.splice(notificationMatchIndex, 1);
+      this.patchDiff('orderNotifications', newNotifications);
+    }
     this.patchDiff('channels', newChannels);
     event.acknowledge(null);
     this.modalChannel.hide();
@@ -312,12 +377,11 @@ export class RestaurantContactsComponent implements OnInit {
   }
 
   updateCrm(event) {
-
     // console.log("updateCrm " + this.restaurant['crm']);
     this.patchDiff('crm', this.crm);
   }
 
-  patchDiff(field, newValue) {
+  async patchDiff(field, newValue) {
     if (Helper.areObjectsEqual(this.restaurant[field], newValue)) {
       this._global.publishAlert(
         AlertType.Info,
@@ -337,7 +401,6 @@ export class RestaurantContactsComponent implements OnInit {
 
       newBody[field] = newValue;
 
-
       this._prunedPatch
         .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
           old: oldBody, new: newBody
@@ -350,6 +413,7 @@ export class RestaurantContactsComponent implements OnInit {
               AlertType.Success,
               "Updated successfully"
             );
+            this.updateRestaurant.emit(this.restaurant);
           },
           error => {
             this._global.publishAlert(AlertType.Danger, "Error updating to DB");
