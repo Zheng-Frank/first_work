@@ -229,14 +229,14 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'ccProcessingRate': 0.05,
     'surchargeRate': 0.1
   }
-  @ViewChild('previewWebsiteModal') previewWebsiteModal:ModalComponent;
+  @ViewChild('previewWebsiteModal') previewWebsiteModal: ModalComponent;
 
 
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient, private _prunedPatch: PrunedPatchService) {
   }
 
   ngOnInit() {
-    if(!this.restaurant.preferredLanguage){
+    if (!this.restaurant.preferredLanguage) {
       this.preferredLanguages.unshift({
         value: "",
         text: ""
@@ -405,7 +405,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
    *show the warning text: "*** WARNING! Are you sure [PERCENTAGE]% is the correct value? ***"
    *if someone enter an incorrect percentage value
    */
-  isRateInvalid(rateType,rateValue){
+  isRateInvalid(rateType, rateValue) {
     return rateValue > this.percentValidationMap[rateType];
   }
 
@@ -418,7 +418,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     });
 
     let newObjCopy = JSON.parse(JSON.stringify(newObj));
-    newObjCopy = {  ...newObjCopy, web: { ...(newObjCopy.web), template: { ...(newObjCopy.web && newObjCopy.web.template),  sectionATitle: this['name']  }} };
+    newObjCopy = { ...newObjCopy, web: { ...(newObjCopy.web), template: { ...(newObjCopy.web && newObjCopy.web.template), sectionATitle: this['name'] } } };
     newObj = newObjCopy;
 
     if (this.isTemporarilyDisabled === 'Yes') {
@@ -448,9 +448,9 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
 
     // make sure types are correct!
     // can not use isNaN because isNaN(null) is false
-    if(this.taxRate < 0){
-      return this._global.publishAlert(AlertType.Danger,"Please don't enter a negative number!");
-    }else{
+    if (this.taxRate < 0) {
+      return this._global.publishAlert(AlertType.Danger, "Please don't enter a negative number!");
+    } else {
       newObj.taxRate = this.taxRate === 0 ? 0 : !this.taxRate ? undefined : this.taxRate > 1 ? 1 : this.taxRate;
     }
     newObj.surchargeAmount = +this.surchargeAmount || undefined;
@@ -475,8 +475,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     }
 
     newObj.preferredLanguage = (this.preferredLanguage && this.preferredLanguage.value) || undefined;
-    if(!newObj.preferredLanguage){
-      return this._global.publishAlert(AlertType.Danger,"Please select a standard language(请选择餐馆的标准语言)!");
+    if (!newObj.preferredLanguage) {
+      return this._global.publishAlert(AlertType.Danger, "Please select a standard language(请选择餐馆的标准语言)!");
     }
     // update those two fields!
     newObj.images = this.images;
@@ -615,7 +615,15 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       REQUIRED_FIELDS.push("deliveryTimeEstimate");
     }
 
-    return REQUIRED_FIELDS.filter(field => !this[field] || this[field].value === '').join(', ');
+    // any new required fields added will also need an entry in nonPermittedValuesMap
+    const nonPermittedValuesMap = {
+      "taxRate": [null, undefined, ""],
+      "preferredLanguage": [null, undefined, ""],
+      "pickupTimeEstimate": [null, undefined, 0, ""],
+      "deliveryTimeEstimate": [null, undefined, 0, ""]
+    }
+
+    return REQUIRED_FIELDS.filter(field => nonPermittedValuesMap[field].includes(this[field])).join(', ');
   }
 
 }

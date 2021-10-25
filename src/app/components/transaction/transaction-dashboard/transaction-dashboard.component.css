@@ -1,3 +1,7 @@
 .w-40-rem {
     max-width: 40rem;
 }
+
+.transaction-table ::ng-deep table {
+  table-layout: fixed;
+}

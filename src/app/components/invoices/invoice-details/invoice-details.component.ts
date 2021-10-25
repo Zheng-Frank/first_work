@@ -54,7 +54,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     'CA': 'CAD'
   };
 
-  templates = [];
+  templates = {};
 
   invoiceCurrency;
   @ViewChild('adjustmentModal') adjustmentModal: ModalComponent;
@@ -155,8 +155,8 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
           })
       )).pipe(mergeMap(invoices => {
         this.invoice = new Invoice(invoices[0]);
-        this.templates = [
-          [
+        this.templates = {
+          "Overdue invoice msg": [
             {
               title: 'Overdue invoice msg (Eng)',
               subject: 'Overdue invoice reminder',
@@ -170,7 +170,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
               emailContent: `您好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是qMenu，您餐厅的有多张未付账单，总额为$${this.invoice.balance}。 我们通过电子邮件/短信/传真重新发送给您最新账单，其中应包括之前账单中的所有未付余额。请尽快查看并结清您的付款。<br/>&nbsp;&nbsp;&nbsp;&nbsp;温馨提示，如果在下周末之前未收到付款，我们的系统将自动修改您餐厅订单的信用卡收款设置，qMenu会代收信用卡付款，以便结算未付账单。<br/>&nbsp;&nbsp;&nbsp;&nbsp;谢谢您的支持与配合，祝您生意兴隆!`
             }
           ]
-        ];
+        };
         return this._api
           .get(environment.qmenuApiUrl + "generic", {
             resource: "restaurant",

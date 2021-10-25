@@ -35,22 +35,22 @@
   </q-form-builder>
 </q-modal>
 
-<q-table [rows]="getFilteredTransactions()" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
-  <tr *tableRowTemplate="let transaction;">
-    <td>{{getFilteredTransactions().indexOf(transaction) + 1}}</td>
-    <td>{{transaction.time | date : 'shortDate'}}</td>
-    <td>{{transaction.payer}}</td>
-    <td>{{transaction.payee}}</td>
-    <th>{{(transaction.amount / transaction.exchangeRate) | currency: 'USD' :'symbol'}}</th>
-    <td>{{transaction.amount | currency: transaction.currency :'symbol-narrow'}}</td>
-    <td>{{transaction.currency}}</td>
-    <td>{{transaction.exchangeRate}}</td>
-    <td>{{transaction.means}}</td>
-    <td class="text-truncate">
-      <pre>{{transaction.description}}</pre>
-    </td>
-    <td>{{transaction.inputUsername}}</td>
-    <td>{{transaction.inputTime | date : 'shortDate'}}</td>
-    <td><a *ngIf="canEdit(transaction.inputTime)" (click)="edit(transaction)" class="btn-link">Edit</a></td>
-  </tr>
-</q-table>
+<div class="transaction-table">
+  <q-table [rows]="getFilteredTransactions()" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+    <tr *tableRowTemplate="let transaction;">
+      <td>{{getFilteredTransactions().indexOf(transaction) + 1}}</td>
+      <td>{{transaction.time | date : 'shortDate'}}</td>
+      <td>{{transaction.payer}}</td>
+      <td>{{transaction.payee}}</td>
+      <th>{{(transaction.amount / transaction.exchangeRate) | currency: 'USD' :'symbol'}}</th>
+      <td>{{transaction.amount | currency: transaction.currency :'symbol-narrow'}}</td>
+      <td>{{transaction.currency}}</td>
+      <td>{{transaction.exchangeRate}}</td>
+      <td>{{transaction.means}}</td>
+      <td class="text-break">{{transaction.description}}</td>
+      <td>{{transaction.inputUsername}}</td>
+      <td>{{transaction.inputTime | date : 'shortDate'}}</td>
+      <td><a *ngIf="canEdit(transaction.inputTime)" (click)="edit(transaction)" class="btn-link">Edit</a></td>
+    </tr>
+  </q-table>
+</div>

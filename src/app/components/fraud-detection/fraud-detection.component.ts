@@ -9,6 +9,13 @@ import {Log} from '../../classes/log';
 
 declare var $: any;
 
+enum OrderAmountFactors {
+  From120To200 = '$120 to $199.99',
+  From200To400 = '$200 to $400',
+  Above400 = 'Over $400',
+  None = 'No amount filter'
+}
+
 @Component({
   selector: 'app-fraud-detection',
   templateUrl: './fraud-detection.component.html',
@@ -26,7 +33,7 @@ export class FraudDetectionComponent implements OnInit {
   cardSpecialOrder;
   onNewOrderReceived: EventEmitter<any> = new EventEmitter();
   maxCount = 8;
-  orders: Order[];
+  orders: Order[] = [];
   restaurantAddress = {} as any;
   resultList;
   showSummary = false;
@@ -39,11 +46,27 @@ export class FraudDetectionComponent implements OnInit {
   showTip = false;
   restaurant: Restaurant;
   logInEditing = new Log();
+  orderAmountFactorLabels = [
+    OrderAmountFactors.From120To200,
+    OrderAmountFactors.From200To400,
+    OrderAmountFactors.Above400,
+    OrderAmountFactors.None,
+  ];
+  billingDistanceToDeliveryFactor = true;
+  multipleOrdersPerDayFactor = false;
+  orderAmountFactors = {
+    [OrderAmountFactors.From120To200]: {$and: [ {'computed.total': {$gte: 120}} , {'computed.total': {$lt: 200}}]},
+    [OrderAmountFactors.From200To400]: {$and: [ {'computed.total': {$gte: 200}} , {'computed.total': {$lt: 400}}]},
+    [OrderAmountFactors.Above400]: {'computed.total': {$gte: 400}},
+    [OrderAmountFactors.None]: {}
+  };
+  orderAmountFactor = OrderAmountFactors.From120To200;
 
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
 
   async ngOnInit() {
+    this.createdAt = new Date().toISOString().split("T")[0];
     await this.getRTs();
     await this.search();
     this.onNewOrderReceived.subscribe(
@@ -82,53 +105,86 @@ export class FraudDetectionComponent implements OnInit {
     });
   }
 
-  async search() {
-
-    let query = {
-      'paymentObj.method': {$ne: 'KEY_IN'},
-      $or: [
-        {'computed.total': {$gt: 120}}, // order total over $120
-        {'ccAddress.distanceToStore': {$gte: 200}} // billing address 200 miles from delivery address
-      ]
-    } as object;
-
-    let toDate = new Date(), fromDate = new Date();
-    fromDate.setDate(fromDate.getDate() - 1);
-
-    if (this.createdAt) {
-      fromDate = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.createdAt + ' 00:00:00.000'), 'America/New_York');
-      toDate = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.createdAt + ' 23:59:59.999'), 'America/New_York');
-    }
-
-    query = {
-      ...query,
-      $and: [
-        {createdAt: {$gte: {$date: fromDate}}},
-        {createdAt: {$lte: {$date: toDate}}}
-      ]
-    };
-
-    // ISO-Date()
-    const orders = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+  async getOrderedCustomersToday() {
+    let start = this.getTimezoneDate('start');
+    let end = this.getTimezoneDate('end');
+    const customers = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'order',
-      query: query,
-      projection: {logs: 0},
-      sort: {createdAt: -1},
-      limit: 150
-    }, 50);
+      aggregate: [
+        {
+          $match: {
+            $and: [
+              {createdAt: {$gte: {$date: start}}},
+              {createdAt: {$lte: {$date: end}}}
+            ]
+          }
+        },
+        {$project: {customerObj: 1}}
+      ]
+    }).toPromise();
+    let customerOrderCount = {};
+    customers.forEach(({customerObj: {_id}}) => {
+      customerOrderCount[_id] = (customerOrderCount[_id] || 0) + 1;
+    });
+    return Object.entries(customerOrderCount).filter(([, count]) => count > 1).map(([customerId]) => customerId);
+  }
+
+  async getQueryCondition() {
+    let amountFactor = this.orderAmountFactors[this.orderAmountFactor];
+    let match = {...amountFactor};
+    if (this.billingDistanceToDeliveryFactor) {
+      match['ccAddress.distanceToStore'] = {$gt: 200};
+    }
+    if (this.multipleOrdersPerDayFactor) {
+      let customers = await this.getOrderedCustomersToday();
+      match['customerObj._id'] = {$in: customers};
+    }
+    return match;
+  }
+
+  getTimezoneDate(bound) {
+    let time = {'start': ' 00:00:00.000', 'end': ' 23:59:59.999'}[bound];
+    return TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.createdAt + time), 'America/New_York')
+  }
+
+  async search() {
+    let start = this.getTimezoneDate('start');
+    let end = this.getTimezoneDate('end');
+    const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'order',
+      aggregate: [
+        {
+          $match: {
+            'paymentObj.method': {$nin: ['KEY_IN', 'IN_PERSON']},
+            $and: [
+              {createdAt: {$gte: {$date: start}}},
+              {createdAt: {$lte: {$date: end}}}
+            ],
+          }
+        },
+        {$project: {logs: 0}},
+        {$match: (await this.getQueryCondition())},
+        {$sort: {_id: -1}},
+        // {$limit: 50},
+      ]
+    }).toPromise();
+    console.log('orders...', orders);
+    if (orders.length === 0) {
+      this.orders = [];
+      return;
+    }
     const customerIds = orders.filter(order => order.customer).map(order => order.customer);
-    const previousOrders = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "order",
-      query: {
-        'customerObj._id': { $in: customerIds }
-      },
-      projection: {
-        _id: 1,
-        customer: 1
-      },
-      sort: {
-        createdAt: -1
-      },
+    const previousOrders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'order',
+      aggregate: [
+        {
+          $match: {
+            'customerObj._id': {$in: customerIds}
+          }
+        },
+        {$project: {_id: 1, customer: 1}},
+        {$sort: {_id: -1}}
+      ],
       limit: 10000,
     }).toPromise();
     orders.forEach(order => {
@@ -199,8 +255,8 @@ export class FraudDetectionComponent implements OnInit {
     let orders = [];
     for (let i = 0; i < previousOrders.length; i++) {
       const previousOrder = previousOrders[i];
-      const tempOrders = await this._api.get(environment.qmenuApiUrl + "generic", {
-        resource: "order",
+      const tempOrders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'order',
         query: {_id: {$oid: previousOrder._id}},
         projection: {logs: 0},
         sort: {createdAt: -1},
@@ -607,7 +663,7 @@ export class FraudDetectionComponent implements OnInit {
     this.logInEditing.relatedOrders = order.orderNumber.toString();
     let [rt] = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {_id: { $oid: order.restaurantObj._id }},
+      query: {_id: {$oid: order.restaurantObj._id}},
       projection: {
         'name': 1, 'logo': 1, 'logs': 1,
         'googleAddress.timezone': 1,
@@ -636,6 +692,7 @@ export class FraudDetectionComponent implements OnInit {
     this.logInEditing = new Log();
     this.logEditingModal.hide();
   }
+
   onLogCancel() {
     this.restaurant = null;
     this.logInEditing = new Log();

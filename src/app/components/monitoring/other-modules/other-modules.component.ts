@@ -24,7 +24,7 @@ export class OtherModulesComponent implements OnInit {
     {name: 'Postmates List (Old)', route: 'postmates-list', authRoles: ['CSR']},
     {name: 'Postmates Orders', route: 'postmates-orders', authRoles: ['CSR']},
     {name: 'Weird Data', route: 'weird-data', authRoles: ['CSR']},
-    {name: 'SEO Tracking (Coming Soon)', route: 'seo-tracking', authRoles: ['CSR']},
+    {name: 'SEO Tracking', route: 'seo-tracking', authRoles: ['CSR']},
     {name: 'API Logs Dashboard', route: 'api-logs', authRoles: []},
     {name: 'Fraud Detection', route: 'fraud-detection', authRoles: ['CSR']},
     {name: 'Clean Menus', route: 'clean-menus', authRoles: ['CSR']},
@@ -32,7 +32,8 @@ export class OtherModulesComponent implements OnInit {
     {name: 'Orderless Signups', route: 'orderless-signups', authRoles: ['CSR']},
     {name: 'Leads (Old)', route: 'leads-old', authRoles: ['MARKETER']},
     {name: 'My Leads (Old)', route: 'my-leads-old', authRoles: ['MARKETER']},
-    {name: 'Excess SMS Notifications', route: 'excess-sms-notifications-rts', authRoles: ['CSR']}
+    {name: 'Excess SMS Notifications', route: 'excess-sms-notifications-rts', authRoles: ['CSR']},
+    {name: 'Restaurants by Provider', route: 'rts-by-provider', authRoles: ['CSR']}
   ];
 
   constructor(private _global: GlobalService) {

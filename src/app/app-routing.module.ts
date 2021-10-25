@@ -1,4 +1,3 @@
-import { ExcessSmsNotificationsRtsComponent } from './components/monitoring/excess-sms-notifications-rts/excess-sms-notifications-rts.component';
 /* tslint:disable:max-line-length */
 import { ApiLogsDashboardComponent } from './components/monitoring/api-logs-dashboard/api-logs-dashboard.component';
 import { SeoTrackingComponent } from './components/monitoring/seo-tracking/seo-tracking.component';
@@ -86,6 +85,8 @@ import { CleanMenusComponent } from './components/monitoring/clean-menus/clean-m
 import { FraudDetectionComponent } from './components/fraud-detection/fraud-detection.component';
 import {CleanInsistedLinksComponent} from "./components/clean-insisted-links/clean-insisted-links.component";
 import {OrderlessSignupsComponent} from './components/monitoring/orderless-signups/orderless-signups.component';
+import { ExcessSmsNotificationsRtsComponent } from './components/monitoring/excess-sms-notifications-rts/excess-sms-notifications-rts.component';
+import {RtsByProviderComponent} from './components/monitoring/rts-by-provider/rts-by-provider.component';
 
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component },
@@ -182,6 +183,7 @@ const routes: Routes = [
   { path: 'fraud-detection', component: FraudDetectionComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'orderless-signups', component: OrderlessSignupsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'excess-sms-notifications-rts', component: ExcessSmsNotificationsRtsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  { path: 'rts-by-provider', component: RtsByProviderComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: '**', redirectTo: '/home' }
 
 ];
