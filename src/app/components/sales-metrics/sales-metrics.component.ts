@@ -2,7 +2,6 @@ import { GlobalService } from 'src/app/services/global.service';
 import { Component, ElementRef, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from 'src/environments/environment';
-import { Chart } from 'chart.js';
 
 enum TimeRanges {
   Last24Hours = 'Last 24 hours',
@@ -50,10 +49,8 @@ export class SalesMetricsComponent implements OnInit {
   filteredList = [];
   totalRecords = 0;
   filteredTotalRecords = 0;
-  charts = [];
   ivrUsers = {};
   userRoleMap = {};
-  showCharts = false;
 
   restaurants = [];
 
@@ -164,61 +161,8 @@ export class SalesMetricsComponent implements OnInit {
     return dates;
   }
 
-  chartRefresh(el) {
-    let index = Number(el.dataset.index);
-    let item = this.list[index];
-    const OneDay = 24 * 3600 * 1000;
-    let days = Math.floor((new Date(this.endDate).valueOf() - new Date(this.startDate).valueOf()) / OneDay);
-    let withTime = days <= 7;
-    let dates = this.calcDates(days);
-    let datasets = Object.values(SortFields).map(label => {
-      let data = dates.map(date => {
-        let durations = item.durations.filter(d => this.dateStr(d.start, withTime) === date);
-        return {
-          [SortFields.TotalCalls]: durations.length,
-          [SortFields.TotalCallTime]: durations.reduce((a, c) => a + c.duration, 0),
-          [SortFields.AvgCallDuration]: Math.round(durations.reduce((a, c) => a + c.duration, 0) / durations.length)
-        }[label];
-      });
-      let yAxisID = label === SortFields.TotalCalls ? 'y-count' : 'y-time';
-      let color = {
-        [SortFields.TotalCalls]: '#c00',
-        [SortFields.TotalCallTime]: '#00AA4F',
-        [SortFields.AvgCallDuration]: '#26C9C9'
-      }[label];
-      return { label, yAxisID, borderColor: color, backgroundColor: color, data, fill: false };
-    });
-    let chart = new Chart(el, {
-      options: {
-        responsive: true,
-        tooltips: { mode: 'index', intersect: false },
-        stacked: false,
-        scales: {
-          yAxes: [
-            { id: "y-count", type: 'linear', display: true, position: 'left' },
-            {
-              id: "y-time",
-              type: 'linear',
-              display: true,
-              position: 'right',
-
-              // grid line settings
-              grid: {
-                drawOnChartArea: false, // only want the grid lines for one axis to show up
-              },
-            }
-          ]
-        }
-      },
-      type: 'line',
-      data: { labels: dates.map(d => this.localDateStr(d, withTime)), datasets }
-    });
-    this.charts.push(chart);
-  }
-
   async query() {
-    this.charts.forEach(chart => chart.destroy());
-    this.charts = [];
+
     let ivrName = this._global.user.ivrUsername;
     if (!this.isAdmin() && !ivrName) {
       this.list = [];
@@ -277,6 +221,7 @@ export class SalesMetricsComponent implements OnInit {
       query: rtQuery,
       projection: {
         'createdAt': 1,
+        'disabledAt': 1,
         'rateSchedules.agent': 1,
       },
       limit: 100000
@@ -316,14 +261,15 @@ export class SalesMetricsComponent implements OnInit {
         avgCallTimePerDay,
         durations,
         roles: this.userRoleMap[key],
-        rtCount: (this.restaurants || []).filter(rt => rt.rateSchedules.some(sch => sch.agent === key)).length
+        rtCount: (this.restaurants || []).filter(rt => rt.rateSchedules.some(sch => sch.agent === key)).length,
+        churnCount: (this.restaurants || []).filter(rt => {
+
+        })
       }
     });
     this.sort();
     this.filter();
-    setTimeout(() => {
-      this.components.toArray().forEach(el => this.chartRefresh(el.nativeElement));
-    });
+
   }
 
   isAdmin() {
@@ -333,7 +279,10 @@ export class SalesMetricsComponent implements OnInit {
   async getUsers() {
     let users = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'user',
-      query: { ivrUsername: { $exists: true } },
+      query: {
+        ivrUsername: { $exists: true },
+        roles: { $in: ['MARKETER', 'MARKETER_INTERNAL', 'MARKETER_EXTERNAL'] }
+      },
       projection: { username: 1, ivrUsername: 1, roles: 1 },
       limit: 1000
     }).toPromise();
@@ -402,10 +351,6 @@ export class SalesMetricsComponent implements OnInit {
     await this.changeDate();
   }
 
-  async toggleCharts() {
-    await this.changeDate(); // calling changeDate() is a hack that can "trick" ChartJS into re-rendering views
-  }
-
   newSignUpCount() {
     // only count sign-ups for agents whose stats are currently displayed on the page. otherwise, we may have a mismatch
     // between the total count displayed at the top of the page and the total of the individual agents' numbers 
@@ -416,5 +361,12 @@ export class SalesMetricsComponent implements OnInit {
       }
       return prev;
     }, 0);
+  }
+
+  displayTimeRange() {
+    if (this.timeRange !== 'Custom') {
+      return 'the ' + this.timeRange;
+    }
+    return 'custom date range';
   }
 }
