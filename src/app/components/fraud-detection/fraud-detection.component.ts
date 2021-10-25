@@ -29,7 +29,7 @@ export class FraudDetectionComponent implements OnInit {
   @ViewChild('previousOrdersModal') previousOrdersModal: ModalComponent;
   @ViewChild('logEditingModal') logEditingModal: ModalComponent;
   orderForModal = new Order();
-  payment = {};
+  payment = {} as any;
   cardSpecialOrder;
   onNewOrderReceived: EventEmitter<any> = new EventEmitter();
   maxCount = 8;
@@ -144,7 +144,7 @@ export class FraudDetectionComponent implements OnInit {
 
   getTimezoneDate(bound) {
     let time = {'start': ' 00:00:00.000', 'end': ' 23:59:59.999'}[bound];
-    return TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.createdAt + time), 'America/New_York')
+    return TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.createdAt + time), 'America/New_York');
   }
 
   async search() {
