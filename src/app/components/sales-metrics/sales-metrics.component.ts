@@ -22,7 +22,8 @@ enum SortFields {
   TotalCalls = 'Total Calls',
   TotalCallTime = 'Total Call Time',
   AvgCallDuration = 'Avg Call Duration',
-  RestaurntSignUps = 'Restaurant Sign Ups'
+  RestaurntSignUps = 'Restaurant Sign Ups',
+  ChurnCount = 'RTs lost to churn'
 }
 
 enum SortOrders {
@@ -72,10 +73,6 @@ export class SalesMetricsComponent implements OnInit {
 
   get sortOrders() {
     return Object.values(SortOrders);
-  }
-
-  get agentTypes() {
-    return Object.values(AgentTypes);
   }
 
   constructor(private _api: ApiService, private _global: GlobalService) {
@@ -237,6 +234,7 @@ export class SalesMetricsComponent implements OnInit {
     data.forEach(item => {
       let ivrUsername = item.Agent.Username;
       let agent = this.ivrUsers[ivrUsername] || ivrUsername;
+      let daysWorked = this.calculateDaysWorked(agent);
       map[agent] = map[agent] || {
         totalCalls: 0,
         totalCallTime: 0,
@@ -303,7 +301,8 @@ export class SalesMetricsComponent implements OnInit {
       [SortFields.TotalCallTime]: 'totalCallTime',
       [SortFields.TotalCalls]: 'totalCalls',
       [SortFields.AvgCallDuration]: 'avgCallDuration',
-      [SortFields.RestaurntSignUps]: 'rtCount'
+      [SortFields.RestaurntSignUps]: 'rtCount',
+      [SortFields.ChurnCount]: 'churnCount'
     }[this.sortBy];
     const sortFunc = (a, b) => {
       return this.sortOrder === SortOrders.Ascending ? a[sortField] - b[sortField] : b[sortField] - a[sortField];
@@ -406,5 +405,10 @@ export class SalesMetricsComponent implements OnInit {
     }
     return false;
 
+  }
+
+
+  calculateDaysWorked(item) {
+    console.log(item);
   }
 }
