@@ -9,23 +9,7 @@
       </select>
     </div>
   </div>
-  <div class="col-auto">
-    <div class="input-group">
-      <label>Sort By:</label>
-      <select class="custom-select " [(ngModel)]="sortBy" (change)="sort()">
-        <option *ngFor="let item of sortFields" [value]="item">{{item}}</option>
-      </select>
-    </div>
-  </div>
 
-  <div class="col-auto">
-    <div class="input-group">
-      <label>Sort Order:</label>
-      <select class="custom-select " [(ngModel)]="sortOrder" (change)="sort()">
-        <option *ngFor="let item of sortOrders" [value]="item">{{item}}</option>
-      </select>
-    </div>
-  </div>
 </div>
 
 <div class="row ivr-filters mt-2" *ngIf="timeRange === TimeRanges.CustomDate">
@@ -53,7 +37,7 @@
   <div> Total Calls Placed: {{filteredTotalRecords}}</div>
   <div> New Restaurant Sign-Ups: {{newSignUpCount()}}</div>
   <div> Restaurants Lost: {{churnCount()}}</div>
-  
+
 </div>
 
 

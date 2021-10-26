@@ -11,26 +11,6 @@ enum TimeRanges {
   Last30Days = 'Last 30 days',
   CustomDate = 'Custom'
 }
-
-enum AgentTypes {
-  All = 'All',
-  Sales = 'Sales',
-  CSR = 'CSR'
-}
-
-enum SortFields {
-  TotalCalls = 'Total Calls',
-  TotalCallTime = 'Total Call Time',
-  AvgCallDuration = 'Avg Call Duration',
-  RestaurntSignUps = 'Restaurant Sign Ups',
-  ChurnCount = 'RTs lost to churn'
-}
-
-enum SortOrders {
-  Ascending = 'Ascending',
-  Descending = 'Descending'
-}
-
 @Component({
   selector: 'app-sales-metrics',
   templateUrl: './sales-metrics.component.html',
@@ -38,25 +18,19 @@ enum SortOrders {
 })
 export class SalesMetricsComponent implements OnInit {
 
-  @ViewChildren('cmp') components: QueryList<ElementRef>;
-
   startDate;
   endDate;
-  rawIvrData = []
 
   timeRange = TimeRanges.Last24Hours;
-  sortBy = SortFields.TotalCallTime;
-  sortOrder = SortOrders.Descending;
   list = [];
   filteredList = [];
   totalRecords = 0;
   filteredTotalRecords = 0;
-  churchTotal = 0;
   ivrUsers = {};
   userRoleMap = {};
 
   restaurants = [];
-       
+
   agentStatsColumnDescriptors = [{
     label: "Name",
     paths: ['agent'],
@@ -102,14 +76,6 @@ export class SalesMetricsComponent implements OnInit {
   }
   get timeRanges() {
     return Object.values(TimeRanges);
-  }
-
-  get sortFields() {
-    return Object.values(SortFields);
-  }
-
-  get sortOrders() {
-    return Object.values(SortOrders);
   }
 
   constructor(private _api: ApiService, private _global: GlobalService) {
@@ -227,7 +193,7 @@ export class SalesMetricsComponent implements OnInit {
       Agent: { $exists: true }
     } as any;
     if (this.isAdmin()) {
-      query['Agent.Username'] = { $exists: true };
+      query['Agent.Username'] = { $in: Object.keys(this.ivrUsers) };
     } else {
       query['Agent.Username'] = ivrName;
     }
@@ -271,7 +237,6 @@ export class SalesMetricsComponent implements OnInit {
     data.forEach(item => {
       let ivrUsername = item.Agent.Username;
       let agent = this.ivrUsers[ivrUsername] || ivrUsername;
-      let daysWorked = this.calculateDaysWorked(agent);
       map[agent] = map[agent] || {
         totalCalls: 0,
         totalCallTime: 0,
@@ -301,8 +266,8 @@ export class SalesMetricsComponent implements OnInit {
         rtCount: agentRts.length,
         churnCount: agentRts.filter(rt => this.wasRtLostInTimePeriod(rt)).length
       }
-    });
-    this.sort();
+    }).sort((a, b) => a.agent > b.agent ? 1 : -1);
+
     this.filter();
 
   }
@@ -333,57 +298,35 @@ export class SalesMetricsComponent implements OnInit {
     await this.changeDate();
   }
 
-  sort() {
-    const sortField = {
-      [SortFields.TotalCallTime]: 'totalCallTime',
-      [SortFields.TotalCalls]: 'totalCalls',
-      [SortFields.AvgCallDuration]: 'avgCallDuration',
-      [SortFields.RestaurntSignUps]: 'rtCount',
-      [SortFields.ChurnCount]: 'churnCount'
-    }[this.sortBy];
-    const sortFunc = (a, b) => {
-      return this.sortOrder === SortOrders.Ascending ? a[sortField] - b[sortField] : b[sortField] - a[sortField];
-    };
-    this.filteredList.sort(sortFunc);
-  }
-
   secondsToHms(duration) {
     duration = Number(duration);
     let h = Math.floor(duration / 3600);
     let m = Math.floor(duration % 3600 / 60);
     let s = Math.floor(duration % 3600 % 60);
 
-    const format = (num, unit) => {
-      if (num > 0) {
-        return num + ([unit][num - 1] || (unit + 's'));
+    const format = (t) => {
+      if (t <= 9) {
+        return '0' + t.toString();
       }
-      return '';
+      return t.toString();
     };
     return [
-      format(h, 'hour'), format(m, 'minute'), format(s, 'second')
-    ].filter(x => !!x).join(', ');
+      h, m, s
+    ].filter(x => x > 0).map((el, i, arr) => {
+      if (arr.length === 1) {
+        return '0:' + format(el);
+      }
+      if (i === 0) {
+        return el.toString();
+      }
+      return format(el);
+
+    }).join(':');
   }
 
   async filter() {
-    this.filteredList = this.list;
+    this.filteredList = this.list.filter(entry => Object.keys(this.userRoleMap).includes(entry.agent));
     this.filteredTotalRecords = this.totalRecords;
-
-    // if (this.agentType === 'All') {
-    //   return;
-    // }
-    // if (this.agentType === 'CSR') {
-    //   this.filteredList = this.list.filter(agent => (agent.roles || []).some(role => role === 'CSR'));
-    //   this.filteredTotalRecords = this.filteredList.reduce((prev, val) => prev + val.totalCalls, 0);
-    //   return;
-    // }
-    // if (this.agentType === 'Sales') {
-    //   this.filteredList = this.list.filter(agent => {
-    //     return ['MARKETER', 'MARKETER_INTERNAL', 'MARKETER_EXTERNAL'].some(applicableRole => (agent.roles || []).some(agentRole => agentRole === applicableRole));
-    //   });
-    //   this.filteredTotalRecords = this.filteredList.reduce((prev, val) => prev + val.totalCalls, 0);
-    //   return;
-    // }
-
   }
 
   newSignUpCount() {
@@ -416,7 +359,6 @@ export class SalesMetricsComponent implements OnInit {
   }
 
   wasRtLostInTimePeriod(rt) {
-
     if (!this.startDate || !this.endDate) {
       return false;
     }
@@ -442,8 +384,9 @@ export class SalesMetricsComponent implements OnInit {
 
   }
 
-
   calculateDaysWorked(username) {
-
+    // to-do: function to find an agent's actual days worked for the given time period - e.g. user may query for 30 days' 
+    // worth of data, but a given agent may have worked 20 days out of the 30. In that case, we should use 20 as denominator 
+    // for average calculations, not 30)
   }
 }
