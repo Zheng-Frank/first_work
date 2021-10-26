@@ -24,12 +24,12 @@ export class DbScriptsComponent implements OnInit {
   async removeMenuCleanedField() {
     const rts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {menuCleaned: {$exists: true}},
-      projection: {_id: 1, menuCleaned: 1},
+      query: { menuCleaned: { $exists: true } },
+      projection: { _id: 1, menuCleaned: 1 },
       limit: 20000
     }).toPromise();
     console.log('rts with menuCleaned field...', rts.map(rt => rt._id));
-    const patchList = rts.map(rt => ({old: rt, new: { _id: rt._id }}));
+    const patchList = rts.map(rt => ({ old: rt, new: { _id: rt._id } }));
     if (patchList.length > 0) {
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
     }
@@ -3819,7 +3819,8 @@ export class DbScriptsComponent implements OnInit {
       },
       projection: {
         channels: 1,
-        customizedRenderingStyles: 1
+        customizedRenderingStyles: 1,
+        printSettings: 1
       }
     }, 5000);
 
@@ -3868,14 +3869,35 @@ export class DbScriptsComponent implements OnInit {
 
         printers.forEach(pr => {
           if (pr.autoPrintCopies && pr.autoPrintCopies > 0) {
-            const orderViews = pr.orderViews || [];
-            orderViews.forEach(ov => {
-              const copies = ov.copies;
-              const format = ov.format;
-              const templateName = ov.template;
-              const customizedRenderingStyles = ov.customizedRenderingStyles;
+            if (r.printSettings && r.printSettings.useNewSettings) {
+              const orderViews = pr.orderViews || [];
+              orderViews.forEach(ov => {
+                const guid = pc.guid;
+                const info = pc.info;
+                const copies = ov.copies;
+                const format = ov.format;
+                const templateName = ov.template;
+                const customizedRenderingStyles = ov.customizedRenderingStyles;
+                const menuFilters = ov.menus;
+                const newNotification = {
+                  channel: {
+                    type: pc.type,
+                    value: pr.name,
+                    printClientId: pc._id,
+                    ...guid ? { guid } : null
+                  },
+                  ...customizedRenderingStyles ? { customizedRenderingStyles } : null,
+                  ...copies ? { copies } : null,
+                  ...format ? { format } : { format: 'png' },
+                  ...templateName ? { templateName } : { templateName: 'default' },
+                  ...menuFilters ? { menuFilters } : null,
+                  ...info ? { info } : null
+                };
+
+                orderNotifications.push(newNotification);
+              });
+            } else {
               const guid = pc.guid;
-              const menuFilters = ov.menus;
               const info = pc.info;
               const newNotification = {
                 channel: {
@@ -3884,15 +3906,11 @@ export class DbScriptsComponent implements OnInit {
                   printClientId: pc._id,
                   ...guid ? { guid } : null
                 },
-                ...customizedRenderingStyles ? { customizedRenderingStyles } : null,
-                ...copies ? { copies } : null,
-                ...format ? { format } : { format: 'png' },
-                ...templateName ? { templateName } : { templateName: 'default' },
-                ...menuFilters ? { menuFilters } : null,
                 ...info ? { info } : null
               };
+
               orderNotifications.push(newNotification);
-            });
+            }
           }
         });
       });
