@@ -4,19 +4,21 @@
 <div class="text-center my-text-small" *ngIf="item.description">
   {{item.description}}
 </div>
+<div class="limit-table-row-width">
+  <table class="table table-sm text-center">
+    <tr *ngIf="item.headers">
+      <th *ngFor="let header of item.headers">
+        {{header}}
+      </th>
+    </tr>
+    <tr *ngFor="let row of getRows()">
+      <td *ngFor="let column of row">
+        {{column}}
+      </td>
+    </tr>
+  </table>
+</div>
 
-<table class="table table-sm text-center">
-  <tr *ngIf="item.headers">
-    <th *ngFor="let header of item.headers">
-      {{header}}
-    </th>
-  </tr>
-  <tr *ngFor="let row of getRows()">
-    <td *ngFor="let column of row">
-      {{column}}
-    </td>
-  </tr>
-</table>
 <div class="text-left my-text-small">updated: {{ item.updatedAt | ago : now}}</div>
 <div>
   <button class="btn btn-link pl-0 py-0" (click)="displayingMore = !displayingMore" *ngIf="displayingMore || getRows().length < item.rows.length">{{displayingMore ? 'less...' : 'more...'}}</button>
