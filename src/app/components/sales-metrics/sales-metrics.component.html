@@ -44,24 +44,31 @@
 </div>
 
 <hr>
-<h4 class="text-center"> Team Totals</h4>
-<div>Stats for {{displayTimeRange()}}</div>
-<div>Agents Who Have Placed at Least One Call: {{filteredList.length}}</div>
-<div> Total Calls Placed: {{filteredTotalRecords}}</div>
-<div> New Restaurant Sign-Ups: {{newSignUpCount()}}</div>
-<div> Restaurants Lost: {{churnCount()}}</div>
+<div>
+  <h4 class="text-center"> Team Totals</h4>
+  <h5>
+    <div>Stats for {{displayTimeRange()}}</div>
+  </h5>
+  <div>Agents Who Have Placed at Least One Call: {{filteredList.length}}</div>
+  <div> Total Calls Placed: {{filteredTotalRecords}}</div>
+  <div> New Restaurant Sign-Ups: {{newSignUpCount()}}</div>
+  <div> Restaurants Lost: {{churnCount()}}</div>
+  
+</div>
 
-<div class="text-left">
-  <q-table [rows]="filteredList" [tableColumnDescriptors]="myColumnDescriptors">
+
+<h4 class="text-center my-1"> Individual Totals</h4>
+<div class="text-left ">
+  <q-table [rows]="filteredList" [tableColumnDescriptors]="agentStatsColumnDescriptors">
     <tr *tableRowTemplate="let item">
-      <td>Agent Name: <b>{{ item.agent }}</b></td>
-      <td>Total Calls: {{ item.totalCalls }}</td>
-      <td>Avg Call Duration: {{ secondsToHms(item.avgCallDuration) }}</td>
-      <td>Total Call Time: {{ secondsToHms(item.totalCallTime) }}</td>
-      <td>Avg Call Time per Day: {{ secondsToHms(item.avgCallTimePerDay) }}</td>
-      <td>Restaurant Sign Ups: {{ item.rtCount }}</td>
-      <td>Restaurants Lost to Churn: {{item.churnCount }} </td>
-       
+      <td> {{ item.agent }}</td>
+      <td> {{ item.totalCalls }}</td>
+      <td> {{ secondsToHms(item.avgCallDuration) }}</td>
+      <td> {{ secondsToHms(item.totalCallTime) }}</td>
+      <td> {{ secondsToHms(item.avgCallTimePerDay) }}</td>
+      <td> {{ item.rtCount }}</td>
+      <td> {{ item.churnCount }} </td>
+
     </tr>
   </q-table>
-</div> 
+</div>

@@ -43,7 +43,7 @@ export class SalesMetricsComponent implements OnInit {
   startDate;
   endDate;
   rawIvrData = []
-  
+
   timeRange = TimeRanges.Last24Hours;
   sortBy = SortFields.TotalCallTime;
   sortOrder = SortOrders.Descending;
@@ -56,6 +56,42 @@ export class SalesMetricsComponent implements OnInit {
   userRoleMap = {};
 
   restaurants = [];
+       
+  agentStatsColumnDescriptors = [{
+    label: "Name",
+    paths: ['agent'],
+    sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
+  },
+  {
+    label: 'Total Calls',
+    paths: ['totalCalls'],
+    sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
+  },
+  {
+    label: "Average Call Duration",
+    paths: ['avgCallDuration'],
+    sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
+  },
+  {
+    label: "Total Call Time",
+    paths: ['totalCallTime'],
+    sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
+  },
+  {
+    label: "Average Call Time per Day",
+    paths: ['avgCallTimePerDay'],
+    sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
+  },
+  {
+    label: "New RTs Gained",
+    paths: ['rtCount'],
+    sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
+  },
+  {
+    label: "Churn",
+    paths: ['churnCount'],
+    sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
+  }]
 
   get now(): string {
     return this.dateStr(new Date());
@@ -392,7 +428,7 @@ export class SalesMetricsComponent implements OnInit {
       end = new Date(end);
       end.setDate(end.getDate() + 1);
     } else {
-      
+
       let time = "T" + new Date().toISOString().split("T")[1];
       start += time;
       end += time;
@@ -408,6 +444,6 @@ export class SalesMetricsComponent implements OnInit {
 
 
   calculateDaysWorked(username) {
-    
+
   }
 }
