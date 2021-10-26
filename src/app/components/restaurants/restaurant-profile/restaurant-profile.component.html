@@ -885,21 +885,6 @@
               <small class="text-danger" *ngIf="isRateInvalid('taxRate',taxRate)">*** WARNING! Are you sure {{taxRate|percentage}} is the correct value? ***</small>
             </div>
           </div>
-          <div class="form-group row">
-            <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Domain' : '网站域名' }}
-              <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
-                (mouseover)="showCorrespondingTranslation('Domain')" (mouseout)="translating = ''">
-                <div *ngIf="translating === 'Domain'" class="left edit-talk radius">
-                  <p>Domain:{{Explanations.EnglishExplanations.Domain}}</p>
-                  -------------<br>
-                  <p>网站域名:{{Explanations.ChineseExplanations.Domain}}</p>
-                </div>
-              </i>
-            </label>
-            <div class="pl-1 col-7">
-              <input type="text" [(ngModel)]="domain" class="form-control" placeholder="domain name, eg. qmenutest.com">
-            </div>
-          </div>
           <div class="form-group row" *ngIf="isDisabledEditable()">
             <label class="col-4 col-form-label pt-0 pl-5">{{changeLanguageFlag === 'English' ? 'Disabled' : '终止合作' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"

@@ -53,7 +53,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'ccProcessingRate',
     'ccProcessingFlatFee',
     'deliveryBy',
-    'domain',
     'skipOrderConfirmation',
     'skipAutoInvoicing',
     'skipImageInjection',
@@ -157,7 +156,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       "HideprintingCC": "隐藏订单上的云打印或传真的信用卡信息",
       "PreventRTfromcancelingorders": "不允许餐馆自己取消订单",
       "Showorderreadyestimate": "给客人看订单预计预计准备时间信息",
-      "Domain": "标注:“域”字段不再位于“配置文件”部分下，因为现在，所有与网站相关的信息都已移至此处。",
       "DisableOrderingAhead": "如果选中此复选框，就不能产生预订单。",
       "Logo": "（菜单编辑会处理这个问题，CSR+销售人员可以忽略）：这里上传的任何徽标都会出现在餐厅的qMenu订购网站的这两个地方。",
       "Photos": "(菜单编辑负责这一点，客服+销售可以忽略) 此处上传的图片将是餐厅qMenu订购网站上的网站背景图片。",
@@ -201,7 +199,6 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       "HideprintingCC": "",
       "PreventRTfromcancelingorders": "Hide the order cancellation button on the biz portal. Some restaurants from whom we are attempting to recoup cash due to unpaid invoices and for which we have set order payment collection method to Qmenu Collect, purposely cancel orders to avoid us recouping those unpaid funds.",
       "Showorderreadyestimate": "If turned on, the order ready time estimate will be shown to the customer",
-      "Domain": " NOTE: The “Domain” field is no longer under the “Profile” section, because now, all website-related information has been moved here.", // Editable field.
       "DisableOrderingAhead": "If turned on, customers won't be able to schedule orders for future point in time ahead of time.",
       "Logo": " (Menu editors take care of this, CSR + sales can ignore): Any logo uploaded here will appear in these two places on the qMenu ordering site for the restaurant: 1. The qmenu.us/alias page of the restaurant, 2. ...",
       "Photos": " (Menu editors take care of this, CSR + sales can ignore): Image uploaded here will appear as the website background image on the qMenu ordering site for the restaurant.",
