@@ -42,7 +42,8 @@ export class SalesMetricsComponent implements OnInit {
 
   startDate;
   endDate;
-  agentType = AgentTypes.All;
+  rawIvrData = []
+  
   timeRange = TimeRanges.Last24Hours;
   sortBy = SortFields.TotalCallTime;
   sortOrder = SortOrders.Descending;
@@ -331,23 +332,22 @@ export class SalesMetricsComponent implements OnInit {
     this.filteredList = this.list;
     this.filteredTotalRecords = this.totalRecords;
 
-    if (this.agentType === 'All') {
-      return;
-    }
-    if (this.agentType === 'CSR') {
-      this.filteredList = this.list.filter(agent => (agent.roles || []).some(role => role === 'CSR'));
-      this.filteredTotalRecords = this.filteredList.reduce((prev, val) => prev + val.totalCalls, 0);
-      return;
-    }
-    if (this.agentType === 'Sales') {
-      this.filteredList = this.list.filter(agent => {
-        return ['MARKETER', 'MARKETER_INTERNAL', 'MARKETER_EXTERNAL'].some(applicableRole => (agent.roles || []).some(agentRole => agentRole === applicableRole));
-      });
-      this.filteredTotalRecords = this.filteredList.reduce((prev, val) => prev + val.totalCalls, 0);
-      return;
-    }
+    // if (this.agentType === 'All') {
+    //   return;
+    // }
+    // if (this.agentType === 'CSR') {
+    //   this.filteredList = this.list.filter(agent => (agent.roles || []).some(role => role === 'CSR'));
+    //   this.filteredTotalRecords = this.filteredList.reduce((prev, val) => prev + val.totalCalls, 0);
+    //   return;
+    // }
+    // if (this.agentType === 'Sales') {
+    //   this.filteredList = this.list.filter(agent => {
+    //     return ['MARKETER', 'MARKETER_INTERNAL', 'MARKETER_EXTERNAL'].some(applicableRole => (agent.roles || []).some(agentRole => agentRole === applicableRole));
+    //   });
+    //   this.filteredTotalRecords = this.filteredList.reduce((prev, val) => prev + val.totalCalls, 0);
+    //   return;
+    // }
 
-    await this.changeDate();
   }
 
   newSignUpCount() {
@@ -389,11 +389,10 @@ export class SalesMetricsComponent implements OnInit {
     }
     let start = this.startDate, end = this.endDate;
     if (this.timeRange === TimeRanges.CustomDate) {
-      // for custom date, we calc from start 00:00:00.000 to end 23:59:59.999
       end = new Date(end);
       end.setDate(end.getDate() + 1);
     } else {
-      // for last* range, we calc from (start date + cur time) to now
+      
       let time = "T" + new Date().toISOString().split("T")[1];
       start += time;
       end += time;
@@ -408,7 +407,7 @@ export class SalesMetricsComponent implements OnInit {
   }
 
 
-  calculateDaysWorked(item) {
-    console.log(item);
+  calculateDaysWorked(username) {
+    
   }
 }

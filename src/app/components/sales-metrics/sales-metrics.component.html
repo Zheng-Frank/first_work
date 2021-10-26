@@ -51,15 +51,17 @@
 <div> New Restaurant Sign-Ups: {{newSignUpCount()}}</div>
 <div> Restaurants Lost: {{churnCount()}}</div>
 
-
-<div *ngFor="let item of filteredList; let i = index;" class="card-body">
-  <hr />
-  <div>Agent Name: <b>{{ item.agent }}</b></div>
-  <div>Total Calls: {{ item.totalCalls }}</div>
-  <div>Avg Call Duration: {{ secondsToHms(item.avgCallDuration) }}</div>
-  <div>Total Call Time: {{ secondsToHms(item.totalCallTime) }}</div>
-  <div>Avg Call Time per Day: {{ secondsToHms(item.avgCallTimePerDay) }}</div>
-  <div>Restaurant Sign Ups: {{ item.rtCount }}</div>
-  <div>Restaurants Lost to Churn: {{item.churnCount }} </div>
-
-</div>
+<div class="text-left">
+  <q-table [rows]="filteredList" [tableColumnDescriptors]="myColumnDescriptors">
+    <tr *tableRowTemplate="let item">
+      <td>Agent Name: <b>{{ item.agent }}</b></td>
+      <td>Total Calls: {{ item.totalCalls }}</td>
+      <td>Avg Call Duration: {{ secondsToHms(item.avgCallDuration) }}</td>
+      <td>Total Call Time: {{ secondsToHms(item.totalCallTime) }}</td>
+      <td>Avg Call Time per Day: {{ secondsToHms(item.avgCallTimePerDay) }}</td>
+      <td>Restaurant Sign Ups: {{ item.rtCount }}</td>
+      <td>Restaurants Lost to Churn: {{item.churnCount }} </td>
+       
+    </tr>
+  </q-table>
+</div> 
