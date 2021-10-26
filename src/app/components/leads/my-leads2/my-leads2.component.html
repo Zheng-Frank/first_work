@@ -83,7 +83,13 @@
               {{row.lead.city}}, {{row.lead.state}} {{row.lead.zipcode}} <i class="fas fa-external-link-alt"></i></a>
           </div>
           <div (click)="copyToClipboard(row.lead.phone)" style="cursor:pointer;">
-            {{row.lead.phone | phone}} <span class="text-success" *ngIf="row.lead.phone === copiedText">✓ copied</span>
+            {{row.lead.phone | phone}} <i class="fas fa-database"></i> <span class="text-success" *ngIf="row.lead.phone === copiedText">✓ copied</span>
+          </div>
+          <div *ngIf="row.lead.googleListing?.phone" (click)="copyToClipboard(row.lead.googleListing.phone)" style="cursor:pointer;">
+            {{row.lead.googleListing.phone | phone}} <i class="fab fa-google"></i> <span class="text-success" *ngIf="row.lead.googleListing.phone === copiedText">✓ copied</span>
+          </div>
+          <div *ngIf="leadPhoneDifferentToGoogle(row)" class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>Biz phone listed on GMB different than our lead database!
           </div>
         </td>
         <td>
