@@ -3869,7 +3869,7 @@ export class DbScriptsComponent implements OnInit {
 
         printers.forEach(pr => {
           if (pr.autoPrintCopies && pr.autoPrintCopies > 0) {
-            if (r.printSettings && r.printSettings.useNewSettings) {
+            if (r.printSettings && r.printSettings.useNewSettings && pc.type === 'phoenix') {
               const orderViews = pr.orderViews || [];
               orderViews.forEach(ov => {
                 const guid = pc.guid;
