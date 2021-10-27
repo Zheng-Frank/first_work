@@ -28,6 +28,7 @@ export class MonitoringDashboardComponent implements OnInit {
       "Scripts": ["ADMIN"],
       "Restaurant Domains": ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"],
       "Restaurant GMBs": ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"],
+      "Sales Stats": ["ADMIN", "MARKETING_DIRECTOR"],
     };
     const myRoles = this._global.user.roles;
     this.items = Object.keys(roleMap).filter(k => roleMap[k].some(role => myRoles.indexOf(role) >= 0));
