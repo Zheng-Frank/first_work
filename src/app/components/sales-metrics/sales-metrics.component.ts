@@ -47,7 +47,7 @@ export class SalesMetricsComponent implements OnInit {
     sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
   },
   {
-    label: "GMBs Owned",
+    label: "RTs Gained with GMB Owned",
     paths: ['gmbCount'],
     sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
   },
