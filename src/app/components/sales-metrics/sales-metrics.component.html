@@ -56,10 +56,12 @@
     <tr *tableRowTemplate="let item">
       <td> {{ item.agent }}</td>
       <td> {{ item.totalCalls }}</td>
+      <td> {{ item.rtCount }}</td>
+      <td> {{ item.gmbCount }}</td>
       <td> {{ secondsToHms(item.avgCallDuration) }}</td>
       <td> {{ secondsToHms(item.totalCallTime) }}</td>
       <td> {{ secondsToHms(item.avgCallTimePerDay) }}</td>
-      <td> {{ item.rtCount }}</td>
+   
       <td> {{ item.churnCount }} </td>
 
     </tr>

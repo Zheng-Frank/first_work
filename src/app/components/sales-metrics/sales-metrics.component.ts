@@ -42,6 +42,16 @@ export class SalesMetricsComponent implements OnInit {
     sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
   },
   {
+    label: "New RTs Gained",
+    paths: ['rtCount'],
+    sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
+  },
+  {
+    label: "GMBs Owned",
+    paths: ['gmbCount'],
+    sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
+  },
+  {
     label: "Average Call Duration",
     paths: ['avgCallDuration'],
     sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
@@ -56,11 +66,7 @@ export class SalesMetricsComponent implements OnInit {
     paths: ['avgCallTimePerDay'],
     sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
   },
-  {
-    label: "New RTs Gained",
-    paths: ['rtCount'],
-    sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
-  },
+
   {
     label: "Churn",
     paths: ['churnCount'],
@@ -223,6 +229,7 @@ export class SalesMetricsComponent implements OnInit {
       projection: {
         'createdAt': 1,
         'disabledAt': 1,
+        "googleListing.gmbOwner": 1,
         'rateSchedules.agent': 1,
       },
       limit: 100000
@@ -264,6 +271,7 @@ export class SalesMetricsComponent implements OnInit {
         durations,
         roles: this.userRoleMap[key],
         rtCount: agentRts.length,
+        gmbCount: agentRts.filter(rt => (rt.googleListing || {}).gmbOwner === 'qmenu').length,
         churnCount: agentRts.filter(rt => this.wasRtLostInTimePeriod(rt)).length
       }
     }).sort((a, b) => a.agent > b.agent ? 1 : -1);
