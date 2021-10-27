@@ -85,7 +85,6 @@ import { CleanMenusComponent } from './components/monitoring/clean-menus/clean-m
 import { FraudDetectionComponent } from './components/fraud-detection/fraud-detection.component';
 import { CleanInsistedLinksComponent } from "./components/clean-insisted-links/clean-insisted-links.component";
 import { OrderlessSignupsComponent } from './components/monitoring/orderless-signups/orderless-signups.component';
-import { SalesMetricsComponent } from './components/sales-metrics/sales-metrics.component';
 import { ExcessSmsNotificationsRtsComponent } from './components/monitoring/excess-sms-notifications-rts/excess-sms-notifications-rts.component';
 import { RtsByProviderComponent } from './components/monitoring/rts-by-provider/rts-by-provider.component';
 
@@ -184,7 +183,6 @@ const routes: Routes = [
   { path: 'fraud-detection', component: FraudDetectionComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'orderless-signups', component: OrderlessSignupsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'excess-sms-notifications-rts', component: ExcessSmsNotificationsRtsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
-  { path: 'sales-metrics', component: SalesMetricsComponent },
   { path: 'rts-by-provider', component: RtsByProviderComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'MARKETER'] } },
   { path: '**', redirectTo: '/home' }
 
