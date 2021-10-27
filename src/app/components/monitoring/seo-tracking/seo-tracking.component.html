@@ -4,37 +4,57 @@
   </h2>
   <div class="card-body">
     <div class="pb-5 text-left">
-      <div class="float-left form-inline ml-2 mr-2">
+      <div class="float-left form-inline mr-2">
         <label class="form-check-label mr-2">View</label>
         <select [(ngModel)]="viewType" class="form-control ml-1">
           <option [value]="viewTypes.Summary">{{viewTypes.Summary}}</option>
           <option [value]="viewTypes.Specific">{{viewTypes.Specific}}</option>
         </select>
       </div>
-      <div *ngIf="viewType === viewTypes.Summary" class="float-left form-inline ml-2 mr-2">
-        <label class="form-check-label mr-2">Provider</label>
-        <select [(ngModel)]="provider" class="form-control ml-1">
-          <option *ngFor="let item of providers">{{item}}</option>
-        </select>
-      </div>
-      <div *ngIf="viewType === viewTypes.Specific" class="float-left form-inline ml-2 mr-2">
-        <input type="text" class="form-control" placeholder="Enter RT ID" [(ngModel)]="restaurantId">
-      </div>
-      <div class="float-left form-inline ml-2 mr-2">
-        <label class="form-check-label mr-2">Start Date</label>
-        <select [(ngModel)]="startDate" class="form-control ml-1">
-          <option *ngFor="let item of dates">{{item}}</option>
-        </select>
-      </div>
-      <div class="float-left form-inline ml-2 mr-2">
-        <label class="form-check-label mr-2">End Date</label>
-        <select [(ngModel)]="endDate" class="form-control ml-1">
-          <option *ngFor="let item of dates">{{item}}</option>
-        </select>
-      </div>
-    </div>
-    <div class="mb-2">
-        <button class="btn btn-primary" (click)="query()">Search</button>
+      <ng-container *ngIf="viewType === viewTypes.Summary">
+        <div class="float-left form-inline ml-2 mr-2">
+          <label class="form-check-label mr-2">Provider</label>
+          <select [(ngModel)]="provider" class="form-control ml-1">
+            <option *ngFor="let item of providers">{{item}}</option>
+          </select>
+        </div>
+        <div class="float-left form-inline ml-2 mr-2">
+          <label class="form-check-label mr-2">Start Date</label>
+          <select [(ngModel)]="summaryStartDate" class="form-control ml-1">
+            <option *ngFor="let item of summaryDates">{{item}}</option>
+          </select>
+        </div>
+        <div class="float-left form-inline ml-2 mr-2">
+          <label class="form-check-label mr-2">End Date</label>
+          <select [(ngModel)]="summaryEndDate" class="form-control ml-1">
+            <option *ngFor="let item of summaryDates">{{item}}</option>
+          </select>
+        </div>
+        <button class="ml-2 btn btn-primary" (click)="querySummary()">Search</button>
+      </ng-container>
+      <ng-container *ngIf="viewType === viewTypes.Specific">
+        <div class="float-left form-inline ml-2 mr-2">
+          <input type="text" class="form-control" placeholder="Enter RT ID" [(ngModel)]="restaurantId" (change)="rtIDChange()">
+        </div>
+        <ng-container *ngIf="!specDates.length">
+          <button class="ml-2 btn btn-primary" (click)="getSpecificRTDates()">Get Dates</button>
+        </ng-container>
+        <ng-container *ngIf="specDates.length">
+          <div class="float-left form-inline ml-2 mr-2">
+            <label class="form-check-label mr-2">Start Date</label>
+            <select [(ngModel)]="specStartDate" class="form-control ml-1">
+              <option *ngFor="let item of specDates">{{item}}</option>
+            </select>
+          </div>
+          <div class="float-left form-inline ml-2 mr-2">
+            <label class="form-check-label mr-2">End Date</label>
+            <select [(ngModel)]="specEndDate" class="form-control ml-1">
+              <option *ngFor="let item of specDates">{{item}}</option>
+            </select>
+          </div>
+          <button class="ml-2 btn btn-primary" (click)="querySpecific()">Search</button>
+        </ng-container>
+      </ng-container>
     </div>
     <div *ngIf="viewType === viewTypes.Summary">
       <!-- start with statistics card -->
@@ -74,8 +94,8 @@
         <thead>
           <tr>
             <th>Ranking</th>
-            <th>Website count ({{this.startDate}})</th>
-            <th>Website count ({{this.endDate}})</th>
+            <th>Website count ({{this.summaryStartDate}})</th>
+            <th>Website count ({{this.summaryEndDate}})</th>
             <th>Improvement/Worsening</th>
           </tr>
         </thead>
@@ -97,9 +117,6 @@
         </tbody>
       </table>
       <!-- end with statistics table -->
-      <div class="mt-3">
-        <canvas width="800" height="240" #summaryChart></canvas>
-      </div>
     </div>
     <div *ngIf="viewType === viewTypes.Specific">
       <div class="mb-3" *ngIf="qMenuChange">
@@ -109,8 +126,8 @@
         <thead>
           <tr>
             <th>Provider</th>
-            <th>Old Ranking ({{this.startDate}})</th>
-            <th>New Ranking ({{this.endDate}})</th>
+            <th>Old Ranking ({{this.specStartDate}})</th>
+            <th>New Ranking ({{this.specEndDate}})</th>
             <th>Improvement/Worsening</th>
           </tr>
         </thead>
@@ -131,9 +148,6 @@
           </tr>
         </tbody>
       </table>
-      <div class="mt-3">
-        <canvas width="800" height="240" #specificChart></canvas>
-      </div>
     </div>
   </div>
 </div>

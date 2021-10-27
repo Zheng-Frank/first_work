@@ -1,9 +1,8 @@
 import {environment} from 'src/environments/environment';
 import {ApiService} from '../../../services/api.service';
-import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {GlobalService} from '../../../services/global.service';
 import {AlertType} from '../../../classes/alert-type';
-import {Chart} from 'chart.js';
 
 enum ViewTypes {
   Summary = 'Summary',
@@ -17,12 +16,13 @@ enum ViewTypes {
 })
 export class SeoTrackingComponent implements OnInit {
 
-  @ViewChild('specificChart') specificChart: ElementRef;
-  @ViewChild('summaryChart') summaryChart: ElementRef;
   viewType = ViewTypes.Summary;
-  dates = [];
-  startDate: string;
-  endDate: string;
+  summaryDates = [];
+  summaryStartDate: string;
+  summaryEndDate: string;
+  specDates = [];
+  specStartDate: string;
+  specEndDate: string;
   providers = [
     'atmenu', ' beyondmenu', 'bobog', 'brygid', 'carte24', 'chinesemenu',
     'chinesemenuonline', 'chowbus', 'chownow', 'clorder', 'doordash',
@@ -55,49 +55,62 @@ export class SeoTrackingComponent implements OnInit {
     return ViewTypes;
   }
 
-  async ngOnInit() {
-    await this.getDates();
+  async rtIDChange() {
+    this.specDates = [];
+    this.specStartDate = "";
+    this.specEndDate = "";
   }
 
-  async getDates(restaurantId?) {
-    let filter = {$match: {'ranks.0': {$exists: true}}};
-    if (restaurantId) {
-      // @ts-ignore
-      filter.$match.restaurantId = restaurantId;
-    }
+  async ngOnInit() {
+    await this.getSummaryDates();
+    await this.querySummary();
+  }
+
+  async getSummaryDates() {
+    let result = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'google-ranks',
+      aggregate: [
+        {$match: {'ranks.0': {$exists: true}}},
+        {
+          $group: {
+            _id: {$dateToString: {format: '%Y-%m-%d', date: '$createdAt'}},
+            rts: {$addToSet: "$restaurantId"}
+          },
+        },
+        {$project: {date: "$_id", _id: 0, cnt: {$size: "$rts"}}},
+        {$match: {'cnt': {$gte: 9000}}},
+        {$project: {date: 1}},
+        {$sort: {date: 1}}
+      ]
+    }).toPromise();
+    this.summaryDates = result.map(x => x.date);
+    this.summaryStartDate = this.summaryDates[0];
+    this.summaryEndDate = this.summaryDates[this.summaryDates.length - 1];
+  }
+
+  async getSpecificRTDates() {
     let [result] = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'google-ranks',
       aggregate: [
-        filter,
+        {$match: {'ranks.0': {$exists: true}, restaurantId: this.restaurantId}},
         {$group: {_id: null, creationDates: {$addToSet: {$dateToString: {format: '%Y-%m-%d', date: '$createdAt'}}}}},
         {$project: {creationDates: '$creationDates', _id: 0}}
-      ],
-      limit: 1
+      ]
     }).toPromise();
     if (result) {
-      this.dates = result.creationDates.sort((a, b) => new Date(a).valueOf() - new Date(b).valueOf());
-      this.endDate = this.dates[this.dates.length - 1];
-      this.startDate = this.dates[this.dates.length - 7];
+      this.specDates = result.creationDates.sort((a, b) => new Date(a).valueOf() - new Date(b).valueOf());
+      this.specStartDate = this.specDates[0];
+      this.specEndDate = this.specDates[this.specDates.length - 1];
     }
   }
 
-  getRangedDates() {
-    let startIndex = this.dates.indexOf(this.startDate),
-      endIndex = this.dates.indexOf(this.endDate);
-    return this.dates.slice(startIndex, endIndex + 1);
-  }
-
-  async querySummary(dates) {
-    this.summary.totalMovesDown = 0;
-    this.summary.totalMovesUp = 0;
-    this.summary.netTotalMoves = 0;
-    this.summary.avgRanking = '0 to 0';
+  async querySummary() {
     let data = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'google-ranks',
       aggregate: [
         {$match: {'ranks.0': {$exists: true}}},
         {$addFields: {'creationDate': {$dateToString: {format: '%Y-%m-%d', date: '$createdAt'}}}},
-        {$match: {creationDate: {$in: dates}}},
+        {$match: {creationDate: {$in: [this.summaryStartDate, this.summaryEndDate]}}},
         {
           $project: {
             rank: {
@@ -125,31 +138,22 @@ export class SeoTrackingComponent implements OnInit {
         {$project: {date: '$_id', ranks: 1, _id: 0}}
       ]
     }).toPromise();
-    let startRanks = (data.find(x => x.date === this.startDate) || {ranks: []}).ranks;
-    let endRanks = (data.find(x => x.date === this.endDate) || {ranks: []}).ranks;
+    let startRanks = (data.find(x => x.date === this.summaryStartDate) || {ranks: []}).ranks;
+    let endRanks = (data.find(x => x.date === this.summaryEndDate) || {ranks: []}).ranks;
     let allRanks = [...startRanks, ...endRanks];
-    let datasets = [];
     // @ts-ignore
     let ranks = Array.from(new Set(allRanks.map(x => x.value))).sort((a, b) => a - b);
     this.allRTsRankChangeList = ranks.map((r, i) => {
       let startCounts = startRanks.filter(x => x.value === r).length;
       let endCounts = endRanks.filter(x => x.value === r).length;
       let change = endCounts - startCounts;
-      let color = this.colors[i];
-      datasets.push({
-        fill: false, borderColor: color,
-        backgroundColor: color, label: r,
-        data: dates.map(d => {
-          return (data.find(x => x.date === d) || {ranks: []}).ranks.filter(x => x.value === r).length;
-        })
-      });
       return {
         rank: r, startCounts, endCounts, change: change > 0 ? '+' + change : change.toString()
       };
     });
     let startAvg = startRanks.reduce((a, c) => a + c.value, 0) / startRanks.length;
     let endAvg = endRanks.reduce((a, c) => a + c.value, 0) / endRanks.length;
-    this.summary.avgRanking = `${startAvg.toFixed(2)} to ${endAvg.toFixed(2)}`;
+    this.summary.avgRanking = `${isNaN(startAvg) ? "N/A" : startAvg.toFixed(2)} to ${isNaN(endAvg) ? 'N/A' : endAvg.toFixed(2)}`;
 
     let dict = {} as { rtId: { start: number, end: number } };
     startRanks.forEach(r => {
@@ -164,49 +168,41 @@ export class SeoTrackingComponent implements OnInit {
       if (v.start && v.end) {
         let change = v.end - v.start;
         if (change > 0) {
-          this.summary.totalMovesUp += change;
-        } else if (change < 0) {
           this.summary.totalMovesDown += change;
+        } else if (change < 0) {
+          this.summary.totalMovesUp += -change;
         }
-        this.summary.netTotalMoves += change;
+        this.summary.netTotalMoves += -change;
       }
     });
-    this.refreshChart(this.summaryChart.nativeElement, dates, datasets);
   }
 
-  async querySpecific(dates) {
+  async querySpecific() {
     if (!this.restaurantId) {
       this._global.publishAlert(AlertType.Warning, 'Please input a restaurant id!');
       return;
     }
     this.qMenuChange = '';
+    if (!this.specDates.length) {
+      await this.getSpecificRTDates();
+    }
     let data = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'google-ranks',
       aggregate: [
         {$match: {restaurantId: this.restaurantId, 'ranks.0': {$exists: true}}},
         {$addFields: {'creationDate': {$dateToString: {format: '%Y-%m-%d', date: '$createdAt'}}}},
-        {$match: {creationDate: {$in: dates}}},
+        {$match: {creationDate: {$in: [this.specStartDate, this.specEndDate]}}},
         {$project: {ranks: 1, date: '$creationDate'}},
       ]
     }).toPromise();
-    let earliest = data.find(x => x.date === this.startDate);
+    let earliest = data.find(x => x.date === this.specStartDate);
     let oldRanks = earliest ? earliest.ranks : [];
-    let latest = data.find(x => x.date === this.endDate);
+    let latest = data.find(x => x.date === this.specEndDate);
     let newRanks = latest ? latest.ranks : [];
-    let datasets = [], providers = [...new Set(data.reduce((a, c) => ([...a, ...c.ranks.map(r => r.name)]), []))];
+    let providers = [...new Set(data.reduce((a, c) => ([...a, ...c.ranks.map(r => r.name)]), []))];
     this.allProvidersRankChangeList = providers.filter(p => !!p).map((p, i) => {
       let oldRank = oldRanks.find(r => r.name === p);
       let newRank = newRanks.find(r => r.name === p);
-      let color = this.colors[i];
-      datasets.push({
-        fill: false, borderColor: color,
-        backgroundColor: color, label: p,
-        data: dates.map(d => {
-          let ranks = (data.find(x => x.date === d) || {ranks: []}).ranks;
-          let item = ranks.find(r => r.name === p);
-          return item ? item.rank : null;
-        })
-      });
       let temp = {
         provider: p, change: '',
         oldRanking: oldRank ? oldRank.rank : 'N/A',
@@ -232,33 +228,5 @@ export class SeoTrackingComponent implements OnInit {
       }
       return temp;
     });
-    this.refreshChart(this.specificChart.nativeElement, dates, datasets);
   }
-
-  refreshChart(el, dates, datasets) {
-    this.charts.specific = new Chart(el, {
-      options: {
-        responsive: true,
-        tooltips: {mode: 'index', intersect: false},
-        stacked: false,
-      },
-      type: 'line',
-      data: {labels: dates, datasets}
-    });
-  }
-
-  async query() {
-    let dates = this.getRangedDates();
-    if (dates.length > 7) {
-      this._global.publishAlert(AlertType.Warning, "Only support 7 days query at most");
-      return;
-    }
-
-    if (this.viewType === ViewTypes.Specific) {
-      await this.querySpecific(dates);
-    } else {
-      await this.querySummary(dates);
-    }
-  }
-
 }

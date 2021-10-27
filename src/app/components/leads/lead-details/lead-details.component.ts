@@ -29,6 +29,11 @@ export class LeadDetailsComponent implements OnInit, OnChanges {
   ngOnInit() {
   }
 
+  // judge phone of google is whether different from lead's
+  leadPhoneDifferentToGoogle(lead){
+    return lead && lead.googleListing ? lead.phone !== lead.googleListing.phone: false;
+  }
+
   drawMap(bound) {
     this.map = new google.maps.Map(
       document.getElementById('nearby-rts-map') as HTMLElement,

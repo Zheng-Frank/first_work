@@ -30,6 +30,7 @@ export class MyLeads2Component implements OnInit, OnDestroy {
     'campaigns.funnel.name',
     'googleListing.gmbOwner',
     'googleListing.place_id',
+    'googleListing.phone',
     'qmenuDensity',
     'restaurant._id',
     'restaurant.createdAt',
@@ -115,6 +116,11 @@ export class MyLeads2Component implements OnInit, OnDestroy {
     this.timer = setInterval(() => this.now = new Date(), 60000);
     // clean up scheduledAt === createdAt
     this.cleanup();
+  }
+
+  // judge phone of google is whether different from lead's
+  leadPhoneDifferentToGoogle(row){
+    return row.lead && row.lead.googleListing ? row.lead.phone !== row.lead.googleListing.phone: false;
   }
 
   ngOnInit() {

@@ -21,19 +21,6 @@ export class DbScriptsComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) { }
   ngOnInit() { }
 
-  async removeMenuCleanedField() {
-    const rts = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: {menuCleaned: {$exists: true}},
-      projection: {_id: 1, menuCleaned: 1},
-      limit: 20000
-    }).toPromise();
-    console.log('rts with menuCleaned field...', rts.map(rt => rt._id));
-    const patchList = rts.map(rt => ({old: rt, new: { _id: rt._id }}));
-    if (patchList.length > 0) {
-      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
-    }
-  }
 
   async importSalaries() {
     const mylines = `PASTE ACTUAL LINES HERE`;
@@ -3808,7 +3795,7 @@ export class DbScriptsComponent implements OnInit {
     console.log('closedRT', closedRT)
   }
 
-  // migrateOrderNotifications will migrate channel data for up to 10,000 RTs at a time. It is safe to run multiple times, 
+  // migrateOrderNotifications will migrate channel data for up to 10,000 RTs at a time. It is safe to run multiple times,
   // because it only ever attempts to operate on RTs that do not already have orderNotifications
   async migrateOrderNotifications() {
     const updatedOldNewPairs = [];
@@ -3850,8 +3837,8 @@ export class DbScriptsComponent implements OnInit {
             channel: {
               type: channel.type,
               value: channel.value,
-              //language: preferredLanguage 
-              // language preference is currently not implemented for voice/fax/sms - no back-end code makes use of this property. 
+              //language: preferredLanguage
+              // language preference is currently not implemented for voice/fax/sms - no back-end code makes use of this property.
             }
           }
 

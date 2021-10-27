@@ -99,7 +99,11 @@
 
   <div class="p-3 text-left mt-3">
     <h4 class="text-center">通话记录 (Call Logs)</h4>
-    <h5 class="text-center" (click)="copyToClipboard(lead.phone)" style="cursor:pointer;">{{lead.phone | phone}} <span class="text-success my-text-small" *ngIf="lead.phone === copiedText">✓ copied</span></h5>
+    <h5 class="text-center" (click)="copyToClipboard(lead.phone)" style="cursor:pointer;">{{lead.phone | phone}} <i class="fas fa-database"></i><span class="text-success my-text-small" *ngIf="lead.phone === copiedText">✓ copied</span></h5>
+    <h5 class="text-center" *ngIf="lead.googleListing?.phone" (click)="copyToClipboard(lead.googleListing.phone)" style="cursor:pointer;">{{lead.phone | phone}} <i class="fab fa-google"></i><span class="text-success my-text-small" *ngIf="lead.googleListing.phone === copiedText">✓ copied</span></h5>
+    <div *ngIf="leadPhoneDifferentToGoogle(row)" class="alert alert-warning">
+      <i class="fas fa-exclamation-triangle"></i>Biz phone listed on GMB different than our lead database!
+    </div>
     <div class="pb-2 text-right">
       <button class="btn btn-primary" (click)="editCallLog(null)">
         <i class="fas fa-phone"></i> Add New Log</button>
