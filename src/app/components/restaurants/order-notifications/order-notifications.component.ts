@@ -281,7 +281,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     }
   }
 
-  cancel(event) {
+  cancel() {
     this.modalNotification.hide();
   }
 
