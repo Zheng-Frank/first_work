@@ -15,7 +15,7 @@ import { PrunedPatchService } from 'src/app/services/prunedPatch.service';
 })
 export class OrderNotificationsComponent implements OnInit, OnChanges {
   @ViewChild('modalNotification') modalNotification: ModalComponent;
-  @Input() restaurant: Restaurant;
+  @Input() restaurant;
   @Output() updateRestaurant = new EventEmitter();
 
   orderNotifications: any = [];
@@ -281,7 +281,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     }
   }
 
-  cancel() {
+  cancel(event) {
     this.modalNotification.hide();
   }
 

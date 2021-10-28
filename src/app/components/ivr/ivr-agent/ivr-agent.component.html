@@ -1,5 +1,5 @@
 <div class="pt-2">
-  <h1 class="text-center">IVR Logs</h1>
+  <h1 class="text-center">IVR Logs ({{filteredIvrRecords.length || 0}})</h1>
   <div class="my-text-small text-muted text-center" *ngIf="needRefreshCtrs">
     refreshed: {{ lastRefreshed | ago: now }} | total:
     {{ totalMinutes }} minutes
@@ -10,50 +10,67 @@
     <span *ngFor="let phone of getMyPhones()">{{ phone | tel }} | </span>
     {{ getVisibleQueueNames().join(", ") }}
   </div>
-  <div class="row">
-    <!-- start with col-7 -->
-    <div class="form-inline col-7">
-      <input [qDebounce]="500" (debounce)="filter($event)" type="text" class="form-control mr-4"
-        placeholder="phone or restaurant ID" [(ngModel)]="searchFilter" />
 
-      <select (change)="filterQueue()" [(ngModel)]="selectedQueue" class="form-control mr-4">
-        <option *ngFor="let q of queuesForFilter" [ngValue]="q">
-          {{ q.name || (q.arn ? "(no name))" : "(no arn)") }}
-        </option>
-      </select>
-      <select (change)="filterQueue()" [(ngModel)]="selectedAgent" class="form-control mr-4">
-        <option *ngFor="let agent of agentsForFilter" [ngValue]="agent">
-          {{ agent || "(no agent)" }}
-        </option>
-      </select>
-      <select (change)="filterQueue()" [(ngModel)]="selectedLanguageCode" class="form-control mr-4">
-        <option *ngFor="let languageCode of languageCodesForFilter" [ngValue]="languageCode">
-          {{ languageCode || "(N/A)" }}
-        </option>
-      </select>
-      <label class="checkbox-inline"><input type="checkbox" [(ngModel)]="shouldCallbackOnly" (change)="filter()"
-          class="mx-1" />
-        Should callback</label>
-    </div>
-    <!-- end with col-7 -->
-    <!-- start with col-5 -->
-    <div class="text-right col-5">
-      <label class="form-check-label mt-2" for="id-gmb"><input type="checkbox" [(ngModel)]="needRefreshCtrs">
-          Auto Refresh
+  <div class="form-inline">
+    <!-- start with filter condition -->
+    <label *ngIf="isAdmin()">Admin view<q-toggle class="mr-2 ml-1 mt-2" [(ngModel)]="adminViewMode"
+        (change)="reloadIVRByManagerRoles()"></q-toggle></label>
+    <input [qDebounce]="500" (debounce)="filter($event)" type="text" class="form-control mr-2 mt-2"
+      placeholder="phone or restaurant ID" [(ngModel)]="searchFilter" />
+    <!-- start with IVR roles filter -->
+    <select (change)="reloadIVRByManagerRoles()" *ngIf="adminViewMode" [(ngModel)]="managerRole"
+      class="form-control mr-2 mt-2">
+      <option *ngFor="let mr of managerRoles" [ngValue]="mr">
+        {{ mr }}
+      </option>
+    </select>
+    <!-- end with IVR roles filter -->
+    <select (change)="filterQueue()" [(ngModel)]="selectedQueue" class="form-control mr-2 mt-2">
+      <option *ngFor="let q of queuesForFilter" [ngValue]="q">
+        {{ q.name || (q.arn ? "(no name))" : "(no arn)") }}
+      </option>
+    </select>
+    <select (change)="filterQueue()" [(ngModel)]="selectedAgent" class="form-control mr-4 mt-2">
+      <option *ngFor="let agent of agentsForFilter" [ngValue]="agent">
+        {{ agent || "(no agent)" }}
+      </option>
+    </select>
+    <select (change)="filterQueue()" [(ngModel)]="selectedLanguageCode" class="form-control mr-2 mt-2">
+      <option *ngFor="let languageCode of languageCodesForFilter" [ngValue]="languageCode">
+        {{ languageCode || "(N/A)" }}
+      </option>
+    </select>
+    <label class="checkbox-inline mt-2"><input type="checkbox" [(ngModel)]="shouldCallbackOnly" (change)="filter()"
+        class="mx-1" />
+      Should callback</label>
+    <!-- end with filter condition -->
+    <!-- start with refresh button -->
+    <div class="form-inline refresh-btn">
+      <label class="checkbox-inline mt-2" for="id-gmb" *ngIf="!showDateSearch"><input type="checkbox" 
+        class="mx-1"  [(ngModel)]="needRefreshCtrs">
+        Auto Refresh
       </label>
-      <a class="btn btn-primary ml-4 mt-2" href="/#/ivr-agent-analysis">
-        <i class="fas fa-clipboard"></i>
-        IVR Dashboard
-      </a>
-      <button class="btn btn-primary ml-4 mt-2" (click)="startIvr()">
-        <i class="fas fa-headset"></i> Launch qMenu IVR
+      <button class="btn btn-primary ml-2 mt-2" *ngIf="!showDateSearch && !adminViewMode" (click)="startIvr()">
+        <i class="fas fa-headset"></i> qMenu IVR
       </button>
-      <button class="btn btn-primary ml-4 mt-2" (click)="refreshCtrs()" [qLoading]="refreshing">
+      <button class="btn btn-primary ml-2 mt-2" *ngIf="!showDateSearch" (click)="refreshCtrs()" [qLoading]="refreshing">
         <i class="fas fa-sync-alt"></i> Reload
       </button>
     </div>
-    <!-- end with col-5 -->
+    <!-- end with refresh button -->
   </div>
+  <!-- start with date search -->
+  <div class="row form-group mt-2">
+    <button type="button" class="btn btn-link ml-2" (click)="toggleShowDateSearch()">
+      {{ showDateSearch?'Hide date search..':'Show date search..'}}</button>
+    <div class="form-inline ml-2" *ngIf="showDateSearch">
+      <label>From:</label>
+      <input class="form-control ml-1" type="date" [(ngModel)]="fromDate">
+      <button class="btn btn-primary ml-2" (click)="refreshCtrs()"><i class="fa fa-search"></i>
+        Search</button>
+    </div>
+  </div>
+  <!-- end with date search -->
 
   <table class="table mt-2">
     <tr>
@@ -68,8 +85,8 @@
     </tr>
     <tr *ngFor="let ir of filteredIvrRecords; let i = index" class="{{ ir.shouldCallback ? 'alert-danger' : '' }}">
       <th>{{ i + 1 }}</th>
-      <td>
-        {{ ir.initiatedAt | date : 'short'}}<br />
+      <td style="width:10%;">
+        {{ ir.initiatedAt | adjustedDate : 'MM/dd/yy h:mm a' : 'America/New_York'}}<br />
         <span class="my-text-small text-muted">{{
           ir.duration ? ir.duration + "s" : "-"
         }}</span>
