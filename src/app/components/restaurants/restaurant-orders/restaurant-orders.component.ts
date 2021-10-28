@@ -886,13 +886,13 @@ export class RestaurantOrdersComponent implements OnInit {
   }
 
   async showNotificationHistory(orderId) {
-    this.notificationHistory = await this._api.get(environment.qmenuApiUrl +  "generic", {
+    this.notificationHistory = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "job",
-      query: {"params.orderId": orderId, 'logs.0': {$exists: true}},
+      query: { "params.orderId": orderId, 'logs.0': { $exists: true } },
       projection: {
         name: 1, params: 1, createdAt: 1, logs: 1, endStatuses: 1
       },
-      sort: {createdAt: -1},
+      sort: { createdAt: -1 },
       limit: 100
     }).toPromise();
     this.notificationHistory.sort((x, y) => new Date(y.createdAt).valueOf() - new Date(x.createdAt).valueOf());
@@ -961,7 +961,7 @@ export class RestaurantOrdersComponent implements OnInit {
     const formatLine = prefix => `${prefix} ${to}`;
     return {
       "new-order": formatLine("Call made"),
-      "send-order-email" : formatLine("Email sent"),
+      "send-order-email": formatLine("Email sent"),
       "send-order-sms": formatLine("SMS sent"),
       "send-order-fax": formatLine("Fax sent"),
       "send-order-voice": formatLine("Call made"),
@@ -973,4 +973,36 @@ export class RestaurantOrdersComponent implements OnInit {
       "send-phoenix": "Printout sent (phoenix)"
     }[name] || name;
   }
+
+  testOrder() {
+    // count total number of enabled mis
+    let enabledMis = 0;
+    const enabledMenus = (this.restaurant.menus || []).filter(menu => {
+      menu.mcs = (menu.mcs || []).filter(mc => {
+        mc.mis = (mc.mis || []).filter(mi => {
+          if (mi.disabled !== true) {
+            enabledMis += 1;
+            return true;
+          }
+          return false;
+        });
+        return mc.disabled !== true;
+      });
+      return menu.disabled !== true;
+    });
+
+    // RT must satisfy one of these two conditions for receiving notification of new order
+    // for purposes of test order it doesn't matter if RT has new orderNotifications data structure or uses old "channels" notifications
+    const hasOrderNotifications = (this.restaurant.orderNotifications || []).length > 0;
+    const hasChannelNotifications = (this.restaurant.channels || []).filter(channel => (channel.notifications || []).includes('Order')).length > 0;
+
+    const hasServiceSettings = (this.restaurant.serviceSettings || []).filter(setting => (setting.paymentMethods || []).length > 0).length > 0;
+
+    if (enabledMis >= 3 && (hasOrderNotifications || hasChannelNotifications) && hasServiceSettings) {
+      // open a browser window for test order
+      window.open(`${environment.customerPWAUrl}${this.restaurant.alias}/menu/${enabledMenus[0].id}`);
+    }
+  }
+
+
 }
