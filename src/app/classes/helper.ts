@@ -17,7 +17,7 @@ export class Helper {
                 await fetch(url);
                 return true;
             } catch (error) {
-            };            
+            };
             await new Promise(resolve => setTimeout(resolve, 500 * 1));
         }
         return false;
@@ -351,5 +351,132 @@ export class Helper {
     }
 
     static shrink = str => str.trim().replace(/\s+/g, ' ');
+
+    static extractMenuItemNumber(mc) {
+      if (!mc.mis) {
+        return;
+      }
+      let numbers = [], names = [], len = mc.mis.length, repeatNums = [];
+      for (let i = 0; i < len; i++) {
+        let mi = mc.mis[i];
+        if (!mi.name || mi.number) {
+          return;
+        }
+        let [num, ...rest] = mi.name.split('.');
+        // remove pure name's prefix ) or . or -
+        let name = this.shrink(rest.join('.').replace(/^\s*[-).]\s*/, ''));
+        num = this.shrink(num);
+        // cases to skip:
+        // 1. num or name is empty; eg. Soda, B-A, B-B, Combo 1, Combo 2 etc.
+        if (!num || !name) {
+          continue;
+        }
+        // 2. name repeat; eg. 2 Wings, 3 Wings, 4 Wings, etc.
+        if (names.some(n => n.toLowerCase() === name.toLowerCase())) {
+          continue;
+        }
+        // 3. num includes 3+ continuous letter eg. Especial 1. Camarofongo, Especial 2. Camarofongo etc.
+        if (/[a-z]{3,}/i.test(num)) {
+          continue;
+        }
+        // 4. num contains non-english characters eg. 蛋花汤 S1. Egg Drop Soup, 云吞汤 S2. Wonton Soup etc.
+        if (/[^\x00-\xff]/.test(num)) {
+          continue;
+        }
+        // 5. num contains parentheses aka (), as we don't know if the () thing is related to the menu name
+        if (/\(.*\)/.test(num)) {
+          continue;
+        }
+        // 6. original name startsWith 805 B.B.+ etc
+        if (/^(\d+\s+)*([a-zA-Z]+\.){2,}/.test(mi.name)) {
+          continue;
+        }
+        // 7. original name startsWith 12 oz. etc
+        if (/^(\d+\.?)+\s+[a-zA-Z]{2,}\./.test(mi.name)) {
+          continue;
+        }
+        names[i] = name;
+        // if or num repeat, we save the repeat num and index for later use
+        if (numbers.some(n => n.toLowerCase() === num.toLowerCase())) {
+          repeatNums[i] = num;
+          continue;
+        }
+        // if num has (), we should extract the () and set to name
+        let [remark] = num.match(/\(.*\)/) || [""];
+        if (remark) {
+          names[i] = remark + names[i];
+        }
+        numbers[i] = num;
+      }
+      // only handle mcs with at least 5 mis
+      if (numbers.length < 5) {
+        return;
+      }
+      let confidence = numbers.filter(n => !!n).length / len;
+      // calculate exception ratio , skip lower then 0.79 (4 of 5)
+      if (Math.ceil(confidence * 100) < 80) {
+        return;
+      }
+      mc.mis.forEach((mi, i) => {
+        if (numbers[i] || repeatNums[i]) {
+          mi.number = numbers[i] || repeatNums[i];
+          mi.name = names[i];
+        }
+      });
+      return {numbers: mc.mis.map((x, i) => numbers[i] || repeatNums[i]), confidence};
+    }
+
+    static extractMenuItemNames(name) {
+      if (!name) {
+        return null;
+      }
+
+      // strip ()[]''"" pairs around name
+      // remove prefix _-./ suffix -._/
+      const strip = str => str.replace(/^\((.+)\)$/, '$1').replace(/^\[(.+)]$/, '$1')
+        .replace(/^'(.+)'$/, '$1').replace(/^"(.+)"$/, '$1').replace(/^\s*[_./-]+\s*/, '')
+        .replace(/\s*[-._/]+\s*$/, '').replace(/\s+/g, ' ').trim();
+
+      const putBack = (txt, index, tran) => {
+        // if tran(en/zh) is empty, we just return the txt
+        if (!tran) {
+          return strip(txt);
+        }
+        // we need handle the follow 3 cases:
+        // eg. 酸汤 (牛) 面 / 酸汤面 (牛) / (牛) 酸汤面
+        let tranIndex = name.indexOf(tran[0]);
+        if (tranIndex < index) {
+          if (tran.length + tranIndex > index) {
+            let chars = tran.split("");
+            chars.splice(index - tranIndex, 0, " " + txt + " ");
+            return this.shrink(chars.join(''));
+          }
+          return tran + " " + txt;
+        } else {
+          return txt + " " + tran;
+        }
+      };
+      // remove all () pairs content for more clear extraction, will add them back after match
+      let temp = name.replace(/\([^()]+\)/g, '');
+      // we capture 非字母文字， 非字母文字 带空格，(括号内非字母文字)，'引号内非字母文字"
+      let regex = /\s*[('"]?[^\x00-\xff](\s*([^\x00-\xff]|\d|\/|-|:|\+|;|,|\.|\(|\)|'|")+)*\s*/;
+      let re = temp.match(regex), en = temp, zh = '';
+      if (re) {
+        zh = strip(re[0].trim()).replace(/^\d+\s*/, '').replace(/\s*\d+$/, '');
+        en = temp.replace(regex, '').trim().replace(/\s*-$/, '');
+      }
+      en = strip(en);
+      // get all removed () pairs and add back to en/zh accordingly
+      for (let match of name.matchAll(/\([^()]+\)/g)) {
+        let txt = match[0];
+        // if text contains non-en character, we think it's non-en
+        if (/[^\x00-\xff]/.test(txt)) {
+          zh = putBack(txt, match.index, zh);
+        } else {
+          en = putBack(txt, match.index, en);
+        }
+      }
+      return zh ? {en, zh} : null;
+    }
 
 }

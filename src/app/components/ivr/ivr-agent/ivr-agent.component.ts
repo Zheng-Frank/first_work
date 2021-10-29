@@ -1,15 +1,25 @@
+import { filter } from 'rxjs/operators';
+import { AlertType } from './../../../classes/alert-type';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from '../../../services/global.service';
 import { AmazonConnectService } from 'src/app/services/amazon-connect.service';
 import { IvrRecord } from 'src/app/classes/ivr/ivr-record';
+import { TimezoneHelper } from '@qmenu/ui';
 
 const defaultSelectedQueue = {
   name: 'all queues...'
 };
 const defaultSelectedAgent = 'all agent...';
 const defaultSelectedLanguageCode = 'all language...';
+
+enum MangerRoleTypes {
+  IVR_CSR_MANAGER = 'IVR_CSR_MANAGER',
+  IVR_GMB_MANAGER = 'IVR_GMB_MANAGER',
+  IVR_INTERNAL_MANAGER = 'IVR_INTERNAL_MANAGER',
+  IVR_SALES_MANAGER = 'IVR_SALES_MANAGER'
+}
 
 @Component({
   selector: 'app-ivr-agent',
@@ -51,7 +61,11 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
   connectedContact;
 
   mp3VisitedIvrRecords = new Set();
-
+  showDateSearch = false; // enable to search IVR record by date, if it's true
+  fromDate;
+  adminViewMode = false; // add a filter of user IVR manager roles, if current user is admin
+  managerRoles = [MangerRoleTypes.IVR_CSR_MANAGER, MangerRoleTypes.IVR_GMB_MANAGER, MangerRoleTypes.IVR_INTERNAL_MANAGER, MangerRoleTypes.IVR_SALES_MANAGER];
+  managerRole;
   constructor(private _api: ApiService, private _global: GlobalService, private _connect: AmazonConnectService) {
 
     this._connect.onContactConnected.subscribe(contact => {
@@ -67,8 +81,30 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
         this.refreshCtrs();
       }
     });
-
+    // Current user may not have all IVR manager permissions, even if he is an admin.
+    if (this.isAdmin()) {
+      this.managerRoles = this.managerRoles.filter(role => this._global.user.roles.some(r => r === role));
+      this.managerRoles.sort((a, b) => a.localeCompare(b));
+      this.managerRole = this.managerRoles[0];
+      this.adminViewMode = true;
+    }
     this.populatePhoneQueues();
+  }
+
+  // The page won't load if an administrator has too many IVR roles selected, so we should load page by a single role.
+  reloadIVRByManagerRoles() {
+    this.ivrRecords = [];
+    this.visibleQueues = [];
+    // It suggests that user close the admin view mode switch, we should restore the IVR roles condition to the default value 
+    if (!this.adminViewMode) {
+      this.managerRole = this.managerRoles[0];
+    }
+
+    this.populateVisibleQueues();
+    this.populateQueuesFromConfig();
+    if (this.visibleQueues.length > 0) {
+      this.refreshCtrs();
+    }
   }
 
   async populatePhoneQueues() {
@@ -81,7 +117,6 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
           }
         ]
     }).toPromise();
-
     // establish phone number <--> queue relationship!
     const phoneQueuesDict = {};
     items.filter(item => item._id.phone).map(item => {
@@ -111,18 +146,26 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
   populateVisibleQueues() {
     const allQueues: any = Object.values(this.phoneQueuesDict).reduce((list: any, phoneQueues: any) => (list.push(...phoneQueues), list), []);
 
+    if (this.isAdmin() && this.adminViewMode) {
+      ["sales", "gmb", "internal", "csr"].forEach(mr => {
+        if (this.managerRole.toLowerCase().indexOf(mr) !== -1 && mr !== 'csr') {
+          this.addToVisibleQueues(allQueues.filter(q => (q.name || "").startsWith(mr)));
+        } else if (this.managerRole.toLowerCase().indexOf(mr) !== -1 && mr === 'csr') {
+          this.addToVisibleQueues(allQueues.filter(q => !["sales", "gmb", "internal"].some(prefix => (q.name || "").startsWith(prefix))));
+        }
+      });
+    } else { // Load page normally, if user isn't administrator. 
+      ["sales", "gmb", "internal"].map(managerRole => {
+        if (this._global.user.roles.some(r => r === `IVR_${managerRole.toUpperCase()}_MANAGER`)) {
+          this.addToVisibleQueues(allQueues.filter(q => (q.name || "").startsWith(managerRole)));
+        }
+      });
 
-    ["sales", "gmb", "internal"].map(managerRole => {
-      if (this._global.user.roles.some(r => r === `IVR_${managerRole.toUpperCase()}_MANAGER`)) {
-        this.addToVisibleQueues(allQueues.filter(q => (q.name || "").startsWith(managerRole)));
+      // CSR manager takes care of ALL other queues
+      if (this._global.user.roles.some(r => r === "IVR_CSR_MANAGER")) {
+        this.addToVisibleQueues(allQueues.filter(q => !["sales", "gmb", "internal"].some(prefix => (q.name || "").startsWith(prefix))));
       }
-    });
-
-    // CSR manager takes care of ALL other queues
-    if (this._global.user.roles.some(r => r === "IVR_CSR_MANAGER")) {
-      this.addToVisibleQueues(allQueues.filter(q => !["sales", "gmb", "internal"].some(prefix => (q.name || "").startsWith(prefix))));
     }
-
   }
 
   irTranscriptsExpanded = new Set();
@@ -139,6 +182,23 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
     const config = this.getConfig();
     const ivrQueues = ((config.routingProfile || {}).queues || []).map(q => ({ arn: q.queueARN, name: q.name }));
     this.addToVisibleQueues(ivrQueues);
+  }
+
+  // we should set auto refresh disabled and hide Launch qMenu IVR and reload button
+  toggleShowDateSearch() {
+    this.showDateSearch = !this.showDateSearch;
+    if (this.showDateSearch) {
+      this.needRefreshCtrs = false;
+      this.fromDate = '';
+    } else {
+      this.ivrRecords = [];
+      this.needRefreshCtrs = true;
+      this.refreshCtrs();
+    }
+  }
+
+  isAdmin() {
+    return this._global.user.roles.some(r => r === 'ADMIN');
   }
 
   async refreshCtrs() {
@@ -170,7 +230,7 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
     const orQueries = [];
     const myQueues = {
       "SystemEndpoint.Address": { $in: interestedPhones.map(phone => "+1" + phone) },
-      "Queue.ARN": { $in: this.visibleQueues.map(q => q.arn) }
+      "Queue.Name": { $in: this.visibleQueues.map(q => q.name) }
     };
     orQueries.push(myQueues);
 
@@ -187,7 +247,7 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
       const otherCsrsOutboundCalls = {
         "SystemEndpoint.Address": { $in: myCsrPhoneNumbers.map(phone => "+1" + phone) },
         // "InitiationMethod": "OUTBOUND",
-        "Queue.ARN": { $in: otherCsrQueues.map(q => q.arn) }
+        "Queue.Name": { $in: otherCsrQueues.map(q => q.name) }
       };
 
       orQueries.push(otherCsrsOutboundCalls);
@@ -197,27 +257,52 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
         "SystemEndpoint.Address": { $in: myCsrPhoneNumbers.map(phone => "+1" + phone) },
         "InitiationMethod": { $ne: "OUTBOUND" },
 
-        "Queue.ARN": { $nin: [...this.visibleQueues, ...otherCsrQueues].map(q => q.arn) } // need this for voice-mail etc
+        "Queue.Name": { $nin: [...this.visibleQueues, ...otherCsrQueues].map(q => q.name) } // need this for voice-mail etc
       }
       orQueries.push(allInboundCallsWithoutCsrQueue);
 
     }
-
-    const ctrs = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: "amazon-connect-ctr",
-      query: {
-        $or: orQueries,
-        // _id: { $oid: "5ec2b9ab8210950008cc735e" }
+    const query = {
+      $or: orQueries
+    } as any;
+    // enable search IVR records by date
+    if (this.showDateSearch) {
+      if (!this.fromDate) {
+        return this._global.publishAlert(AlertType.Danger, "Please input a correct time date format!");
+      }
+      this.ivrRecords = [];
+      const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.fromDate + " 00:00:00.000"), 'America/New_York');
+      const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.fromDate + " 23:59:59.999"), 'America/New_York');
+      // query only one day's data, using EST Time
+      query['$and'] = [{
+        createdAt: {
+          // 2021-10-18T00:00:00.000Z
+          $gte: utcf.valueOf()
+        }
       },
-      projection: projection,
-      sort: {
-        createdAt: -1
-      },
-      limit: 1000
-    }).toPromise();
+      {
+        createdAt: {
+          // 2021-10-18T23:59:59.999Z
+          $lte: utct.valueOf()
+        }
+      }];
+    }
+    let ctrs;
+    try {
+      ctrs = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: "amazon-connect-ctr",
+        query: query,
+        projection: projection,
+        sort: {
+          createdAt: -1
+        },
+        limit: 1000
+      }).toPromise();
+    } catch (error) {
+      this._global.publishAlert(AlertType.Danger, `Current user has many IVR roles so that page can't load! Please use admin view mode.`);
+    }
 
     ctrs.sort((c2, c1) => new Date(c1.InitiationTimestamp).valueOf() - new Date(c2.InitiationTimestamp).valueOf());
-
     const visibleCtrs = ctrs; //.filter(ctr => !ctr.Queue || this.visibleQueues.some(queue => queue.arn === ctr.Queue.ARN));
     const ivrRecords = visibleCtrs.map(ctr => IvrRecord.parse(ctr));
 
@@ -289,7 +374,7 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.setIvrAgent();
     this.timer = setInterval(_ => {
-      if(this.needRefreshCtrs){ // to control whether auto refresh IVR.
+      if (this.needRefreshCtrs) { // to control whether auto refresh IVR.
         this.now = new Date();
         // refresh every 3 minutes
         if (!this.lastRefreshed || this.now.valueOf() - this.lastRefreshed.valueOf() > this.refreshDataInterval) {

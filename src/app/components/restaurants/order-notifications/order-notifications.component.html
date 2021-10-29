@@ -70,7 +70,7 @@
   </button>
   <h4 class="text-center">{{removable ? 'Edit Notification' : 'Define New Notification'}}</h4>
   <q-form-builder [object]="notificationInEditing" [showDelete]="removable" (change)="updateFormEditor()"
-    [fieldDescriptors]="notificationFieldDescriptors" (submit)="submit($event)" (cancel)="cancel($event)"
+    [fieldDescriptors]="notificationFieldDescriptors" (submit)="submit($event)" (cancel)="cancel()"
     (remove)="remove($event)">
 
     <div class="form-group pb-3" *ngIf="notificationInEditing.channel?.type === 'phoenix'">

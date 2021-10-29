@@ -54,7 +54,6 @@ export class RestaurantMapComponent implements OnInit {
     autocomplete.addListener('place_changed', () => {
       const place = autocomplete.getPlace();
       this.map.setCenter(place.geometry.location);
-      this.searchByAddress(place.geometry.location);
     });
   }
 
@@ -254,16 +253,6 @@ export class RestaurantMapComponent implements OnInit {
     this.placeService.textSearch({
       location: this.map.getCenter(), radius: 5000,
       query: this.keyword, type: ['restaurant']
-    }, (r, s, p) => this.searchCallback(r, s, p, list));
-  }
-
-  searchByAddress(location) {
-    this.clearMap(this.searchedMarkers);
-    let list = [];
-    this.loading = true;
-    this.placeService.textSearch({
-      query: 'restaurant',
-      location, radius: 5000, type: ['restaurant']
     }, (r, s, p) => this.searchCallback(r, s, p, list));
   }
 

@@ -3808,7 +3808,7 @@ export class DbScriptsComponent implements OnInit {
     console.log('closedRT', closedRT)
   }
 
-  // migrateOrderNotifications will migrate channel data for up to 10,000 RTs at a time. It is safe to run multiple times, 
+  // migrateOrderNotifications will migrate channel data for up to 10,000 RTs at a time. It is safe to run multiple times,
   // because it only ever attempts to operate on RTs that do not already have orderNotifications
   async migrateOrderNotifications() {
     let updatedCount = 0;
