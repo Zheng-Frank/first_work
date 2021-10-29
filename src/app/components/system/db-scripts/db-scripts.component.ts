@@ -3841,7 +3841,7 @@ export class DbScriptsComponent implements OnInit {
       console.log("batch ", batches.indexOf(batch), ' of ', batches.length);
       try {
         const pcQuery = {
-          "restaurant._id": { $in: [...batch.map(r => r._id.toString())] }
+          "restaurant._id": { $in: batch.map(r => r._id.toString()) }
         }
         const allPrintClients = await this._api.get(environment.qmenuApiUrl + "generic", {
           resource: "print-client",
