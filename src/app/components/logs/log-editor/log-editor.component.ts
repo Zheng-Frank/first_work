@@ -239,8 +239,13 @@ export class LogEditorComponent implements OnInit {
   toggleInsistedLink() {
     this.log.type === 'cleanup-insisted' ? this.log.type = undefined : this.log.type = 'cleanup-insisted';
   }
+
   toggleWeirdDataCleanUp(){
     this.log.type === 'weird-data-cleanup' ? this.log.type = undefined : this.log.type = 'weird-data-cleanup';
+  }
+
+  toggleVIPFollowup(){
+    this.log.type === 'vip-follow-up' ? this.log.type = undefined : this.log.type = 'vip-follow-up';
   }
 
 }

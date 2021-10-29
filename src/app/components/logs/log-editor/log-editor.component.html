@@ -136,8 +136,8 @@
   </div>
   <div class="mb-3">
     <div class="form-check">
-      <input class="form-check-input" type="checkbox" id="id-weird-data-cleanup" [checked]="log.type === 'weird-data-cleanup'"
-        (change)='toggleWeirdDataCleanUp()'>
+      <input class="form-check-input" type="checkbox" id="id-weird-data-cleanup"
+        [checked]="log.type === 'weird-data-cleanup'" (change)='toggleWeirdDataCleanUp()'>
       <label class="form-check-label" for="id-weird-data-cleanup">Weird Data Cleanup</label>
     </div>
   </div>
@@ -166,20 +166,28 @@
     </div>
   </div>
 
-  <h6 class="text-danger mb-3" style="cursor: pointer" (click)="showSpecialized = !showSpecialized">{{!showSpecialized ? 'Show' : 'Hide'}} Specialized...</h6>
+  <h6 class="text-danger mb-3" style="cursor: pointer" (click)="showSpecialized = !showSpecialized">
+    {{!showSpecialized ? 'Show' : 'Hide'}} Specialized...</h6>
   <div *qIf="showSpecialized">
     <div class="mb-3 ml-3">
       <div class="form-check">
-        <input class="form-check-input" type="checkbox" id="id-qr-dine-in"
-               [checked]="log.type === 'qr-dine-in'" (change)='toggleQRDineIn()'>
+        <input class="form-check-input" type="checkbox" id="id-qr-dine-in" [checked]="log.type === 'qr-dine-in'"
+          (change)='toggleQRDineIn()'>
         <label class="form-check-label" for="id-qr-dine-in">QR Dine-In</label>
       </div>
     </div>
     <div class="mb-3 ml-3">
       <div class="form-check">
         <input class="form-check-input" type="checkbox" id="id-cleanup-insisted"
-               [checked]="log.type === 'cleanup-insisted'" (change)='toggleInsistedLink()'>
+          [checked]="log.type === 'cleanup-insisted'" (change)='toggleInsistedLink()'>
         <label class="form-check-label" for="id-cleanup-insisted">Insisted Link Cleanup</label>
+      </div>
+    </div>
+    <div class="mb-3 ml-3">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="id-vip-follow-up"
+          [checked]="log.type === 'vip-follow-up'" (change)='toggleVIPFollowup()'>
+        <label class="form-check-label" for="id-vip-follow-up">VIP Followup</label>
       </div>
     </div>
   </div>

@@ -35,6 +35,7 @@ export class OtherModulesComponent implements OnInit {
     {name: 'Excess SMS Notifications', route: 'excess-sms-notifications-rts', authRoles: ['CSR']},
     {name: 'Restaurants by Provider', route: 'rts-by-provider', authRoles: ['CSR', 'MARKETER']},
     {name: 'IVR Dashboard', route: 'ivr-agent-analysis', authRoles: ['CSR', 'MARKETER']},
+    {name: 'VIP Restaurants', route: 'vip-rts', authRoles: ['CSR']},
   ];
 
   constructor(private _global: GlobalService) {
