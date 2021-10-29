@@ -3824,15 +3824,6 @@ export class DbScriptsComponent implements OnInit {
       }
     }, 5000);
 
-    restaurants = restaurants.filter(r => {
-      let id = r._id.toString();
-      const rtArray = [
-        "5a2b1654f159fa1400902cc9", "58884aaf7945f91100bad519", "60db92ef5f322f680d0d0ff6", "57e9574c1d1ef2110045e665", "5ad71728ca38201400531812"
-      ];
-
-      return rtArray.includes(id);
-    })
-
     const batchSize = 300; // larger batch sizes cause Mongo query errors
     const batches = Array(Math.ceil(restaurants.length / batchSize)).fill(0).map((i, index) => restaurants.slice(index * batchSize, (index + 1) * batchSize));
 
