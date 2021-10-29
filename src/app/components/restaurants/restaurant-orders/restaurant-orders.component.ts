@@ -991,16 +991,28 @@ export class RestaurantOrdersComponent implements OnInit {
       return menu.disabled !== true;
     });
 
+    const hasSufficientMis = enabledMis >= 3;
     // RT must satisfy one of these two conditions for receiving notification of new order
     // for purposes of test order it doesn't matter if RT has new orderNotifications data structure or uses old "channels" notifications
-    const hasOrderNotifications = (this.restaurant.orderNotifications || []).length > 0;
-    const hasChannelNotifications = (this.restaurant.channels || []).filter(channel => (channel.notifications || []).includes('Order')).length > 0;
+    const hasOrderNotifications = (this.restaurant.orderNotifications || []).length > 0 || (this.restaurant.channels || []).filter(channel => (channel.notifications || []).includes('Order')).length > 0;
+    // const hasChannelNotifications = (this.restaurant.channels || []).filter(channel => (channel.notifications || []).includes('Order')).length > 0;
 
     const hasServiceSettings = (this.restaurant.serviceSettings || []).filter(setting => (setting.paymentMethods || []).length > 0).length > 0;
 
-    if (enabledMis >= 3 && (hasOrderNotifications || hasChannelNotifications) && hasServiceSettings) {
+    if (hasSufficientMis && hasOrderNotifications && hasServiceSettings) {
       // open a browser window for test order
       window.open(`${environment.customerPWAUrl}${this.restaurant.alias}/menu/${enabledMenus[0].id}`);
+    } else {
+      const errors = [
+        { name: "hasSufficientMis", value: hasSufficientMis, message: "RT does not have enough enabled menu items" },
+        { name: "hasOrderNotifications", value: hasOrderNotifications, message: "RT does not have order notifications enabled" },
+        { name: "hasServiceSettings", value: hasServiceSettings, message: "RT does not have service settings enabled" }
+      ]
+        .filter(el => el.value === false)
+        .map(el => el.message);
+
+      console.log(errors);
+      this._global.publishAlert(AlertType.Danger, 'Test Order Error(s): ' + errors.join(', '));
     }
   }
 
