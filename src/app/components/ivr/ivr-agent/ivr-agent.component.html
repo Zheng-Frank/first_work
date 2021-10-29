@@ -87,9 +87,7 @@
       <th>{{ i + 1 }}</th>
       <td style="width:10%;">
         {{ ir.initiatedAt | adjustedDate : 'MM/dd/yy h:mm a' : 'America/New_York'}}<br />
-        <span class="my-text-small text-muted">{{
-          ir.duration ? ir.duration + "s" : "-"
-        }}</span>
+        <label>{{ ir.initiatedAt | ago: now }} (Duration: {{ir.duration ? ir.duration + "s" : "-"}})</label>
       </td>
       <td class="text-nowrap">
         <strong>{{ ir.customerEndpoint | tel }}</strong>
