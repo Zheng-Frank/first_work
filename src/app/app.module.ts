@@ -251,6 +251,7 @@ import { OrderlessSignupsComponent } from './components/monitoring/orderless-sig
 import { ExcessSmsNotificationsRtsComponent } from './components/monitoring/excess-sms-notifications-rts/excess-sms-notifications-rts.component';
 import { SendFaxComponent } from './components/send-fax/send-fax.component';
 import { RtsByProviderComponent } from './components/monitoring/rts-by-provider/rts-by-provider.component';
+import { MonitoringVipRestaurantsComponent } from './components/monitoring/monitoring-vip-restaurants/monitoring-vip-restaurants.component';
 
 
 
@@ -472,7 +473,8 @@ import { RtsByProviderComponent } from './components/monitoring/rts-by-provider/
     OrderlessSignupsComponent,
     ExcessSmsNotificationsRtsComponent,
     SendFaxComponent,
-    RtsByProviderComponent
+    RtsByProviderComponent,
+    MonitoringVipRestaurantsComponent
   ],
   imports: [
     BrowserModule,

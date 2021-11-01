@@ -1,0 +1,42 @@
+<div class="card">
+  <h2 class="card-title m-3">
+    <h1 class="text-center">VIP Restaurants ({{vipRTs.length || 0}})</h1>
+  </h2>
+  <div class="card-body">
+    <q-table [rows]="vipRTs" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
+      [pageSize]="100000">
+      <tr *tableRowTemplate="let r;">
+        <td>{{vipRTs.indexOf(r) + 1}}</td>
+        <td>
+          <a routerLink="/restaurants/{{r['_id']}}">{{r.name}} </a><br>
+          <span>{{r._id}}</span>
+        </td>
+        <td style="width:60%;">
+          <table class="table table-sm">
+            <tr>
+              <th>User</th>
+              <th>Time</th>
+              <th>Problem</th>
+              <th>Response</th>
+            </tr>
+            <ng-container *ngFor="let log of r.logs">
+              <tr *ngIf="log.type === 'vip-follow-up'">
+                <td>{{log.username}}</td>
+                <td>{{log.time | adjustedDate : 'MMM d h:mm a' : r.googleAddress.timezone}}</td>
+                <td>{{log.problem}}</td>
+                <td>{{log.response}}</td>
+              </tr>
+            </ng-container>
+          </table>
+          <div>
+            <button class="btn btn-primary btn-sm" (click)="addLog(r)"><i class="fas fa-plus"></i>Add Log</button>
+          </div>
+        </td>
+    </q-table>
+  </div>
+  
+<q-modal #logEditingModal>
+    <app-log-editor [restaurant]="activeRestaurant" [restaurantList]="[]" [log]="logInEditing"
+      (success)="onSuccessAddLog($event)" (cancel)="onCancelAddLog()"></app-log-editor>
+  </q-modal>
+</div>

@@ -1,3 +1,4 @@
+import { MonitoringVipRestaurantsComponent } from './components/monitoring/monitoring-vip-restaurants/monitoring-vip-restaurants.component';
 /* tslint:disable:max-line-length */
 import { ApiLogsDashboardComponent } from './components/monitoring/api-logs-dashboard/api-logs-dashboard.component';
 import { SeoTrackingComponent } from './components/monitoring/seo-tracking/seo-tracking.component';
@@ -184,6 +185,7 @@ const routes: Routes = [
   { path: 'orderless-signups', component: OrderlessSignupsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'excess-sms-notifications-rts', component: ExcessSmsNotificationsRtsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'rts-by-provider', component: RtsByProviderComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'MARKETER'] } },
+  { path: 'vip-rts', component: MonitoringVipRestaurantsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: '**', redirectTo: '/home' }
 
 ];

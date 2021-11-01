@@ -16,10 +16,8 @@
     <tr *tableRowTemplate="let ir;" class="{{ ir.shouldCallback ? 'alert-danger' : '' }}">
       <th>{{filteredIvrRecords.indexOf(ir) + 1}}</th>
       <td>
-        {{ ir.initiatedAt | ago: now }}<br />
-        <span class="my-text-small text-muted">{{
-          ir.duration ? ir.duration + "s" : "-"
-        }}</span>
+        {{ ir.initiatedAt | adjustedDate : 'MM/dd/yy h:mm a' : 'America/New_York'}}<br />
+        <label>{{ ir.initiatedAt | ago: now }} (Duration: {{ir.duration ? ir.duration + "s" : "-"}})</label>
       </td>
       <td class="text-nowrap">
         <strong>{{ ir.customerEndpoint | tel }}</strong>

@@ -33,7 +33,9 @@ export class OtherModulesComponent implements OnInit {
     {name: 'Leads (Old)', route: 'leads-old', authRoles: ['MARKETER']},
     {name: 'My Leads (Old)', route: 'my-leads-old', authRoles: ['MARKETER']},
     {name: 'Excess SMS Notifications', route: 'excess-sms-notifications-rts', authRoles: ['CSR']},
-    {name: 'Restaurants by Provider', route: 'rts-by-provider', authRoles: ['CSR', 'MARKETER']}
+    {name: 'Restaurants by Provider', route: 'rts-by-provider', authRoles: ['CSR', 'MARKETER']},
+    {name: 'IVR Dashboard', route: 'ivr-agent-analysis', authRoles: ['CSR', 'MARKETER']},
+    {name: 'VIP Restaurants', route: 'vip-rts', authRoles: ['CSR']},
   ];
 
   constructor(private _global: GlobalService) {

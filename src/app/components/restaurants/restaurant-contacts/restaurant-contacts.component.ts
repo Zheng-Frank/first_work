@@ -18,7 +18,7 @@ import { FormSubmit } from '@qmenu/ui/classes';
 })
 export class RestaurantContactsComponent implements OnInit, OnChanges {
 
-  @Input() restaurant: Restaurant;
+  @Input() restaurant;
   @Input() viewOnly = false;
   @Output() updateRestaurant = new EventEmitter();
 
@@ -155,7 +155,7 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
         // this block of code will delete the 'Order' entry from a given channel's notifications array if the following conditions are met:
         // 1) the restaurant has at least one orderNotification
         // 2) no orderNotifications are associated with this channel (by being in this else block, we already know this condition is satisified)
-        const channelOrderNotificationIndex = ch.notifications.indexOf('Order');
+        const channelOrderNotificationIndex = (ch.notifications || []).indexOf('Order');
         if (channelOrderNotificationIndex >= 0 && notifications.length >= 1) {
           ch.notifications.splice(channelOrderNotificationIndex, 1);
         }

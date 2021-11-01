@@ -6,8 +6,7 @@
         <td colspan="2">
 
           <span *ngIf="n.miInstance.number">{{n.miInstance.number}} </span>
-          <strong>{{n.miInstance.name}}</strong><span *ngIf="n.miInstance.sizeOptions.length > 1"
-            class="text-lowercase"><small> - {{n.getSizeChoice()}}</small></span>
+          <strong>{{n.miInstance.name}}</strong><span *ngIf="n.miInstance.sizeOptions.length > 1"><small> - {{n.getSizeChoice()}}</small></span>
           <div>
             <small> {{n.menuName}}&rarr;{{n.mcInstance.name}}</small>
           </div>
