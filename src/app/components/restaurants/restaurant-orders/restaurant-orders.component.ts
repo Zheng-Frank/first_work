@@ -975,7 +975,6 @@ export class RestaurantOrdersComponent implements OnInit {
   }
 
   async testOrder() {
-    // count total number of enabled mis
     const enabledMenus = (this.restaurant.menus || []).filter(menu => {
       menu.mcs = (menu.mcs || []).filter(mc => {
         mc.mis = (mc.mis || []).filter(mi => mi.disabled !== true);
@@ -993,6 +992,7 @@ export class RestaurantOrdersComponent implements OnInit {
             miCount += 1;
           });
         });
+        // we have defined a 'suitable menu' as one that has at least 3 enabled menu items, and is not for dine-in only
         if (miCount >= 3 && menu.targetCustomer !== 'DINE_IN_ONLY') {
           return suitableMenu = menu;
         }
@@ -1000,6 +1000,7 @@ export class RestaurantOrdersComponent implements OnInit {
       return suitableMenu;
     }
     const suitableMenu = findSuitableMenu(enabledMenus);
+
     // for purposes of test order it doesn't matter if RT has new orderNotifications data structure or uses old "channels" notifications
     const hasOrderNotifications = (this.restaurant.orderNotifications || []).length > 0 || (this.restaurant.channels || []).filter(channel => (channel.notifications || []).includes('Order')).length > 0;
     // const hasChannelNotifications = (this.restaurant.channels || []).filter(channel => (channel.notifications || []).includes('Order')).length > 0;
@@ -1047,7 +1048,6 @@ export class RestaurantOrdersComponent implements OnInit {
 
   createSampleMenu() {
     let sampleMenu = require('../menu-editor/sample_menu.json');
-    console.log(sampleMenu);
     sampleMenu.name = 'Example Menu';
     sampleMenu.id = new Date().valueOf();
     sampleMenu.mcs.map((mc, index) => {
@@ -1060,7 +1060,6 @@ export class RestaurantOrdersComponent implements OnInit {
     });
     sampleMenu = new Menu(sampleMenu);
     return sampleMenu;
-
   }
 
 }
