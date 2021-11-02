@@ -84,10 +84,10 @@ import { LeadDashboard2Component } from './components/leads/lead-dashboard2/lead
 import { MyLeads2Component } from './components/leads/my-leads2/my-leads2.component';
 import { CleanMenusComponent } from './components/monitoring/clean-menus/clean-menus.component';
 import { FraudDetectionComponent } from './components/fraud-detection/fraud-detection.component';
-import {CleanInsistedLinksComponent} from "./components/clean-insisted-links/clean-insisted-links.component";
-import {OrderlessSignupsComponent} from './components/monitoring/orderless-signups/orderless-signups.component';
+import { CleanInsistedLinksComponent } from "./components/clean-insisted-links/clean-insisted-links.component";
+import { OrderlessSignupsComponent } from './components/monitoring/orderless-signups/orderless-signups.component';
 import { ExcessSmsNotificationsRtsComponent } from './components/monitoring/excess-sms-notifications-rts/excess-sms-notifications-rts.component';
-import {RtsByProviderComponent} from './components/monitoring/rts-by-provider/rts-by-provider.component';
+import { RtsByProviderComponent } from './components/monitoring/rts-by-provider/rts-by-provider.component';
 
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'DEVELOPER'] } },

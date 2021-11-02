@@ -250,6 +250,7 @@ import { PaymentMeansEditorComponent } from './components/restaurants/payment-me
 import { OrderlessSignupsComponent } from './components/monitoring/orderless-signups/orderless-signups.component';
 import { ExcessSmsNotificationsRtsComponent } from './components/monitoring/excess-sms-notifications-rts/excess-sms-notifications-rts.component';
 import { SendFaxComponent } from './components/send-fax/send-fax.component';
+import { SalesMetricsComponent } from './components/sales-metrics/sales-metrics.component';
 import { RtsByProviderComponent } from './components/monitoring/rts-by-provider/rts-by-provider.component';
 import { MonitoringVipRestaurantsComponent } from './components/monitoring/monitoring-vip-restaurants/monitoring-vip-restaurants.component';
 
@@ -473,8 +474,10 @@ import { MonitoringVipRestaurantsComponent } from './components/monitoring/monit
     OrderlessSignupsComponent,
     ExcessSmsNotificationsRtsComponent,
     SendFaxComponent,
-    RtsByProviderComponent,
+    SalesMetricsComponent,
+    RtsByProviderComponent
     MonitoringVipRestaurantsComponent
+
   ],
   imports: [
     BrowserModule,
