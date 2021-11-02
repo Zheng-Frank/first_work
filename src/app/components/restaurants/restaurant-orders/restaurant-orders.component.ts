@@ -2,7 +2,7 @@ import { Helper } from 'src/app/classes/helper';
 import { Log } from 'src/app/classes/log';
 import { Component, OnInit, ViewChild, Input } from '@angular/core';
 import { EventEmitter, NgZone } from '@angular/core';
-import { Restaurant, Order, TimezoneHelper } from '@qmenu/ui';
+import { Restaurant, Order, TimezoneHelper, Menu } from '@qmenu/ui';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
@@ -886,13 +886,13 @@ export class RestaurantOrdersComponent implements OnInit {
   }
 
   async showNotificationHistory(orderId) {
-    this.notificationHistory = await this._api.get(environment.qmenuApiUrl +  "generic", {
+    this.notificationHistory = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "job",
-      query: {"params.orderId": orderId, 'logs.0': {$exists: true}},
+      query: { "params.orderId": orderId, 'logs.0': { $exists: true } },
       projection: {
         name: 1, params: 1, createdAt: 1, logs: 1, endStatuses: 1
       },
-      sort: {createdAt: -1},
+      sort: { createdAt: -1 },
       limit: 100
     }).toPromise();
     this.notificationHistory.sort((x, y) => new Date(y.createdAt).valueOf() - new Date(x.createdAt).valueOf());
@@ -961,7 +961,7 @@ export class RestaurantOrdersComponent implements OnInit {
     const formatLine = prefix => `${prefix} ${to}`;
     return {
       "new-order": formatLine("Call made"),
-      "send-order-email" : formatLine("Email sent"),
+      "send-order-email": formatLine("Email sent"),
       "send-order-sms": formatLine("SMS sent"),
       "send-order-fax": formatLine("Fax sent"),
       "send-order-voice": formatLine("Call made"),
@@ -973,4 +973,93 @@ export class RestaurantOrdersComponent implements OnInit {
       "send-phoenix": "Printout sent (phoenix)"
     }[name] || name;
   }
+
+  async testOrder() {
+    const enabledMenus = (this.restaurant.menus || []).filter(menu => {
+      menu.mcs = (menu.mcs || []).filter(mc => {
+        mc.mis = (mc.mis || []).filter(mi => mi.disabled !== true);
+        return mc.disabled !== true;
+      });
+      return menu.disabled !== true;
+    });
+
+    const findSuitableMenu = function (enabledMenus) {
+      let suitableMenu = null;
+      enabledMenus.forEach(menu => {
+        let miCount = 0;
+        (menu.mcs || []).forEach(mc => {
+          (mc.mis || []).forEach(mi => {
+            miCount += 1;
+          });
+        });
+        // we have defined a 'suitable menu' as one that has at least 3 enabled menu items, and is not for dine-in only
+        if (miCount >= 3 && menu.targetCustomer !== 'DINE_IN_ONLY') {
+          return suitableMenu = menu;
+        }
+      });
+      return suitableMenu;
+    }
+    const suitableMenu = findSuitableMenu(enabledMenus);
+
+    // for purposes of test order it doesn't matter if RT has new orderNotifications data structure or uses old "channels" notifications
+    const hasOrderNotifications = (this.restaurant.orderNotifications || []).length > 0 || (this.restaurant.channels || []).filter(channel => (channel.notifications || []).includes('Order')).length > 0;
+    // const hasChannelNotifications = (this.restaurant.channels || []).filter(channel => (channel.notifications || []).includes('Order')).length > 0;
+
+    const hasServiceSettings = (this.restaurant.serviceSettings || []).filter(setting => (setting.paymentMethods || []).length > 0).length > 0;
+
+    if (suitableMenu && hasOrderNotifications && hasServiceSettings) {
+      // open a browser window for test order, and direct it to the id of the suitable menu identified above
+      window.open(`${environment.customerPWAUrl}${this.restaurant.alias}/menu/${suitableMenu.id}`);
+    } else {
+      let errors = [
+        { name: "suitableMenu", value: suitableMenu, message: "RT does not have a suitable menu for placing a test order" },
+        { name: "hasOrderNotifications", value: hasOrderNotifications, message: "RT does not have order notifications enabled" },
+        { name: "hasServiceSettings", value: hasServiceSettings, message: "RT does not have service settings enabled" }
+      ]
+        .filter(el => !el.value);
+
+      if (!suitableMenu) {
+        // create a new sample menu and patch it to db
+        const newMenu = this.createSampleMenu();
+        const patchPairs = [];
+        const menus = this.restaurant.menus || [];
+        menus.push(newMenu);
+
+        patchPairs.push({
+          old: { _id: this.restaurant._id },
+          new: { _id: this.restaurant._id, menus: menus }
+        });
+
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchPairs).toPromise();
+        this._global.publishAlert(AlertType.Info, 'Sample Menu Created for Test Order');
+
+        if (errors.length === 1) {
+          // if only error was the missing menu, we can now navigate to it and continue with the test order
+          window.open(`${environment.customerPWAUrl}${this.restaurant.alias}/menu/${newMenu.id}`);
+          return;
+        }
+        // otherwise, filter out the menu error and continue to display the rest of the errors to the user
+        errors = errors.filter(el => el.name !== 'suitableMenu');
+      }
+
+      this._global.publishAlert(AlertType.Danger, 'Test Order Error(s): ' + errors.map(el => el.message).join(', '));
+    }
+  }
+
+  createSampleMenu() {
+    let sampleMenu = require('../menu-editor/sample_menu.json');
+    sampleMenu.name = 'Example Menu';
+    sampleMenu.id = new Date().valueOf();
+    sampleMenu.mcs.map((mc, index) => {
+      let subid = this.restaurant._id.substring(3, 6);
+      mc.id = mc.id + index + subid + '';
+      mc.mis.map(mi => {
+        mi.id += mi.id + index + subid + '';
+        mi.category = mc.id;
+      });
+    });
+    sampleMenu = new Menu(sampleMenu);
+    return sampleMenu;
+  }
+
 }
