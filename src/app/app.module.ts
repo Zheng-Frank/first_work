@@ -475,9 +475,8 @@ import { MonitoringVipRestaurantsComponent } from './components/monitoring/monit
     ExcessSmsNotificationsRtsComponent,
     SendFaxComponent,
     SalesMetricsComponent,
-    RtsByProviderComponent
+    RtsByProviderComponent,
     MonitoringVipRestaurantsComponent
-
   ],
   imports: [
     BrowserModule,
