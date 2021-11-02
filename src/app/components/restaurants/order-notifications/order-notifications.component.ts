@@ -73,6 +73,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
       { object: "esc", text: "esc", selected: false },
       { object: "pdf", text: "pdf", selected: false },
       { object: "png2esc", text: "png2esc", selected: false },
+      { object: "gdi", text: "gdi", selected: false },
     ]
   };
 
