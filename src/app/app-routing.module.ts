@@ -185,7 +185,7 @@ const routes: Routes = [
   { path: 'orderless-signups', component: OrderlessSignupsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'excess-sms-notifications-rts', component: ExcessSmsNotificationsRtsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'rts-by-provider', component: RtsByProviderComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'MARKETER'] } },
-  { path: 'vip-rts', component: MonitoringVipRestaurantsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  { path: 'vip-rts', component: MonitoringVipRestaurantsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: '**', redirectTo: '/home' }
 
 ];
