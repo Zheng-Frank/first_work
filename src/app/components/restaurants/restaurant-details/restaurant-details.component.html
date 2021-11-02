@@ -168,13 +168,13 @@
           <app-restaurant-promotions [restaurant]="restaurant"></app-restaurant-promotions>
         </div>
 
-        <div class="col-xl-6" *ngIf="isSectionVisible('cloudPrinting')">
+        <!-- <div class="col-xl-6" *ngIf="isSectionVisible('cloudPrinting')">
           <app-cloud-printing-settings [restaurant]="restaurant"></app-cloud-printing-settings>
-        </div>
+        </div> -->
 
-        <div class="col-xl-6" *ngIf="isSectionVisible('faxSettings')">
+        <!-- <div class="col-xl-6" *ngIf="isSectionVisible('faxSettings')">
           <app-restaurant-fax-settings [restaurant]="restaurant"></app-restaurant-fax-settings>
-        </div>
+        </div> -->
 
         <div class="col-xl-6" *ngIf="isSectionVisible('contacts')">
           <app-restaurant-contacts (updateRestaurant)="updateRestaurant($event)" [restaurant]="restaurant"></app-restaurant-contacts>

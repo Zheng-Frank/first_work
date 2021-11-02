@@ -252,6 +252,7 @@ import { ExcessSmsNotificationsRtsComponent } from './components/monitoring/exce
 import { SendFaxComponent } from './components/send-fax/send-fax.component';
 import { SalesMetricsComponent } from './components/sales-metrics/sales-metrics.component';
 import { RtsByProviderComponent } from './components/monitoring/rts-by-provider/rts-by-provider.component';
+import { MonitoringVipRestaurantsComponent } from './components/monitoring/monitoring-vip-restaurants/monitoring-vip-restaurants.component';
 
 
 
@@ -475,6 +476,8 @@ import { RtsByProviderComponent } from './components/monitoring/rts-by-provider/
     SendFaxComponent,
     SalesMetricsComponent,
     RtsByProviderComponent
+    MonitoringVipRestaurantsComponent
+
   ],
   imports: [
     BrowserModule,
