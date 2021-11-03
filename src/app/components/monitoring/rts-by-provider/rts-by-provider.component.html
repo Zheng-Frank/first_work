@@ -14,7 +14,7 @@
     </div>
     <div class="filter-input mb-3">
       <label class="mr-3">Minimum providers: </label>
-      <input class="form-control mr-3" type="number" [ngModel]="minProviderCount" />
+      <input class="form-control mr-3" type="number" min="1" [max]="providers.length" [(ngModel)]="minProviderCount" />
       <button class="btn btn-primary" (click)="filter()">Search</button>
     </div>
     <table class="table">
