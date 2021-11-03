@@ -18,7 +18,7 @@ export class MenuCleanupComponent implements OnInit {
   @Input() translations;
   @Output() cancel = new EventEmitter();
   @Output() save = new EventEmitter();
-  @Input() handleIDsOnly = true;
+  @Input() handleIDsOnly = false;
 
   flattened = [];
   copied = [];

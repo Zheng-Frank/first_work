@@ -174,7 +174,7 @@
     <h4 class="header-title text-center">
     Preview Extractions and Translations
     <label class="header-checkbox">
-      <input type="checkbox" (click)="cleanupComponent.collect()" [(ngModel)]="menuCleanHandleIDsOnly"> Only handle IDs
+      <input type="checkbox" (change)="handleIDsOnlyChange()" [(ngModel)]="menuCleanHandleIDsOnly"> Only handle IDs
     </label>
   </h4>
     <hr>
