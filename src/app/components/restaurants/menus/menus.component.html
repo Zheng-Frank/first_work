@@ -118,7 +118,7 @@
   <div style="width: 100%; overflow: hidden">
     <div style="width: 100%; overflow: auto;">
       <ul class="nav nav-tabs app-tab" role="tablist">
-        <li *ngFor="let menu of getMenus()" class="nav-item">
+        <li *ngFor="let menu of getMenus()" class="nav-item {{menu.disabled ? 'app-muted' : ''}}">
           <a (click)=setActiveId(menu.id) class="nav-link {{getActiveId() == menu.id ? 'active' : 'text-primary'}}"
             data-toggle="tab" role="button">{{menu.name}}
             <ng-container *ngIf="menu.targetCustomer !== 'DINE_IN_ONLY'">
@@ -174,7 +174,7 @@
     <h4 class="header-title text-center">
     Preview Extractions and Translations
     <label class="header-checkbox">
-      <input type="checkbox" (click)="cleanupComponent.collect()" [(ngModel)]="menuCleanHandleIDsOnly"> Only handle IDs
+      <input type="checkbox" (change)="handleIDsOnlyChange()" [(ngModel)]="menuCleanHandleIDsOnly"> Only handle IDs
     </label>
   </h4>
     <hr>

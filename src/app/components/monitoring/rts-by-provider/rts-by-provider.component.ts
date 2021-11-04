@@ -67,6 +67,7 @@ export class RtsByProviderComponent implements OnInit {
   }
 
   filter() {
+    this.minProviderCount = Math.max(1, this.minProviderCount || 1);
     this.filteredRTs = this.restaurants.filter(rt => rt.providers.length >= this.minProviderCount && this.checkedProviders.every(p => rt.providers.includes(p)));
   }
 

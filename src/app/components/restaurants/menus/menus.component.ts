@@ -51,7 +51,7 @@ export class MenusComponent implements OnInit {
 
   showAdditionalFunctions = false;
   showPromotions = false;
-  menuCleanHandleIDsOnly = true;
+  menuCleanHandleIDsOnly = false;
   menuJson = '';
   isShowMenuItemStats = false;
 
@@ -304,8 +304,15 @@ export class MenusComponent implements OnInit {
     this.apiRequesting = false;
   }
 
+
+  handleIDsOnlyChange() {
+    setTimeout(() => {
+      this.cleanupComponent.collect();
+    }, 0);
+  }
+
   async cleanup() {
-    this.menuCleanHandleIDsOnly = true;
+    this.menuCleanHandleIDsOnly = false;
     this.menuCleanModal.show();
     setTimeout(() => {
       this.cleanupComponent.collect();
@@ -313,7 +320,7 @@ export class MenusComponent implements OnInit {
   }
 
   cleanupCancel() {
-    this.menuCleanHandleIDsOnly = true;
+    this.menuCleanHandleIDsOnly = false;
     this.menuCleanModal.hide();
   }
 

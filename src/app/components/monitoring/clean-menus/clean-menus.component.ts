@@ -23,7 +23,7 @@ export class CleanMenusComponent implements OnInit {
   @ViewChild('previewAutoModal') previewAutoModal: ModalComponent;
   restaurants: Restaurant[] = [];
   restaurant: Restaurant;
-  handleIDsOnly = true;
+  handleIDsOnly = false;
   extractedMcs = [];
 
   async ngOnInit() {
@@ -74,8 +74,14 @@ export class CleanMenusComponent implements OnInit {
       limit: 1
     }).toPromise();
     this.restaurant = restaurant;
-    this.handleIDsOnly = true;
+    this.handleIDsOnly = false;
     this.validateModal.show();
+    setTimeout(() => {
+      this.cleanupComponent.collect();
+    }, 0);
+  }
+
+  handleIDsOnlyChange() {
     setTimeout(() => {
       this.cleanupComponent.collect();
     }, 0);
@@ -86,7 +92,7 @@ export class CleanMenusComponent implements OnInit {
     // @ts-ignore
     this.restaurant = null;
     this.validateModal.hide();
-    this.handleIDsOnly = true;
+    this.handleIDsOnly = false;
   }
 
   async cleanupSave({menus, translations}: any) {
