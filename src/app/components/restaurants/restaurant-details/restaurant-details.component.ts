@@ -3,7 +3,7 @@
  * tabs => sections
  * compbination of role and ownership (agent itself) and timing (eg, +14 days? agent can't see payment means anymore)
  *
- * ADMIN, CSR => everything
+ * ADMIN, CSR, CSR_MANAGER => everything
  * agent itself => mostly everything (except sensitive order info)
  * MARKETER => basic profile
  * MARKETER_INTERNAL => basic profile + contacts + logs
@@ -48,23 +48,23 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   readonly = true;
 
   sectionVisibilityRolesMap = {
-    profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
-    contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER_INTERNAL'],
+    profile: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER'],
+    contacts: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER_INTERNAL'],
     rateSchedules: ['ADMIN', 'RATE_EDITOR'],
-    feeSchedules: ['ADMIN', 'RATE_EDITOR', 'MARKETER', 'CSR'],
-    paymentMeans: ['ACCOUNTANT', 'CSR', 'MARKETER'],
-    serviceSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+    feeSchedules: ['ADMIN', 'RATE_EDITOR', 'MARKETER', 'CSR', 'CSR_MANAGER'],
+    paymentMeans: ['ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER'],
+    serviceSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
     promotions: [],
-    qrSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-    closedHours: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-    cloudPrinting: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-    faxSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-    phones: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-    deliverySettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-    webSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER', 'GMB'],
+    qrSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
+    closedHours: ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
+    cloudPrinting: ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
+    faxSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
+    phones: ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
+    deliverySettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
+    webSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER', 'GMB'],
     restaurantManagedWebSettings: ['ADMIN', 'GMB_SPECIALIST', 'MENU_EDITOR'],
-    restaurantChains: ['ADMIN', 'CSR'],
-    orderNotifications: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER']
+    restaurantChains: ['ADMIN', 'CSR', 'CSR_MANAGER'],
+    orderNotifications: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER']
   };
 
   projections = {
@@ -201,18 +201,18 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
     const tabVisibilityRolesMap = {
-      "Settings": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
-      "GMB": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-      "Menus": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-      "Menu Options": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-      "Coupons": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-      "Orders": ['ADMIN', 'CSR', 'MARKETER'],
-      "Invoices": ['ADMIN', 'ACCOUNTANT', 'CSR'],
-      "Logs": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'],
-      "IVR": ['ADMIN', 'CSR'],
-      "Tasks": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
-      "Diagnostics": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER', 'GMB'],
-      "Others": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'MARKETER'] // make a superset and reorder authority in restaurant other page.
+      "Settings": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER'],
+      "GMB": ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
+      "Menus": ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
+      "Menu Options": ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
+      "Coupons": ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
+      "Orders": ['ADMIN', 'CSR', 'CSR_MANAGER', 'MARKETER'],
+      "Invoices": ['ADMIN', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER'],
+      "Logs": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER'],
+      "IVR": ['ADMIN', 'CSR', 'CSR_MANAGER'],
+      "Tasks": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER', 'GMB'],
+      "Diagnostics": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER', 'GMB'],
+      "Others": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER'] // make a superset and reorder authority in restaurant other page.
     };
 
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
@@ -611,7 +611,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   }
 
   valueVisible() {
-    return ['CSR', 'ADMIN', 'GMB_SPECIALIST'].some(role => this._global.user.roles.includes(role));
+    return ['CSR', 'CSR_MANAGER', 'ADMIN', 'GMB_SPECIALIST'].some(role => this._global.user.roles.includes(role));
   }
 
   displayValue(rt) {
@@ -697,7 +697,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           (rt.gmbOwnerHistory || []).reverse();
           (rt.menus || []).map(menu => (menu.mcs || []).map(mc => mc.mis = (mc.mis || []).filter(mi => mi && mi.name)));
           const canEdit = this._global.user.roles.some(r =>
-            ['ADMIN', 'MENU_EDITOR', 'CSR', 'ACCOUNTANT', 'MARKETER_INTERNAL'].indexOf(r) >= 0) ||
+            ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'ACCOUNTANT', 'MARKETER_INTERNAL'].indexOf(r) >= 0) ||
             (rt.rateSchedules).some(rs => rs.agent === 'invalid') ||
             (rt.rateSchedules || []).some(rs => rs.agent === this._global.user.username);
           this.readonly = !canEdit;
@@ -802,7 +802,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       {
         title: 'Orders',
         route: '/restaurants/' + this.restaurant['_id'] + '/orders',
-        roles: ['ADMIN', 'CSR']
+        roles: ['ADMIN', 'CSR', 'CSR_MANAGER']
       },
       {
         title: 'Invoices',

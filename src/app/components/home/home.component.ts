@@ -171,14 +171,14 @@ export class HomeComponent implements OnInit {
   isVisible(section) {
     const publicSections = ["other-modules"];
     const sectionRolesMap = {
-      ownership: ['ADMIN', 'CSR', 'MENU_EDITOR'],
-      search: ['ADMIN', 'CSR', 'MENU_EDITOR', 'MARKETER'],
+      ownership: ['ADMIN', 'CSR', 'CSR_MANAGER', 'MENU_EDITOR'],
+      search: ['ADMIN', 'CSR', 'CSR_MANAGER', 'MENU_EDITOR', 'MARKETER'],
       "gmb-campaign": ['ADMIN'],
       "bulk-messaging": ['ADMIN'],
-      "courier-availability": ['ADMIN', 'CSR', 'MARKETER'],
-      "send-fax": ["ADMIN", 'CSR', 'MARKETER', 'MARKETER_INTERNAL'],
-      "send-text-message": ['ADMIN', 'CSR', 'MENU_EDITOR', 'MARKETER'],
-      "broadcasting": ['ADMIN', 'CSR'],
+      "courier-availability": ['ADMIN', 'CSR', 'CSR_MANAGER', 'MARKETER'],
+      "send-fax": ["ADMIN", 'CSR', 'CSR_MANAGER', 'MARKETER', 'MARKETER_INTERNAL'],
+      "send-text-message": ['ADMIN', 'CSR', 'CSR_MANAGER', 'MENU_EDITOR', 'MARKETER'],
+      "broadcasting": ['ADMIN', 'CSR', 'CSR_MANAGER'],
     };
     return publicSections.includes(section) || this._global.user.roles.some(r => sectionRolesMap[section].indexOf(r) >= 0);
   }

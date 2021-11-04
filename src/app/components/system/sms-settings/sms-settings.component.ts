@@ -19,6 +19,11 @@ export class SmsSettingsComponent implements OnInit {
 
   }
 
+  isAdmin() {
+    let roles = this._global.user.roles || [];
+    return roles.includes('ADMIN');
+  }
+
   async setDefault(smsProvider) {
     try {
       await this._api.patch(environment.qmenuApiUrl + "generic?resource=system", [

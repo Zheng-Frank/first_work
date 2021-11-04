@@ -15,14 +15,14 @@ export class RestaurantOthersComponent implements OnInit {
   activeTab = 'Settings';
   constructor(private _global: GlobalService) {
     const tabVisibilityRolesMap = {
-      "Translations": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
-      "1099K": ['ADMIN', 'ACCOUNTANT', 'CSR'],
-      "GMB Posts": ['ADMIN', 'MENU_EDITOR', 'CSR'],
-      "Web Template": ['ADMIN', 'MENU_EDITOR', 'CSR'],
-      "Yelp": ['ADMIN', 'MENU_EDITOR', 'CSR', 'MARKETER'],
+      "Translations": ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
+      "1099K": ['ADMIN', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER'],
+      "GMB Posts": ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER'],
+      "Web Template": ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER'],
+      "Yelp": ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
       "API Logs": ['ADMIN'],
-      "SEO Tracking": ['ADMIN', 'CSR'],
-      "Stats": ['ADMIN', 'CSR'],
+      "SEO Tracking": ['ADMIN', 'CSR', 'CSR_MANAGER'],
+      "Stats": ['ADMIN', 'CSR', 'CSR_MANAGER'],
     }
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
   }

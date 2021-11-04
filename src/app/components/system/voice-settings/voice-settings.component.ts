@@ -19,6 +19,11 @@ export class VoiceSettingsComponent implements OnInit {
 
   }
 
+  isAdmin() {
+    let roles = this._global.user.roles || [];
+    return roles.includes('ADMIN');
+  }
+
   async setDefault(voiceProvider) {
     try {
       await this._api.patch(environment.qmenuApiUrl + "generic?resource=system", [

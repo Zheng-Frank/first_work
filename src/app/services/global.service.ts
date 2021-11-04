@@ -21,504 +21,503 @@ export class GlobalService {
   private _user;
   private _menus = [];
   private _superset = [
-    // customer document full object model 
+    // customer document full object model
     {
       dbName: 'customer',
       fullSchema: {},
       example: {}
     },
-    // order document full object model 
+    // order document full object model
     {
       dbName: 'order',
       fullSchema: {},
       example: {}
     },
-    // restaurant document full object model 
+    // restaurant document full object model
     {
       dbName: 'restaurant',
       fullSchema: {},
       example: {}
     },
-    // address document full object model 
+    // address document full object model
     {
       dbName: 'address',
       fullSchema: {},
       example: {}
     },
-    // address_customers__customer_addresses document full object model 
+    // address_customers__customer_addresses document full object model
     {
       dbName: 'address_customers__customer_addresses',
       fullSchema: {},
       example: {}
     },
-    // amazon-connect-ctr document full object model 
+    // amazon-connect-ctr document full object model
     {
       dbName: 'amazon-connect-ctr',
       fullSchema: {},
       example: {}
     },
-    // aanalytic-event document full object model 
+    // aanalytic-event document full object model
     {
       dbName: 'analytic-event',
       fullSchema: {},
       example: {}
     },
-    // apilog document full object model 
+    // apilog document full object model
     {
       dbName: 'apilog',
       fullSchema: {},
       example: {}
     },
-    // bk_event document full object model 
+    // bk_event document full object model
     {
       dbName: 'bk_event',
       fullSchema: {},
       example: {}
     },
-    // bk_invoice document full object model 
+    // bk_invoice document full object model
     {
       dbName: 'bk_invoice',
       fullSchema: {},
       example: {}
     },
-    // bk_job document full object model 
+    // bk_job document full object model
     {
       dbName: 'bk_job',
       fullSchema: {},
       example: {}
     },
-    // broadcast document full object model 
+    // broadcast document full object model
     {
       dbName: 'broadcast',
       fullSchema: {},
       example: {}
     },
-    // bug document full object model 
+    // bug document full object model
     {
       dbName: 'bug',
       fullSchema: {},
       example: {}
     },
-    // bugReport document full object model 
+    // bugReport document full object model
     {
       dbName: 'bugReport',
       fullSchema: {},
       example: {}
     },
-    // chain document full object model 
+    // chain document full object model
     {
       dbName: 'chain',
       fullSchema: {},
       example: {}
     },
-    // courier document full object model 
+    // courier document full object model
     {
       dbName: 'courier',
       fullSchema: {},
       example: {}
     },
-    // creaditcard document full object model 
+    // creaditcard document full object model
     {
       dbName: 'creaditcard',
       fullSchema: {},
       example: {}
     },
-    // csruser document full object model 
+    // csruser document full object model
     {
       dbName: 'csruser',
       fullSchema: {}
     },
-    // cycle document full object model 
+    // cycle document full object model
     {
       dbName: 'cycle',
       fullSchema: {},
       example: {}
     },
-    // diagnostics-log document full object model 
+    // diagnostics-log document full object model
     {
       dbName: 'diagnostics-log',
       fullSchema: {},
       example: {}
     },
-    // dine-in-session document full object model 
+    // dine-in-session document full object model
     {
       dbName: 'dine-in-session',
       fullSchema: {},
       example: {}
     },
-    // distance document full object model 
+    // distance document full object model
     {
       dbName: 'distance',
       fullSchema: {},
       example: {}
     },
-    // domain document full object model 
+    // domain document full object model
     {
       dbName: 'domain',
       fullSchema: {},
       example: {}
     },
-    // event_bk document full object model 
+    // event_bk document full object model
     {
       dbName: 'event_bk',
       fullSchema: {},
       example: {}
     },
-    // event_bk document full object model 
+    // event_bk document full object model
     {
       dbName: 'event_bk',
       fullSchema: {},
       example: {}
     },
-    // event_copy document full object model 
+    // event_copy document full object model
     {
       dbName: 'event_copy',
       fullSchema: {},
       example: {}
     },
-    // event_listener document full object model 
+    // event_listener document full object model
     {
       dbName: 'event_listener',
       fullSchema: {},
       example: {}
     },
-    // event document full object model 
+    // event document full object model
     {
       dbName: 'event',
       fullSchema: {},
       example: {}
     },
-    // execution document full object model 
+    // execution document full object model
     {
       dbName: 'execution',
       fullSchema: {},
       example: {}
     },
-    // executor-event document full object model 
+    // executor-event document full object model
     {
       dbName: 'executor-event',
       fullSchema: {},
       example: {}
     },
-    // executor-event document full object model 
+    // executor-event document full object model
     {
       dbName: 'executor-event',
       fullSchema: {},
       example: {}
     },
-    // executor-event document full object model 
+    // executor-event document full object model
     {
       dbName: 'executor-event',
       fullSchema: {},
       example: {}
     },
-    // fail-order document full object model 
+    // fail-order document full object model
     {
       dbName: 'fail-order',
       fullSchema: {},
       example: {}
     },
-    // fail-postmates document full object model 
+    // fail-postmates document full object model
     {
       dbName: 'fail-postmates',
       fullSchema: {},
       example: {}
     },
-    // fraud document full object model 
+    // fraud document full object model
     {
       dbName: 'fraud',
       fullSchema: {},
       example: {}
     },
-    // gmb-pin-request document full object model 
+    // gmb-pin-request document full object model
     {
       dbName: 'gmb-pin-request',
       fullSchema: {},
       example: {}
     },
-    // gmb document full object model 
+    // gmb document full object model
     {
       dbName: 'gmb',
       fullSchema: {},
       example: {}
     },
-    // gmbAccount-bad document full object model 
+    // gmbAccount-bad document full object model
     {
       dbName: 'gmbAccount-bad',
       fullSchema: {},
       example: {}
     },
-    // gmbAccount document full object model 
+    // gmbAccount document full object model
     {
       dbName: 'gmbAccount',
       fullSchema: {},
       example: {}
     },
-    // gmbBiz document full object model 
+    // gmbBiz document full object model
     {
       dbName: 'gmbBiz',
       fullSchema: {},
       example: {}
     },
-    // gmbRequest document full object model 
+    // gmbRequest document full object model
     {
       dbName: 'gmbRequest',
       fullSchema: {},
       example: {}
     },
-    // google-distance document full object model 
+    // google-distance document full object model
     {
       dbName: 'google-distance',
       fullSchema: {},
       example: {}
     },
-    // googleAddress document full object model 
+    // googleAddress document full object model
     {
       dbName: 'googleAddress',
       fullSchema: {},
       example: {}
     },
-    // image document full object model 
+    // image document full object model
     {
       dbName: 'image',
       fullSchema: {},
       example: {}
     },
-    // imagelookup document full object model 
+    // imagelookup document full object model
     {
       dbName: 'imagelookup',
       fullSchema: {},
       example: {}
     },
-    // invoice document full object model 
+    // invoice document full object model
     {
       dbName: 'invoice',
       fullSchema: {},
       example: {}
     },
-    // job document full object model 
+    // job document full object model
     {
       dbName: 'job',
       fullSchema: {},
       example: {}
     },
-    // key document full object model 
+    // key document full object model
     {
       dbName: 'key',
       fullSchema: {},
       example: {}
     },
-    // log document full object model 
+    // log document full object model
     {
       dbName: 'log',
       fullSchema: {},
       example: {}
     },
-    // menuoption document full object model 
+    // menuoption document full object model
     {
       dbName: 'menuoption',
       fullSchema: {},
       example: {}
     },
-    // my-queue document full object model 
+    // my-queue document full object model
     {
       dbName: 'my-queue',
       fullSchema: {},
       example: {}
     },
-    // objectlabs-system.admin.collections document full object model 
+    // objectlabs-system.admin.collections document full object model
     {
       dbName: 'objectlabs-system.admin.collections',
       fullSchema: {},
       example: {}
     },
-    // objectlabs-system document full object model 
+    // objectlabs-system document full object model
     {
       dbName: 'objectlabs-system',
       fullSchema: {},
       example: {}
     },
-    // order-delivery document full object model 
+    // order-delivery document full object model
     {
       dbName: 'order-delivery',
       fullSchema: {},
       example: {}
     },
-    // orderstatus document full object model 
+    // orderstatus document full object model
     {
       dbName: 'orderstatus',
       fullSchema: {},
       example: {}
     },
-    // payment-gateway document full object model 
+    // payment-gateway document full object model
     {
       dbName: 'payment-gateway',
       fullSchema: {},
       example: {}
     },
-    // payment document full object model 
+    // payment document full object model
     {
       dbName: 'payment',
       fullSchema: {},
       example: {}
     },
-    // postmates document full object model 
+    // postmates document full object model
     {
       dbName: 'postmates',
       fullSchema: {},
       example: {}
     },
-    // print-client document full object model 
+    // print-client document full object model
     {
       dbName: 'print-client',
       fullSchema: {},
       example: {}
     },
-    // product-for-test document full object model 
+    // product-for-test document full object model
     {
       dbName: 'product-for-test',
       fullSchema: {},
       example: {}
     },
-    // pubsub-event document full object model 
+    // pubsub-event document full object model
     {
       dbName: 'pubsub-event',
       fullSchema: {},
       example: {}
     },
-    // pubsub-subscription document full object model 
+    // pubsub-subscription document full object model
     {
       dbName: 'pubsub-subscription',
       fullSchema: {},
       example: {}
     },
-    // resource-listener document full object model 
+    // resource-listener document full object model
     {
       dbName: 'resource-listener',
       fullSchema: {},
       example: {}
     },
-    // restaurant-cycle document full object model 
+    // restaurant-cycle document full object model
     {
       dbName: 'restaurant-cycle',
       fullSchema: {},
       example: {}
     },
-    // routine-script full object model 
+    // routine-script full object model
     {
       dbName: 'routine-script',
       fullSchema: {},
       example: {}
     },
-    // sename-login full object model 
+    // sename-login full object model
     {
       dbName: 'sename-login',
       fullSchema: {},
       example: {}
     },
-    // shorturl full object model 
+    // shorturl full object model
     {
       dbName: 'shorturl',
       fullSchema: {},
       example: {}
     },
-    // smart-restaurant-api-log full object model 
+    // smart-restaurant-api-log full object model
     {
       dbName: 'smart-restaurant-api-log',
       fullSchema: {},
       example: {}
     },
-    // sms-login full object model 
+    // sms-login full object model
     {
       dbName: 'sms-login',
       fullSchema: {},
       example: {}
     },
-    // sms full object model 
+    // sms full object model
     {
       dbName: 'sms',
       fullSchema: {},
       example: {}
     },
-    // sop-instance full object model 
+    // sop-instance full object model
     {
       dbName: 'sop-instance',
       fullSchema: {},
       example: {}
     },
-    // sop full object model 
+    // sop full object model
     {
       dbName: 'sop',
       fullSchema: {},
       example: {}
     },
-    // subscriber-log full object model 
+    // subscriber-log full object model
     {
       dbName: 'subscriber-log',
       fullSchema: {},
       example: {}
     },
-    // system full object model 
+    // system full object model
     {
       dbName: 'system',
       fullSchema: {},
       example: {}
     },
-    // task full object model 
+    // task full object model
     {
       dbName: 'task',
       fullSchema: {},
       example: {}
     },
-    // test full object model 
+    // test full object model
     {
       dbName: 'test',
       fullSchema: {},
       example: {}
     },
-    // user full object model 
+    // user full object model
     {
       dbName: 'user',
       fullSchema: {},
       example: {}
     },
-    // workflow-event full object model 
+    // workflow-event full object model
     {
       dbName: 'workflow-event',
       fullSchema: {},
       example: {}
     },
-    // workflow full object model 
+    // workflow full object model
     {
       dbName: 'workflow',
       fullSchema: {},
       example: {}
     },
-    // ws-connection full object model 
+    // ws-connection full object model
     {
       dbName: 'ws-connection',
       fullSchema: {},
       example: {}
     },
-    // yelp-location full object model 
+    // yelp-location full object model
     {
       dbName: 'yelp-location',
       fullSchema: {},
       example: {}
     },
-    // yelp-request full object model 
+    // yelp-request full object model
     {
       dbName: 'yelp-request',
       fullSchema: {},
       example: {}
     },
   ];
-  ;
-  // this superset is the model of every mongodb document in a super status 
+  // this superset is the model of every mongodb document in a super status
   get superset() {
     return this._superset;
   }
-  // a flag to decide whether show English/Chinese translations,and the switch is closed by default. 
+  // a flag to decide whether show English/Chinese translations,and the switch is closed by default.
   showExplanationsIcon = false;
   // a flag to decide whether change restaurant profile into Chinese.
   languageType = 'English';
@@ -557,37 +556,37 @@ export class GlobalService {
           name: "Routines",
           href: "#/routines",
           fa: "fas fa-hourglass",
-          accessibleRoles: ['ADMIN', 'MARKETING_DIRECTOR', 'MARKETER', 'GMB', 'CSR', 'ACCOUNTANT', 'MENU_EDITOR', 'DRIVER', 'RATE_EDITOR']
+          accessibleRoles: ['ADMIN', 'MARKETING_DIRECTOR', 'MARKETER', 'GMB', 'CSR', 'CSR_MANAGER', 'ACCOUNTANT', 'MENU_EDITOR', 'DRIVER', 'RATE_EDITOR']
         },
         {
           name: "IVR",
           href: "#/ivr/agent",
           fa: "fas fa-user",
-          accessibleRoles: ['ADMIN', 'MARKETING_DIRECTOR', 'MARKETER', 'INVOICE_VIEWER', 'GMB', 'CSR', 'ACCOUNTANT', 'MENU_EDITOR', 'RATE_EDITOR']
+          accessibleRoles: ['ADMIN', 'MARKETING_DIRECTOR', 'MARKETER', 'INVOICE_VIEWER', 'GMB', 'CSR', 'CSR_MANAGER', 'ACCOUNTANT', 'MENU_EDITOR', 'RATE_EDITOR']
         },
         {
           name: "ONBOARDING",
           href: "#/onboarding",
           fa: "fas fa-utensils",
-          accessibleRoles: ['ADMIN', 'MARKETING_DIRECTOR', 'MARKETER', 'INVOICE_VIEWER', 'GMB', 'CSR', 'ACCOUNTANT', 'MENU_EDITOR', 'RATE_EDITOR']
+          accessibleRoles: ['ADMIN', 'MARKETING_DIRECTOR', 'MARKETER', 'INVOICE_VIEWER', 'GMB', 'CSR', 'CSR_MANAGER', 'ACCOUNTANT', 'MENU_EDITOR', 'RATE_EDITOR']
         },
         {
           name: "Restaurants",
           href: "#/restaurants",
           fa: "fas fa-utensils",
-          accessibleRoles: ['ADMIN', 'MENU_EDITOR', 'CSR', 'ACCOUNTANT', 'MARKETER']
+          accessibleRoles: ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'ACCOUNTANT', 'MARKETER']
         },
         {
           name: "Logs",
           href: "#/logs",
           fa: "fas fa-history",
-          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "GMB", "CSR", "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"]
+          accessibleRoles: ["ADMIN", "MARKETING_DIRECTOR", "GMB", "CSR", 'CSR_MANAGER', "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"]
         },
         {
           name: "Invoices",
           href: "#/invoices",
           fa: "fas fa-dollar-sign",
-          accessibleRoles: ["ADMIN", "ACCOUNTANT", "CSR"]
+          accessibleRoles: ["ADMIN", "ACCOUNTANT", "CSR", 'CSR_MANAGER']
         },
         // {
         //   name: "Orders",
@@ -599,7 +598,7 @@ export class GlobalService {
           name: "Tasks",
           href: "#/tasks",
           fa: "fas fa-tasks",
-          accessibleRoles: ['ADMIN', 'MARKETING_DIRECTOR', 'MARKETER', 'GMB', 'CSR', 'ACCOUNTANT', 'MENU_EDITOR', 'DRIVER', 'RATE_EDITOR']
+          accessibleRoles: ['ADMIN', 'MARKETING_DIRECTOR', 'MARKETER', 'GMB', 'CSR', 'CSR_MANAGER', 'ACCOUNTANT', 'MENU_EDITOR', 'DRIVER', 'RATE_EDITOR']
         },
         {
           name: "Yelp",
@@ -647,15 +646,15 @@ export class GlobalService {
           name: "SOPs",
           href: "#/sops",
           fa: "fas fa-project-diagram",
-          accessibleRoles: ['ADMIN', 'ACCOUNT', 'CRM', 'CSR', 'DRIVER', 'GMB_SPECIALIST', 'GMB', 'INVOICE_VIEWER', 'IVR_CSR_MANAGER', 'IVR_GMB_MANAGER', 'IVR_INTERNAL_MANAGER',
-            'IVR_SALES_MANAGER','MARKETER_EXTERNAL','MARKETER_INTERNAL', 'MARKETER','MARKETER_DIRECTOR', 'MENU_EDITOR', 'PAYER', 'RATE_EDITOR',
+          accessibleRoles: ['ADMIN', 'ACCOUNT', 'CRM', 'CSR', 'CSR_MANAGER', 'DRIVER', 'GMB_SPECIALIST', 'GMB', 'INVOICE_VIEWER', 'IVR_CSR_MANAGER', 'IVR_GMB_MANAGER', 'IVR_INTERNAL_MANAGER',
+            'IVR_SALES_MANAGER', 'MARKETER_EXTERNAL', 'MARKETER_INTERNAL', 'MARKETER', 'MARKETER_DIRECTOR', 'MENU_EDITOR', 'PAYER', 'RATE_EDITOR',
             'SIGNUP_AGENT']
         },
         {
           name: "Monitoring",
           href: "#/monitoring",
           fa: "fas fa-heartbeat",
-          accessibleRoles: ["CSR", "ADMIN"]
+          accessibleRoles: ["CSR", 'CSR_MANAGER', "ADMIN"]
         },
         {
           name: "System",
@@ -773,7 +772,7 @@ export class GlobalService {
     }
 
     const restaurants = this._cache.get('restaurantListForPicker');
-    // const isCsr = this.user.roles.some(r => ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"].indexOf(r) >= 0);
+    // const isCsr = this.user.roles.some(r => ["ADMIN", "MENU_EDITOR", "CSR", 'CSR_MANAGER', "ACCOUNTANT"].indexOf(r) >= 0);
     // const visibleRestaurants = restaurants.filter(rt => isCsr || (rt.rateSchedules || []).some(rs => (rs.agent || "").toLowerCase() === this.user.username));
     return restaurants;
   }

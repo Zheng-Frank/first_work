@@ -270,7 +270,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
   }
 
   isDisabledEditable() {
-    return this._global.user.roles.some(r => r === 'ADMIN' || r === 'ACCOUNTANT');
+    return this._global.user.roles.some(r => ['ADMIN', 'ACCOUNTANT', 'CSR_MANAGER'].includes(r));
   }
 
   ngOnChanges(params) {

@@ -47,7 +47,7 @@ export class OrderCardComponent implements OnInit {
 
   showAllInfo() {
     let roles = this._global.user.roles || [];
-    return roles.includes('ADMIN') || roles.includes('CSR');
+    return roles.includes('ADMIN') || roles.includes('CSR') || roles.includes('CSR_MANAGER');
   }
 
   getOrderOrigin(order){

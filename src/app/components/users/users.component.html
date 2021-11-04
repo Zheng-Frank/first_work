@@ -1,6 +1,6 @@
 <h1 class="text-center">Users ({{getTableUserCount()}})</h1>
 <div class="text-right pb-2">
-  <label class="checkbox-inline" *ngIf="getDisabledUsers().length > 0"><input type="checkbox"
+  <label class="checkbox-inline" *ngIf="isAdmin() && getDisabledUsers().length > 0"><input type="checkbox"
       [(ngModel)]="showDisabled"> Show disabled
     ({{getDisabledUsers().length}})</label>
   <button class="btn btn-primary" (click)="edit(null)">+ Add New User</button>
@@ -58,6 +58,6 @@
 
 
 <q-modal [title]="userInEditing._id ? 'Edit User: ' + userInEditing.username : 'Create New User' " #editingModal>
-  <q-form-builder [object]="userInEditing" [showDelete]="userInEditing._id" [fieldDescriptors]="formFieldDescriptors"
+  <q-form-builder [object]="userInEditing" [showDelete]="userInEditing._id && isAdmin()" [fieldDescriptors]="formFieldDescriptors"
     (submit)="formSubmit($event)" (remove)="formRemove($event)" (cancel)="editingModal.hide()"></q-form-builder>
 </q-modal>

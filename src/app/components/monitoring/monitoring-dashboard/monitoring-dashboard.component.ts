@@ -19,15 +19,15 @@ export class MonitoringDashboardComponent implements OnInit {
 
   ngOnInit() {
     const roleMap = {
-      "Dashboard Items": ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"],
-      "Diagnostics": ["ADMIN", "CSR", "ACCOUNTANT"],
-      "Cloud Printers": ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"],
-      "GMB Tasks": ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT", "GMB_SPECIALIST", "MARKETER_INTERNAL"],
+      "Dashboard Items": ["ADMIN", "MENU_EDITOR", "CSR", 'CSR_MANAGER', "ACCOUNTANT"],
+      "Diagnostics": ["ADMIN", "CSR", 'CSR_MANAGER', "ACCOUNTANT"],
+      "Cloud Printers": ["ADMIN", "MENU_EDITOR", "CSR", 'CSR_MANAGER', "ACCOUNTANT"],
+      "GMB Tasks": ["ADMIN", "MENU_EDITOR", "CSR", 'CSR_MANAGER', "ACCOUNTANT", "GMB_SPECIALIST", "MARKETER_INTERNAL"],
       "DB": ["ADMIN"],
       "Events": ["ADMIN"],
       "Scripts": ["ADMIN"],
-      "Restaurant Domains": ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"],
-      "Restaurant GMBs": ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"],
+      "Restaurant Domains": ["ADMIN", "MENU_EDITOR", "CSR", 'CSR_MANAGER', "ACCOUNTANT"],
+      "Restaurant GMBs": ["ADMIN", "MENU_EDITOR", "CSR", 'CSR_MANAGER', "ACCOUNTANT"],
       "Sales Stats": ["ADMIN", "MARKETING_DIRECTOR"],
     };
     const myRoles = this._global.user.roles;

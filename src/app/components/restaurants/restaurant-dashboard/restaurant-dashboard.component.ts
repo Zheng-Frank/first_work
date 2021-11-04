@@ -33,9 +33,9 @@ export class RestaurantDashboardComponent implements OnInit {
 
 
   buttonVisibilityMap = {
-    NEW: ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT", "MARKETER"],
-    CRAWL: ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"],
-    REMOVE: ["ADMIN", "MENU_EDITOR", "CSR", "ACCOUNTANT"]
+    NEW: ["ADMIN", "MENU_EDITOR", "CSR", "CSR_MANAGER", "ACCOUNTANT", "MARKETER"],
+    CRAWL: ["ADMIN", "MENU_EDITOR", "CSR", "CSR_MANAGER", "ACCOUNTANT"],
+    REMOVE: ["ADMIN", "MENU_EDITOR", "CSR", "CSR_MANAGER", "ACCOUNTANT"]
   }
 
   constructor(private _router: Router, private _api: ApiService, private _global: GlobalService) { }

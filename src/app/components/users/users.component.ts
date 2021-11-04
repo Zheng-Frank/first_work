@@ -28,6 +28,7 @@ export class UsersComponent implements OnInit {
     'ADMIN',
     'CRM',
     'CSR',
+    'CSR_MANAGER',
     'DEVELOPER',
     'DRIVER',
     'GMB_SPECIALIST',
@@ -56,11 +57,26 @@ export class UsersComponent implements OnInit {
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
+  get userRoles() {
+    return this._global.user.roles || [];
+  }
+
+  isAdmin() {
+    return this.userRoles.includes('ADMIN');
+  }
+
   ngOnInit() {
 
     // get all users
     this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'user', limit: 1000 }).subscribe(
       result => {
+        if (this.userRoles.includes('CSR_MANAGER') && !this.isAdmin()) {
+          // CSR_MANAGER can only see uses that not admin or csr_manager
+          result = result.filter(x => {
+            let roles = x.roles || [];
+            return !roles.includes('ADMIN') && !roles.includes('CSR_MANAGER');
+          });
+        }
         this.users = result.map(u => new User(u));
         this.sortAndCatogorize(this.users);
 
@@ -90,6 +106,9 @@ export class UsersComponent implements OnInit {
     }));
 
     this.roleUsers = Object.keys(roleMap).map(role => ({ role: role, users: roleMap[role] }));
+    if (!this.isAdmin()) {
+      this.roleUsers = this.roleUsers.filter(x => !['ADMIN', 'CSR_MANAGER'].includes(x.role));
+    }
     this.roleUsers.sort((ru1, ru2) => ru1.role > ru2.role ? 1 : -1);
   }
 
@@ -128,7 +147,10 @@ export class UsersComponent implements OnInit {
       required: false,
       minSelection: 0,
       maxSelection: 100,
-      items: this.existingRoleItems
+      items: this.existingRoleItems.map(x => {
+        let disabled = !this.isAdmin() && (x.text === 'ADMIN' || x.text.endsWith('_MANAGER'));
+        return {...x, disabled};
+      })
     },
     {
       field: 'ivrUsername',

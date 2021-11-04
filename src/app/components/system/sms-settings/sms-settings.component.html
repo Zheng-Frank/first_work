@@ -1,5 +1,5 @@
 <ng-container *ngIf="system && system.smsSettings">
-  <div class="pb-2">
+  <div class="pb-2" *ngIf="isAdmin()">
     <button class="btn btn-primary" (click)="deploy()">Deploy Changes</button>
   </div>
   <div class="row">
@@ -9,7 +9,7 @@
           <div class="float-left">{{provider.name | uppercase}}</div>
           <div class="float-right" *ngIf="system.smsSettings.defaultProviderName === provider.name"><i class="fas fa-check"></i>
             Default</div>
-          <div class="float-right" *ngIf="system.smsSettings.defaultProviderName !== provider.name">
+          <div class="float-right" *ngIf="isAdmin() && system.smsSettings.defaultProviderName !== provider.name">
             <button class="btn btn-link custom-btn-link" (click)="setDefault(provider)">Set as Default</button></div>
         </div>
         <div class="card-body">

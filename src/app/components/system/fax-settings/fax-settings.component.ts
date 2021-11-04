@@ -19,6 +19,11 @@ export class FaxSettingsComponent implements OnInit {
 
   }
 
+  isAdmin() {
+    let roles = this._global.user.roles || [];
+    return roles.includes('ADMIN');
+  }
+
   async setDefault(faxProvider) {
     try {
       await this._api.patch(environment.qmenuApiUrl + "generic?resource=system", [
