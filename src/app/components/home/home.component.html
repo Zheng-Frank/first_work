@@ -54,31 +54,7 @@
   <div class="card" *ngIf="isVisible('send-text-message')">
     <div class="card-body">
       <h5 class="card-title"><i class="fa fa-comments"></i> Send Text Message</h5>
-      <div class="mt-3">
-        <label>Send to: </label>
-        <input class="form-control" type="tel" [(ngModel)]="textPhoneNumber">
-      </div>
-      <div class="mt-3">
-        <label>Message Template: </label>
-        <select (change)="changeTpl($event)" class="form-control">
-          <option *ngIf="!messageTemplate.title" hidden></option>
-          <ng-container *ngFor="let items of messageTemplates; let i = index">
-            <option *ngFor="let item of items" [value]="item.title" [selected]="item.title === messageTemplate.title">
-              {{item.title}}
-            </option>
-            <hr *ngIf="i < messageTemplates.length - 1">
-          </ng-container>
-        </select>
-      </div>
-      <div class="mt-3">
-        <label>SMS Content:</label>
-        <textarea [disabled]="messageTemplate.title !== 'Custom'" rows="10" class="form-control"
-          [(ngModel)]="messageTemplate.content"></textarea>
-      </div>
-      <div class="mt-3">
-        <button (click)="sendText()" [disabled]="!isPhoneValid() || !messageTemplate.content"
-          class="btn btn-primary btn-block">Send</button>
-      </div>
+      <app-send-message #sendMessageComponent (success)="sendMessageComponent.cleanup()" [allowCustomTemplate]="true" [useCustomTarget]="true" [templates]="messageTemplates"></app-send-message>
     </div>
   </div>
   <!-- end with text tool in portal -->

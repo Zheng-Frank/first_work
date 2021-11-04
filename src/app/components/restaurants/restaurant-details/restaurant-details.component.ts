@@ -19,8 +19,8 @@ import { AlertType } from '../../../classes/alert-type';
 import { RestaurantProfileComponent } from '../restaurant-profile/restaurant-profile.component';
 import { Helper } from '../../../classes/helper';
 import { SendMessageComponent } from '../../utilities/send-message/send-message.component';
-
-
+import {RevisedOnlineServicesAgreement, FirstDelinquentNotice, SecondDelinquentNotice} from './html-message-templates';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 declare var $: any;
 
 @Component({
@@ -30,6 +30,7 @@ declare var $: any;
 })
 export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('restaurantProfile') restaurantProfile: RestaurantProfileComponent;
+  @ViewChild('sendMsgModal') sendMsgModal: ModalComponent;
   @ViewChild('sendMessageComponent') sendMessageComponent: SendMessageComponent;
   languageTypes = [
     { value: LanguageType.ENGLISH, text: "Show English" },
@@ -194,129 +195,9 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     deliverySettings: 'Delivery Settings',
     preferredLanguage: 'Preferred Language'
   };
-  messageTemplates = {
-    'Owner APP': [
-      {
-        title: "Biz App (Android)",
-        subject: "Biz App (Android)",
-        smsContent: "https://play.google.com/store/apps/details?id=qmenu.Owner&hl=en_US&gl=US",
-        emailContent: "https://play.google.com/store/apps/details?id=qmenu.Owner&hl=en_US&gl=US"
-      },
-      {
-        title: "Biz App (iOS)",
-        subject: "Biz App (iOS)",
-        smsContent: "https://apps.apple.com/us/app/qmenu-owner/id1476098960",
-        emailContent: "https://apps.apple.com/us/app/qmenu-owner/id1476098960"
-      },
-      {
-        title: "Biz App (website)",
-        subject: "Biz App (website)",
-        smsContent: "https://biz.qmenu.us/#/",
-        emailContent: "https://biz.qmenu.us/#/"
-      },
-      {
-        title: "Biz App User Guide (Eng)",
-        subject: "Biz App User Guide",
-        smsContent: "https://drive.google.com/file/d/1SFsJDVLWP62g0-Sr6bNPwv7dHbG_HFJ6/view?usp=sharing",
-        emailContent: "https://drive.google.com/file/d/1SFsJDVLWP62g0-Sr6bNPwv7dHbG_HFJ6/view?usp=sharing"
-      },
-      {
-        title: "Biz App User Guide (中)",
-        subject: "Biz App 用户指南",
-        smsContent: "https://drive.google.com/file/d/1HbRUtZYEMKQD_lfi7XRRK7DQqhc06MkA/view?usp=sharing",
-        emailContent: "https://drive.google.com/file/d/1HbRUtZYEMKQD_lfi7XRRK7DQqhc06MkA/view?usp=sharing"
-      }
-    ],
-    'GMB Notices': [
-      {
-        title: 'First GMB Notice (中)',
-        subject: '谷歌推广明信片',
-        smsContent: '你好，这里是QMenu，为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到。在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信，发给我们这个5位数号码 (请注意，此短信不能接受照片)，或者给我们的客服打电话 404-382-9768。多谢！',
-        emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到。在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 <strong>855-759-2648</strong> 或者给我们的客服打电话 <strong>404-382-9768</strong>。多谢！'
-      },
-      {
-        title: 'First GMB Notice (Eng)',
-        subject: 'Google promote postcard',
-        smsContent: 'This is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks.',
-        emailContent: 'Hi, <br/>&nbsp;&nbsp;&nbsp;&nbsp;This is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong> or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
-      },
-      {
-        title: 'First GMB Notice (中/Eng)',
-        subject: '谷歌推广明信片(Google promote postcard)',
-        smsContent: '你好,这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片). 或者给我们的客服打电话 404-382-9768. 多谢!\nThis is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard or call us at 404-382-9768. Thanks.',
-        emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到。在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 855-759-2648 或者给我们的客服打电话 404-382-9768。多谢！<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;Hi,<br/>This is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong> or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
-      },
-      {
-        title: 'Second GMB Notice (中)',
-        subject: '谷歌推广明信片',
-        smsContent: '你好,这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片), 或者给我们的客服打电话 404-382-9768. 多谢!',
-        emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 <strong>855-759-2648</strong> 或者给我们的客服打电话 <strong>404-382-9768</strong>。<br/>多谢！'
-      },
-      {
-        title: 'Second GMB Notice (Eng)',
-        subject: 'Google promote postcard',
-        smsContent: 'This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks.',
-        emailContent: 'Hi,<br/>&nbsp;&nbsp;&nbsp;&nbsp;This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong> or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
-      },
-      {
-        title: 'Second GMB Notice (中/Eng)',
-        subject: '谷歌推广明信片(Google promote postcard)',
-        smsContent: '你好，这里是QMenu，为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信，发给我们这个5位数号码 (请注意，此短信不能接受照片)或者给我们的客服打电话 404-382-9768。 多谢！\n          This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard (Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks.',
-        emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 <strong>855-759-2648</strong> 或者给我们的客服打电话 <strong>404-382-9768</strong>。<br/>多谢！<br/><br/>Hi,<br/>&nbsp;&nbsp;&nbsp;&nbsp;This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong>, or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
-      }
-    ],
-    'QR Dine-in': [
-      {
-        title: 'QR Biz link',
-        subject: 'QR Biz link',
-        smsContent: 'http://qrbiz.qmenu.com',
-        emailContent: 'http://qrbiz.qmenu.com'
-      },
-      {
-        title: 'QR promo vid (中)',
-        subject: '堂吃扫码点餐优势展示',
-        smsContent: '从qMenu堂吃扫码点餐过程互动性充分体验其中优势：https://www.youtube.com/watch?v=HosHBDOXKnw',
-        emailContent: '从qMenu堂吃扫码点餐过程互动性充分体验其中优势：https://www.youtube.com/watch?v=HosHBDOXKnw'
-      },
-      {
-        title: 'QR promo vid (Eng)',
-        subject: 'QR dine-in benefit',
-        smsContent: 'See how your restaurant would benefit from qMenu\'s interactive QR dine-in system: https://www.youtube.com/watch?v=_YL2LGE6joM',
-        emailContent: 'See how your restaurant would benefit from qMenu\'s interactive QR dine-in system: https://www.youtube.com/watch?v=_YL2LGE6joM'
-      },
-      {
-        title: 'QR tutorial vid (中)',
-        subject: '堂吃扫码点餐教学视频',
-        smsContent: '了解如何使用 qMenu 的交互式堂吃扫码点餐系统，包括初始设置：https://youtube.com/playlist?list=PLfftwXwWGQGayoLhjrj6Cocqq87eiBgAn',
-        emailContent: '了解如何使用 qMenu 的交互式堂吃扫码点餐系统，包括初始设置：https://youtube.com/playlist?list=PLfftwXwWGQGayoLhjrj6Cocqq87eiBgAn'
-      },
-      {
-        title: 'QR tutorial vid (Eng)',
-        subject: 'QR dine-in tutorial video',
-        smsContent: 'Learn how to use qMenu’s interactive QR dine-in system, including initial setup: https://youtube.com/playlist?list=PLfftwXwWGQGbTgG0g8L612iahVJN6ip7l',
-        emailContent: 'Learn how to use qMenu’s interactive QR dine-in system, including initial setup: https://youtube.com/playlist?list=PLfftwXwWGQGbTgG0g8L612iahVJN6ip7l'
-      },
-      {
-        title: '5x7 Signholder link',
-        subject: '5x7 Signholder link',
-        smsContent: 'https://www.amazon.com/Double-Sided-Picture-Frame-5x7/dp/B07MNXRM29',
-        emailContent: 'https://www.amazon.com/Double-Sided-Picture-Frame-5x7/dp/B07MNXRM29'
-      },
-      {
-        title: 'QR promo pamphlet (Eng)',
-        subject: 'QR promo pamphlet',
-        smsContent: 'Take a look at all qMenu\'s QR dine-in system has to offer: https://pro-bee-beepro-messages.s3.amazonaws.com/474626/454906/1210649/5936605.html',
-        emailContent: 'Take a look at all qMenu\'s QR dine-in system has to offer: https://pro-bee-beepro-messages.s3.amazonaws.com/474626/454906/1210649/5936605.html'
-      },
-      {
-        title: 'QR promo pamphlet (中)',
-        subject: '扫码点餐宣传手册',
-        smsContent: '看看 qMenu 的扫码点餐系统提供的所有好处：https://pro-bee-beepro-messages.s3.amazonaws.com/474626/454906/1210649/6204156.html',
-        emailContent: '看看 qMenu 的扫码点餐系统提供的所有好处：https://pro-bee-beepro-messages.s3.amazonaws.com/474626/454906/1210649/6204156.html'
-      },
-    ]
-  };
   invoicesCount = 0;
+  openDate;
+  earliestInvoiceDueDate;
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
     const tabVisibilityRolesMap = {
@@ -343,6 +224,272 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       });
 
     this._global.getCachedUserList().then(users => this.knownUsers = users).catch(console.error);
+  }
+
+  getRtInfoMap() {
+    let {
+      name,
+      googleAddress: {
+        street_number, route, locality, administrative_area_level_1, postal_code
+      }
+    } = this.restaurant;
+    return {
+      "RT_NAME": name,
+      "RT_STREET": street_number + " " + route,
+      "RT_CITY": locality + ", " + administrative_area_level_1 +  " " + postal_code
+    };
+  }
+
+  fillMessageTemplate(template, dataset, regex = /\{\{([A-Z_]+)}}/g) {
+    return template.replace(regex, (_, p1) => dataset[p1]);
+  }
+
+  getOnlineServicesAgreement() {
+    let {serviceSettings} = this.restaurant;
+    let qMenuCollect = serviceSettings.some(ss => ss.paymentMethods.includes('QMENU'));
+    let map = {
+      ...this.getRtInfoMap(),
+      'OPTION_ONE_CHECK': qMenuCollect ? '&#9744;' : '&#9745;',
+      'OPTION_TWO_CHECK': qMenuCollect ? '&#9745;' : '&#9744;'
+    };
+    return this.fillMessageTemplate(RevisedOnlineServicesAgreement, map);
+  }
+
+  async getDelinquentDates() {
+    let rtId = this.restaurant._id;
+    const [firstOrder] = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      aggregate: [
+        {$match: {"restaurant": {$oid: rtId}}},
+        {$project: {'createdAt': 1}},
+        {$sort: {_id: 1}},
+        {$limit: 1},
+      ],
+    }).toPromise();
+    let date = firstOrder ? firstOrder.createdAt : this.restaurant.createdAt;
+    this.openDate = new Date(date).toLocaleString('en-US', {timeZone: this.restaurant.googleAddress.timezone});
+
+    // 1. get latest completed invoice date
+    const [latestCompleted] = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "invoice",
+      aggregate: [
+        {$match: {"restaurant.id": rtId, isPaymentCompleted: true}},
+        {$project: {'createdAt': 1}}, // project stage go first to make dataset minimum for sorting.
+        {$sort: {_id: -1}},
+        {$limit: 1}
+      ]
+    }).toPromise();
+    let latestCompletedDate = new Date(0);
+    if (latestCompleted) {
+      latestCompletedDate = latestCompleted.createdAt;
+    }
+    // get earliest unpaid invoice date
+    const [unpaid] = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "invoice",
+      aggregate: [
+        {
+          $match: {
+            "restaurant.id": rtId, isCanceled: {$ne: true},
+            createdAt: {$gt: {$date: latestCompletedDate}}
+          }
+        },
+        {$project: {toDate: 1, createdAt: 1}},
+        {$sort: {_id: 1}},
+        {$limit: 1}
+      ]
+    }).toPromise();
+    if (unpaid) {
+      // 10 days from last day of invoice period
+      date = new Date(Math.max(new Date(unpaid.toDate).valueOf(), new Date(unpaid.createdAt).valueOf()));
+      date.setDate(date.getDate() + 10);
+      this.earliestInvoiceDueDate = date.toLocaleString('en-US', {timeZone: this.restaurant.googleAddress.timezone});
+    }
+  }
+
+
+  getDelinquentNotice(delinquent) {
+    // 7 days from now
+    let date = new Date();
+    date.setDate(date.getDate() + 7);
+    let dataset = {
+      ...this.getRtInfoMap(),
+      "RT_OPEN_DATE": this.openDate,
+      "EARLIEST_UNPAID_INVOICE_DUE_DATE": this.earliestInvoiceDueDate,
+      "NOTICE_DUE_DATE": date.toLocaleString('en-US', {timeZone: this.restaurant.googleAddress.timezone})
+    };
+
+    return this.fillMessageTemplate(delinquent, dataset);
+  }
+
+  get messageTemplates () {
+    let templates = {
+      'Owner APP': [
+        {
+          title: "Biz App (Android)",
+          subject: "Biz App (Android)",
+          smsContent: "https://play.google.com/store/apps/details?id=qmenu.Owner&hl=en_US&gl=US",
+          emailContent: "https://play.google.com/store/apps/details?id=qmenu.Owner&hl=en_US&gl=US"
+        },
+        {
+          title: "Biz App (iOS)",
+          subject: "Biz App (iOS)",
+          smsContent: "https://apps.apple.com/us/app/qmenu-owner/id1476098960",
+          emailContent: "https://apps.apple.com/us/app/qmenu-owner/id1476098960"
+        },
+        {
+          title: "Biz App (website)",
+          subject: "Biz App (website)",
+          smsContent: "https://biz.qmenu.us/#/",
+          emailContent: "https://biz.qmenu.us/#/"
+        },
+        {
+          title: "Biz App User Guide (Eng)",
+          subject: "Biz App User Guide",
+          smsContent: "https://drive.google.com/file/d/1SFsJDVLWP62g0-Sr6bNPwv7dHbG_HFJ6/view?usp=sharing",
+          emailContent: "https://drive.google.com/file/d/1SFsJDVLWP62g0-Sr6bNPwv7dHbG_HFJ6/view?usp=sharing"
+        },
+        {
+          title: "Biz App User Guide (中)",
+          subject: "Biz App 用户指南",
+          smsContent: "https://drive.google.com/file/d/1HbRUtZYEMKQD_lfi7XRRK7DQqhc06MkA/view?usp=sharing",
+          emailContent: "https://drive.google.com/file/d/1HbRUtZYEMKQD_lfi7XRRK7DQqhc06MkA/view?usp=sharing"
+        }
+      ],
+      'GMB Notices': [
+        {
+          title: 'First GMB Notice (中)',
+          subject: '谷歌推广明信片',
+          smsContent: '你好，这里是QMenu，为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到。在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信，发给我们这个5位数号码 (请注意，此短信不能接受照片)，或者给我们的客服打电话 404-382-9768。多谢！',
+          emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到。在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 <strong>855-759-2648</strong> 或者给我们的客服打电话 <strong>404-382-9768</strong>。多谢！'
+        },
+        {
+          title: 'First GMB Notice (Eng)',
+          subject: 'Google promote postcard',
+          smsContent: 'This is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks.',
+          emailContent: 'Hi, <br/>&nbsp;&nbsp;&nbsp;&nbsp;This is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong> or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
+        },
+        {
+          title: 'First GMB Notice (中/Eng)',
+          subject: '谷歌推广明信片(Google promote postcard)',
+          smsContent: '你好,这里是QMenu, 为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到. 在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片). 或者给我们的客服打电话 404-382-9768. 多谢!\nThis is from QMenu, in order to promote your website on Google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this text message with the 5 digit PIN on the postcard or call us at 404-382-9768. Thanks.',
+          emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，今天我们申请谷歌给您店里寄去一个明信片，3-5天应该会寄到。在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 855-759-2648 或者给我们的客服打电话 404-382-9768。多谢！<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;Hi,<br/>This is from QMenu, in order to promote your website on google, we just requested a postcard mailed from Google, it may take 3-5 days to arrive. If you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong> or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
+        },
+        {
+          title: 'Second GMB Notice (中)',
+          subject: '谷歌推广明信片',
+          smsContent: '你好,这里是QMenu, 为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信, 发给我们这个5位数号码 (请注意，此短信不能接受照片), 或者给我们的客服打电话 404-382-9768. 多谢!',
+          emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 <strong>855-759-2648</strong> 或者给我们的客服打电话 <strong>404-382-9768</strong>。<br/>多谢！'
+        },
+        {
+          title: 'Second GMB Notice (Eng)',
+          subject: 'Google promote postcard',
+          smsContent: 'This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard(Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks.',
+          emailContent: 'Hi,<br/>&nbsp;&nbsp;&nbsp;&nbsp;This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong> or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
+        },
+        {
+          title: 'Second GMB Notice (中/Eng)',
+          subject: '谷歌推广明信片(Google promote postcard)',
+          smsContent: '你好，这里是QMenu，为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请直接回复这个短信，发给我们这个5位数号码 (请注意，此短信不能接受照片)或者给我们的客服打电话 404-382-9768。 多谢！\n          This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this text message with the 5 digit PIN on the postcard (Pls note, this number can not accept picture) or call us at 404-382-9768. Thanks.',
+          emailContent: '你好，<br/>&nbsp;&nbsp;&nbsp;&nbsp;这里是QMenu，为了在谷歌推广您的网站，前几天，我们申请谷歌给您店里寄去一个明信片，在明信片上有一个5位数的号码，如果您收到了这个明信片，请回复这个邮件5位数的号码，或者发短信到 <strong>855-759-2648</strong> 或者给我们的客服打电话 <strong>404-382-9768</strong>。<br/>多谢！<br/><br/>Hi,<br/>&nbsp;&nbsp;&nbsp;&nbsp;This is from QMenu, in order to promote your website on google, we requested a postcard mailed from Google several days ago, if you receive this postcard, please reply this email with the 5 digit PIN on the postcard, text us at <strong>855-759-2648</strong>, or call us at <strong>404-382-9768</strong>.<br/>Thanks.'
+        }
+      ],
+      'QR Dine-in': [
+        {
+          title: 'QR Biz link',
+          subject: 'QR Biz link',
+          smsContent: 'http://qrbiz.qmenu.com',
+          emailContent: 'http://qrbiz.qmenu.com'
+        },
+        {
+          title: 'QR promo vid (中)',
+          subject: '堂吃扫码点餐优势展示',
+          smsContent: '从qMenu堂吃扫码点餐过程互动性充分体验其中优势：https://www.youtube.com/watch?v=HosHBDOXKnw',
+          emailContent: '从qMenu堂吃扫码点餐过程互动性充分体验其中优势：https://www.youtube.com/watch?v=HosHBDOXKnw'
+        },
+        {
+          title: 'QR promo vid (Eng)',
+          subject: 'QR dine-in benefit',
+          smsContent: 'See how your restaurant would benefit from qMenu\'s interactive QR dine-in system: https://www.youtube.com/watch?v=_YL2LGE6joM',
+          emailContent: 'See how your restaurant would benefit from qMenu\'s interactive QR dine-in system: https://www.youtube.com/watch?v=_YL2LGE6joM'
+        },
+        {
+          title: 'QR tutorial vid (中)',
+          subject: '堂吃扫码点餐教学视频',
+          smsContent: '了解如何使用 qMenu 的交互式堂吃扫码点餐系统，包括初始设置：https://youtube.com/playlist?list=PLfftwXwWGQGayoLhjrj6Cocqq87eiBgAn',
+          emailContent: '了解如何使用 qMenu 的交互式堂吃扫码点餐系统，包括初始设置：https://youtube.com/playlist?list=PLfftwXwWGQGayoLhjrj6Cocqq87eiBgAn'
+        },
+        {
+          title: 'QR tutorial vid (Eng)',
+          subject: 'QR dine-in tutorial video',
+          smsContent: 'Learn how to use qMenu’s interactive QR dine-in system, including initial setup: https://youtube.com/playlist?list=PLfftwXwWGQGbTgG0g8L612iahVJN6ip7l',
+          emailContent: 'Learn how to use qMenu’s interactive QR dine-in system, including initial setup: https://youtube.com/playlist?list=PLfftwXwWGQGbTgG0g8L612iahVJN6ip7l'
+        },
+        {
+          title: '5x7 Signholder link',
+          subject: '5x7 Signholder link',
+          smsContent: 'https://www.amazon.com/Double-Sided-Picture-Frame-5x7/dp/B07MNXRM29',
+          emailContent: 'https://www.amazon.com/Double-Sided-Picture-Frame-5x7/dp/B07MNXRM29'
+        },
+        {
+          title: 'QR promo pamphlet (Eng)',
+          subject: 'QR promo pamphlet',
+          smsContent: 'Take a look at all qMenu\'s QR dine-in system has to offer: https://pro-bee-beepro-messages.s3.amazonaws.com/474626/454906/1210649/5936605.html',
+          emailContent: 'Take a look at all qMenu\'s QR dine-in system has to offer: https://pro-bee-beepro-messages.s3.amazonaws.com/474626/454906/1210649/5936605.html'
+        },
+        {
+          title: 'QR promo pamphlet (中)',
+          subject: '扫码点餐宣传手册',
+          smsContent: '看看 qMenu 的扫码点餐系统提供的所有好处：https://pro-bee-beepro-messages.s3.amazonaws.com/474626/454906/1210649/6204156.html',
+          emailContent: '看看 qMenu 的扫码点餐系统提供的所有好处：https://pro-bee-beepro-messages.s3.amazonaws.com/474626/454906/1210649/6204156.html'
+        },
+      ],
+    };
+    if (this.restaurant) {
+      templates["Other"] = [];
+      if (this.openDate) {
+        templates["Other"].push({
+          title: "qMenu Online Service Agreement",
+          subject: "qMenu Online Service Agreement",
+          inputs: [
+            {
+              label: "Signature", value: '',
+              apply: (tpl, value) => this.fillMessageTemplate(tpl, {"SIGNATURE": value}, /%%(SIGNATURE)%%/g)
+            },
+            {
+              label: "Full Name", value: '',
+              apply: (tpl, value) => this.fillMessageTemplate(tpl, {"FULL_NAME": value}, /%%(FULL_NAME)%%/g)
+            },
+            {
+              label: "Title", value: '',
+              apply: (tpl, value) => this.fillMessageTemplate(tpl, {"POSITION": value}, /%%(POSITION)%%/g)
+            }
+          ],
+          emailContent: this.getOnlineServicesAgreement()
+        });
+      }
+      if (this.earliestInvoiceDueDate) {
+        templates['Other'].push({
+            title: "First Delinquent Notice",
+            subject: "First Delinquent Notice",
+            emailContent: this.getDelinquentNotice(FirstDelinquentNotice)
+          },
+          {
+            title: "Second Delinquent Message",
+            subject: "Second Delinquent Message",
+            inputs: [
+              {
+                label: "First Delinquent Notice Sent on", type: 'date', value: '',
+                apply: (tpl, value) => {
+                  value = new Date(value).toLocaleString('en-US', {timeZone: this.restaurant.googleAddress.timezone});
+                  return this.fillMessageTemplate(tpl, {"FIRST_DELINQUENT_NOTICE_SENT_ON": value}, /%%([A-Z_]+)%%/g);
+                }
+              },
+            ],
+            emailContent: this.getDelinquentNotice(SecondDelinquentNotice)
+          });
+      }
+    }
+    return templates;
   }
 
   ngOnInit() {
@@ -566,6 +713,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           if (this.tabs.includes('Invoices')) {
             this.getInvoicesCountOfRT();
           }
+          this.getDelinquentDates();
         },
         error => {
           this.apiRequesting = false;

@@ -152,7 +152,7 @@
             <span *ngIf="!invoice.isCanceled">
                 <button class="btn btn-primary" (click)="addAdjustment()">
                     <i class="far fa-plus-square"></i> Add Adjustment</button>
-                <button *ngIf="invoice?.balance > 0" class="btn btn-primary" (click)="sendMessageComponent.show()">
+                <button *ngIf="invoice?.balance > 0" class="btn btn-primary" (click)="sendMsgModal.show()">
                     <i class="fas fa-envelope-open-text"></i> Send Overdue Message</button>
                 <button class="btn btn-link text-danger" (click)="toggleInvoiceStatus('isCanceled')">
                     <i class="fas fa-times"></i> Cancel Invoice</button>
@@ -272,4 +272,12 @@
 
 </q-modal>
 
-<app-send-message #sendMessageComponent (success)="addSendMsgLog($event)" [templates]="templates" [channels]="channels"></app-send-message>
+<q-modal #sendMsgModal (close)="sendMessageComponent.cleanup()" (open)="sendMessageComponent.init()">
+    <button type="button" class="close"  (click)="sendMsgModal.hide()">
+        <span>×</span>
+    </button>
+    <h4 class="text-center">Send Message</h4>
+    <hr>
+    <app-send-message #sendMessageComponent (success)="addSendMsgLog($event)" [templates]="templates" [channels]="channels"></app-send-message>
+</q-modal>
+

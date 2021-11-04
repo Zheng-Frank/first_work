@@ -1,15 +1,23 @@
 import {AlertType} from '../../../classes/alert-type';
-import {Component, EventEmitter, Input, Output, ViewChild} from '@angular/core';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {GlobalService} from 'src/app/services/global.service';
 import {ApiService} from 'src/app/services/api.service';
 import {environment} from '../../../../environments/environment';
-import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import {DomSanitizer} from '@angular/platform-browser';
 
 enum EmailContentModes {
-  Editing, Preview
+  Origin, Preview
 }
 
-const EmptyTemplate = {title: "", smsContent: "", subject: "", emailContent: ""};
+interface MessageTemplate {
+  title: string;
+  subject: string;
+  smsContent?: string;
+  emailContent?: string;
+  inputs?: { label: string, type?: string, value: string, apply: (content: string, value: any) => string }[];
+}
+
+const EmptyTemplate = {title: '', smsContent: '', subject: '', emailContent: ''};
 
 @Component({
   selector: 'app-send-message',
@@ -17,24 +25,25 @@ const EmptyTemplate = {title: "", smsContent: "", subject: "", emailContent: ""}
   styleUrls: ['./send-message.component.css']
 })
 export class SendMessageComponent {
-  @ViewChild('sendMsgModal') sendMsgModal: ModalComponent;
   @Input() templates;
   @Input() channels;
   @Input() allowCustomTemplate = false;
+  @Input() useCustomTarget = false;
   @Output() success = new EventEmitter();
   targets = [];
-  template = {...EmptyTemplate};
-  templateType = "";
-  emailContentMode = EmailContentModes.Editing;
-  customTemplate = {title: "Custom", smsContent: '', subject: '', emailContent: ''};
+  phoneNumber = '';
+  template: MessageTemplate = {...EmptyTemplate};
+  templateType = '';
+  emailContentMode = EmailContentModes.Origin;
+  customTemplate: MessageTemplate = {title: 'Custom', smsContent: '', subject: '', emailContent: ''};
 
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer) {
   }
 
   get templateTypes() {
     let types = Object.keys(this.templates);
     if (this.allowCustomTemplate) {
-      types.unshift("Custom");
+      types.unshift('Custom');
     }
     return types;
   }
@@ -45,32 +54,47 @@ export class SendMessageComponent {
       this.template = {...this.customTemplate};
     } else {
       this.template = this.templates[type][0];
+      this.refreshTargets();
     }
+  }
+
+  refreshTargets() {
+    if (!this.template) {
+      return;
+    }
+    if (!this.template.smsContent) {
+      this.targets = this.targets.filter(x => x.type !== 'SMS');
+    }
+    if (!this.template.emailContent) {
+      this.targets = this.targets.filter(x => x.type !== 'Email');
+    }
+  }
+
+  changeTpl(e) {
+    this.template = this.templates[this.templateType].find(x => x.title === e.target.value);
+    this.refreshTargets();
   }
 
   cleanup() {
     this.targets = [];
     this.template = {...EmptyTemplate};
+    this.phoneNumber = '';
     if (this.allowCustomTemplate) {
-      this.templateType = "Custom";
+      this.templateType = 'Custom';
       this.template = {...this.customTemplate};
     }
-    this.emailContentMode = EmailContentModes.Editing;
+    this.emailContentMode = EmailContentModes.Origin;
   }
 
-  onShow() {
+  init() {
     this.cleanup();
     if (!this.allowCustomTemplate && this.templateTypes.length === 1) {
       this.templateType = this.templateTypes[0];
       this.template = this.templates[this.templateType][0];
     }
-    if (this.channels.length === 1) {
+    if (this.channels && this.channels.length === 1) {
       this.targets.push(this.channels[0]);
     }
-  }
-
-  show() {
-    this.sendMsgModal.show();
   }
 
   get emailContentModes() {
@@ -82,36 +106,51 @@ export class SendMessageComponent {
   }
 
   canSend() {
-    if (this.targets.length <= 0) {
+    if ((this.targets.length <= 0 && !this.isPhoneValid()) || !this.template) {
       return false;
     }
-    if (this.hasEmail()) {
-      return !!this.template.emailContent && !!this.template.subject;
+    let {subject, emailContent, smsContent, inputs} = this.template;
+    if (this.hasEmail() && (!emailContent || !subject)) {
+      return false;
     }
-    if (this.hasSMS()) {
-      return !!this.template.smsContent;
+    if (this.hasSMS() && !smsContent) {
+      return false;
     }
+    // all inputs must have value
+    if (this.template.inputs && inputs.some(field => !field.value)) {
+      return false;
+    }
+
     return true;
   }
 
   channelIcon(type) {
-    return ({"Email": "envelope-square"}[type] || type).toLowerCase();
+    return ({'Email': 'envelope-square'}[type] || type).toLowerCase();
   }
 
   get sortedChannels() {
-    return this.channels.sort((x, y) => (x.value || '').localeCompare(y.value));
-  }
-
-  changeTpl(e) {
-    this.template = this.templates[this.templateType].find(x => x.title === e.target.value);
+    let channels = this.channels;
+    if (this.templateType !== 'Custom' && this.template) {
+      if (!this.template.smsContent) {
+        channels = channels.filter(x => x.type !== 'SMS');
+      }
+      if (!this.template.emailContent) {
+        channels = channels.filter(x => x.type !== 'Email');
+      }
+    }
+    return channels.sort((x, y) => (x.value || '').localeCompare(y.value));
   }
 
   hasEmail() {
-    return this.targets.some(t => t.type === 'Email');
+    return (this.templateType === 'Custom' || this.template.emailContent) && this.targets.some(t => t.type === 'Email');
+  }
+
+  isPhoneValid() {
+    return /^(\d{3}-?){2}\d{4}$/.test(this.phoneNumber);
   }
 
   hasSMS() {
-    return this.targets.some(t => t.type === 'SMS');
+    return (this.templateType === 'Custom' || this.template.smsContent) && (this.targets.some(t => t.type === 'SMS') || this.useCustomTarget);
   }
 
   selectTarget(e, target) {
@@ -122,9 +161,26 @@ export class SendMessageComponent {
     }
   }
 
+  sanitized(origin) {
+    return this.sanitizer.bypassSecurityTrustHtml(origin);
+  }
 
   send() {
-    const jobs = this.targets.map(target => {
+    // fill inputs
+    let {inputs, smsContent, emailContent} = this.template;
+    if (inputs) {
+      inputs.forEach(field => {
+        if (smsContent) {
+          smsContent = field.apply(smsContent, field.value);
+        }
+        if (emailContent) {
+          emailContent = field.apply(emailContent, field.value);
+        }
+      });
+    }
+    let targets = this.useCustomTarget ? [{value: this.phoneNumber, type: 'SMS'}] : this.targets;
+
+    const jobs = targets.map(target => {
       return {
         'SMS': {
           'name': 'send-sms',
@@ -132,7 +188,7 @@ export class SendMessageComponent {
             'to': target.value,
             'from': '8557592648',
             'providerName': 'plivo',
-            'message': this.template.smsContent,
+            'message': smsContent,
             'trigger': {
               'id': this._global.user._id,
               'name': this._global.user.username,
@@ -146,7 +202,7 @@ export class SendMessageComponent {
           'params': {
             'to': target.value,
             'subject': this.template.subject,
-            'html': this.template.emailContent,
+            'html': emailContent,
             'trigger': {
               'id': this._global.user._id,
               'name': this._global.user.username,
@@ -162,7 +218,6 @@ export class SendMessageComponent {
       .subscribe(
         () => {
           this._global.publishAlert(AlertType.Success, 'Text message sent success');
-          this.sendMsgModal.hide();
           this.success.emit(this.template);
         },
         error => {

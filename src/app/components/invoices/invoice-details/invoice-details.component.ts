@@ -30,6 +30,7 @@ const FATT_LIMIT = 299;
 })
 export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('myInvoiceViewer') myInvoiceViewer;
+  @ViewChild('sendMsgModal') sendMsgModal: ModalComponent;
   @ViewChild('sendMessageComponent') sendMessageComponent: SendMessageComponent;
 
   invoice: Invoice;
@@ -373,7 +374,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
           }
         });
 
-        const result = await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: { _id: this.restaurantId }, new: { _id: this.restaurantId, logs: updatedLogs } }]).toPromise();
+        await this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{ old: { _id: this.restaurantId }, new: { _id: this.restaurantId, logs: updatedLogs } }]).toPromise();
       }
 
     } catch (error) {
@@ -389,6 +390,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   }
 
   async addSendMsgLog(template) {
+    this.sendMsgModal.hide();
     await this.addLog({
       time: new Date(),
       action: "send overdue message",
