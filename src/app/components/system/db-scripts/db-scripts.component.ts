@@ -3377,7 +3377,7 @@ export class DbScriptsComponent implements OnInit {
         requireBillingAddress: 1
 
       }
-    }, 3000)
+    }, 2000)
 
     let updatedRestaurantPairs = [];
     for (let r of serviceSettings) {
