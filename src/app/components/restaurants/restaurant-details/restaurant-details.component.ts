@@ -246,7 +246,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
   getOnlineServicesAgreement() {
     let {serviceSettings} = this.restaurant;
-    let qMenuCollect = serviceSettings.some(ss => ss.paymentMethods.includes('QMENU'));
+    let qMenuCollect = (serviceSettings || []).some(ss => ss.paymentMethods.includes('QMENU'));
     let map = {
       ...this.getRtInfoMap(),
       'OPTION_ONE_CHECK': qMenuCollect ? '&#9744;' : '&#9745;',
