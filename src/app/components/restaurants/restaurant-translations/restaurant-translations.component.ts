@@ -53,7 +53,8 @@ export class RestaurantTranslationsComponent implements OnInit {
       menu.mcs.forEach(mc => {
         this.extract(mc, items);
         mc.mis.forEach(mi => {
-          this.extract(mi, items);
+          let { description, ...rest } = mi;
+          this.extract(rest, items);
           mi.sizeOptions.forEach(so => {
             this.extract(so, items);
           });
