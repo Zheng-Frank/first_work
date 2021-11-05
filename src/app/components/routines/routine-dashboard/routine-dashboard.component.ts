@@ -17,6 +17,7 @@ export class RoutineDashboardComponent implements OnInit {
   @ViewChild('notificationResponseModal') notificationResponseModal: ModalComponent;
   routines: any[] = [];
   routineInstances: any[] = [];
+  filterRoutineInstances: any[] = [];
   notifications: any[] = [];
 
   notificationResponses: any[] = [];
@@ -45,15 +46,29 @@ export class RoutineDashboardComponent implements OnInit {
     },
   ]
 
+  fromDate;
+  toDate;
+
   constructor(private _api: ApiService, private _global: GlobalService) {
     this.user = this._global.user;
   }
 
   async ngOnInit() {
     await this.populateRoutines();
-    this.timekeepingId = this.routines.filter(routine => routine.name === 'Timekeeping')[0]._id;
     await this.populateRoutineInstances();
     await this.populateStats();
+  }
+
+  searchRoutineLogsByTime() {
+    if (!this.fromDate || !this.toDate) {
+      return this._global.publishAlert(AlertType.Danger, "please input a correct time date format!");
+    }
+
+    if (new Date(this.fromDate).valueOf() - new Date(this.toDate).valueOf() > 0) {
+      return this._global.publishAlert(AlertType.Danger, "please input a correct date format,from time is less than or equals to time!");
+    }
+
+    this.filterRoutineInstances = this.routineInstances.filter(routineInstance => new Date(routineInstance.createdAt).valueOf() >= new Date(this.fromDate + " 00:00:00.000").valueOf() && new Date(routineInstance.createdAt).valueOf() <= new Date(this.toDate + " 23:59:59.999").valueOf());
   }
 
   async populateRoutines() {
@@ -79,10 +94,11 @@ export class RoutineDashboardComponent implements OnInit {
       limit: 100000,
       sort: { _id: -1 }
     }).toPromise();
-    this.routineInstances = routineInstances.filter(r => !r.disabled).sort((a, b) => a.name > b.name ? 1 : -1);
+    this.filterRoutineInstances = this.routineInstances = routineInstances.filter(r => !r.disabled).sort((a, b) => a.name > b.name ? 1 : -1);
   }
 
   async postNewInstance(instance, successMessage?) {
+    this.fromDate = this.toDate = '';
     try {
       const [_id] = await this._api.post(environment.qmenuApiUrl + 'generic?resource=routine-instance', [instance]).toPromise();
       this._global.publishAlert(
@@ -93,6 +109,7 @@ export class RoutineDashboardComponent implements OnInit {
       instance._id = _id;
       instance.createdAt = new Date();
       this.routineInstances = [instance, ...this.routineInstances];
+      this.filterRoutineInstances = this.routineInstances;
       return _id;
     } catch (err) {
       this._global.publishAlert(

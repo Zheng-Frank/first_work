@@ -1,75 +1,82 @@
 <div>
-    <span class="mx-2 my-2">
-        <b class="text-success">Users Online Now:</b> {{stats.checkedInUsers.join(', ')}}
+  <span class="mx-2 my-2">
+    <b class="text-success">Users Online Now:</b> {{stats.checkedInUsers.join(', ')}}
+  </span>
+  <h1 class="text-center mt-3">Routine Dashboard </h1>
+  <!-- Check-In / Check-Out -->
+  <div class="text-center pb-3">
+    <span *ngIf="hasTimekeeping()">
+      <button *ngIf="isUserCheckedIn()" class="btn btn-danger prominent" (click)="checkOut()">Check Out</button>
+      <button *ngIf="!isUserCheckedIn()" class="btn btn-success prominent" (click)="checkIn()">Check In</button>
     </span>
-    <h1 class="text-center mt-3">Routine Dashboard </h1>
-    <!-- Check-In / Check-Out -->
-    <div class="text-center pb-3">
-        <span *ngIf="hasTimekeeping()">
-            <button *ngIf="isUserCheckedIn()" class="btn btn-danger prominent" (click)="checkOut()">Check Out</button>
-            <button *ngIf="!isUserCheckedIn()" class="btn btn-success prominent" (click)="checkIn()">Check In</button>
-        </span>
-        <span class="text-center pb-3">
-            <button *ngIf="getUnacknowledgedNotifications()" (click)="openNotificationModal()"
-                class="btn btn-info prominent"> Unread Messages! </button>
-            <button *ngIf="!getUnacknowledgedNotifications()" class="btn btn-secondary prominent" [disabled]="true"> No
-                New Messages </button>
-        </span>
-    </div>
+    <span class="text-center pb-3">
+      <button *ngIf="getUnacknowledgedNotifications()" (click)="openNotificationModal()" class="btn btn-info prominent">
+        Unread Messages! </button>
+      <button *ngIf="!getUnacknowledgedNotifications()" class="btn btn-secondary prominent" [disabled]="true"> No
+        New Messages </button>
+    </span>
+  </div>
 
-    <app-routine-list [routineList]="routines" [instanceList]="routineInstances" [user]="user" [fullDisplayMode]="false"
-        (sendReport)="postNewInstance($event)">
-    </app-routine-list>
+  <app-routine-list [routineList]="routines" [instanceList]="routineInstances" [user]="user" [fullDisplayMode]="false"
+    (sendReport)="postNewInstance($event)">
+  </app-routine-list>
 </div>
 
 <hr>
 
 <!-- Logs Display -->
 <div>
-    <h2 class="text-center text-capitalize">
-        My Routine Logs
-    </h2>
-    <app-routine-instance-list [routineList]="routines" [instanceList]="routineInstances" [fullDisplayMode]="false">
-    </app-routine-instance-list>
+  <h2 class="text-center text-capitalize">
+    My Routine Logs
+  </h2>
+  <!-- <div class="form-inline ml-2 form-group">
+    <label>From:</label>
+    <input class="form-control ml-1" type="date" [(ngModel)]="fromDate">
+    <label class="ml-2">To:</label>
+    <input class="form-control ml-1" type="date" [(ngModel)]="toDate">
+    <button class="btn btn-primary ml-2" (click)="searchRoutineLogsByTime()"><i class="fa fa-search"></i>
+      Search</button>
+  </div> -->
+  <app-routine-instance-list [routineList]="routines" [instanceList]="filterRoutineInstances" [fullDisplayMode]="false">
+  </app-routine-instance-list>
 </div>
 
 <!-- Notification Response -->
 <q-modal (close)="closeNotificationResponseModal()" #notificationResponseModal>
-    <div *ngIf="!notificationInReview">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">×</span>
-        </button>
-        <h4 class="text-center">Your Unacknowledged Notifications:</h4>
-        <hr>
-        <q-table [rows]="getUnacknowledgedNotifications()" [tableColumnDescriptors]="notificationColumns"
-            [compact]="true">
-            <tr *tableRowTemplate="let n;">
-                <td>{{n.name}}</td>
-                <td>
-                    {{n.startDate | date: 'shortDate'}}
-                </td>
-                <td>
-                    <button class="btn btn-primary" (click)="openNotification(n)">Open</button>
-                </td>
-            </tr>
-        </q-table>
+  <div *ngIf="!notificationInReview">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">Your Unacknowledged Notifications:</h4>
+    <hr>
+    <q-table [rows]="getUnacknowledgedNotifications()" [tableColumnDescriptors]="notificationColumns" [compact]="true">
+      <tr *tableRowTemplate="let n;">
+        <td>{{n.name}}</td>
+        <td>
+          {{n.startDate | date: 'shortDate'}}
+        </td>
+        <td>
+          <button class="btn btn-primary" (click)="openNotification(n)">Open</button>
+        </td>
+      </tr>
+    </q-table>
+  </div>
+  <div *ngIf="notificationInReview">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">{{notificationInReview.name}}</h4>
+    <hr>
+    <div class="mb-1">
+      Please carefully read the following before acknowledging:
     </div>
-    <div *ngIf="notificationInReview">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">×</span>
-        </button>
-        <h4 class="text-center">{{notificationInReview.name}}</h4>
-        <hr>
-        <div class="mb-1">
-            Please carefully read the following before acknowledging:
-        </div>
 
-        <div class="alert alert-info mt-1" [innerHTML]="notificationInReview.description"></div>
-        <hr>
-        <div class="float-right">
-            <button class="btn btn-secondary" (click)="closeNotificationResponseModal()">Cancel</button>
-            <button class="btn btn-primary" (click)="acknowledgeNotification()">Acknowledge</button>
-        </div>
-
+    <div class="alert alert-info mt-1" [innerHTML]="notificationInReview.description"></div>
+    <hr>
+    <div class="float-right">
+      <button class="btn btn-secondary" (click)="closeNotificationResponseModal()">Cancel</button>
+      <button class="btn btn-primary" (click)="acknowledgeNotification()">Acknowledge</button>
     </div>
+
+  </div>
 </q-modal>

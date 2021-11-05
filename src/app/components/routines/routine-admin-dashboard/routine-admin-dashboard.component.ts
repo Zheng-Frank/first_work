@@ -1,3 +1,4 @@
+import { filter } from 'rxjs/operators';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { environment } from '../../../../environments/environment';
@@ -35,6 +36,11 @@ export class RoutineAdminDashboardComponent implements OnInit {
   routineFieldDescriptors = [];
   metric = {} as any
   metricValues = '';
+  // two logs' filter types, one is by routine, the other is by agent
+  agents = [];
+  routineNames = [];
+  selectedRoutineName = 'All';
+  selectedAgent = 'All';
 
   constructor(private _api: ApiService, private _global: GlobalService, private _task: TaskService) {
     this.user = this._global.user;
@@ -99,6 +105,9 @@ export class RoutineAdminDashboardComponent implements OnInit {
     await this.populateRoutines();
     await this.populateRoutineInstances();
     this.filterRoutinesAndInstances();
+    this.populateAgents();
+    this.getRoutineNames();
+    this.filterRoutineLogs();
   }
 
   addMetric() {
@@ -189,6 +198,18 @@ export class RoutineAdminDashboardComponent implements OnInit {
     this.allInstances = routineInstances;
   }
 
+  // need agent filter type to filter logs
+  populateAgents() {
+    this.allInstances.forEach(instance => {
+      if (this.agents.indexOf(instance.assignee) === -1 && instance.assignee) {
+        this.agents.push(instance.assignee);
+      }
+    });
+    this.agents.sort((a1, a2) => a1.localeCompare(a2));
+    this.agents.unshift('All');
+    this.selectedAgent = this.agents[0];
+  }
+
   filterRoutinesAndInstances() {
     this.routines = this.allRoutines.slice().sort((a, b) => a.name > b.name ? 1 : -1);
     this.routineInstances = this.allInstances.slice();
@@ -260,12 +281,25 @@ export class RoutineAdminDashboardComponent implements OnInit {
     }
   }
 
-  onSelectRoutine(selectEvent) {
-    this.selectedRoutine = this.routines.filter(r => r.name === selectEvent)[0];
+  filterRoutineLogs() {
+    this.onSelectRoutine();
+    this.onSelectAgent();
+  }
+
+  onSelectRoutine() {
+    this.selectedRoutine = this.routines.filter(r => r.name === this.selectedRoutineName)[0];
     this.selectedInstanceList = this.allInstances.filter(inst => inst.routineId === this.selectedRoutine._id);
+
+  }
+
+  onSelectAgent() {
+    if (this.selectedAgent !== 'All') {
+      this.selectedInstanceList = this.allInstances.filter(inst => inst.assignee === this.selectedAgent);
+    }
   }
 
   getRoutineNames() {
-    return this.routines.map(r => r.name);
+    this.routineNames = this.routines.map(r => r.name);
+    this.selectedRoutineName = this.routineNames[0];
   }
 }
