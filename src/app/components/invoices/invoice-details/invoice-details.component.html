@@ -29,7 +29,7 @@
 
         <div class="mt-2">
             <button class="btn btn-info" (click)="setDisplay('logs')">
-                <i class="fas fa-history"></i> Show Logs({{getUnresolvedLogs().length}})</button>
+                <i class="fas fa-history"></i> Show Logs({{invoice.logs?.length}})</button>
         </div>
 
         <div *qIf="display === 'logs'">
@@ -140,7 +140,7 @@
 
         <div class="mt-2">
             <button class="btn btn-info" (click)="setDisplay('logs')">
-                <i class="fas fa-history"></i> Show Logs({{getUnresolvedLogs().length}})</button>
+                <i class="fas fa-history"></i> Show Logs({{invoice.logs?.length}})</button>
             <button class="btn btn-info" (click)="setDisplay('paymentMeans')">
                 <i class="fas fa-hand-holding-usd"></i> Show Payment Means({{paymentMeans.length}})</button>
             <button class="btn btn-info" (click)="downloadPdf()">
