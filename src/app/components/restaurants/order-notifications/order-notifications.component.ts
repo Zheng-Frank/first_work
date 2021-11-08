@@ -59,7 +59,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     inputType: "single-select",
     items: [
       { object: "default", text: "default", selected: true },
-      { object: "Chef", text: "Chef", selected: false },
+      { object: "chef", text: "chef", selected: false },
     ]
   };
 
