@@ -1,3 +1,4 @@
+import { filter } from 'rxjs/operators';
 import { AlertType } from './../../../classes/alert-type';
 import { Log } from 'src/app/classes/log';
 import { environment } from './../../../../environments/environment';
@@ -14,6 +15,7 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
 
   @ViewChild('logEditingModal') logEditingModal;
   vipRTs = [];
+  now = new Date();
 
   restaurantsColumnDescriptors = [
     {
@@ -25,11 +27,14 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
+      label: "Last Follow up"
+    },
+    {
       label: "Logs",
     }
   ];
-
-  logInEditing: Log = new Log({ type: 'vip-follow-up', time: new Date() });
+  vipFollowUpLogType = 'vip-follow-up';
+  logInEditing: Log = new Log({ type: this.vipFollowUpLogType, time: new Date() });
   activeRestaurant;
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -41,10 +46,20 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
    * VIP RTs: 
     1. enabled,
     2. have invoice, 
-    3. anyone commission of invoice > 200
+    3. invoice:
+    - Average invoice for the RT is $150+ per month overall
+    - Average invoice for the RT is $150+ per month over last 3 months
     notice that: anyone commission
    */
   async loadVIPRestaurants() {
+    /*
+    an invoice returned value example:
+    {
+      averageInvoice: 151.8291388888889
+      invoices: [{invoiceId: "5ed5065c475996f772bd6065", commission: 59.541000000000004},…]
+      _id: {restaurantId: "5eb85de709e2bf378e35187a"}
+    }
+    */
     const invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'invoice',
       aggregate: [
@@ -56,32 +71,58 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
             invoices: {
               $push: {
                 invoiceId: '$_id',
-                commission: '$commission'
+                commission: '$commission',
+                createdAt: '$createdAt'
+              }
+            }
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            invoices: 1,
+            averageInvoice: {
+              $avg: '$invoices.commission'
+            },
+            lastThreeMonthsInvoices: {
+              $filter: {
+                input: '$invoices',
+                as: 'invoice',
+                cond: {
+                  $gte: ['$$invoice.createdAt', { $dateFromString: { dateString: new Date(new Date().valueOf() - 3 * 30 * 24 * 3600 * 1000) } }]
+                }
               }
             }
           }
         },
         {
           $project: {
-            invoices: {
-              $filter: {
-                input: '$invoices',
-                as: 'invoice',
-                cond: { $lte: ['$$invoice.commission', 200] }
-              }
+            _id: 1,
+            invoices: 1,
+            averageInvoice: 1,
+            averageLastInvoice: {
+              $avg: '$lastThreeMonthsInvoices.commission'
             }
           }
         },
         {
           $match: {
-            invoices: {
-              $size: 0
-            }
+            $or: [
+              {
+                averageInvoice: {
+                  $gte: 150
+                }
+              },
+              {
+                averageLastInvoice: {
+                  $gte: 150
+                }
+              }]
           }
-        },
+        }
       ]
     }).toPromise();
-    
+
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       aggregate: [
@@ -102,7 +143,7 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
                 input: '$logs',
                 as: 'log',
                 cond: {
-                  $eq: ['$$log.type', 'vip-follow-up']
+                  $eq: ['$$log.type', this.vipFollowUpLogType]
                 }
               }
             }
@@ -111,11 +152,18 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
       ],
       limit: 20000
     }).toPromise();
-    this.vipRTs = restaurants.filter(restaurant => invoices.some(invoice => invoice._id.restaurantId === restaurant._id));
+    this.vipRTs = restaurants.filter(restaurant => invoices.some(invoice => invoice._id.restaurantId === restaurant._id)).map(r => {
+      let { logs } = r;
+      if (logs.length > 0) {
+        logs.sort((l1, l2) => new Date(l2.time).valueOf() - new Date(l1.time).valueOf());
+        r.lastFollowUp = new Date(logs[0].time);
+      }
+      return r;
+    });
   }
 
   async addLog(row) {
-    this.logInEditing = new Log({ type: 'vip-follow-up', time: new Date() });
+    this.logInEditing = new Log({ type: this.vipFollowUpLogType, time: new Date() });
     this.activeRestaurant = row;
     let [restaurant] = await this.getRestaurant(this.activeRestaurant._id);
     this.activeRestaurant.logs = restaurant.logs || [];
@@ -151,7 +199,15 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
         old: { _id: this.activeRestaurant._id },
         new: { _id: newRestaurant._id, logs: newRestaurant.logs }
       }]).subscribe(result => {
-        this.vipRTs.find(r => r._id === this.activeRestaurant._id).logs = [...newRestaurant.logs];
+        this.vipRTs.forEach(r => {
+          if (r._id === this.activeRestaurant._id) {
+            r.logs = [...newRestaurant.logs];
+            // also need to update last follow up besides logs
+            let logs = r.logs.filter(log => log.type === this.vipFollowUpLogType);
+            logs.sort((l1, l2) => new Date(l2.time).valueOf() - new Date(l1.time).valueOf());
+            r.lastFollowUp = new Date(logs[0].time);
+          }
+        });
         this._global.publishAlert(AlertType.Success, 'Log added successfully');
 
         event.formEvent.acknowledge(null);

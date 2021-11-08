@@ -3,6 +3,9 @@
     <h1 class="text-center">VIP Restaurants ({{vipRTs.length || 0}})</h1>
   </h2>
   <div class="card-body">
+    <div class="col-12 text-right form-group">
+      <button class="btn btn-primary" (click)="loadVIPRestaurants()"><i class="fas fa-sync"></i> Reload</button>
+    </div>
     <q-table [rows]="vipRTs" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
       [pageSize]="100000">
       <tr *tableRowTemplate="let r;">
@@ -10,6 +13,14 @@
         <td>
           <a routerLink="/restaurants/{{r['_id']}}">{{r.name}} </a><br>
           <span>{{r._id}}</span>
+        </td>
+        <td>
+          <ng-container *ngIf="r.lastFollowUp">
+            <label>{{r.lastFollowUp | date : 'shortDate'}} ({{r.lastFollowUp | ago: now}})</label>
+          </ng-container>
+          <ng-container *ngIf="!r.lastFollowUp">
+            N/A
+          </ng-container>
         </td>
         <td style="width:60%;">
           <table class="table table-sm">
@@ -34,8 +45,8 @@
         </td>
     </q-table>
   </div>
-  
-<q-modal #logEditingModal>
+
+  <q-modal #logEditingModal>
     <app-log-editor [restaurant]="activeRestaurant" [restaurantList]="[]" [log]="logInEditing"
       (success)="onSuccessAddLog($event)" (cancel)="onCancelAddLog()"></app-log-editor>
   </q-modal>
