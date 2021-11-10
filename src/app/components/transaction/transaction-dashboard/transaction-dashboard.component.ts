@@ -119,6 +119,7 @@ export class TransactionDashboardComponent implements OnInit {
 
   add() {
     this.transactionInEditing = {};
+    this.transactionInEditing['payer'] = 'qmenu';
     this.editModal.show();
   }
 
