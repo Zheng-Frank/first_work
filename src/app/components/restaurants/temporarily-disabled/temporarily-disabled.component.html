@@ -20,6 +20,9 @@
         <small class="text-muted">{{rt.googleAddress?.formatted_address}}</small>
       </div>
     </td>
+    <td>
+        {{getTimezoneCity(rt.googleAddress?.timezone)}} ({{getTimeOffsetByTimezone(rt.googleAddress?.timezone)}})
+    </td>
     <td class="align-middle">
       <div *ngIf="rt.comebackDate !== null">-{{rt.comebackDate | dateTz: 'MMM d, yyyy' : rt.googleAddress?.timezone}}</div>
       <div *ngIf="rt.comebackDate === null">Unknown</div>
