@@ -102,7 +102,8 @@ export class CycleDetailsComponent implements OnInit {
     balance: 1,
     cycleId: 1,
     qMenuCcCollected: 1,
-    "restaurant.id": 1
+    "restaurant.id": 1,
+    feesForQmenu: 1,
   };
   constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService) {
     this._route.params.subscribe(
@@ -451,8 +452,8 @@ export class CycleDetailsComponent implements OnInit {
           }
           this.total += balance;
           this.qmenuCollectedTotal += row.invoice.qMenuCcCollected || 0;
-          this.commissionTotal += row.invoice.commission || 0;
-
+          const commission = (row.invoice.commission || 0) + (row.invoice.feesForQmenu);
+          this.commissionTotal += Math.abs(commission);
         }
       });
     }
