@@ -287,19 +287,26 @@ export class RoutineAdminDashboardComponent implements OnInit {
   }
 
   onSelectRoutine() {
-    this.selectedRoutine = this.routines.filter(r => r.name === this.selectedRoutineName)[0];
-    this.selectedInstanceList = this.allInstances.filter(inst => inst.routineId === this.selectedRoutine._id);
-
+    if(this.selectedRoutineName === 'All'){
+      this.selectedRoutine = this.routines;
+      this.selectedInstanceList = this.allInstances;
+    }else{
+      this.selectedRoutine = this.routines.filter(r => r.name === this.selectedRoutineName);
+      this.selectedInstanceList = this.allInstances.filter(inst => inst.routineId === this.selectedRoutine[0]._id);
+    }
+    
   }
 
   onSelectAgent() {
     if (this.selectedAgent !== 'All') {
-      this.selectedInstanceList = this.allInstances.filter(inst => inst.assignee === this.selectedAgent);
+      this.selectedInstanceList = this.selectedInstanceList.filter(inst => inst.assignee === this.selectedAgent);
     }
   }
 
   getRoutineNames() {
     this.routineNames = this.routines.map(r => r.name);
-    this.selectedRoutineName = this.routineNames[0];
+    this.routineNames.unshift('All');
+    this.selectedRoutineName = this.routineNames[1];
   }
+
 }

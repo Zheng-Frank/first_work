@@ -34,9 +34,9 @@
   </div>
 
   <h2 class="text-center text-capitalize">
-    {{selectedRoutine?.name || ""}} Routine Logs
+    {{selectedRoutineName === 'All' ? 'All' : selectedRoutine[0]?.name || ""}} Routine Logs ({{selectedInstanceList.length || 0}})
   </h2>
-  <app-routine-instance-list [routineList]="[selectedRoutine]" [instanceList]="selectedInstanceList"
+  <app-routine-instance-list [routineList]="selectedRoutine" [fullDisplayModeAndShowAll]="selectedRoutineName === 'All'" [instanceList]="selectedInstanceList"
     [fullDisplayMode]="true">
   </app-routine-instance-list>
 </div>

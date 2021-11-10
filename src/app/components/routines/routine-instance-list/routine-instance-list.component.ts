@@ -11,6 +11,7 @@ export class RoutineInstanceListComponent implements OnChanges {
   constructor() { }
   // fullDisplayMode - if false, only shows routine name and the report button. If true, shows more detail and allows editing. 
   @Input() fullDisplayMode = false;
+  @Input() fullDisplayModeAndShowAll = false;
   @Input() instanceList = [];
   @Input() routineList = [];
 
@@ -20,16 +21,66 @@ export class RoutineInstanceListComponent implements OnChanges {
 
   routineInReporting;
   resultsTable = {};
+  allInstanceList = [];// if display full mode and show all, then use it to show all routine instances. 
 
   pagination = {};
 
   ngOnChanges() {
     if ((this.routineList || []).length && (this.instanceList || []).length) {
-      this.groupAndSortInstances()
-      this.createInstanceColumnDescriptors();
-      this.createResultsTable();
-      this.createPaginationTable();
+      if (this.fullDisplayModeAndShowAll) {
+        this.createTableDescAndDataOfAll();
+      } else {
+        this.groupAndSortInstances()
+        this.createInstanceColumnDescriptors();
+        this.createResultsTable();
+        this.createPaginationTable();
+      }
     }
+  }
+
+  createTableDescAndDataOfAll(){
+    this.allInstanceList = [];
+    this.resultsTable = {};
+    // 1. create table description
+    const createdAt =
+    {
+      label: 'Created At',
+      paths: ['createdAt'],
+      sort: (a, b) => new Date(a).valueOf() - new Date(b).valueOf()
+    };
+    const username = {
+      label: 'Username',
+      paths: ['assignee'],
+      sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
+    };
+    const routineType = {
+      label: 'Routine Type'
+    }
+    const routineDescriptors = [];
+    this.routineList.forEach(routine => {
+      routine.metrics.forEach(metric => {
+        if(!routineDescriptors.some(desc=>desc.label === metric.name)){
+          routineDescriptors.push({
+            label: metric.name,
+          })
+        }
+      });
+    });
+    this.fullDisplayInstanceColumnDescriptors = [createdAt, username, routineType, ...routineDescriptors];
+    // 2. create table datas
+    this.instanceList.forEach(inst => {
+      const instanceData = {
+        _id: inst._id,
+        createdAt: inst.createdAt,
+        assignee: inst.assignee
+      };
+      instanceData['Routine Type'] = (this.routineList.find(r=>r._id === inst.routineId)||{}).name || 'None';
+      (inst.results || []).forEach(res => {
+        instanceData[res.name] = res.result
+      })
+      this.allInstanceList.push(instanceData);
+      this.resultsTable[inst._id] = instanceData;
+    });
   }
 
   columnDescriptors = [
