@@ -264,7 +264,6 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
 
 
   submitChannel(event: FormSubmit) {
-
     // keep only digits for phone/sms/fax
     if (['Phone', 'SMS', 'Fax'].indexOf(this.channelInEditing.type) >= 0) {
       this.channelInEditing.value = this.channelInEditing.value.replace(/\D/g, '');
@@ -274,7 +273,6 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
     if (this.channelInEditing.type !== 'Phone') {
       delete this.channelInEditing.language;
     }
-
 
     const newChannels = (this.restaurant.channels || []).slice(0);
     const newChannelLength = newChannels.length;
@@ -305,16 +303,9 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
     const newOrderNotifications = JSON.parse(JSON.stringify(this.restaurant.orderNotifications || []));
     // if this channel has had order notifications turned OFF during this round of editing, we want to delete any orderNotifications associated with this channel
     const notificationsTurnedOff = (this.channelBeforeEditing.notifications || []).includes('Order') && !(channel.notifications || []).includes('Order');
-    console.log(notificationsTurnedOff);
     if (notificationsTurnedOff) {
-      console.log('block one');
-      // a channel had Order notifications removed -> delete the associated orderNotification
       let matchingNotificationIndex = (this.restaurant.orderNotifications || []).findIndex(n => n.channel.value === channel.value && n.channel.type === channel.type);
       let oldNotificationIndex = (this.restaurant.orderNotifications || []).findIndex(n => n.channel.value === this.channelBeforeEditing.value && n.channel.type === this.channelBeforeEditing.type);
-      console.log(matchingNotificationIndex);
-      console.log(oldNotificationIndex);
-      // if oldNotificationIndex >= 0, the channel value or type has been edited. we should delete the old entry, and let the new entry that
-      // will be created take its place
 
       if (oldNotificationIndex >= 0) {
         newOrderNotifications.splice(oldNotificationIndex, 1);
@@ -323,14 +314,8 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
         newOrderNotifications.splice(matchingNotificationIndex, 1); // deleting orderNotification
       }
     } else {
-      console.log('block two');
-      // 
       let notificationMatch = (this.restaurant.orderNotifications || []).find(n => n.channel.value === channel.value && n.channel.type === channel.type);
-      console.log(notificationMatch);
       let oldNotificationIndex = (this.restaurant.orderNotifications || []).findIndex(n => n.channel.value === this.channelBeforeEditing.value && n.channel.type === this.channelBeforeEditing.type);
-      console.log(oldNotificationIndex);
-      // if oldNotificationIndex >= 0, the channel value or type has been edited. we should delete the old entry, and let the new entry that
-      // will be created take its place
 
       if (oldNotificationIndex >= 0) {
         newOrderNotifications.splice(oldNotificationIndex, 1);
