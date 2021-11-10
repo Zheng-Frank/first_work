@@ -26,6 +26,7 @@ export class CycleDetailsComponent implements OnInit {
   paidTotal = 0;
   sentTotal = 0;
   qmenuCollectedTotal = 0;
+  commissionTotal = 0;
   skipAutoInvoicingRestaurants = new Set();
 
   blocks = {
@@ -433,6 +434,7 @@ export class CycleDetailsComponent implements OnInit {
     this.paidTotal = 0;
     this.sentTotal = 0;
     this.qmenuCollectedTotal = 0;
+    this.commissionTotal = 0;
     if (this.activeBlock && this.activeBlock.rows) {
       this.activeBlock.rows.map(row => {
         if (this.isRowVisible(row) && row.invoice) {
@@ -449,6 +451,8 @@ export class CycleDetailsComponent implements OnInit {
           }
           this.total += balance;
           this.qmenuCollectedTotal += row.invoice.qMenuCcCollected || 0;
+          this.commissionTotal += row.invoice.commission || 0;
+
         }
       });
     }

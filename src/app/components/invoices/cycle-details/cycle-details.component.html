@@ -118,19 +118,22 @@
       {{activeBlock.label}}
     </h2>
     <div class="text-center">
-      total (including canceled): {{total | currency:'USD':'symbol' }}
+      total balance (including canceled): {{total | currency:'USD':'symbol' }}
     </div>
     <div class="text-center">
       non-canceled: {{nonCanceledTotal | currency:'USD':'symbol' }}
     </div>
     <div class="text-center">
+      qmenu collected prepaid total: {{qmenuCollectedTotal | currency:'USD':'symbol' }}
+    </div>
+    <div class="text-center">
+      total commission to qmenu: {{commissionTotal | currency:'USD':'symbol' }}
+    </div>
+    <div class="text-center">
       notified total: {{sentTotal | currency:'USD':'symbol' }}
     </div>
     <div class="text-center">
-      paid total: {{paidTotal | currency:'USD':'symbol' }}
-    </div>
-    <div class="text-center">
-      qmenu collected prepaid total: {{qmenuCollectedTotal | currency:'USD':'symbol' }}
+      cleared total: {{paidTotal | currency:'USD':'symbol' }}
     </div>
     <div class="text-right mb-2">
       <select [(ngModel)]="paymentFrequencyFilter" (change)="filter()">
