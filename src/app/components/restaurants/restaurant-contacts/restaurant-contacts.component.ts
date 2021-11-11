@@ -278,7 +278,6 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
     }
 
     const newChannels = (this.restaurant.channels || []).slice(0);
-    const newChannelLength = newChannels.length;
     if (this.channelInEditing.index === -1) {
       newChannels.push(this.channelInEditing);
     } else {
@@ -289,8 +288,6 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
 
     // we need to remove temp index!
     delete this.channelInEditing.index;
-
-    // circumstances where we need to update orderNotifications:
 
     this.updateOrderNotifications(this.channelInEditing)
 
