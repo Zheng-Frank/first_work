@@ -21,7 +21,7 @@ export class YelpBusinessesComponent implements OnInit {
   username = '';
   restaurantStatus = "All";
   Q_Y_WebsiteStatus = "All"; // Add filter to Yelp Biz page to filter for "Q / Y website" condition，it is the sign.
-  searchText; // restaurant id 
+  searchText; // restaurant id
   pagination = false;
 
   myColumnDescriptors = [
@@ -173,7 +173,7 @@ export class YelpBusinessesComponent implements OnInit {
         this.filteredRows = this.filteredRows;
         break;
     }
-    
+
     this.refreshing = false;
 
   }
@@ -627,7 +627,7 @@ export class YelpBusinessesComponent implements OnInit {
         // console.log({ email, yid, newUrl, isOwner });
 
         const result = await this._api.post(environment.appApiUrl + "yelp/generic", {
-          name: "inject-website-address",
+          name: "inject-yelp-website-address",
           payload: {
             email,
             yid,
