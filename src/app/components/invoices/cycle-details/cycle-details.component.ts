@@ -452,7 +452,7 @@ export class CycleDetailsComponent implements OnInit {
           }
           this.total += balance;
           this.qmenuCollectedTotal += row.invoice.qMenuCcCollected || 0;
-          const commission = (row.invoice.commission || 0) + (row.invoice.feesForQmenu);
+          const commission = (row.invoice.commission || 0) + (row.invoice.feesForQmenu || 0);
           this.commissionTotal += Math.abs(commission);
         }
       });
