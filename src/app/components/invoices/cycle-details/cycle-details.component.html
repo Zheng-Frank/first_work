@@ -130,6 +130,15 @@
       total commission to qmenu: {{commissionTotal | currency:'USD':'symbol' }}
     </div>
     <div class="text-center">
+      total CC processing fee: {{ccFeeTotal | currency:'USD':'symbol' }}
+    </div>
+    <div class="text-center">
+      total credit adjustment (q --> RT): {{creditAdjustmentTotal | currency:'USD':'symbol' }}
+    </div>
+    <div class="text-center">
+      total debit adjustment: {{debitAdjustmentTotal | currency:'USD':'symbol' }}
+    </div>
+    <div class="text-center">
       notified total: {{sentTotal | currency:'USD':'symbol' }}
     </div>
     <div class="text-center">
@@ -168,6 +177,7 @@
           <th>Paid</th>
           <th>Payment Means</th>
           <th><button (click)="sort('balance')" class="btn btn-link p-0">Balance</button></th>
+          <th>Adjustment</th>
           <th>Error</th>
         </tr>
       </thead>
@@ -190,6 +200,7 @@
               {{getPaymentMeans(row).text}}
             </td>
             <td><span *ngIf="row.invoice?.balance">{{row.invoice?.balance | currency:'USD':'symbol'}}</span></td>
+            <td><span *ngIf="row.invoice?.adjustment">{{row.invoice?.adjustment | currency:'USD':'symbol'}}</span></td>
             <td class="text-danger">
               <div *ngIf="isLastCycle">
                 <button (click)="sendOne(row)" [qLoading]="sending"

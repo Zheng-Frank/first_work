@@ -27,6 +27,9 @@ export class CycleDetailsComponent implements OnInit {
   sentTotal = 0;
   qmenuCollectedTotal = 0;
   commissionTotal = 0;
+  ccFeeTotal = 0;
+  creditAdjustmentTotal = 0;
+  debitAdjustmentTotal = 0;
   skipAutoInvoicingRestaurants = new Set();
 
   blocks = {
@@ -104,6 +107,8 @@ export class CycleDetailsComponent implements OnInit {
     qMenuCcCollected: 1,
     "restaurant.id": 1,
     feesForQmenu: 1,
+    stripeFee: 1,
+    adjustment: 1
   };
   constructor(private _route: ActivatedRoute, private _api: ApiService, private _global: GlobalService) {
     this._route.params.subscribe(
@@ -436,6 +441,9 @@ export class CycleDetailsComponent implements OnInit {
     this.sentTotal = 0;
     this.qmenuCollectedTotal = 0;
     this.commissionTotal = 0;
+    this.ccFeeTotal = 0;
+    this.creditAdjustmentTotal = 0;
+    this.debitAdjustmentTotal = 0;
     if (this.activeBlock && this.activeBlock.rows) {
       this.activeBlock.rows.map(row => {
         if (this.isRowVisible(row) && row.invoice) {
@@ -450,6 +458,14 @@ export class CycleDetailsComponent implements OnInit {
           if (!row.invoice.isCanceled) {
             this.nonCanceledTotal += balance;
           }
+
+          this.ccFeeTotal += row.invoice.stripeFee || 0;
+          if (row.invoice.adjustment > 0) {
+            this.creditAdjustmentTotal += row.invoice.adjustment;
+          } else {
+            this.debitAdjustmentTotal += row.invoice.adjustment;
+          }
+
           this.total += balance;
           this.qmenuCollectedTotal += row.invoice.qMenuCcCollected || 0;
           const commission = (row.invoice.commission || 0) + (row.invoice.feesForQmenu || 0);
