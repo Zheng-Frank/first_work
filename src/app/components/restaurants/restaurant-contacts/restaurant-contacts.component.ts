@@ -31,6 +31,8 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
   channelInEditing: Channel = {} as Channel;
   channelBeforeEditing: Channel = {} as Channel;
 
+  matchingNotificationIndex;
+
   notes: string;
   channelFieldDescriptors = [
     {
@@ -204,6 +206,7 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
       this.channelInEditing = JSON.parse(JSON.stringify(channel));
       this.channelBeforeEditing = JSON.parse(JSON.stringify(channel));
       this.channelInEditing.index = this.restaurant.channels.indexOf(channel);
+      this.matchingNotificationIndex = (this.restaurant.orderNotifications || []).findIndex(n => n.channel.type === this.channelInEditing.type && n.channel.value === this.channelInEditing.value);
     }
     this.languageDescriptor.items.forEach(x => x.selected = false);
     this.channelFormChange();
@@ -264,7 +267,6 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
 
 
   submitChannel(event: FormSubmit) {
-
     // keep only digits for phone/sms/fax
     if (['Phone', 'SMS', 'Fax'].indexOf(this.channelInEditing.type) >= 0) {
       this.channelInEditing.value = this.channelInEditing.value.replace(/\D/g, '');
@@ -274,7 +276,6 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
     if (this.channelInEditing.type !== 'Phone') {
       delete this.channelInEditing.language;
     }
-
 
     const newChannels = (this.restaurant.channels || []).slice(0);
     if (this.channelInEditing.index === -1) {
@@ -288,8 +289,6 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
     // we need to remove temp index!
     delete this.channelInEditing.index;
 
-    // we also want to update this RT's orderNotifications property. updateOrderNotifications function takes care of 
-    // logic to make sure records are updated appropriately
     this.updateOrderNotifications(this.channelInEditing)
 
     this.patchDiff('channels', newChannels);
@@ -300,16 +299,31 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
   }
 
   updateOrderNotifications(channel) {
-    const newOrderNotifications = JSON.parse(JSON.stringify(this.restaurant.orderNotifications || [])) ;
-    // if this channel has had order notifications turned OFF during this round of editing, we want to delete any orderNotifications associated with this channel
+    const notificationsTurnedOn = !(this.channelBeforeEditing.notifications || []).includes('Order') && (channel.notifications || []).includes('Order');
     const notificationsTurnedOff = (this.channelBeforeEditing.notifications || []).includes('Order') && !(channel.notifications || []).includes('Order');
+    const channelTypeChanged = this.channelBeforeEditing.type !== channel.type;
+    const channelValueChanged = this.channelBeforeEditing.value !== channel.value;
+
+    const newOrderNotifications = JSON.parse(JSON.stringify(this.restaurant.orderNotifications || []));
+
+    if (channelTypeChanged || channelValueChanged) {
+      if (this.matchingNotificationIndex >= 0) {
+        newOrderNotifications[this.matchingNotificationIndex].channel = {
+          type: channel.type,
+          value: channel.value
+        }
+      }
+    }
+
+    // if this channel has had order notifications turned OFF during this round of editing, we want to delete the orderNotification associated with this channel
     if (notificationsTurnedOff) {
-      let matchingNotificationIndex = (this.restaurant.orderNotifications || []).findIndex(n => n.channel.value === channel.value && n.channel.type === channel.type);
+      let matchingNotificationIndex = newOrderNotifications.findIndex(n => n.channel.value === channel.value && n.channel.type === channel.type);
       if (matchingNotificationIndex >= 0) {
         newOrderNotifications.splice(matchingNotificationIndex, 1); // deleting orderNotification
       }
-    } else {
-      let notificationMatch = (this.restaurant.orderNotifications || []).find(n => n.channel.value === channel.value && n.channel.type === channel.type);
+    } else if (notificationsTurnedOn) {
+      let notificationMatch = newOrderNotifications.find(n => n.channel.value === channel.value && n.channel.type === channel.type);
+
       if (!notificationMatch && (channel.notifications || []).includes('Order')) {
         newOrderNotifications.push({
           channel: {
@@ -331,7 +345,7 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
     newChannels.splice(this.channelInEditing.index, 1);
 
     const notificationMatchIndex = (this.restaurant.orderNotifications || []).findIndex(n => n.channel.value === oldChannel.value && n.channel.type === oldChannel.type);
-    
+
     if (notificationMatchIndex >= 0) {
       const newNotifications = this.restaurant.orderNotifications.slice(0);
       newNotifications.splice(notificationMatchIndex, 1);
