@@ -126,7 +126,7 @@ export class RestaurantYelpComponent implements OnInit {
     console.log({ email, yid, newUrl, isOwner });
 
     const result = await this._api.post(environment.appApiUrl + "yelp/generic", {
-      name: "inject-website-address",
+      name: "inject-yelp-website-address",
       payload: {
         "email": email,
         "yid": yid,
