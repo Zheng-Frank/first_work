@@ -11,40 +11,40 @@ td {
 }
 
 
-:host ::ng-deep th:nth-child(1) {
-  width: 3%;
-}
+/*:host ::ng-deep th:nth-child(1) {*/
+/*  width: 3%;*/
+/*}*/
 
-:host ::ng-deep th:nth-child(2) {
-  width: 20% !important;
-}
+/*:host ::ng-deep th:nth-child(2) {*/
+/*  width: 20% !important;*/
+/*}*/
 
-:host ::ng-deep th:nth-child(3) {
-  width: 5% !important;
-}
+/*:host ::ng-deep th:nth-child(3) {*/
+/*  width: 5% !important;*/
+/*}*/
 
-:host ::ng-deep th:nth-child(4) {
-  width: 5% !important;
-}
+/*:host ::ng-deep th:nth-child(4) {*/
+/*  width: 5% !important;*/
+/*}*/
 
-:host ::ng-deep th:nth-child(5) {
-  width: 15% !important;
-}
+/*:host ::ng-deep th:nth-child(5) {*/
+/*  width: 15% !important;*/
+/*}*/
 
-:host ::ng-deep th:nth-child(6) {
-  width: 7% !important;
-}
+/*:host ::ng-deep th:nth-child(6) {*/
+/*  width: 7% !important;*/
+/*}*/
 
-:host ::ng-deep th:nth-child(7) {
-  width: 10%;
-}
+/*:host ::ng-deep th:nth-child(7) {*/
+/*  width: 10%;*/
+/*}*/
 
-:host ::ng-deep th:nth-child(8) {
-  width: 30% !important;
-}
+/*:host ::ng-deep th:nth-child(8) {*/
+/*  width: 30% !important;*/
+/*}*/
 
-:host ::ng-deep th:nth-child(9) {
-  width: 10% !important;
-}
+/*:host ::ng-deep th:nth-child(9) {*/
+/*  width: 10% !important;*/
+/*}*/
 
 
