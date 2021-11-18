@@ -1,0 +1,80 @@
+<div class="setup-root">
+  <div id="setup-accordion" class="accordion setup-body">
+    <div class="card">
+      <div class="card-header" id="heading-basic">
+        <h2 class="mb-0 d-flex">
+          <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse-basic" aria-expanded="true" aria-controls="collapse-basic">
+            Basic Info
+          </button>
+          <i class="fa fa-angle-{{accordion.basic}}"></i>
+        </h2>
+      </div>
+
+      <div id="collapse-basic" class="collapse" aria-labelledby="heading-basic">
+        <div class="card-body">
+          <app-restaurant-setup-basic [restaurant]="restaurant" (done)="stepDone($event)"></app-restaurant-setup-basic>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header" id="heading-menu">
+        <h2 class="mb-0 d-flex">
+          <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapse-menu" aria-expanded="false" aria-controls="collapse-menu">
+            Menu Setup
+          </button>
+          <i class="fa fa-angle-{{accordion.menu}}"></i>
+        </h2>
+      </div>
+      <div id="collapse-menu" class="collapse" aria-labelledby="heading-menu">
+        <div class="card-body">
+          <app-restaurant-setup-menu *ngIf="!finished.menu" [restaurant]="restaurant" (done)="stepDone($event)"></app-restaurant-setup-menu>
+          <app-restaurant-setup-hours *ngIf="finished.menu" [restaurant]="restaurant" (done)="stepDone($event)"></app-restaurant-setup-hours>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header" id="heading-contact">
+        <h2 class="mb-0 d-flex">
+          <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapse-contact" aria-expanded="false" aria-controls="collapse-contact">
+            Contact Methods/Notifications
+          </button>
+          <i class="fa fa-angle-{{accordion.contact}}"></i>
+        </h2>
+      </div>
+      <div id="collapse-contact" class="collapse" aria-labelledby="heading-contact">
+        <div class="card-body">
+          <app-restaurant-setup-notifications [restaurant]="restaurant" (done)="stepDone($event)"></app-restaurant-setup-notifications>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header" id="heading-delivery">
+        <h2 class="mb-0 d-flex">
+          <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapse-delivery" aria-expanded="false" aria-controls="collapse-delivery">
+            Delivery
+          </button>
+          <i class="fa fa-angle-{{accordion.delivery}}"></i>
+        </h2>
+      </div>
+      <div id="collapse-delivery" class="collapse" aria-labelledby="heading-delivery">
+        <div class="card-body">
+          <app-restaurant-setup-delivery [restaurant]="restaurant" (done)="stepDone($event)"></app-restaurant-setup-delivery>
+        </div>
+      </div>
+    </div>
+  </div>
+  <hr />
+  <div class="p-1">
+    <h5>Finalize Account</h5>
+    <div>
+      NOTE: After filling out the information above, be sure to go to the Logs tab to see which action items are remaining.
+    </div>
+  </div>
+  <div class="setup-note" [ngClass]="{'open': showNotes}" [ngStyle]="{top: top + 'px'}">
+    <span class="trigger" (click)="showNotes = !showNotes" >
+      <i class="fa fa-angle-double-{{showNotes ? 'right': 'left'}}"></i>
+    </span>
+    <label class="title">Notes</label>
+    <textarea class="form-control" rows="10" [(ngModel)]="notes" (blur)="saveNote()"></textarea>
+  </div>
+</div>

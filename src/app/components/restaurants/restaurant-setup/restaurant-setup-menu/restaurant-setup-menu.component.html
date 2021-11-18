@@ -1,0 +1,40 @@
+<div class="form-group">
+  <h5>Provide Menu Information</h5>
+  <div class="form-check" *ngFor="let option of menuSetupOptions">
+    <label class="form-check-label">
+      <input type="radio" [disabled]="finished" [(ngModel)]="setupMode" class="form-check-input" [value]="option.value" />
+      {{option.text}}
+    </label>
+  </div>
+</div>
+<ng-container *ngIf="!finished">
+  <div class="form-group" *ngIf="setupMode === menuSetupModes.UploadImage">
+    <label>Please upload menu images here. (Limit 10 images)</label>
+    <div class="menu-img-list">
+      <span class="menu-img-item" *ngFor="let image of images; let i = index;">
+        <span class="btn-close" (click)="removeImage(i)">
+          <i class="fa fa-times"></i>
+        </span>
+        <img [src]="image"/>
+        <strong>Menu Image {{i + 1}}</strong>
+      </span>
+    </div>
+    <div class="mt-3">
+      <input type="file" class="form-control-file" accept="image/jpeg,jpg,png" *ngIf="images.length < 10" (change)="upload($event)">
+    </div>
+  </div>
+  <div class="form-group" *ngIf="setupMode === menuSetupModes.SendImage">
+    <label class="text-warning">Please text images to 978-652-9542, or email to support@qmenu360.com. Please include the restaurant name or business phone in the text or email so we can match the menu images with your account.</label>
+  </div>
+  <div class="form-group" *ngIf="setupMode === menuSetupModes.CopyFromWeb">
+    <label>Which platform should we reference for an updated version of your restaurant's menu? (e.g. UberEats, DoorDash, etc)</label>
+    <input type="text" class="form-control" [(ngModel)]="copyFrom" placeholder="Short answer text">
+  </div>
+  <div class="form-group" *ngIf="setupMode === menuSetupModes.ScrapeFromUrl">
+    <label>Enter URL at which we can find your menu</label>
+    <input type="text" class="form-control" [(ngModel)]="scrapeUrl" placeholder="Short answer text">
+  </div>
+  <div class="form-group text-end">
+    <button type="button" [disabled]="!canSave()" class="btn btn-primary btn-lg" (click)="save()" ><i class="fa fa-save"></i> Save</button>
+  </div>
+</ng-container>

@@ -253,6 +253,12 @@ import { SendFaxComponent } from './components/send-fax/send-fax.component';
 import { SalesMetricsComponent } from './components/sales-metrics/sales-metrics.component';
 import { RtsByProviderComponent } from './components/monitoring/rts-by-provider/rts-by-provider.component';
 import { MonitoringVipRestaurantsComponent } from './components/monitoring/monitoring-vip-restaurants/monitoring-vip-restaurants.component';
+import { RestaurantSetupBasicComponent } from './components/restaurants/restaurant-setup/restaurant-setup-basic/restaurant-setup-basic.component';
+import { RestaurantSetupNotificationsComponent } from './components/restaurants/restaurant-setup/restaurant-setup-notifications/restaurant-setup-notifications.component';
+import { RestaurantSetupDeliveryComponent } from './components/restaurants/restaurant-setup/restaurant-setup-delivery/restaurant-setup-delivery.component';
+import { RestaurantSetupMenuComponent } from './components/restaurants/restaurant-setup/restaurant-setup-menu/restaurant-setup-menu.component';
+import { RestaurantSetupEntryComponent } from './components/restaurants/restaurant-setup/restaurant-setup-entry/restaurant-setup-entry.component';
+import { RestaurantSetupHoursComponent } from './components/restaurants/restaurant-setup/restaurant-setup-hours/restaurant-setup-hours.component';
 
 
 
@@ -476,7 +482,14 @@ import { MonitoringVipRestaurantsComponent } from './components/monitoring/monit
     SendFaxComponent,
     SalesMetricsComponent,
     RtsByProviderComponent,
-    MonitoringVipRestaurantsComponent
+    MonitoringVipRestaurantsComponent,
+    RestaurantSetupBasicComponent,
+    RestaurantSetupNotificationsComponent,
+    RestaurantSetupDeliveryComponent,
+    MonitoringVipRestaurantsComponent,
+    RestaurantSetupMenuComponent,
+    RestaurantSetupEntryComponent,
+    RestaurantSetupHoursComponent
   ],
   imports: [
     BrowserModule,

@@ -1,0 +1,69 @@
+<h5><i class="fas fa-phone-volume"></i> Restaurant Primary Business Phone</h5>
+<div class="form-group">
+  <input type="text" class="form-control" [(ngModel)]="model.primaryBusinessPhone" placeholder="Input a business phone of restaurant">
+</div>
+<hr/>
+<h5><i class="fas fa-id-card-alt"></i> Primary contact person</h5>
+<div class="form-group">
+  <label>Title</label>
+  <div>
+    <div *ngFor="let title of titles" class="custom-control custom-radio custom-control-inline">
+      <label class="form-check-label">
+        <input class="form-check-input" type="radio" [value]="title" [(ngModel)]="model.primaryContactPersonTitle">
+        {{title}}
+      </label>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <label>Name</label>
+  <input type="text" class="form-control" [(ngModel)]="model.primaryContactPersonName">
+</div>
+<div class="form-group">
+  <label>Roles</label>
+  <div>
+    <div *ngFor="let role of roles" class="custom-control custom-checkbox custom-control-inline">
+      <label class="form-check-label">
+        <input class="form-check-input" type="checkbox" [value]="role"
+               (change)="checkRole($event)"
+               [checked]="model.primaryContactPersonRoles.includes(role)">
+        {{role}}
+      </label>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <label>Cell Phone Number</label>
+  <input type="text" class="form-control" [(ngModel)]="model.primaryContactPersonPhone">
+</div>
+<hr/>
+
+<h5>
+  <div><i class="fas fa-globe"></i> Existing Website</div>
+  <small class="form-text text-muted">
+    No website? No problem! qMenu can create a website for your restaurant for free (Write "None" if no website).
+  </small>
+</h5>
+<div class="form-group">
+  <div class="form-check" *ngFor="let website of existingWebsites">
+    <label class="form-check-label">
+      <input class="form-check-input" type="radio" [value]="website" [(ngModel)]="existingWebsite"> {{website}}
+    </label>
+  </div>
+  <input type="text" *ngIf="existingWebsite === 'Other'" [(ngModel)]="model.website" class="form-control" placeholder="Input an existing website">
+</div>
+
+<div class="form-group">
+  <label>Local Tax Rate</label>
+  <button class="btn btn-sm btn-link" (click)="copyToClipboard(restaurant?.googleAddress?.formatted_address)">
+    <i *ngIf="!isCopiedToClipboard" class="fas fa-clipboard"></i>
+    <i *ngIf="isCopiedToClipboard" class="fas fa-check"></i>
+    {{isCopiedToClipboard ? 'Copied!' : "Copy address"}}
+  </button>
+  <a class="btn btn-sm btn-link" href="https://www.taxjar.com/sales-tax-calculator" target="_blank">Lookup rate</a>
+  <input type="text" [(ngModel)]="model.localTaxRate" class="form-control" placeholder="Input tax rate of restaurant">
+</div>
+
+<div class="form-group text-end">
+  <button type="button" class="btn btn-primary btn-lg" (click)="save()" ><i class="fa fa-save"></i> Save</button>
+</div>

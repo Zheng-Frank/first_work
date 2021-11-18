@@ -1,6 +1,6 @@
 import { environment } from '../../environments/environment';
 import { ApiService } from '../services/api.service';
-import { Address } from '@qmenu/ui';
+import {Address, Hour, TimezoneHelper} from '@qmenu/ui';
 import { HttpClient } from '@angular/common/http';
 
 const FULL_LOCALE_OPTS = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit' };
@@ -17,7 +17,7 @@ export class Helper {
                 await fetch(url);
                 return true;
             } catch (error) {
-            };
+            }
             await new Promise(resolve => setTimeout(resolve, 500 * 1));
         }
         return false;
@@ -477,6 +477,48 @@ export class Helper {
         }
       }
       return zh ? {en, zh} : null;
+    }
+
+    static parseGMBHours(hours, timezone) {
+      const apRegex = /am|pm/i;
+
+      const parseTime = (time, m) => {
+        let parts = time.replace(m, '').split(':');
+        while (parts.length < 3) {
+          parts.push('00');
+        }
+        if (m.toLowerCase() === 'pm') {
+          parts[0] = Number(parts[0]) + 12;
+          if (parts[0] === 24) {
+            parts[0] -= 12;
+          }
+        }
+        return parts.join(':');
+      };
+
+      const result = [];
+      ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+        .map((day, index) => {
+          let date = new Date('2000/1/2');
+          let diff = index - date.getDay();
+          date.setDate(date.getDate() + diff);
+          let datePart = date.toLocaleString('en-US', {year: 'numeric', month: '2-digit', day: '2-digit'});
+          let durations = hours[day];
+          if (durations !== 'Closed') {
+            durations.split(',').forEach(duration => {
+              let [start, end] = duration.trim().split('–');
+              let endM = end.match(apRegex), startM = start.match(apRegex) || endM;
+              start = parseTime(start, startM[0]);
+              end = parseTime(end, endM[0]);
+              result.push(new Hour({
+                occurence: 'WEEKLY',
+                fromTime: TimezoneHelper.parse([datePart, start].join(' '), timezone),
+                toTime: TimezoneHelper.parse([datePart, end].join(' '), timezone),
+              }));
+            });
+          }
+        });
+      return result;
     }
 
 }

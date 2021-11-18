@@ -88,6 +88,9 @@ import { CleanInsistedLinksComponent } from "./components/clean-insisted-links/c
 import { OrderlessSignupsComponent } from './components/monitoring/orderless-signups/orderless-signups.component';
 import { ExcessSmsNotificationsRtsComponent } from './components/monitoring/excess-sms-notifications-rts/excess-sms-notifications-rts.component';
 import { RtsByProviderComponent } from './components/monitoring/rts-by-provider/rts-by-provider.component';
+import { RestaurantSetupBasicComponent } from './components/restaurants/restaurant-setup/restaurant-setup-basic/restaurant-setup-basic.component';
+import { RestaurantSetupNotificationsComponent } from './components/restaurants/restaurant-setup/restaurant-setup-notifications/restaurant-setup-notifications.component';
+import { RestaurantSetupDeliveryComponent } from './components/restaurants/restaurant-setup/restaurant-setup-delivery/restaurant-setup-delivery.component';
 
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'DEVELOPER'] } },
