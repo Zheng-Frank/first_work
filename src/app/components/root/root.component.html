@@ -1,6 +1,18 @@
 <app-ivr-widget *ngIf="ivrEnabled"></app-ivr-widget>
 <app-header [menuItems]="getMenus()" [user]="getUser()" (logout)="logout()"></app-header>
 <div class="container-fluid" style="position:relative; min-height: 600px">
+  <div class="toast-wrapper" *ngIf="fraudOrderCount > 0">
+    <div class="toast show bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body text-nowrap">
+          <strong>{{fraudOrderCount}}</strong> fraud orders find.<a class="text-warning ml-2" routerLink="/fraud-detection" target="_blank">Check now!</a>
+        </div>
+        <button type="button" class="btn text-light m-auto" (click)="fraudOrderCount = 0">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+    </div>
+  </div>
   <router-outlet></router-outlet>
 </div>
 

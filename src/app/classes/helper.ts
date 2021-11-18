@@ -313,6 +313,27 @@ export class Helper {
         return new Date(datetime.toLocaleString('en-US', { timeZone: timezone, ...FULL_LOCALE_OPTS }));
     }
 
+    static getNewYorkDate(bound: 'start'|'end', date?) {
+      return Helper.getTimezoneDate(bound, 'America/New_York', date);
+    }
+
+    static getTimezoneDate(bound: 'start'|'end', timezone, date?: string) {
+      let time = {'start': ' 00:00:00.000', 'end': ' 23:59:59.999'}[bound];
+      if (!date) {
+        let dt = new Date();
+        date = [dt.getFullYear(), Helper.padNumber(dt.getMonth() + 1), Helper.padNumber(dt.getDate())].join("-");
+      }
+      return TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(date + time), timezone);
+    }
+
+    static padNumber(num: number, length = 2) {
+      let digits = num.toString();
+      while (digits.length < length) {
+        digits = "0" + digits;
+      }
+      return digits;
+    }
+
     static sanitizedName(menuItemName) {
         let processedName;
 

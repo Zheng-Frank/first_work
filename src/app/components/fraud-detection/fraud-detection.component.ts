@@ -6,6 +6,7 @@ import {GlobalService} from '../../services/global.service';
 import {AlertType} from '../../classes/alert-type';
 import {environment} from '../../../environments/environment';
 import {Log} from '../../classes/log';
+import {Helper} from '../../classes/helper';
 
 declare var $: any;
 
@@ -60,7 +61,7 @@ export class FraudDetectionComponent implements OnInit {
     [OrderAmountFactors.Above400]: {'computed.total': {$gte: 400}},
     [OrderAmountFactors.None]: {}
   };
-  orderAmountFactor = OrderAmountFactors.From120To200;
+  orderAmountFactor = OrderAmountFactors.None;
 
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
   }
@@ -106,8 +107,8 @@ export class FraudDetectionComponent implements OnInit {
   }
 
   async getOrderedCustomersToday() {
-    let start = this.getTimezoneDate('start');
-    let end = this.getTimezoneDate('end');
+    let start = Helper.getNewYorkDate('start', this.createdAt);
+    let end = Helper.getNewYorkDate('end', this.createdAt);
     const customers = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'order',
       aggregate: [
@@ -142,14 +143,9 @@ export class FraudDetectionComponent implements OnInit {
     return match;
   }
 
-  getTimezoneDate(bound) {
-    let time = {'start': ' 00:00:00.000', 'end': ' 23:59:59.999'}[bound];
-    return TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.createdAt + time), 'America/New_York');
-  }
-
   async search() {
-    let start = this.getTimezoneDate('start');
-    let end = this.getTimezoneDate('end');
+    let start = Helper.getNewYorkDate('start',  this.createdAt);
+    let end = Helper.getNewYorkDate('end', this.createdAt);
     const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'order',
       aggregate: [
