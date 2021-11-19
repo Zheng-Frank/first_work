@@ -1,7 +1,10 @@
-import {ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
 import {Restaurant} from '@qmenu/ui';
 import {environment} from '../../../../../environments/environment';
 import {ApiService} from '../../../../services/api.service';
+import {RestaurantSetupBasicComponent} from '../restaurant-setup-basic/restaurant-setup-basic.component';
+import {RestaurantSetupContactComponent} from '../restaurant-setup-contact/restaurant-setup-contact.component';
+import {RestaurantSetupDeliveryComponent} from '../restaurant-setup-delivery/restaurant-setup-delivery.component';
 
 declare var $: any;
 
@@ -16,6 +19,10 @@ export class RestaurantSetupEntryComponent implements OnInit {
   }
 
   @Input() restaurant: Restaurant;
+  @ViewChild('basicPanel') basicPanel: RestaurantSetupBasicComponent;
+  @ViewChild('contactPanel') contactPanel: RestaurantSetupContactComponent;
+  @ViewChild('deliveryPanel') deliveryPanel: RestaurantSetupDeliveryComponent;
+  temp = null;
   notes: string;
   top = 5;
   showNotes = true;
@@ -50,9 +57,11 @@ export class RestaurantSetupEntryComponent implements OnInit {
       old: {_id: this.restaurant['_id']},
       new: {_id: this.restaurant['_id'], ...data}
     }]).toPromise();
-    this.restaurant = {...this.restaurant, ...data} as Restaurant;
-    this.cdr.detectChanges();
+    Object.assign(this.restaurant, data);
     this.checkProgress();
+    this.basicPanel.init();
+    this.contactPanel.init();
+    this.deliveryPanel.init();
   }
 
   hoursIdentical(a, b) {

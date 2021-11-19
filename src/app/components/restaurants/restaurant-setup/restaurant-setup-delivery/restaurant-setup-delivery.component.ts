@@ -1,6 +1,6 @@
 import {ApiService} from 'src/app/services/api.service';
 import {environment} from 'src/environments/environment';
-import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {Restaurant, TimezoneHelper} from '@qmenu/ui';
 
 @Component({
@@ -8,7 +8,7 @@ import {Restaurant, TimezoneHelper} from '@qmenu/ui';
   templateUrl: './restaurant-setup-delivery.component.html',
   styleUrls: ['./restaurant-setup-delivery.component.css']
 })
-export class RestaurantSetupDeliveryComponent implements OnInit, OnChanges {
+export class RestaurantSetupDeliveryComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
   @Output() done = new EventEmitter();
@@ -18,18 +18,18 @@ export class RestaurantSetupDeliveryComponent implements OnInit, OnChanges {
   deliveryTimeEstimate;
   qMenuFacilitate;
   postmatesAvailable;
-  deliveryFromTimes = [{ value: 0, text: 'At business open' }];
+  deliveryFromTimes = [{value: 0, text: 'At business open'}];
   deliveryFromTime = '';
   deliveryEndTimes = [
-    { value: 0, text: 'At closing' },
-    { value: 15, text: '15 minutes before closing' },
-    { value: 30, text: '30 minutes before closing' },
-    { value: 45, text: '45 minutes before closing' },
-    { value: 60, text: '60 minutes before closing' },
-    { value: 90, text: '90 minutes before closing' },
-    { value: 120, text: '120 minutes before closing' },
-    { value: 180, text: '180 minutes before closing' },
-    { value: 240, text: '240 minutes before closing' },
+    {value: 0, text: 'At closing'},
+    {value: 15, text: '15 minutes before closing'},
+    {value: 30, text: '30 minutes before closing'},
+    {value: 45, text: '45 minutes before closing'},
+    {value: 60, text: '60 minutes before closing'},
+    {value: 90, text: '90 minutes before closing'},
+    {value: 120, text: '120 minutes before closing'},
+    {value: 180, text: '180 minutes before closing'},
+    {value: 240, text: '240 minutes before closing'},
   ];
   deliveryEndTime = '';
   deliverySettings = [];
@@ -43,27 +43,21 @@ export class RestaurantSetupDeliveryComponent implements OnInit, OnChanges {
   async ngOnInit() {
     this.init();
     this.initDeliveryTimeOptions();
-    let couriers = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "courier",
-      projection: { name: 1 },
+    let couriers = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'courier',
+      projection: {name: 1},
       limit: 1000000,
-      sort: { name: 1 }
+      sort: {name: 1}
     }).toPromise();
     this.postmatesCourier = couriers.find(x => x.name === 'Postmates');
     await this.getViabilityList();
     this.checkPostmatesAvailability();
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.restaurant.currentValue !== changes.restaurant.previousValue) {
-      this.init();
-    }
-  }
-
   serviceAlreadySet(serviceType, setBackup = false) {
-    let service = this.serviceSettings.find(x => x.name === serviceType) || { name: serviceType};
+    let service = this.serviceSettings.find(x => x.name === serviceType) || {name: serviceType};
     // if service has no paymentMethods or paymentMethodsBackup, that's first time to setup
-    let { paymentMethods, paymentMethodsBackup } = service;
+    let {paymentMethods, paymentMethodsBackup} = service;
     if (!((paymentMethods && paymentMethods.length) || (paymentMethodsBackup && paymentMethodsBackup.length))) {
       // use backup field to record change
       if (setBackup) {
@@ -124,13 +118,13 @@ export class RestaurantSetupDeliveryComponent implements OnInit, OnChanges {
   }
 
   initDeliveryTimeOptions() {
-    let { googleAddress: {timezone}} = this.restaurant;
+    let {googleAddress: {timezone}} = this.restaurant;
     const t = TimezoneHelper.parse('2000-01-01', timezone);
     const interval = 30;
     for (let i = 0; i < 24 * 60 / interval; i++) {
       this.deliveryFromTimes.push({
         value: t.getTime(),
-        text: t.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: timezone })
+        text: t.toLocaleString('en-US', {hour: '2-digit', minute: '2-digit', timeZone: timezone})
       });
       t.setMinutes(t.getMinutes() + interval);
     }
@@ -213,7 +207,7 @@ export class RestaurantSetupDeliveryComponent implements OnInit, OnChanges {
         serviceSettings: this.serviceSettings
       };
       let delivery = this.serviceSettings.find(x => x.name === 'Delivery') || {name: 'Delivery'};
-      let { paymentMethods, paymentMethodsBackup } = delivery;
+      let {paymentMethods, paymentMethodsBackup} = delivery;
       if (!((paymentMethods && paymentMethods.length) || (paymentMethodsBackup && paymentMethodsBackup.length))) {
         // use backup field to record change
         delivery.paymentMethodsBackup = ['CASH'];

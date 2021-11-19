@@ -26,11 +26,23 @@ export class RestaurantSetupBasicComponent implements OnInit {
     website: '',
     localTaxRate: undefined
   };
+  // use snapshot to storage local data, to handle repeat save isssue
+  snapshot = {
+    primaryPhone: '',
+    contactName: '',
+    contactPhone: ''
+  };
 
   constructor(private _api: ApiService) {
   }
 
   async ngOnInit() {
+    this.init();
+    await this.getExistingWebsite();
+  }
+
+
+  init() {
     let {googleListing = {}, people = [], web = {}, taxRate, channels} = this.restaurant;
     let person = people[0] || {};
     let sms = (person.channels || []).find(x => x.type === 'SMS') || {};
@@ -44,10 +56,13 @@ export class RestaurantSetupBasicComponent implements OnInit {
       website: '',
       localTaxRate: taxRate
     };
+    this.snapshot = {
+      primaryPhone: phone.value || googleListing.phone,
+      contactName: person.name,
+      contactPhone: sms.value,
+    };
     this.existingWebsite = web.bizManagedWebsite || googleListing.gmbWebsite;
-    await this.getExistingWebsite();
   }
-
 
   checkRole(e) {
     let {target: {checked, value}} = e;
@@ -85,8 +100,10 @@ export class RestaurantSetupBasicComponent implements OnInit {
     } = this.model;
 
     let {people = [], web = {}, taxRate, channels = []} = this.restaurant;
+    let {primaryPhone, contactName, contactPhone} = this.snapshot;
+    const channelFind = c => c.type === 'SMS' && [primaryContactPersonPhone, contactPhone].includes(c.value);
     if (primaryContactPersonPhone && primaryContactPersonName) {
-      let person = people.find(p => p.name === primaryContactPersonName);
+      let person = people.find(p => [primaryContactPersonName, contactName].includes(p.name));
       if (!person) {
         person = {
           name: primaryContactPersonName,
@@ -96,22 +113,28 @@ export class RestaurantSetupBasicComponent implements OnInit {
         } as any;
         people.push(person);
       }
+      person.name = primaryContactPersonName;
       if (primaryContactPersonPhone) {
         let channel = {type: 'SMS', value: primaryContactPersonPhone};
-        person.channels.push(channel);
-        if (!channels.some(c => c.type === 'SMS' && c.value === primaryContactPersonPhone)) {
+        let personChannel = person.channels.find(channelFind);
+        if (personChannel) {
+          personChannel.value = primaryContactPersonPhone;
+        } else {
+          person.channels.push(channel);
+        }
+        if (!channels.some(channelFind)) {
           channels.push(channel);
         }
       }
     }
 
-    if (primaryBusinessPhone && !channels.some(c => c.type === 'Phone' && c.value === primaryBusinessPhone)) {
+    if (primaryBusinessPhone && !channels.some(c => c.type === 'Phone' && [primaryBusinessPhone, primaryPhone].includes(c.value))) {
       channels.push({type: 'Phone', value: primaryBusinessPhone, notifications: ['Order', 'Business']});
     }
     web.bizManagedWebsite = website || this.existingWebsite;
     taxRate = localTaxRate || taxRate;
 
-    let newObj = { people, web, taxRate, channels };
+    let newObj = {people, web, taxRate, channels};
     this.done.emit(newObj);
   }
 
