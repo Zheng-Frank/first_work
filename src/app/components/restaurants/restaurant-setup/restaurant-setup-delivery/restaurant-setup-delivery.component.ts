@@ -60,7 +60,22 @@ export class RestaurantSetupDeliveryComponent implements OnInit, OnChanges {
     }
   }
 
+  serviceAlreadySet(serviceType, setBackup = false) {
+    let service = this.serviceSettings.find(x => x.name === serviceType) || { name: serviceType};
+    // if service has no paymentMethods or paymentMethodsBackup, that's first time to setup
+    let { paymentMethods, paymentMethodsBackup } = service;
+    if (!((paymentMethods && paymentMethods.length) || (paymentMethodsBackup && paymentMethodsBackup.length))) {
+      // use backup field to record change
+      if (setBackup) {
+        service.paymentMethodsBackup = ['CASH'];
+      }
+      return false;
+    }
+    return true;
+  }
+
   init() {
+    // case 0: first time get here and everything is clean and new
     this.rtHasDelivery = this.qMenuFacilitate = undefined;
     let {
       courier, taxOnDelivery, deliveryFromTime, serviceSettings,
@@ -68,28 +83,35 @@ export class RestaurantSetupDeliveryComponent implements OnInit, OnChanges {
       blockedCities = [], blockedZipCodes = [], deliverySettings
     } = this.restaurant;
     this.serviceSettings = JSON.parse(JSON.stringify(serviceSettings || []));
-    let pickup = this.serviceSettings.find(x => x.name === 'Pickup') || { name: 'Pickup'};
-    // if pickup has no paymentMethods, that's first time to setup
-    if (!pickup.paymentMethods || !pickup.paymentMethods.length) {
-      // at least RT should support pickup with CASH
-      pickup.paymentMethods = ['CASH'];
-    } else {
-      // if has courier, that's use qmenu facilitate delivery
+    // case 1: reenter, has delivery and has set some field <- previously choose Yes and input something
+    // case 2: reenter, has delivery but hasn't set any field <- previously choose Yes without any input
+    // case 3: reenter, not has delivery but accept qmenu facilitate and postmates available <- previously choose no and yes and postmates available
+    // case 4: reenter, not has delivery and not accept qmenu facilitate or postmates unavailable <- previously choose no and no (or postmates unavailable)
+
+    // first we check if the pickup already set or not(this will be set in any case user saved)
+    if (this.serviceAlreadySet('Pickup', true)) {
+      // then we check if courier exists
       if (courier) {
         this.rtHasDelivery = false;
+        this.qMenuFacilitate = true;
       } else {
-        // if no courier, we check if the self delivery related field has value
-        this.rtHasDelivery = !!((taxOnDelivery !== undefined) || deliveryFromTime
+        // if no courier set, then check the self-delivery related fields
+        if ((taxOnDelivery !== undefined) || deliveryFromTime
           || blockedZipCodes.length > 0 || blockedCities.length > 0 || deliveryEndMinutesBeforeClosing
-          || deliveryTimeEstimate || (deliverySettings && deliverySettings.length > 0));
+          || deliveryTimeEstimate || (deliverySettings && deliverySettings.length > 0)) {
+          this.rtHasDelivery = true;
+        } else {
+          // if no self-delivery related fields set, then check delivery's serviceSetting
+          if (this.serviceAlreadySet('Delivery')) {
+            this.rtHasDelivery = true;
+          } else {
+            this.rtHasDelivery = false;
+            this.qMenuFacilitate = false;
+          }
+        }
       }
     }
-    if (courier) {
-      this.qMenuFacilitate = true;
-    } else if (this.rtHasDelivery === false) {
-      // make sure qmenuFaciliate not be unset when come again
-      this.qMenuFacilitate = false;
-    }
+
     this.deliveryTaxable = taxOnDelivery;
     this.deliveryFromTime = deliveryFromTime;
     this.deliveryEndTime = deliveryEndMinutesBeforeClosing;
@@ -190,6 +212,12 @@ export class RestaurantSetupDeliveryComponent implements OnInit, OnChanges {
         deliveryTimeEstimate: this.deliveryTimeEstimate,
         serviceSettings: this.serviceSettings
       };
+      let delivery = this.serviceSettings.find(x => x.name === 'Delivery') || {name: 'Delivery'};
+      let { paymentMethods, paymentMethodsBackup } = delivery;
+      if (!((paymentMethods && paymentMethods.length) || (paymentMethodsBackup && paymentMethodsBackup.length))) {
+        // use backup field to record change
+        delivery.paymentMethodsBackup = ['CASH'];
+      }
       if (this.deliveryFromTime) {
         obj.deliveryFromTime = this.deliveryFromTime;
       }
