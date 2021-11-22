@@ -1,6 +1,6 @@
 import {ApiService} from 'src/app/services/api.service';
 import {environment} from 'src/environments/environment';
-import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {Restaurant, TimezoneHelper} from '@qmenu/ui';
 
 @Component({
@@ -8,7 +8,7 @@ import {Restaurant, TimezoneHelper} from '@qmenu/ui';
   templateUrl: './restaurant-setup-delivery.component.html',
   styleUrls: ['./restaurant-setup-delivery.component.css']
 })
-export class RestaurantSetupDeliveryComponent implements OnInit, OnChanges {
+export class RestaurantSetupDeliveryComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
   @Output() done = new EventEmitter();
@@ -18,18 +18,18 @@ export class RestaurantSetupDeliveryComponent implements OnInit, OnChanges {
   deliveryTimeEstimate;
   qMenuFacilitate;
   postmatesAvailable;
-  deliveryFromTimes = [{ value: 0, text: 'At business open' }];
+  deliveryFromTimes = [{value: 0, text: 'At business open'}];
   deliveryFromTime = '';
   deliveryEndTimes = [
-    { value: 0, text: 'At closing' },
-    { value: 15, text: '15 minutes before closing' },
-    { value: 30, text: '30 minutes before closing' },
-    { value: 45, text: '45 minutes before closing' },
-    { value: 60, text: '60 minutes before closing' },
-    { value: 90, text: '90 minutes before closing' },
-    { value: 120, text: '120 minutes before closing' },
-    { value: 180, text: '180 minutes before closing' },
-    { value: 240, text: '240 minutes before closing' },
+    {value: 0, text: 'At closing'},
+    {value: 15, text: '15 minutes before closing'},
+    {value: 30, text: '30 minutes before closing'},
+    {value: 45, text: '45 minutes before closing'},
+    {value: 60, text: '60 minutes before closing'},
+    {value: 90, text: '90 minutes before closing'},
+    {value: 120, text: '120 minutes before closing'},
+    {value: 180, text: '180 minutes before closing'},
+    {value: 240, text: '240 minutes before closing'},
   ];
   deliveryEndTime = '';
   deliverySettings = [];
@@ -43,24 +43,33 @@ export class RestaurantSetupDeliveryComponent implements OnInit, OnChanges {
   async ngOnInit() {
     this.init();
     this.initDeliveryTimeOptions();
-    let couriers = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "courier",
-      projection: { name: 1 },
+    let couriers = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'courier',
+      projection: {name: 1},
       limit: 1000000,
-      sort: { name: 1 }
+      sort: {name: 1}
     }).toPromise();
     this.postmatesCourier = couriers.find(x => x.name === 'Postmates');
     await this.getViabilityList();
     this.checkPostmatesAvailability();
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.restaurant.currentValue !== changes.restaurant.previousValue) {
-      this.init();
+  serviceAlreadySet(serviceType, setBackup = false) {
+    let service = this.serviceSettings.find(x => x.name === serviceType) || {name: serviceType};
+    // if service has no paymentMethods or paymentMethodsBackup, that's first time to setup
+    let {paymentMethods, paymentMethodsBackup} = service;
+    if (!((paymentMethods && paymentMethods.length) || (paymentMethodsBackup && paymentMethodsBackup.length))) {
+      // use backup field to record change
+      if (setBackup) {
+        service.paymentMethodsBackup = ['CASH'];
+      }
+      return false;
     }
+    return true;
   }
 
   init() {
+    // case 0: first time get here and everything is clean and new
     this.rtHasDelivery = this.qMenuFacilitate = undefined;
     let {
       courier, taxOnDelivery, deliveryFromTime, serviceSettings,
@@ -68,28 +77,35 @@ export class RestaurantSetupDeliveryComponent implements OnInit, OnChanges {
       blockedCities = [], blockedZipCodes = [], deliverySettings
     } = this.restaurant;
     this.serviceSettings = JSON.parse(JSON.stringify(serviceSettings || []));
-    let pickup = this.serviceSettings.find(x => x.name === 'Pickup') || { name: 'Pickup'};
-    // if pickup has no paymentMethods, that's first time to setup
-    if (!pickup.paymentMethods || !pickup.paymentMethods.length) {
-      // at least RT should support pickup with CASH
-      pickup.paymentMethods = ['CASH'];
-    } else {
-      // if has courier, that's use qmenu facilitate delivery
+    // case 1: reenter, has delivery and has set some field <- previously choose Yes and input something
+    // case 2: reenter, has delivery but hasn't set any field <- previously choose Yes without any input
+    // case 3: reenter, not has delivery but accept qmenu facilitate and postmates available <- previously choose no and yes and postmates available
+    // case 4: reenter, not has delivery and not accept qmenu facilitate or postmates unavailable <- previously choose no and no (or postmates unavailable)
+
+    // first we check if the pickup already set or not(this will be set in any case user saved)
+    if (this.serviceAlreadySet('Pickup', true)) {
+      // then we check if courier exists
       if (courier) {
         this.rtHasDelivery = false;
+        this.qMenuFacilitate = true;
       } else {
-        // if no courier, we check if the self delivery related field has value
-        this.rtHasDelivery = !!((taxOnDelivery !== undefined) || deliveryFromTime
+        // if no courier set, then check the self-delivery related fields
+        if ((taxOnDelivery !== undefined) || deliveryFromTime
           || blockedZipCodes.length > 0 || blockedCities.length > 0 || deliveryEndMinutesBeforeClosing
-          || deliveryTimeEstimate || (deliverySettings && deliverySettings.length > 0));
+          || deliveryTimeEstimate || (deliverySettings && deliverySettings.length > 0)) {
+          this.rtHasDelivery = true;
+        } else {
+          // if no self-delivery related fields set, then check delivery's serviceSetting
+          if (this.serviceAlreadySet('Delivery')) {
+            this.rtHasDelivery = true;
+          } else {
+            this.rtHasDelivery = false;
+            this.qMenuFacilitate = false;
+          }
+        }
       }
     }
-    if (courier) {
-      this.qMenuFacilitate = true;
-    } else if (this.rtHasDelivery === false) {
-      // make sure qmenuFaciliate not be unset when come again
-      this.qMenuFacilitate = false;
-    }
+
     this.deliveryTaxable = taxOnDelivery;
     this.deliveryFromTime = deliveryFromTime;
     this.deliveryEndTime = deliveryEndMinutesBeforeClosing;
@@ -102,13 +118,13 @@ export class RestaurantSetupDeliveryComponent implements OnInit, OnChanges {
   }
 
   initDeliveryTimeOptions() {
-    let { googleAddress: {timezone}} = this.restaurant;
+    let {googleAddress: {timezone}} = this.restaurant;
     const t = TimezoneHelper.parse('2000-01-01', timezone);
     const interval = 30;
     for (let i = 0; i < 24 * 60 / interval; i++) {
       this.deliveryFromTimes.push({
         value: t.getTime(),
-        text: t.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: timezone })
+        text: t.toLocaleString('en-US', {hour: '2-digit', minute: '2-digit', timeZone: timezone})
       });
       t.setMinutes(t.getMinutes() + interval);
     }
@@ -190,6 +206,12 @@ export class RestaurantSetupDeliveryComponent implements OnInit, OnChanges {
         deliveryTimeEstimate: this.deliveryTimeEstimate,
         serviceSettings: this.serviceSettings
       };
+      let delivery = this.serviceSettings.find(x => x.name === 'Delivery') || {name: 'Delivery'};
+      let {paymentMethods, paymentMethodsBackup} = delivery;
+      if (!((paymentMethods && paymentMethods.length) || (paymentMethodsBackup && paymentMethodsBackup.length))) {
+        // use backup field to record change
+        delivery.paymentMethodsBackup = ['CASH'];
+      }
       if (this.deliveryFromTime) {
         obj.deliveryFromTime = this.deliveryFromTime;
       }
