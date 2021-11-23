@@ -15,6 +15,9 @@
           <span>{{r._id}}</span>
         </td>
         <td>
+          {{getTimezoneCity(r.googleAddress?.timezone)}} ({{getTimeOffsetByTimezone(r.googleAddress?.timezone)}})
+        </td>
+        <td>
           <ng-container *ngIf="r.lastFollowUp">
             <label>{{r.lastFollowUp | date : 'shortDate'}} ({{r.lastFollowUp | ago: now}})</label>
           </ng-container>
@@ -22,7 +25,7 @@
             N/A
           </ng-container>
         </td>
-        <td style="width:60%;">
+        <td style="width:40%;">
           <table class="table table-sm">
             <tr>
               <th>User</th>
