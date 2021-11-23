@@ -6,6 +6,11 @@ import { GlobalService } from 'src/app/services/global.service';
 import { environment } from 'src/environments/environment';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { AlertType } from 'src/app/classes/alert-type';
+
+enum ActionLeadsTypes {
+  Untouched = 'Untouched Leads', Touched = 'Touched Leads', All = 'All Leads'
+}
+
 @Component({
   selector: 'app-my-leads2',
   templateUrl: './my-leads2.component.html',
@@ -14,6 +19,7 @@ import { AlertType } from 'src/app/classes/alert-type';
 export class MyLeads2Component implements OnInit, OnDestroy {
 
   @ViewChild("leadModal") leadModal: ModalComponent;
+  @ViewChild("releaseReassignModal") releaseReassignModal: ModalComponent;
 
   ONGOING_LEADS_QUOTA = 1500;
   TAKE_BATCH_SIZE = 20; // each time, auto take how many randomly?
@@ -60,7 +66,10 @@ export class MyLeads2Component implements OnInit, OnDestroy {
   isAdmin = false;
   usernames = [];
 
+  replenishing = false;
   action;
+  actionLeadsType = ActionLeadsTypes.Untouched;
+  reassignTo;
   publishedFunnels: LeadFunnel[] = [];
 
   myLeads: RawLead[] = [];
@@ -106,6 +115,7 @@ export class MyLeads2Component implements OnInit, OnDestroy {
   timer;
   constructor(private _global: GlobalService, private _api: ApiService) {
     this.username = _global.user.username;
+    console.log('current user...', _global.user.username);
     this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
     if (this.isAdmin) {
       this.loadUsernames();
@@ -119,11 +129,15 @@ export class MyLeads2Component implements OnInit, OnDestroy {
   }
 
   // judge phone of google is whether different from lead's
-  leadPhoneDifferentToGoogle(row){
-    return row.lead && row.lead.googleListing ? row.lead.phone !== row.lead.googleListing.phone: false;
+  leadPhoneDifferentToGoogle(row) {
+    return row.lead && row.lead.googleListing ? row.lead.phone !== row.lead.googleListing.phone : false;
   }
 
   ngOnInit() {
+  }
+
+  get actionLeadsTypes() {
+    return ActionLeadsTypes;
   }
 
   ngOnDestroy() {
@@ -185,7 +199,9 @@ export class MyLeads2Component implements OnInit, OnDestroy {
     await new Promise(resolve => setTimeout(resolve, 100));
     const handleCopy = (e: ClipboardEvent) => {
       // clipboardData 可能是 null
-      e.clipboardData && e.clipboardData.setData('text/plain', text);
+      if (e.clipboardData) {
+        e.clipboardData.setData('text/plain', text);
+      }
       e.preventDefault();
       // removeEventListener 要传入第二个参数
       document.removeEventListener('copy', handleCopy);
@@ -216,59 +232,14 @@ export class MyLeads2Component implements OnInit, OnDestroy {
   }
 
   getQ(lead: RawLead) {
-    return encodeURIComponent([lead.name, lead.address, lead.city, lead.state].join(', '))
-  }
-
-  async releaseUntouched() {
-
-    // user's
-    // remove entire campaign
-    const untouchedLeads = this.myLeads.filter(lead => {
-      const campaign = lead.campaigns[0];
-      // untouched: no scheduledAt, no call logs, has funnel
-      const untouched = !campaign.scheduledAt && (campaign.logs || []).length === 0 && campaign.funnel;
-      return untouched;
-    });
-
-    if (untouchedLeads.length > 0) {
-      const ids = untouchedLeads.map(lead => ({ $oid: lead._id }));
-
-      // remove the very first useless campaign all together
-      await this._api
-        .post(environment.appApiUrl + "smart-restaurant/api", {
-          method: 'pop',
-          resource: 'raw-lead',
-          query: { '_id': { $in: ids } },
-          payload: {
-            campaigns: -1,
-          },
-        })
-        .toPromise();
-
-      // reset assignee and assignedAt
-      await this._api
-        .post(environment.appApiUrl + "smart-restaurant/api", {
-          method: 'unset',
-          resource: 'raw-lead',
-          query: { '_id': { $in: ids } },
-          payload: {
-            assignee: '',
-            assignedAt: ''
-          },
-        })
-        .toPromise();
-      // refresh again
-      this.loadLeads();
-    }
-
-    this.action = null;
+    return encodeURIComponent([lead.name, lead.address, lead.city, lead.state].join(', '));
   }
 
   async assign(funnel) {
 
     // my un-success leads shouldn't be over the quota
     if (this.myLeads.filter(l => !l.restaurant).length > this.ONGOING_LEADS_QUOTA) {
-      return alert(`QUOTA (${this.ONGOING_LEADS_QUOTA}) EXCEEDED. PLEASE RELEASE SOME FIRST BEFORE CLAIMING NEW ONES.\n已经超过最多限制了(${this.ONGOING_LEADS_QUOTA})，请先释放一些销售目标然后再获取新的销售目标。`)
+      return alert(`QUOTA (${this.ONGOING_LEADS_QUOTA}) EXCEEDED. PLEASE RELEASE SOME FIRST BEFORE CLAIMING NEW ONES.\n已经超过最多限制了(${this.ONGOING_LEADS_QUOTA})，请先释放一些销售目标然后再获取新的销售目标。`);
     }
 
     // get random sample IDs (however mongo might have duplicates, so make the sample larger!)
@@ -313,7 +284,7 @@ export class MyLeads2Component implements OnInit, OnDestroy {
         // scheduledAt: { $date: new Date() }, commented because this will make everything due and cluter user
         funnel,
         logs: []
-      }
+      };
       await this._api
         .post(environment.appApiUrl + "smart-restaurant/api", {
           method: 'unshift',
@@ -332,18 +303,11 @@ export class MyLeads2Component implements OnInit, OnDestroy {
       this._global.publishAlert(AlertType.Info, 'No leads found');
     }
 
-    this.action = null;
+    this.replenishing = false;
   }
 
-  toggleAction(action) {
-    // always toggle
-    this.action = this.action === action ? null : action;
-    if (this.action === 'REPLENISH') {
-      this.loadPublishedFunnels();
-    }
-  }
-
-  async loadPublishedFunnels() {
+  async replenish() {
+    this.replenishing = true;
     const funnels = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'lead-funnel',
       query: { published: true },
@@ -469,6 +433,94 @@ export class MyLeads2Component implements OnInit, OnDestroy {
       AKDT: '阿拉斯加时间',
     };
     return tzMap[tz];
+  }
+
+  getActionLeads() {
+    let leads = [...this.myLeads];
+    if (this.actionLeadsType === ActionLeadsTypes.Untouched) {
+      // remove entire campaign
+      leads = leads.filter(lead => {
+        const campaign = lead.campaigns[0];
+        // untouched: no scheduledAt, no call logs, has funnel
+        return !campaign.scheduledAt && (campaign.logs || []).length === 0 && campaign.funnel;
+      });
+    } else if (this.actionLeadsType  === ActionLeadsTypes.Touched) {
+      leads = leads.filter(lead => {
+        const campaign = lead.campaigns[0];
+        // touched
+        return !(!campaign.scheduledAt && (campaign.logs || []).length === 0 && campaign.funnel);
+      });
+    }
+    return leads;
+  }
+
+  async reassign() {
+    const leads = this.getActionLeads();
+
+    if (leads.length > 0) {
+      const ids = leads.map(lead => ({ $oid: lead._id }));
+
+      const [count] = await this._api
+        .post(environment.appApiUrl + "smart-restaurant/api", {
+          method: 'get',
+          resource: 'raw-lead',
+          aggregate: [
+            {$match: { assignee: this.reassignTo, 'restaurant._id': {$exists: false} }},
+            { $count: "total" }
+          ],
+          limit: 1
+        }).toPromise();
+
+      if (count && count.total > this.ONGOING_LEADS_QUOTA) {
+        return alert(`QUOTA (${this.ONGOING_LEADS_QUOTA}) EXCEEDED. PLEASE RELEASE SOME FIRST BEFORE CLAIMING NEW ONES.\n已经超过最多限制了(${this.ONGOING_LEADS_QUOTA})，请先释放一些销售目标然后再获取新的销售目标。`);
+      }
+
+      await this._api.post(environment.appApiUrl + "smart-restaurant/api", {
+          method: 'set',
+          resource: 'raw-lead',
+          query: {_id: { $in: ids }},
+          payload: {assignee: this.reassignTo, assignedAt: { $date: new Date() }}
+        }).toPromise();
+      // refresh again
+      this.loadLeads();
+    }
+    this.resetAction();
+  }
+
+  resetAction() {
+    this.action = null;
+    this.reassignTo = null;
+    this.releaseReassignModal.hide();
+  }
+
+  async releaseMulti() {
+    const leads = this.getActionLeads();
+    if (leads.length > 0) {
+      const ids = leads.map(lead => ({ $oid: lead._id }));
+
+      // remove the very first useless campaign all together
+      await this._api
+        .post(environment.appApiUrl + "smart-restaurant/api", {
+          method: 'pop',
+          resource: 'raw-lead',
+          query: { '_id': { $in: ids } },
+          payload: {campaigns: -1},
+        })
+        .toPromise();
+
+      // reset assignee and assignedAt
+      await this._api
+        .post(environment.appApiUrl + "smart-restaurant/api", {
+          method: 'unset',
+          resource: 'raw-lead',
+          query: { '_id': { $in: ids } },
+          payload: {assignee: '', assignedAt: ''},
+        })
+        .toPromise();
+      // refresh again
+      this.loadLeads();
+    }
+    this.resetAction();
   }
 
 }

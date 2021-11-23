@@ -1,6 +1,6 @@
 import { environment } from '../../environments/environment';
 import { ApiService } from '../services/api.service';
-import { Address } from '@qmenu/ui';
+import {Address, Hour, TimezoneHelper} from '@qmenu/ui';
 import { HttpClient } from '@angular/common/http';
 
 const FULL_LOCALE_OPTS = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit' };
@@ -17,7 +17,7 @@ export class Helper {
                 await fetch(url);
                 return true;
             } catch (error) {
-            };
+            }
             await new Promise(resolve => setTimeout(resolve, 500 * 1));
         }
         return false;
@@ -313,6 +313,27 @@ export class Helper {
         return new Date(datetime.toLocaleString('en-US', { timeZone: timezone, ...FULL_LOCALE_OPTS }));
     }
 
+    static getNewYorkDate(bound: 'start'|'end', date?) {
+      return Helper.getTimezoneDate(bound, 'America/New_York', date);
+    }
+
+    static getTimezoneDate(bound: 'start'|'end', timezone, date?: string) {
+      let time = {'start': ' 00:00:00.000', 'end': ' 23:59:59.999'}[bound];
+      if (!date) {
+        let dt = new Date();
+        date = [dt.getFullYear(), Helper.padNumber(dt.getMonth() + 1), Helper.padNumber(dt.getDate())].join("-");
+      }
+      return TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(date + time), timezone);
+    }
+
+    static padNumber(num: number, length = 2) {
+      let digits = num.toString();
+      while (digits.length < length) {
+        digits = "0" + digits;
+      }
+      return digits;
+    }
+
     static sanitizedName(menuItemName) {
         let processedName;
 
@@ -477,6 +498,60 @@ export class Helper {
         }
       }
       return zh ? {en, zh} : null;
+    }
+
+    static parseGMBHours(hours, timezone) {
+      const apRegex = /am|pm/i;
+
+      const parseTime = (time, m) => {
+        let parts = time.replace(m, '').split(':');
+        while (parts.length < 3) {
+          parts.push('00');
+        }
+        if (m.toLowerCase() === 'pm') {
+          parts[0] = Number(parts[0]) + 12;
+          if (parts[0] === 24) {
+            parts[0] -= 12;
+          }
+        }
+        return parts.join(':');
+      };
+
+      const result = [];
+      ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+        .forEach((day, index) => {
+          let date = new Date('2000/1/2');
+          let diff = index - date.getDay();
+          date.setDate(date.getDate() + diff);
+          let datePart = date.toLocaleString('en-US', {year: 'numeric', month: '2-digit', day: '2-digit'});
+          let durations = hours[day];
+          // 2 special case: Closed, Open 24 hours
+          if (durations && durations !== 'Closed') {
+            if (durations === 'Open 24 hours') {
+              date.setDate(date.getDate() + 1);
+              let endDatePart = date.toLocaleString('en-US', {year: 'numeric', month: '2-digit', day: '2-digit'});
+              result.push(new Hour({
+                occurence: 'WEEKLY',
+                fromTime: TimezoneHelper.parse([datePart, '00:00'].join(' '), timezone),
+                toTime: TimezoneHelper.parse([endDatePart, '00:00'].join(' '), timezone),
+              }));
+            } else {
+              // normal case: 10AM - 3:30PM, 3 - 8PM
+              durations.split(',').forEach(duration => {
+                let [start, end] = duration.trim().split('–');
+                let endM = end.match(apRegex), startM = start.match(apRegex) || endM;
+                start = parseTime(start, startM[0]);
+                end = parseTime(end, endM[0]);
+                result.push(new Hour({
+                  occurence: 'WEEKLY',
+                  fromTime: TimezoneHelper.parse([datePart, start].join(' '), timezone),
+                  toTime: TimezoneHelper.parse([datePart, end].join(' '), timezone),
+                }));
+              });
+            }
+          }
+        });
+      return result;
     }
 
 }

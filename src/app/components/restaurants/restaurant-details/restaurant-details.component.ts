@@ -212,6 +212,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "IVR": ['ADMIN', 'CSR', 'CSR_MANAGER'],
       "Tasks": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER', 'GMB'],
       "Diagnostics": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER', 'GMB'],
+      "Setup": ['ADMIN', 'CSR', 'CSR_MANAGER', 'MARKETER'],
       "Others": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER'] // make a superset and reorder authority in restaurant other page.
     };
 

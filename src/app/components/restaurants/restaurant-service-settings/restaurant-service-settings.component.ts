@@ -105,7 +105,6 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     // if we return true, the option is disabled, if we return fale the option is enabled
 
     if (!service || !this.restaurant || !this.restaurant.courier || !service.name || !method) {
-      console.log("MISSING ATTRIBUTES ", service)
       return false
     }
     if (service.name !== 'Delivery') {

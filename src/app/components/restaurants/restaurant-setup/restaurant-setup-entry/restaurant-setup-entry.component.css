@@ -1,0 +1,36 @@
+.setup-root {
+  position: relative;
+}
+.setup-note {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background: #e9e9e9;
+  z-index: 10;
+  padding: 10px;
+  min-width: 24px;
+  min-height: 32px;
+}
+
+.setup-note.open {
+  width: 300px;
+}
+
+.setup-note .title {
+  margin-bottom: 10px;
+  display: none;
+}
+
+.setup-note .trigger {
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 5px;
+  cursor: pointer;
+}
+.setup-note textarea {
+  display: none;
+}
+.setup-note.open textarea, .setup-note.open .title{
+  display: block;
+}

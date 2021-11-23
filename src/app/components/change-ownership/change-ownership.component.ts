@@ -87,8 +87,10 @@ export class ChangeOwnershipComponent implements OnInit {
       delete clone.web.useBizOrderAheadUrl;
       delete clone.web.useBizReservationUrl;
       delete clone.web.useBizWebsiteForAll;
+      delete clone.notes;
 
       clone.channels = clone.channels.filter(e => (e.type === 'Phone' && e.notifications && e.notifications.some(n => n === 'Business')) || e.type === 'Fax');
+      clone.orderNotifications = (clone.orderNotifications || []).filter(x => x.channel && !['SMS', 'Email'].includes(x.channel.type));
 
       clone.name = this.newName;
       clone.previousRestaurantId = previousRestaurantId;

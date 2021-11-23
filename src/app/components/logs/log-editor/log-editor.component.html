@@ -184,5 +184,32 @@
         <label class="form-check-label" for="id-vip-follow-up">VIP Followup</label>
       </div>
     </div>
+    <!-- start with menu setup -->
+    <div class="mb-3 ml-3">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="id-menu-setup"
+          [checked]="log.type === 'menu-setup'" (change)='toggleMenuSetup()'>
+        <label class="form-check-label" for="id-menu-setup">Menu Setup</label>
+      </div>
+    </div>
+    <!-- end with menu setup -->
+    <!-- start with payment-pickup-setup -->
+    <div class="mb-3 ml-3">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="id-payment-pickup-setup"
+          [checked]="log.type === 'payment-pickup-setup'" (change)='togglePaymentPickup()'>
+        <label class="form-check-label" for="id-payment-pickup-setup">Payment (Pickup order)</label>
+      </div>
+    </div>
+    <!-- end with payment-pickup-setup -->
+    <!-- start with payment-delivery-setup -->
+    <div class="mb-3 ml-3">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="id-payment-delivery-setup"
+          [checked]="log.type === 'payment-delivery-setup'" (change)='togglePaymentDelivery()'>
+        <label class="form-check-label" for="id-payment-delivery-setup">Payment (Delivery order)</label>
+      </div>
+    </div>
+    <!-- end with payment-delivery-setup -->
   </div>
 </q-form-builder>
