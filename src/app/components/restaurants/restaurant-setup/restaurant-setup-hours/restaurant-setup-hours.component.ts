@@ -1,6 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {Menu, Restaurant} from '@qmenu/ui';
-import {environment} from '../../../../../environments/environment';
+import {Hour, Menu, Restaurant} from '@qmenu/ui';
 import {ApiService} from '../../../../services/api.service';
 import {Helper} from '../../../../classes/helper';
 
@@ -31,8 +30,15 @@ export class RestaurantSetupHoursComponent implements OnInit {
     this.hours.splice(index, 1);
   }
 
-  hourUpdate(e) {
-    this.hours = e;
+  hourAdd(hours: Hour[]) {
+    hours.forEach(h => {
+      // only add non-duplicated ones
+      if (this.hours.filter(hh => h.equals(hh)).length === 0) {
+        this.hours.push(h);
+      }
+    });
+    // sort!
+    this.hours.sort((a, b) => a.fromTime.valueOf() - b.fromTime.valueOf());
     this.addingHours = false;
   }
 
@@ -41,6 +47,13 @@ export class RestaurantSetupHoursComponent implements OnInit {
       return false;
     }
     return a.every(x => b.some(y => x.equals(y)));
+  }
+
+  hourSameDay(hour) {
+    let {googleAddress: {timezone}} = this.restaurant;
+    let fromDate = hour.fromTime.toLocaleString('en-US', {timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit'});
+    let toDate = hour.toTime.toLocaleString('en-US', {timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit'});
+    return (fromDate === toDate) ? '' : '(next) ';
   }
 
   async save() {

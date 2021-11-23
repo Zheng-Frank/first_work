@@ -5,7 +5,7 @@
 <div>
   <div *ngFor="let hour of hours; let i = index;">
     {{hour.fromTime | adjustedDate : 'E h:mm a' : restaurant.googleAddress.timezone}}
-    - {{hour.toTime | adjustedDate : 'h:mm a' : restaurant.googleAddress.timezone}}
+    - {{hourSameDay(hour)}} {{hour.toTime | adjustedDate : 'h:mm a' : restaurant.googleAddress.timezone}}
     <button type="button" class="btn btn-link text-danger py-0" (click)="deleteHour(i)">
       <i class="fas fa-trash-alt"></i>
     </button>
@@ -15,8 +15,8 @@
   <button class="btn btn-link" (click)="addingHours = true"><i class="fa fa-plus"></i> Add Hour</button>
 </div>
 <div *ngIf="addingHours">
-  <lib-hours-picker (cancel)="addingHours = false" (submit)="hourUpdate($event)" [timezone]="restaurant?.googleAddress?.timezone"></lib-hours-picker>
+  <lib-hours-picker (cancel)="addingHours = false" (submit)="hourAdd($event)" [timezone]="restaurant?.googleAddress?.timezone"></lib-hours-picker>
 </div>
-<div class="text-end">
+<div class="text-end mt-3">
   <button class="btn btn-primary btn-lg" (click)="save()"><i class="fa fa-save"></i> Save</button>
 </div>

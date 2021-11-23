@@ -62,6 +62,40 @@
         </div>
       </div>
     </div>
+    <!-- start with payment accordion -->
+    <div class="card">
+      <div class="card-header" id="heading-payment">
+        <h2 class="mb-0 d-flex">
+          <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapse-payment" aria-expanded="false" aria-controls="collapse-payment">
+            Payment
+          </button>
+          <i class="fa fa-angle-{{accordion.payment}}"></i>
+        </h2>
+      </div>
+      <div id="collapse-payment" class="collapse" aria-labelledby="heading-payment">
+        <div class="card-body">
+          <app-restaurant-setup-payment #paymentPanel [restaurant]="restaurant" (done)="stepDone($event)"></app-restaurant-setup-payment>
+        </div>
+      </div>
+    </div>
+    <!-- end with payment accordion -->
+    <!-- start with invoicing accordion-->
+    <div class="card">
+      <div class="card-header" id="heading-invoicing">
+        <h2 class="mb-0 d-flex">
+          <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapse-invoicing" aria-expanded="false" aria-controls="collapse-invoicing">
+            Invoicing
+          </button>
+          <i class="fa fa-angle-{{accordion.invoicing}}"></i>
+        </h2>
+      </div>
+      <div id="collapse-invoicing" class="collapse" aria-labelledby="heading-invoicing">
+        <div class="card-body">
+          <app-restaurant-setup-invoicing #invoicingPanel [restaurant]="restaurant" (done)="stepDone($event)"></app-restaurant-setup-invoicing>
+        </div>
+      </div>
+    </div>
+    <!-- end with invoicing accordion-->
   </div>
   <hr />
   <div class="p-1">

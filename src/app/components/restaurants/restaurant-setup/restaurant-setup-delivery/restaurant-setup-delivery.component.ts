@@ -55,7 +55,11 @@ export class RestaurantSetupDeliveryComponent implements OnInit {
   }
 
   serviceAlreadySet(serviceType, setBackup = false) {
-    let service = this.serviceSettings.find(x => x.name === serviceType) || {name: serviceType};
+    let service = this.serviceSettings.find(x => x.name === serviceType);
+    if (!service) {
+      service = {name: serviceType};
+      this.serviceSettings.push(service);
+    }
     // if service has no paymentMethods or paymentMethodsBackup, that's first time to setup
     let {paymentMethods, paymentMethodsBackup} = service;
     if (!((paymentMethods && paymentMethods.length) || (paymentMethodsBackup && paymentMethodsBackup.length))) {
@@ -206,7 +210,11 @@ export class RestaurantSetupDeliveryComponent implements OnInit {
         deliveryTimeEstimate: this.deliveryTimeEstimate,
         serviceSettings: this.serviceSettings
       };
-      let delivery = this.serviceSettings.find(x => x.name === 'Delivery') || {name: 'Delivery'};
+      let delivery = this.serviceSettings.find(x => x.name === 'Delivery');
+      if (!delivery) {
+        delivery = {name: 'Delivery'};
+        this.serviceSettings.push(delivery);
+      }
       let {paymentMethods, paymentMethodsBackup} = delivery;
       if (!((paymentMethods && paymentMethods.length) || (paymentMethodsBackup && paymentMethodsBackup.length))) {
         // use backup field to record change
@@ -221,6 +229,10 @@ export class RestaurantSetupDeliveryComponent implements OnInit {
       if (this.qMenuFacilitate && this.postmatesAvailable) {
         // set delivery service setting to qmenu collect
         let delivery = this.serviceSettings.find(x => x.name === 'Delivery');
+        if (!delivery) {
+          delivery = {name: 'Delivery'};
+          this.serviceSettings.push(delivery);
+        }
         delivery.paymentMethods = ['QMENU'];
         let obj = {
           courier: this.postmatesCourier,

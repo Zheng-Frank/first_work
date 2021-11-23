@@ -1,10 +1,14 @@
-import {ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
-import {Restaurant} from '@qmenu/ui';
-import {environment} from '../../../../../environments/environment';
-import {ApiService} from '../../../../services/api.service';
-import {RestaurantSetupBasicComponent} from '../restaurant-setup-basic/restaurant-setup-basic.component';
-import {RestaurantSetupContactComponent} from '../restaurant-setup-contact/restaurant-setup-contact.component';
-import {RestaurantSetupDeliveryComponent} from '../restaurant-setup-delivery/restaurant-setup-delivery.component';
+import { ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Restaurant } from '@qmenu/ui';
+import { environment } from '../../../../../environments/environment';
+import { ApiService } from '../../../../services/api.service';
+import { RestaurantSetupBasicComponent } from '../restaurant-setup-basic/restaurant-setup-basic.component';
+import { RestaurantSetupContactComponent } from '../restaurant-setup-contact/restaurant-setup-contact.component';
+import { RestaurantSetupDeliveryComponent } from '../restaurant-setup-delivery/restaurant-setup-delivery.component';
+import { RestaurantSetupInvoicingComponent } from '../restaurant-setup-invoicing/restaurant-setup-invoicing.component';
+import { RestaurantSetupPaymentComponent } from '../restaurant-setup-payment/restaurant-setup-payment.component';
+import { GlobalService } from 'src/app/services/global.service';
+import { AlertType } from 'src/app/classes/alert-type';
 
 declare var $: any;
 
@@ -15,23 +19,25 @@ declare var $: any;
 })
 export class RestaurantSetupEntryComponent implements OnInit {
 
-  constructor(private cdr: ChangeDetectorRef, private _api: ApiService) {
+  constructor(private cdr: ChangeDetectorRef, private _api: ApiService, private _global: GlobalService) {
   }
 
   @Input() restaurant: Restaurant;
   @ViewChild('basicPanel') basicPanel: RestaurantSetupBasicComponent;
   @ViewChild('contactPanel') contactPanel: RestaurantSetupContactComponent;
   @ViewChild('deliveryPanel') deliveryPanel: RestaurantSetupDeliveryComponent;
+  @ViewChild('paymentPanel') paymentPanel: RestaurantSetupPaymentComponent;
+  @ViewChild('invoicingPanel') invoicingPanel: RestaurantSetupInvoicingComponent;
   temp = null;
   notes: string;
   top = 5;
   showNotes = true;
   menuSaved = false;
   finished = {
-    basic: false, menu: false, contact: false, delivery: false
+    basic: false, menu: false, contact: false, delivery: false, payment: false, invoicing: false
   };
   accordion = {
-    basic: 'down', menu: 'down', contact: 'down', delivery: 'down'
+    basic: 'down', menu: 'down', contact: 'down', delivery: 'down', payment: 'down', invoicing: 'down'
   };
 
   ngOnInit() {
@@ -54,14 +60,17 @@ export class RestaurantSetupEntryComponent implements OnInit {
   async stepDone(data) {
     console.log('setup step done...', data);
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-      old: {_id: this.restaurant['_id']},
-      new: {_id: this.restaurant['_id'], ...data}
+      old: { _id: this.restaurant['_id'] },
+      new: { _id: this.restaurant['_id'], ...data }
     }]).toPromise();
     Object.assign(this.restaurant, data);
     this.checkProgress();
     this.basicPanel.init();
     this.contactPanel.init();
     this.deliveryPanel.init();
+    this.paymentPanel.init();
+    this.invoicingPanel.init();
+    this._global.publishAlert(AlertType.Success, 'Saved !');
   }
 
   hoursIdentical(a, b) {
@@ -98,8 +107,8 @@ export class RestaurantSetupEntryComponent implements OnInit {
 
   async saveNote() {
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-      old: {_id: this.restaurant['_id']},
-      new: {_id: this.restaurant['_id'], notes: this.notes}
+      old: { _id: this.restaurant['_id'] },
+      new: { _id: this.restaurant['_id'], notes: this.notes }
     }]).toPromise();
     this.restaurant.notes = this.notes;
   }

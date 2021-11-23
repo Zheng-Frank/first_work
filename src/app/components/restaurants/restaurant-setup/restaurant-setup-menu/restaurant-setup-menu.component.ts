@@ -148,7 +148,7 @@ export class RestaurantSetupMenuComponent implements OnInit {
     } else if (this.setupMode === MenuSetupModes.ScrapeFromUrl) {
       await this.scrapeMenuByUrl();
     }
-    let { logs } = this.restaurant;
+    let { logs = [] } = this.restaurant;
     let newLogs = [...logs, log];
     this.done.emit({logs: newLogs});
   }

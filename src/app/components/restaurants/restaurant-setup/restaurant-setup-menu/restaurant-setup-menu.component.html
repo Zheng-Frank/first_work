@@ -2,7 +2,7 @@
   <h5>Provide Menu Information</h5>
   <div class="form-check" *ngFor="let option of menuSetupOptions">
     <label class="form-check-label">
-      <input type="radio" [disabled]="finished" [(ngModel)]="setupMode" class="form-check-input" [value]="option.value" />
+      <input type="radio" name="menuSetupOption" [disabled]="finished" [(ngModel)]="setupMode" class="form-check-input" [value]="option.value" />
       {{option.text}}
     </label>
   </div>

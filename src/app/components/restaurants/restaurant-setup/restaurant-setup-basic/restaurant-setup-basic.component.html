@@ -25,7 +25,7 @@
     <div *ngFor="let role of roles" class="custom-control custom-checkbox custom-control-inline">
       <label class="form-check-label">
         <input class="form-check-input" type="checkbox" [value]="role"
-               (change)="checkRole($event)"
+               (change)="checkRole($event)" name="primaryContactPersonRole"
                [checked]="model.primaryContactPersonRoles.includes(role)">
         {{role}}
       </label>
@@ -47,7 +47,7 @@
 <div class="form-group">
   <div class="form-check" *ngFor="let website of existingWebsites">
     <label class="form-check-label">
-      <input class="form-check-input" type="radio" [value]="website" [(ngModel)]="existingWebsite"> {{website}}
+      <input class="form-check-input" type="radio" name="existingWebsite" [value]="website" [(ngModel)]="existingWebsite"> {{website}}
     </label>
   </div>
   <input type="text" *ngIf="existingWebsite === 'Other'" [(ngModel)]="model.website" class="form-control" placeholder="Input an existing website">

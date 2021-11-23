@@ -1,3 +1,5 @@
+import { RestaurantSetupInvoicingComponent } from './components/restaurants/restaurant-setup/restaurant-setup-invoicing/restaurant-setup-invoicing.component';
+import { RestaurantSetupPaymentComponent } from './components/restaurants/restaurant-setup/restaurant-setup-payment/restaurant-setup-payment.component';
 /* tslint:disable:max-line-length */
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
@@ -483,13 +485,15 @@ import { RestaurantSetupHoursComponent } from './components/restaurants/restaura
     SalesMetricsComponent,
     RtsByProviderComponent,
     MonitoringVipRestaurantsComponent,
+    RestaurantSetupInvoicingComponent,
     RestaurantSetupBasicComponent,
     RestaurantSetupContactComponent,
     RestaurantSetupDeliveryComponent,
     MonitoringVipRestaurantsComponent,
     RestaurantSetupMenuComponent,
     RestaurantSetupEntryComponent,
-    RestaurantSetupHoursComponent
+    RestaurantSetupHoursComponent,
+    RestaurantSetupPaymentComponent,
   ],
   imports: [
     BrowserModule,

@@ -519,24 +519,36 @@ export class Helper {
 
       const result = [];
       ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-        .map((day, index) => {
+        .forEach((day, index) => {
           let date = new Date('2000/1/2');
           let diff = index - date.getDay();
           date.setDate(date.getDate() + diff);
           let datePart = date.toLocaleString('en-US', {year: 'numeric', month: '2-digit', day: '2-digit'});
           let durations = hours[day];
-          if (durations !== 'Closed') {
-            durations.split(',').forEach(duration => {
-              let [start, end] = duration.trim().split('–');
-              let endM = end.match(apRegex), startM = start.match(apRegex) || endM;
-              start = parseTime(start, startM[0]);
-              end = parseTime(end, endM[0]);
+          // 2 special case: Closed, Open 24 hours
+          if (durations && durations !== 'Closed') {
+            if (durations === 'Open 24 hours') {
+              date.setDate(date.getDate() + 1);
+              let endDatePart = date.toLocaleString('en-US', {year: 'numeric', month: '2-digit', day: '2-digit'});
               result.push(new Hour({
                 occurence: 'WEEKLY',
-                fromTime: TimezoneHelper.parse([datePart, start].join(' '), timezone),
-                toTime: TimezoneHelper.parse([datePart, end].join(' '), timezone),
+                fromTime: TimezoneHelper.parse([datePart, '00:00'].join(' '), timezone),
+                toTime: TimezoneHelper.parse([endDatePart, '00:00'].join(' '), timezone),
               }));
-            });
+            } else {
+              // normal case: 10AM - 3:30PM, 3 - 8PM
+              durations.split(',').forEach(duration => {
+                let [start, end] = duration.trim().split('–');
+                let endM = end.match(apRegex), startM = start.match(apRegex) || endM;
+                start = parseTime(start, startM[0]);
+                end = parseTime(end, endM[0]);
+                result.push(new Hour({
+                  occurence: 'WEEKLY',
+                  fromTime: TimezoneHelper.parse([datePart, start].join(' '), timezone),
+                  toTime: TimezoneHelper.parse([datePart, end].join(' '), timezone),
+                }));
+              });
+            }
           }
         });
       return result;

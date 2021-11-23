@@ -46,7 +46,7 @@ export class RestaurantSetupContactComponent implements OnInit {
   }
 
   init() {
-    let {googleListing = {}, people = [], logs, channels = [], orderNotifications = []} = this.restaurant;
+    let {googleListing = {}, people = [], logs = [], channels = [], orderNotifications = []} = this.restaurant;
     let person = people[0] || {};
     let sms = (person.channels || []).find(x => x.type === 'SMS') || {};
     let phone = channels.find(x => x.type === 'Phone') || {};

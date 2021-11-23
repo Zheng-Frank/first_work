@@ -45,7 +45,7 @@
   <div class="form-group">
     <label>Time Estimate for Delivery</label>
     <small class="form-text text-muted">
-      The time it takes from when you get a new delivery order to the time the food arrives on the customer’s doorstep.
+      The time it takes from when you get a new delivery order to the time the food arrives on the customer's doorstep.
     </small>
     <input type="text" class="form-control" [(ngModel)]="deliveryTimeEstimate">
   </div>
@@ -115,12 +115,12 @@
   <div>
     <div class="custom-control custom-checkbox custom-control-inline">
       <label class="form-check-label">
-        <input type="radio" [(ngModel)]="qMenuFacilitate" [value]="true" class="form-check-input"> Yes
+        <input type="radio" [(ngModel)]="qMenuFacilitate" name="qMenuFacilitate" [value]="true" class="form-check-input"> Yes
       </label>
       </div>
     <div class="custom-control custom-checkbox custom-control-inline">
       <label class="form-check-label">
-        <input type="radio" [(ngModel)]="qMenuFacilitate" [value]="false" class="form-check-input"> No
+        <input type="radio" [(ngModel)]="qMenuFacilitate" name="qMenuFacilitate" [value]="false" class="form-check-input"> No
       </label>
     </div>
   </div>

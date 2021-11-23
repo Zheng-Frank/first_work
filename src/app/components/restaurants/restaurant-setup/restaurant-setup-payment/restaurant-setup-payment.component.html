@@ -1,0 +1,90 @@
+<!-- start with payment collect (pickup) -->
+<div class="form-group">
+  <h5>
+    <div><i class="fas fa-bell"></i> Payment Collection (Pickup orders)</div>
+    <small class="form-text text-muted">
+      If you collect payment, we'll invoice you for commissions/fees owned at the end of the month. If qMenu collects
+      payments, we'll send you semi-monthly payouts of the funds collected (minus our commissions/fees).
+    </small>
+  </h5>
+  <div class="ml-2">
+    <label>Will you accept cash payment?</label><br>
+    <div class="custom-checkbox custom-control-inline ml-2" *ngFor="let opt of pickupCashOpts">
+      <span>
+        <input type="radio" (click)="choosePickupCashOpt(opt)" [checked]="pickupCashOpt === opt">
+        {{opt}}
+      </span>
+    </div>
+  </div>
+  <div class="ml-2">
+    <label>Who should collect credit card payments?</label>
+    <div class="ml-2" *ngFor="let party of paymentPickupPartys">
+      <span>
+        <input type="radio" (click)="choosePaymentPickupParty(party)" [checked]="paymentPickupParty === party">
+        {{party}}
+      </span>
+    </div>
+  </div>
+  <div class="ml-2" *ngIf="showPaymentPickupMethodOpt()">
+    <label>How would you like to collect credit card payments?</label>
+    <div class="ml-2" *ngFor="let method of pickupPaymentMethods">
+      <span>
+        <input type="radio" (click)="choosePaymentPickupMethod(method)"
+          [checked]="pickupPaymentMethod === method.value">
+        {{method.text}}
+      </span>
+    </div>
+  </div>
+  <hr>
+</div>
+<!-- end with collect payment (pickup) -->
+<!-- start with collect payment (delivery) -->
+<div class="form-group mt-4">
+  <h5>
+    <i class="fas fa-bell"></i> Payment Collection (Delivery orders)
+    <small class="form-text text-muted" *ngIf="restaurant?.courier?.name === 'Postmates';else tipBlock">
+      For orders delivered through qMenu's courier partners, qMenu will collect payment.
+    </small>
+    <ng-template #tipBlock>
+      <small class="form-text text-muted">
+        If you collect payment, we'll invoice you for commissions/fees owned at the end of the month. If qMenu collects
+        payments, we'll send you semi-monthly payouts of the funds collected (minus our commissions/fees).
+      </small>
+    </ng-template>
+  </h5>
+  <div class="ml-2">
+    <label>Will you accept cash payment?</label><br>
+    <div class="custom-checkbox custom-control-inline ml-2" *ngFor="let opt of deliveryCashOpts">
+      <span>
+        <input type="radio" (click)="chooseDeliveryCashOpt(opt)" [disabled]="restaurant?.courier?.name === 'Postmates'"
+          [checked]="deliveryCashOpt === opt">
+        {{opt}}
+      </span>
+    </div>
+  </div>
+  <div class="ml-2">
+    <label>Who should collect credit card payments?</label>
+    <div class="ml-2" *ngFor="let party of paymentDeliveryPartys">
+      <span>
+        <input type="radio" (click)="choosePaymentDeliveryParty(party)"
+          [disabled]="restaurant?.courier?.name === 'Postmates'" [checked]="paymentDeliveryParty === party">
+        {{party}}
+      </span>
+    </div>
+  </div>
+  <div class="ml-2" *ngIf="showPaymentDeliveryMethodOpt()">
+    <label>How would you like to collect credit card payments?</label>
+    <div class="ml-2" *ngFor="let method of deliveryPaymentMethods">
+      <span>
+        <input type="radio" (click)="choosePaymentDeliveryMethod(method)"
+          [checked]="deliveryPaymentMethod === method.value">
+        {{method.text}}
+      </span>
+    </div>
+  </div>
+</div>
+<!-- end with collect payment (delivery) -->
+<div class="form-group text-end">
+  <button class="btn btn-primary btn-lg" [disabled]="!canSave()" type="button" (click)="savePayment()"><i
+      class="fa fa-save"></i> Save</button>
+</div>
