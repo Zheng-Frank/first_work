@@ -77,7 +77,7 @@
             <tr>
               <th>Yelp Website</th>
               <td>
-                <a href="{{ restaurant.yelpListing?.url }}" title="{{ restaurant.yelpListing?.url }}" target="_blank" >{{ restaurant.yelpListing?.url }}</a>
+                <a href="//{{ restaurant.yelpListing?.website }}" title="{{ restaurant.yelpListing?.website }}" target="_blank" >{{ restaurant.yelpListing?.website || 'Website not found' }}</a>
               </td>
               <td>
                 <span *ngIf="isWebsiteOk()" class="text-success">✓</span>
@@ -103,7 +103,7 @@
           </table>
 
           <div class="text-right">
-            <button class="btn btn-link" (click)="inject()"> Inject Desired Website </button>
+            <button class="btn btn-link" (click)="inject()" [disabled]="isWebsiteOk()"> Inject Desired Website </button>
             <a href="{{ restaurant.yelpListing?.url }}" target="_blank" class="btn btn-link" >View on Yelp</a>
           </div>
         </li>
