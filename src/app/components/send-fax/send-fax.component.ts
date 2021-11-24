@@ -14,7 +14,7 @@ import { PDFDocument } from 'pdf-lib';
 export class SendFaxComponent implements OnInit {
 
   faxNumber = '';
-  sendFaxType = 'upload';
+  showFaxTips = false;
   faxHTML = '';
   faxFiles = null;
   sendingFax = false;
@@ -25,14 +25,11 @@ export class SendFaxComponent implements OnInit {
   }
 
   upload(event) {
-    console.log(document.getElementById('faxFiles'))
-
     this.faxFiles = event.target.files;
-
   }
 
   sendFaxReady() {
-    return this.sendFaxType && this.faxNumber
+    return (this.faxHTML.length > 0 || (this.faxFiles || []).length > 0) && this.faxNumber
       && this.faxNumber.replace(/\D+/g, '').length === 10
 
   }
@@ -40,7 +37,10 @@ export class SendFaxComponent implements OnInit {
   async sendFax() {
     this.sendingFax = true;
     const faxNumber = this.faxNumber.replace(/\D+/g, '');
+    // populate an array of fax jobs to all be sent at once. html content, if it exists, will be its own fax job
+    // each file will be its own fax job. 
     const faxJobs = [];
+
     // HTML render 
     if (this.faxHTML.length > 0) {
       const loadParameters = {
@@ -56,7 +56,7 @@ export class SendFaxComponent implements OnInit {
         params: {
           to: faxNumber,
           mediaUrl: faxHtmlMediaUrl,
-          providerName: "telnyx",
+          providerName: "twilio",
           trigger: {
             "id": this._global.user._id,
             "name": this._global.user.username,
@@ -70,7 +70,7 @@ export class SendFaxComponent implements OnInit {
     for (let i = 0; i < (this.faxFiles || []).length; i += 1) {
       let mediaUrl;
       const currentFile = this.faxFiles[i];
-      const apiPath = `utils/qmenu-uploads-s3-signed-url?file=${currentFile.name}`;
+      const apiPath = `utils/qmenu-uploads-s3-signed-url?file=${encodeURIComponent(currentFile.name)}`;
 
       // Get presigned url
       const response = await this._api.get(environment.appApiUrl + apiPath).toPromise();
@@ -91,7 +91,7 @@ export class SendFaxComponent implements OnInit {
         params: {
           to: faxNumber,
           mediaUrl,
-          providerName: "telnyx",
+          providerName: "twilio",
           trigger: {
             "id": this._global.user._id,
             "name": this._global.user.username,
@@ -102,8 +102,16 @@ export class SendFaxComponent implements OnInit {
       })
     }
 
-    console.log(faxJobs);
-    // await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', faxJobs).toPromise();
+    try {
+      await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', faxJobs).toPromise();
+      this._global.publishAlert(AlertType.Success, 'Fax sent success');
+    } catch (err) {
+      this._global.publishAlert(AlertType.Danger, 'Fax send failure');
+      console.log(err);
+    }
+
+    this.clearFiles();
+    this.sendingFax = false;
   }
 
   clearFiles() {
