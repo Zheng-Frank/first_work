@@ -1,6 +1,7 @@
+import { TimezoneHelper } from '@qmenu/ui';
 import { Component, OnInit } from '@angular/core';
-import {environment} from '../../../../environments/environment';
-import {ApiService} from '../../../services/api.service';
+import { environment } from '../../../../environments/environment';
+import { ApiService } from '../../../services/api.service';
 
 @Component({
   selector: 'app-rts-by-provider',
@@ -15,11 +16,28 @@ export class RtsByProviderComponent implements OnInit {
   minProviderCount = 1;
   checkedProviders = [];
   filteredRTs = [];
-
+  now = new Date();
   constructor(private _api: ApiService) { }
 
   async ngOnInit() {
     await this.query();
+  }
+
+  // our salesperson only wants to know what is the time offset
+  // between EST and the location of restaurant
+  getTimeOffsetByTimezone(timezone) {
+    if (timezone) {
+      let localTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), timezone);
+      let ESTTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), 'America/New_York');
+      let offset = (ESTTime.valueOf() - localTime.valueOf()) / (3600 * 1000);
+      return offset > 0 ? "+" + offset.toFixed(0) : offset.toFixed(0);
+    } else {
+      return 'N/A';
+    }
+  }
+
+  getTimezoneCity(timezone) {
+    return (timezone || '').split('/')[1] || '';
   }
 
   checkProvider(e, provider) {
@@ -38,6 +56,7 @@ export class RtsByProviderComponent implements OnInit {
         {
           $project: {
             name: 1,
+            'googleAddress.timezone': 1,
             providers: {
               "$ifNull": [
                 {
@@ -50,7 +69,7 @@ export class RtsByProviderComponent implements OnInit {
                       }
                     },
                     as: 'item',
-                    cond: {$ne: ['$$item', null]}
+                    cond: { $ne: ['$$item', null] }
                   }
                 },
                 []
@@ -58,7 +77,7 @@ export class RtsByProviderComponent implements OnInit {
             }
           }
         },
-        {$match: {'providers.0': {$exists: true}}}
+        { $match: { 'providers.0': { $exists: true } } }
       ]
     }).toPromise();
     this.providers = Array.from(new Set(this.restaurants.reduce((a, c) => [...a, ...c.providers], [])))

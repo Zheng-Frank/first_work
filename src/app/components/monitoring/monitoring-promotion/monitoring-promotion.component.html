@@ -24,18 +24,35 @@
         </optgroup>
       </select>
       <div class="form-check ml-2">
-        <input class="form-check-input" type="checkbox" id="flexCheckDefault" [(ngModel)]="scrapedOnly" (change)="filter()">
+        <input class="form-check-input" type="checkbox" id="flexCheckDefault" [(ngModel)]="scrapedOnly"
+          (change)="filter()">
         <label class="form-check-label" for="flexCheckDefault">Scraped coupon RTs only</label>
       </div>
     </div>
 
     <table class="table rt-list">
-      <thead><tr><th>Restaurant</th><th>Scrape Status</th><th>Gmb Owner</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Restaurant</th>
+          <th>Timezone (as Offset to EST)
+          <th>Scrape Status</th>
+          <th>Gmb Owner</th>
+        </tr>
+      </thead>
       <tbody>
         <tr *ngFor="let rt of filtered" [ngClass]="{hili: rt.hasError}">
           <td><a target="_blank" href="/#/restaurants/{{rt._id}}">{{rt.name}}</a></td>
           <td>
-            <app-monitoring-promotion-cell *ngIf="!rt.hasError" [promotions]="rt.promotions" (crawl)="crawl(rt)" (validate)="validate(rt)"></app-monitoring-promotion-cell>
+            <ng-container *ngIf="rt?.googleAddress && rt?.googleAddress?.timezone;else elseBlock;">
+              {{getTimezoneCity(rt.googleAddress.timezone)}} ({{getTimeOffsetByTimezone(rt.googleAddress.timezone)}})
+            </ng-container>
+            <ng-template #elseBlock>
+              N/A
+            </ng-template>
+          </td>
+          <td>
+            <app-monitoring-promotion-cell *ngIf="!rt.hasError" [promotions]="rt.promotions" (crawl)="crawl(rt)"
+              (validate)="validate(rt)"></app-monitoring-promotion-cell>
             <ng-container *ngIf="rt.hasError">Promotions contains error data!</ng-container>
           </td>
           <td>{{rt.googleListing?.gmbOwner}}</td>
@@ -51,7 +68,8 @@
       <ul class="coupon-list">
         <li *ngFor="let promotion of restaurant?.promotions">
           <div>{{promotion.name}}</div>
-          <div class="sub-text text-danger" *ngIf="promotion.excludedOrderTypes?.length > 0" >Excluded Order Types: {{promotion.excludedOrderTypes.join(', ')}}</div>
+          <div class="sub-text text-danger" *ngIf="promotion.excludedOrderTypes?.length > 0">Excluded Order Types:
+            {{promotion.excludedOrderTypes.join(', ')}}</div>
         </li>
       </ul>
     </div>
@@ -59,16 +77,19 @@
 
   <div class="coupon-panel crawled">
     <div class="coupon-title">
-      The following coupon information has been scraped from BeyondMenu. Please review  the information below and make edits as desired before importing.
+      The following coupon information has been scraped from BeyondMenu. Please review the information below and make
+      edits as desired before importing.
       <div class="sub-text" *ngIf="failedTypes.length > 0">
-        Please note that menu scraping failed for the following service types: [{{failedTypes.join(', ')}}]. This means our knowledge of whether each coupon is usable for a given service type may be incomplete. Please confirm with the restaurant or try scraping coupons again later.
+        Please note that menu scraping failed for the following service types: [{{failedTypes.join(', ')}}]. This means
+        our knowledge of whether each coupon is usable for a given service type may be incomplete. Please confirm with
+        the restaurant or try scraping coupons again later.
       </div>
     </div>
     <div class="coupon-data">
       <div class="check-all">
         <label class="custom-checkbox">
           <input (click)="checkCoupon($event)" id="check-all-coupons" value="all" type="checkbox"
-                 [checked]="checkedCoupons.length && checkedCoupons.length === coupons.length"/>
+            [checked]="checkedCoupons.length && checkedCoupons.length === coupons.length" />
           Import All
         </label>
       </div>
@@ -76,11 +97,13 @@
         <li *ngFor="let coupon of coupons">
           <div class="coupon-info">
             <label class="custom-checkbox">
-              <input (click)="checkCoupon($event)" [checked]="checkedCoupons.includes(coupon.id)" type="checkbox" value="{{coupon.id}}" />
+              <input (click)="checkCoupon($event)" [checked]="checkedCoupons.includes(coupon.id)" type="checkbox"
+                value="{{coupon.id}}" />
             </label>
             <div>{{coupon.name}}</div>
           </div>
-          <div class="sub-text" *ngIf="coupon.excludedOrderTypes?.length > 0">Excluded Order Types: {{coupon.excludedOrderTypes.join(', ')}}</div>
+          <div class="sub-text" *ngIf="coupon.excludedOrderTypes?.length > 0">Excluded Order Types:
+            {{coupon.excludedOrderTypes.join(', ')}}</div>
           <div class="sub-text" *ngIf="coupon.freeItemList?.length > 0">
             Free Items:
             <span *ngIf="coupon.freeItemList[0]?.menu">
@@ -104,13 +127,15 @@
 <q-modal title="Promotion Validate" class="validate-modal" #validateModal (close)="closeModal(validateModal)">
   <div>
     <span>View on competitor sites:</span>
-    <a class="ml-2" target="_blank" *ngFor="let competitor of competitorSites" [href]="competitor.url">{{competitor.name}}</a>
+    <a class="ml-2" target="_blank" *ngFor="let competitor of competitorSites"
+      [href]="competitor.url">{{competitor.name}}</a>
   </div>
   <ul class="coupon-list">
     <li *ngFor="let promotion of sortedPromotions(restaurant?.promotions || [])">
       <div class="coupon-info">
         <div>{{promotion.name}}<span class="promotion-source">({{promotion.source}})</span></div>
-        <div class="sub-text" *ngIf="promotion.excludedOrderTypes?.length > 0">Excluded Order Types: {{promotion.excludedOrderTypes.join(', ')}}</div>
+        <div class="sub-text" *ngIf="promotion.excludedOrderTypes?.length > 0">Excluded Order Types:
+          {{promotion.excludedOrderTypes.join(', ')}}</div>
         <div class="sub-text" *ngIf="promotion.freeItemList?.length > 0">
           Free Items:
           <span *ngIf="promotion.freeItemList[0]?.menu">
