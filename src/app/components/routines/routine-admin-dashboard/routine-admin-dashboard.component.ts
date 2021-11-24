@@ -1,4 +1,3 @@
-import { filter } from 'rxjs/operators';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { environment } from '../../../../environments/environment';
@@ -25,7 +24,9 @@ export class RoutineAdminDashboardComponent implements OnInit {
   allInstances: any[] = [];
   selectedRoutine;
   selectedInstanceList = [];
-
+  stats = {
+    checkedInUsers: []
+  };
   user: User;
 
   isUserCheckedIn = false;
@@ -34,7 +35,7 @@ export class RoutineAdminDashboardComponent implements OnInit {
   // routing editing related variables
   routineInEditing = {} as any;
   routineFieldDescriptors = [];
-  metric = {} as any
+  metric = {} as any;
   metricValues = '';
   // two logs' filter types, one is by routine, the other is by agent
   agents = [];
@@ -108,8 +109,26 @@ export class RoutineAdminDashboardComponent implements OnInit {
     this.populateAgents();
     this.getRoutineNames();
     this.filterRoutineLogs();
+    await this.populateStats();
   }
 
+  async populateStats() {
+    // begin populating list of checked-in user
+    const timekeepingInstances = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "routine-instance",
+      query: {
+        routineId: this.timekeepingId,
+        "results.name": { $ne: "Check-Out" }
+      },
+      projection: {
+        assignee: 1
+      },
+      limit: 5000
+    }).toPromise();
+
+    this.stats.checkedInUsers = timekeepingInstances.map(inst => inst.assignee).sort((a, b) => a.localeCompare(b));
+    // finish populating list of checked-in users
+  }
   addMetric() {
     this.routineInEditing.metrics = this.routineInEditing.metrics || [];
     this.routineInEditing.metrics.push({
@@ -183,6 +202,7 @@ export class RoutineAdminDashboardComponent implements OnInit {
       query: {},
       projection: {}
     }, 2000);
+    this.timekeepingId = routines.filter(r => r.name === 'Timekeeping')[0]._id;
     this.allRoutines = routines.sort((r1, r2) => new Date(r1.createdAt).valueOf() - new Date(r2.createdAt).valueOf());
   }
 
@@ -294,7 +314,7 @@ export class RoutineAdminDashboardComponent implements OnInit {
       this.selectedRoutine = this.routines.filter(r => r.name === this.selectedRoutineName);
       this.selectedInstanceList = this.allInstances.filter(inst => inst.routineId === this.selectedRoutine[0]._id);
     }
-    
+
   }
 
   onSelectAgent() {
