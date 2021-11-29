@@ -44,18 +44,7 @@
             <hr />
           </div>
         </td>
-        <!-- <td>
-          <div *ngFor="let order of row.orders">
-            <small class="text-warning"
-              >{{
-                order.order.timeToDeliver
-                  ? (order.order.timeToDeliver | ago: now)
-                  : ""
-              }}
-              <hr />
-            </small>
-          </div>
-        </td> -->
+
         <td>
           <div *ngFor="let order of row.orders">
             <div [ngClass]="{ 'text-danger': getTimes(order, row).overdue}"
