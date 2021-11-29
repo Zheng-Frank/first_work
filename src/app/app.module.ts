@@ -1,3 +1,5 @@
+import { RestaurantSetupInvoicingComponent } from './components/restaurants/restaurant-setup/restaurant-setup-invoicing/restaurant-setup-invoicing.component';
+import { RestaurantSetupPaymentComponent } from './components/restaurants/restaurant-setup/restaurant-setup-payment/restaurant-setup-payment.component';
 /* tslint:disable:max-line-length */
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
@@ -253,6 +255,12 @@ import { SendFaxComponent } from './components/send-fax/send-fax.component';
 import { SalesMetricsComponent } from './components/sales-metrics/sales-metrics.component';
 import { RtsByProviderComponent } from './components/monitoring/rts-by-provider/rts-by-provider.component';
 import { MonitoringVipRestaurantsComponent } from './components/monitoring/monitoring-vip-restaurants/monitoring-vip-restaurants.component';
+import { RestaurantSetupBasicComponent } from './components/restaurants/restaurant-setup/restaurant-setup-basic/restaurant-setup-basic.component';
+import { RestaurantSetupContactComponent } from './components/restaurants/restaurant-setup/restaurant-setup-contact/restaurant-setup-contact.component';
+import { RestaurantSetupDeliveryComponent } from './components/restaurants/restaurant-setup/restaurant-setup-delivery/restaurant-setup-delivery.component';
+import { RestaurantSetupMenuComponent } from './components/restaurants/restaurant-setup/restaurant-setup-menu/restaurant-setup-menu.component';
+import { RestaurantSetupEntryComponent } from './components/restaurants/restaurant-setup/restaurant-setup-entry/restaurant-setup-entry.component';
+import { RestaurantSetupHoursComponent } from './components/restaurants/restaurant-setup/restaurant-setup-hours/restaurant-setup-hours.component';
 
 
 
@@ -476,7 +484,16 @@ import { MonitoringVipRestaurantsComponent } from './components/monitoring/monit
     SendFaxComponent,
     SalesMetricsComponent,
     RtsByProviderComponent,
-    MonitoringVipRestaurantsComponent
+    MonitoringVipRestaurantsComponent,
+    RestaurantSetupInvoicingComponent,
+    RestaurantSetupBasicComponent,
+    RestaurantSetupContactComponent,
+    RestaurantSetupDeliveryComponent,
+    MonitoringVipRestaurantsComponent,
+    RestaurantSetupMenuComponent,
+    RestaurantSetupEntryComponent,
+    RestaurantSetupHoursComponent,
+    RestaurantSetupPaymentComponent,
   ],
   imports: [
     BrowserModule,

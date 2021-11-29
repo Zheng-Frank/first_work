@@ -101,7 +101,9 @@
         <small>Suwanee, GA 30024</small>
     </div>
     <div class="form-group ml-4" *ngIf="needShowOneTime()">
-        <input class="form-check-input" type="checkbox" [(ngModel)]="paymentMeans.details.onetime"/> One-time(一次性)
+        <label class="form-check-label">
+          <input class="form-check-input" type="checkbox" [(ngModel)]="paymentMeans.details.onetime"/> One-time(一次性)
+        </label>
     </div>
     <div class="form-group">
         <label>Memo</label>

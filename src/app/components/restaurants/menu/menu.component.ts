@@ -540,21 +540,23 @@ export class MenuComponent implements OnInit {
     let { translations } = this.restaurant;
     translations = translations || [];
     newMenus.forEach(eachMenu => {
-      eachMenu.mcs.forEach(eachMc => {
-        if (eachMc.id === mc.id) {
-          eachMc.mis = mc.mis || [];
-          eachMc.mis.forEach(mi => {
-            let { EN, ZH } = mi.translation;
-            let tmp = translations.find(x => x.EN === EN);
-            if (tmp) {
-              tmp.ZH = ZH;
-            } else if (ZH) {
-              translations.push({EN, ZH});
-            }
-            delete mi.translation;
-          });
-        }
-      });
+      if (eachMenu.id === this.menu.id) {
+        eachMenu.mcs.forEach(eachMc => {
+          if (eachMc.id === mc.id) {
+            eachMc.mis = mc.mis || [];
+            eachMc.mis.forEach(mi => {
+              let { EN, ZH } = mi.translation;
+              let tmp = translations.find(x => x.EN === EN);
+              if (tmp) {
+                tmp.ZH = ZH;
+              } else if (ZH) {
+                translations.push({EN, ZH});
+              }
+              delete mi.translation;
+            });
+          }
+        });
+      }
     });
 
     this._api

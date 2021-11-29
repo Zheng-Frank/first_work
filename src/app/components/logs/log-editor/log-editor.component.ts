@@ -248,4 +248,16 @@ export class LogEditorComponent implements OnInit {
     this.log.type === 'vip-follow-up' ? this.log.type = undefined : this.log.type = 'vip-follow-up';
   }
 
+  toggleMenuSetup(){
+    this.log.type === 'menu-setup' ? this.log.type = undefined : this.log.type = 'menu-setup';
+  }
+
+  togglePaymentPickup(){
+    this.log.type === 'payment-pickup-setup' ? this.log.type = undefined : this.log.type = 'payment-pickup-setup';
+  }
+
+  togglePaymentDelivery(){
+    this.log.type === 'payment-delivery-setup' ? this.log.type = undefined : this.log.type = 'payment-delivery-setup';
+  }
+
 }

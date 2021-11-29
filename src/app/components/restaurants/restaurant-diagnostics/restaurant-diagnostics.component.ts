@@ -43,7 +43,8 @@ export class RestaurantDiagnosticsComponent implements OnInit {
       },
       limit: 1
     }).toPromise();
-    this.diagnostics = restaurants.map(rt => rt.diagnostics)[0][0]; // first restaurant's first diagnostics
+    let firstRT = restaurants.map(rt => rt.diagnostics)[0]; // first restaurant's first diagnostics
+    this.diagnostics = firstRT ? firstRT[0] : {};
   }
 
   async diagnose() {

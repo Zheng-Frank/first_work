@@ -1,8 +1,7 @@
-import { FormBuilderComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-import { Output, Input, ViewChild, OnChanges } from '@angular/core';
-import { FormEvent } from './../../../classes/form-event';
-import { Component, OnInit, EventEmitter } from '@angular/core';
-import { PaymentMeans } from '@qmenu/ui';
+import {FormBuilderComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
+import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
+import {FormEvent} from './../../../classes/form-event';
+import {PaymentMeans} from '@qmenu/ui';
 
 @Component({
   selector: 'app-payment-means-editor',
@@ -21,9 +20,9 @@ export class PaymentMeansEditorComponent implements OnInit {
   paymentMeans = new PaymentMeans();
 
   directionFieldItems = [
-    { object: 'Send', text: 'Restaurant → qMenu', selected: false },
-    { object: 'Receive', text: 'qMenu → Restaurant', selected: false }
-  ]
+    {object: 'Send', text: 'Restaurant → qMenu', selected: false},
+    {object: 'Receive', text: 'qMenu → Restaurant', selected: false}
+  ];
 
   directionFieldDescriptors = {
     field: 'direction',
@@ -31,16 +30,16 @@ export class PaymentMeansEditorComponent implements OnInit {
     required: true,
     inputType: 'single-select',
     items: this.directionFieldItems
-  }
+  };
 
   typeFieldItems = [
     // { object: "Check", text: "Check to qMenu", selected: false }, obsolete: use Stripe instead
-    { object: 'Stripe', text: 'Pay online or Send Check', selected: false },
-    { object: 'Quickbooks Bank Withdraw', text: 'Quickbooks Bank Withdraw', selected: false },
-    { object: 'Credit Card', text: 'Credit Card', selected: false },
-    { object: 'Direct Deposit', text: 'Direct Deposit (receive)', selected: false },
-    { object: 'Check Deposit', text: 'Check Deposit (receive)', selected: false }
-  ]
+    {object: 'Stripe', text: 'Pay online or Send Check', selected: false},
+    {object: 'Quickbooks Bank Withdraw', text: 'Quickbooks Bank Withdraw', selected: false},
+    {object: 'Credit Card', text: 'Credit Card', selected: false},
+    {object: 'Direct Deposit', text: 'Direct Deposit (receive)', selected: false},
+    {object: 'Check Deposit', text: 'Check Deposit (receive)', selected: false}
+  ];
 
   typeFieldDescriptors = {
     field: 'type',
@@ -48,13 +47,29 @@ export class PaymentMeansEditorComponent implements OnInit {
     required: true,
     inputType: 'single-select',
     items: this.typeFieldItems,
-    validate:()=> {
+    validate: () => {
       // prevent type is empty situation
-      return this.typeFieldDescriptors.items.some(item=>item.object === this.paymentMeans.type);
+      return this.typeFieldDescriptors.items.some(item => item.object === this.paymentMeans.type);
     }
-  }
+  };
 
   paymentMeansFieldDescriptors = [];
+
+  get detailFieldsDict() {
+
+    let fields = {
+      'Stripe': ['memo'],
+      'Direct Deposit': ['name', 'address', 'routingNumber', 'accountNumber', 'memo'],
+      'Quickbooks Bank Withdraw': ['name', 'address', 'routingNumber', 'accountNumber', 'memo'],
+      'Credit Card': ['name', 'cardNumber', 'expiry', 'cvc', 'zipcode', 'memo'],
+      'Check Deposit': ['name', 'address', 'memo']
+    };
+    if (this.paymentMeans.direction === 'Send') {
+      fields['Quickbooks Bank Withdraw'].push('onetime');
+      fields['Credit Card'].push('onetime');
+    }
+    return fields;
+  }
 
 
   ngOnInit() {
@@ -92,6 +107,19 @@ export class PaymentMeansEditorComponent implements OnInit {
         break;
       default:
         break;
+    }
+    if (this.paymentMeans.type) {
+      if (!this.typeFieldDescriptors.items.some(x => x.object === this.paymentMeans.type)) {
+        this.paymentMeans.type = undefined;
+        this.paymentMeans.details = {};
+      } else {
+        // remove fields that not belongs to this type
+        Object.keys(this.paymentMeans.details).forEach(key => {
+          if (!this.detailFieldsDict[this.paymentMeans.type].includes(key)) {
+            delete this.paymentMeans.details[key];
+          }
+        });
+      }
     }
     // trigger changes to rebind things
     this.paymentMeansForm.ngOnChanges();

@@ -1,0 +1,154 @@
+<div class="form-group">
+  <label>Does your restaurant offer delivery?</label>
+  <small class="form-text text-muted">
+    Qmenu facilitates all types of orders placed online, including pickup, delivery, and dine-in. If you don't have your own delivery drivers, we can handle delivery for you.
+  </small>
+  <div>
+    <div class="custom-control custom-checkbox custom-control-inline">
+      <label class="form-check-label">
+        <input type="radio" name="rtHasDelivery" [(ngModel)]="rtHasDelivery" [value]="true" class="form-check-input"> Yes
+      </label>
+      </div>
+    <div class="custom-control custom-checkbox custom-control-inline">
+      <label class="form-check-label">
+        <input type="radio" name="rtHasDelivery" [(ngModel)]="rtHasDelivery" [value]="false" class="form-check-input"> No
+      </label>
+    </div>
+  </div>
+</div>
+
+<ng-container *ngIf="rtHasDelivery">
+  <div class="form-group">
+    <label>Is Delivery Taxable?</label>
+    <div>
+      <div class="custom-control custom-checkbox custom-control-inline">
+        <label class="form-check-label">
+          <input type="radio" name="deliveryTaxable" [(ngModel)]="deliveryTaxable" [value]="true" class="form-check-input"> Yes
+        </label>
+        </div>
+      <div class="custom-control custom-checkbox custom-control-inline">
+        <label class="form-check-label">
+          <input type="radio" name="deliveryTaxable" [(ngModel)]="deliveryTaxable" [value]="false" class="form-check-input"> No
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Blocked Cities/Zip Codes (if applicable)</label>
+    <small class="form-text text-muted">
+      Are there any cities or zip codes to which you do not deliver? Enter each one in comma-separated format (e.g. 30305, Peachtree City, 30342, Decatur)
+    </small>
+    <input type="text" class="form-control" [(ngModel)]="blockedArea">
+  </div>
+
+  <div class="form-group">
+    <label>Time Estimate for Delivery</label>
+    <small class="form-text text-muted">
+      The time it takes from when you get a new delivery order to the time the food arrives on the customer's doorstep.
+    </small>
+    <input type="text" class="form-control" [(ngModel)]="deliveryTimeEstimate">
+  </div>
+
+  <div class="form-group">
+    <label>Delivery Start Time</label>
+    <small class="form-text text-muted">
+      At what time will you start accepting new delivery orders (that you deliver yourself)?
+    </small>
+    <select class="form-control" [(ngModel)]="deliveryFromTime">
+      <option *ngFor="let startTime of deliveryFromTimes" [value]="startTime.value">{{startTime.text}}</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Delivery End Time</label>
+    <small class="form-text text-muted">
+      At what time will you stop accepting new delivery orders (that you deliver yourself)?
+    </small>
+    <select class="form-control" [(ngModel)]="deliveryEndTime">
+      <option *ngFor="let endTime of deliveryEndTimes" [value]="endTime.value">{{endTime.text}}</option>
+    </select>
+  </div>
+
+  <div class="ml-2 mt-4">
+    <label>Delivery Range, Minimum Order Amounts, and Fees</label>
+    <small class="form-text text-muted">
+      What is your delivery range, what delivery fees do you charge (based on distance), and what are the minimum
+      order amounts for each delivery range? (e.g. 1 mile/$20/$3, 2 miles/$25/$4.50).
+    </small>
+    <div>
+      <table class="table table-borderless">
+        <thead>
+          <tr>
+            <th class="text-center">Distance (mile)</th>
+            <th class="text-center">Order Minimum</th>
+            <th class="text-center">Charge</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ds of deliverySettings; let i = index;">
+            <td class="text-center">
+              <input type="number" class="form-control" [(ngModel)]="ds.distance">
+            </td>
+            <td class="text-center">
+              <input type="number" class="form-control" [(ngModel)]="ds.orderMinimum">
+            </td>
+            <td class="text-center">
+              <input type="number" class="form-control" [(ngModel)]="ds.charge">
+            </td>
+          </tr>
+          <tr>
+        </tbody>
+      </table>
+      <button class="btn btn-link" *ngIf="deliverySettings.length < 9" (click)="addNewRow()">
+        <i class="fa fa-plus"></i> New Row
+      </button>
+    </div>
+  </div>
+</ng-container>
+
+<div class="form-group" *ngIf="rtHasDelivery === false">
+  <label>
+    Would you like qMenu to facilitate delivery for you? We only charge the customer $1.98 plus third party courier
+    fees based on delivery distance.
+  </label>
+  <div>
+    <div class="custom-control custom-checkbox custom-control-inline">
+      <label class="form-check-label">
+        <input type="radio" [(ngModel)]="qMenuFacilitate" name="qMenuFacilitate" [value]="true" class="form-check-input"> Yes
+      </label>
+      </div>
+    <div class="custom-control custom-checkbox custom-control-inline">
+      <label class="form-check-label">
+        <input type="radio" [(ngModel)]="qMenuFacilitate" name="qMenuFacilitate" [value]="false" class="form-check-input"> No
+      </label>
+    </div>
+  </div>
+  <div *ngIf="qMenuFacilitate">
+    <small class="form-text text-danger" *ngIf="postmatesAvailable === false">
+      We're sorry. Unfortunately your restaurant seems to be outside our delivery partner's supported delivery area :(
+    </small>
+    <small class="form-text text-success" *ngIf="postmatesAvailable">
+      Perfect! Looks like your restaurant is in our delivery partner's supported delivery area!
+    </small>
+  </div>
+  <div class="form-group" *ngIf="qMenuFacilitate && postmatesAvailable">
+    <label>Is Delivery Taxable?</label>
+    <div>
+      <div class="custom-control custom-checkbox custom-control-inline">
+        <label class="form-check-label">
+          <input type="radio" name="deliveryTaxable" [(ngModel)]="deliveryTaxable" [value]="true" class="form-check-input"> Yes
+        </label>
+        </div>
+      <div class="custom-control custom-checkbox custom-control-inline">
+        <label class="form-check-label">
+          <input type="radio" name="deliveryTaxable" [(ngModel)]="deliveryTaxable" [value]="false" class="form-check-input"> No
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="form-group text-end">
+  <button class="btn btn-primary btn-lg" [disabled]="!canSave()" type="button" (click)="save()"><i class="fa fa-save"></i> Save</button>
+</div>

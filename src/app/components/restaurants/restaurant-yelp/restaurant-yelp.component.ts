@@ -70,10 +70,10 @@ export class RestaurantYelpComponent implements OnInit {
   }
 
   isPublished() {
-    if(this.restaurant && this.restaurant.yelpListing) {
-      const owningAccount =  this.accounts.find(account => account.yelpLocations.find(location => location.yid === this.restaurant.yelpListing.yid));
+    if (this.restaurant && this.restaurant.yelpListing) {
+      const owningAccount = (this.accounts || []).some(account => (account.yelpLocations || []).some(location => (location.yid) === this.restaurant.yelpListing.yid));
       // console.log(`${this.restaurant.name} handled in yelp by ${owningAccount.email}`);
-      return !!owningAccount;
+      return owningAccount;
     }
     return false;
   }
@@ -126,7 +126,7 @@ export class RestaurantYelpComponent implements OnInit {
     console.log({ email, yid, newUrl, isOwner });
 
     const result = await this._api.post(environment.appApiUrl + "yelp/generic", {
-      name: "inject-website-address",
+      name: "inject-yelp-website-address",
       payload: {
         "email": email,
         "yid": yid,

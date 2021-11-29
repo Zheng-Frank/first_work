@@ -9,9 +9,24 @@
     </div>
   </div>
   <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Restaurant</th>
+        <th>Timezone (as Offset to EST)</th>
+        <th>Sales Agent</th>
+      </tr>
+    </thead>
     <tbody>
       <tr *ngFor="let rt of filtered">
         <td><a class="btn-link" target="_blank" [routerLink]="'/restaurants/' + rt._id">{{rt.name}}</a></td>
+        <td>
+          <ng-container *ngIf="rt?.googleAddress && rt?.googleAddress?.timezone;else elseBlock;">
+            {{getTimezoneCity(rt.googleAddress.timezone)}} ({{getTimeOffsetByTimezone(rt.googleAddress.timezone)}})
+          </ng-container>
+          <ng-template #elseBlock>
+            N/A
+          </ng-template>
+        </td>
         <td>{{rt.salesAgent}}</td>
       </tr>
     </tbody>
