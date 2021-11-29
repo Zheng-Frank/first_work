@@ -261,6 +261,7 @@ import { RestaurantSetupDeliveryComponent } from './components/restaurants/resta
 import { RestaurantSetupMenuComponent } from './components/restaurants/restaurant-setup/restaurant-setup-menu/restaurant-setup-menu.component';
 import { RestaurantSetupEntryComponent } from './components/restaurants/restaurant-setup/restaurant-setup-entry/restaurant-setup-entry.component';
 import { RestaurantSetupHoursComponent } from './components/restaurants/restaurant-setup/restaurant-setup-hours/restaurant-setup-hours.component';
+import { MonitoringDineInOrdersComponent } from './components/monitoring/monitoring-dine-in-orders/monitoring-dine-in-orders.component';
 
 
 
@@ -494,6 +495,7 @@ import { RestaurantSetupHoursComponent } from './components/restaurants/restaura
     RestaurantSetupEntryComponent,
     RestaurantSetupHoursComponent,
     RestaurantSetupPaymentComponent,
+    MonitoringDineInOrdersComponent
   ],
   imports: [
     BrowserModule,
