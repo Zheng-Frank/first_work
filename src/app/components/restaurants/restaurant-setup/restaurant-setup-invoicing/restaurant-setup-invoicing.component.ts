@@ -87,8 +87,8 @@ export class RestaurantSetupInvoicingComponent implements OnInit {
   bankOneTime = false; // whether bank can use only once
   toPaymentTypes = ['CASH', 'IN_PERSON', 'KEY_IN', 'STRIPE'];
   serviceSettingsFinished = false;
-  showToQmenuQuestion = true;// decided to show question one, qMenu → Restaurant
-  showFromQmenuQuestion = true;// decided to show question one, Restaurant → qMenu
+  showToQmenuQuestion = false;// decided to show question one, qMenu → Restaurant
+  showFromQmenuQuestion = false;// decided to show question one, Restaurant → qMenu
   constructor() { }
 
   async ngOnInit() {
@@ -101,16 +101,18 @@ export class RestaurantSetupInvoicingComponent implements OnInit {
   }
 
   init() {
+    this.showFromQmenuQuestion = false;
+    this.showToQmenuQuestion = false;
     // check service settings
     // service settings should contain both pickup and delivery service
     if (this.restaurant.serviceSettings && this.restaurant.serviceSettings.some(service => (service.name === 'Pickup' || service.name === 'Delivery') && this.isServiceEnabled(service))) {
       this.serviceSettingsFinished = true;
       // Dose need to display two questions?
-      if (!this.restaurant.serviceSettings.some(service => (service.name === 'Pickup' || service.name === 'Delivery') && (service.paymentMethods || []).some(method => method === 'QMENU'))) {
-        this.showFromQmenuQuestion = false;
+      if (this.restaurant.serviceSettings.some(service => (service.name === 'Pickup' || service.name === 'Delivery') && (service.paymentMethods || []).some(method => method === 'QMENU'))) {
+        this.showFromQmenuQuestion = true;
       }
-      if (!this.restaurant.serviceSettings.some(service => (service.name === 'Pickup' || service.name === 'Delivery') && (service.paymentMethods || []).some(method => this.toPaymentTypes.some(type => type === method)))) {
-        this.showToQmenuQuestion = false;
+      if (this.restaurant.serviceSettings.some(service => (service.name === 'Pickup' || service.name === 'Delivery') && (service.paymentMethods || []).some(method => this.toPaymentTypes.some(type => type === method)))) {
+        this.showToQmenuQuestion = true;
       }
       // Have the two questions been answered?
       this.restaurant.serviceSettings.forEach(service => {

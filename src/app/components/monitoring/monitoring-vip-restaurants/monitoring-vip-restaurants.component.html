@@ -15,7 +15,13 @@
           <span>{{r._id}}</span>
         </td>
         <td>
-          {{getTimezoneCity(r.googleAddress?.timezone)}} ({{getTimeOffsetByTimezone(r.googleAddress?.timezone)}})
+          <ng-container *ngIf="r?.googleAddress && r?.googleAddress?.timezone;else elseBlock;">
+            {{getTimezoneCity(r.googleAddress.timezone)}}
+            ({{getTimeOffsetByTimezone(r.googleAddress.timezone)}})
+          </ng-container>
+          <ng-template #elseBlock>
+            N/A
+          </ng-template>
         </td>
         <td>
           <ng-container *ngIf="r.lastFollowUp">

@@ -1,3 +1,4 @@
+import { TimezoneHelper } from '@qmenu/ui';
 import { Component, OnInit } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
@@ -21,6 +22,9 @@ export class MonitoringFaxComponent implements OnInit {
       label: "Restaurant"
     },
     {
+      label: "Timezone (as Offset to EST)"
+    },
+    {
       label: "Fax Number"
     },
     {
@@ -35,11 +39,30 @@ export class MonitoringFaxComponent implements OnInit {
   ];
   filterTypes = [FaxProblemFilterTypes.ALL, FaxProblemFilterTypes.SEND_INVOICE_ONLY_FAX, FaxProblemFilterTypes.SEND_ORDER_ONLY_FAX];
   type = FaxProblemFilterTypes.ALL;//  concrete filter type
+  now = new Date();
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
     this.findPhaxioFailedNumbers();
   }
+
+  // our salesperson only wants to know what is the time offset
+  // between EST and the location of restaurant
+  getTimeOffsetByTimezone(timezone){
+    if(timezone){
+      let localTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), timezone);
+      let ESTTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), 'America/New_York');
+      let offset = (ESTTime.valueOf() - localTime.valueOf())/(3600*1000);
+      return offset > 0 ? "+"+offset.toFixed(0) : offset.toFixed(0);
+    }else{
+      return 'N/A';
+    }
+  }
+
+  getTimezoneCity(timezone){
+    return (timezone || '').split('/')[1] || '';
+  }
+
   //when the select change we can show three different type of fax problems 
   filterFaxProblemByType() {
     if (this.type === FaxProblemFilterTypes.ALL) {
@@ -94,7 +117,8 @@ export class MonitoringFaxComponent implements OnInit {
       },
       projection: {
         name: 1,
-        channels: 1
+        channels: 1,
+        'googleAddress.timezone': 1
       },
       limit: 30000
     }).toPromise();

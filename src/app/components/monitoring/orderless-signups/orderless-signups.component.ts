@@ -1,3 +1,4 @@
+import { TimezoneHelper } from '@qmenu/ui';
 import {Component, OnInit} from '@angular/core';
 import {environment} from '../../../../environments/environment';
 import {ApiService} from '../../../services/api.service';
@@ -16,13 +17,30 @@ export class OrderlessSignupsComponent implements OnInit {
   users = [];
   agent = '';
   agents = [];
-
+  now = new Date();
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
   async ngOnInit() {
     this.users = await this._global.getCachedUserList();
     await this.getRTs();
+  }
+
+  // our salesperson only wants to know what is the time offset
+  // between EST and the location of restaurant
+  getTimeOffsetByTimezone(timezone){
+    if(timezone){
+      let localTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), timezone);
+      let ESTTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), 'America/New_York');
+      let offset = (ESTTime.valueOf() - localTime.valueOf())/(3600*1000);
+      return offset > 0 ? "+"+offset.toFixed(0) : offset.toFixed(0);
+    }else{
+      return 'N/A';
+    }
+  }
+
+  getTimezoneCity(timezone){
+    return (timezone || '').split('/')[1] || '';
   }
 
   async getOrderedRTs() {
@@ -106,7 +124,8 @@ export class OrderlessSignupsComponent implements OnInit {
           {$match: {disabled: {$ne: true}, 'googleListing.place_id': {$exists: true}}},
           {
             $project: {
-              _id: 1, name: 1, rateSchedules: 1, place_id: '$googleListing.place_id'
+              _id: 1, name: 1, rateSchedules: 1, place_id: '$googleListing.place_id',
+              'googleAddress.timezone': 1
             }
           }
         ],

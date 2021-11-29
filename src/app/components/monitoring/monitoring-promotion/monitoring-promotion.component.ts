@@ -2,7 +2,7 @@ import {Component, OnInit, ViewChild} from '@angular/core';
 import {ApiService} from '../../../services/api.service';
 import {GlobalService} from '../../../services/global.service';
 import {environment} from '../../../../environments/environment';
-import {Promotion, Restaurant} from '@qmenu/ui';
+import {Promotion, Restaurant, TimezoneHelper} from '@qmenu/ui';
 import {AlertType} from '../../../classes/alert-type';
 
 @Component({
@@ -30,9 +30,26 @@ export class MonitoringPromotionComponent implements OnInit {
   failedTypes = [];
   scrapedOnly = false;
   competitorSites = [];
-
+  now = new Date();
   ngOnInit() {
     this.query();
+  }
+
+    // our salesperson only wants to know what is the time offset
+  // between EST and the location of restaurant
+  getTimeOffsetByTimezone(timezone){
+    if(timezone){
+      let localTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), timezone);
+      let ESTTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), 'America/New_York');
+      let offset = (ESTTime.valueOf() - localTime.valueOf())/(3600*1000);
+      return offset > 0 ? "+"+offset.toFixed(0) : offset.toFixed(0);
+    }else{
+      return 'N/A';
+    }
+  }
+
+  getTimezoneCity(timezone){
+    return (timezone || '').split('/')[1] || '';
   }
 
   getFreeItem(item) {
@@ -255,7 +272,7 @@ export class MonitoringPromotionComponent implements OnInit {
       query: {
         $or: [{disabled: false}, {disabled: {$exists: false}}]
       },
-      projection: {'googleListing.gmbOwner': 1, name: 1, _id: 1, promotions: 1, providers: 1},
+      projection: {'googleListing.gmbOwner': 1, name: 1, _id: 1, promotions: 1, providers: 1, 'googleAddress.timezone': 1},
     }, 3000);
 
     this.stat(rts);

@@ -53,11 +53,11 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let mi of mc.mis">
+      <tr *ngFor="let mi of mc.mis; let i = index;">
         <td *ngIf="showMoreFunction">
           <input *ngIf="mi && mi.name" type="checkbox" [checked]="checkedItems.includes(mi.id)" (change)="setMiChecked(mi)">
         </td>
-        <td>
+        <td>{{i}}
           <input type="text" [(ngModel)]="mi.number" placeholder="eg. A1" class="form-control app-input-sm">
         </td>
         <td>
@@ -65,11 +65,11 @@
           <ng-container *ngIf="!hideTranslations">
             <div class="mi-translation row">
               <label class="col-form-label col-form-label-sm">English Name</label>
-              <input type="text" [(ngModel)]="mi.translation.EN" class="form-control form-control-sm">
+              <input type="text" [(ngModel)]="editingTranslations[i].EN" class="form-control form-control-sm">
             </div>
             <div class="mi-translation row">
               <label class="col-form-label col-form-label-sm zh">中文名称</label>
-              <input type="text" [(ngModel)]="mi.translation.ZH" class="form-control form-control-sm">
+              <input type="text" [(ngModel)]="editingTranslations[i].ZH" class="form-control form-control-sm">
             </div>
           </ng-container>
         </td>

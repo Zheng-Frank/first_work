@@ -525,7 +525,7 @@ export class MenuComponent implements OnInit {
     this.miModal.hide();
   }
 
-  misDone(mc) {
+  misDone({ mc, updatedTranslations }) {
     this.editingMis = false;
     // menus -> menu -> mc
     const oldMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
@@ -539,23 +539,15 @@ export class MenuComponent implements OnInit {
     const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
     let { translations } = this.restaurant;
     translations = translations || [];
-    newMenus.forEach(eachMenu => {
-      eachMenu.mcs.forEach(eachMc => {
-        if (eachMc.id === mc.id) {
-          eachMc.mis = mc.mis || [];
-          eachMc.mis.forEach(mi => {
-            let { EN, ZH } = mi.translation;
-            let tmp = translations.find(x => x.EN === EN);
-            if (tmp) {
-              tmp.ZH = ZH;
-            } else if (ZH) {
-              translations.push({EN, ZH});
-            }
-            delete mi.translation;
-          });
-        }
-      });
-    });
+    updatedTranslations.forEach(translation => {
+      let { EN, ZH } = translation;
+      let tmp = translations.find(x => x.EN === EN);
+      if (tmp) {
+        tmp.ZH = ZH;
+      } else if (ZH) {
+        translations.push({EN, ZH});
+      }
+    })
 
     this._api
       .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
