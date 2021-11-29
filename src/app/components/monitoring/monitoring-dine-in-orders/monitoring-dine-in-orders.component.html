@@ -1,26 +1,8 @@
 <div class="card">
-  <h2 class="card-title m-3">
-    <!-- <a [routerLink]="['/home']"><i class="fa fa-arrow-left"> Back </i></a>  -->
-    <h1 class="text-center">Unconfirmed Orders ({{ rows.length }})</h1>
-  </h2>
+    <h1 class="text-center">Dine-In Orders ({{ rows.length }})</h1>
 
   <div class="card-body">
-    <span class='col-sm-6' class="dropdown">
-      <b>Filter By: &nbsp; </b>
-      <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
-        aria-haspopup="true" aria-expanded="false">
-        {{ currentCriteria }} &nbsp;
-      </button>
 
-      &nbsp; &nbsp;
-      <span class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-        <a class="dropdown-item" [ngClass]="{ active: currentCriteria === 'All' }"
-          (click)="renderRestaurants('All')">All</a>
-        <a class="dropdown-item" [ngClass]="{ active: currentCriteria === 'Progress' }"
-          (click)="renderRestaurants('QMENU COLLECT')">QMENU COLLECT</a>
-      </span>
-    </span>
-    <br />
     <br />
     <table class="table">
       <tr>
