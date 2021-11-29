@@ -241,6 +241,25 @@
             <tr>
               <th colspan="2">
                 <div class="row">
+                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Disable Ordering Ahead' : '禁用提前订购' }}
+                    <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
+                      (mouseover)="showCorrespondingTranslation('DisableOrderingAhead')" (mouseout)="translating = ''">
+                      <div *ngIf="translating === 'DisableOrderingAhead'" class="left talk radius">
+                        <p>Disable Ordering Ahead:{{Explanations.EnglishExplanations.DisableOrderingAhead}}</p>
+                        -------------<br>
+                        <p>禁用提前订购:{{Explanations.ChineseExplanations.DisableOrderingAhead}}</p>
+                      </div>
+                    </i>
+                  </div>
+                  <div class="col-7 pl-1" style="font-weight: 600;">
+                    {{!!restaurant.disableScheduling}}
+                  </div>
+                </div>
+              </th>
+            </tr>
+            <tr>
+              <th colspan="2">
+                <div class="row">
                   <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Standard Language' : '标准语言' }}
                     <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
                       (mouseover)="showCorrespondingTranslation('PreferredLanguage')" (mouseout)="translating = ''">
@@ -534,25 +553,6 @@
             <tr>
               <th colspan="2" class="text-left" style="font-weight:bond;font-size:1.2rem;">
                 {{changeLanguageFlag === 'English' ? 'Other Preferences ' : '其他参数选择' }}</th>
-            </tr>
-            <tr>
-              <th colspan="2">
-                <div class="row">
-                  <div class="col-4 pl-5">{{changeLanguageFlag === 'English' ? 'Disable Ordering Ahead' : '禁用提前订购' }}
-                    <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
-                      (mouseover)="showCorrespondingTranslation('DisableOrderingAhead')" (mouseout)="translating = ''">
-                      <div *ngIf="translating === 'DisableOrderingAhead'" class="left talk radius">
-                        <p>Disable Ordering Ahead:{{Explanations.EnglishExplanations.DisableOrderingAhead}}</p>
-                        -------------<br>
-                        <p>禁用提前订购:{{Explanations.ChineseExplanations.DisableOrderingAhead}}</p>
-                      </div>
-                    </i>
-                  </div>
-                  <div class="col-7 pl-1" style="font-weight: 600;">
-                    {{!!restaurant.disableScheduling}}
-                  </div>
-                </div>
-              </th>
             </tr>
             <tr>
               <th colspan="2">
