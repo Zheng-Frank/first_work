@@ -2,8 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
+
 import { Order } from '@qmenu/ui'
 import { } from '@qmenu/ui'
+
 
 @Component({
   selector: 'app-monitoring-dine-in-orders',
@@ -12,17 +14,12 @@ import { } from '@qmenu/ui'
 })
 export class MonitoringDineInOrdersComponent implements OnInit {
   rows = []; // {restaurant, orders}
+  rtDict = {};
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
-  now = new Date();
-
-  log(item) {
-    console.log(item)
-  }
   async ngOnInit() {
     this.refreshOrders();
-
   }
 
   async refreshOrders() {
@@ -43,14 +40,68 @@ export class MonitoringDineInOrdersComponent implements OnInit {
         "restaurantObj._id": 1,
         type: 1,
         createdAt: 1,
+        customerObj: 1
       },
       sort: {
         createdAt: -1
       },
     }, 500);
 
-    this.rows = dineInOrders;
+    dineInOrders.forEach(o => {
+      if (this.rtDict[o.restaurantObj._id]) {
+        this.rtDict[o.restaurantObj._id].orders.push(o);
+      } else {
+        this.rtDict[o.restaurantObj._id] = {
+          rt: o.restaurantObj,
+          orders: [o]
+        };
+      }
+    });
 
-    console.log(dineInOrders);
+    const rtIds = Object.keys(this.rtDict);
+    this.rows = dineInOrders;
+    await this.populateRtData(rtIds);
+  }
+
+  async populateRtData(rtIds) {
+    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        _id: { $in: rtIds.map(id => ({ $oid: id })) }
+      },
+      projection: {
+        _id: 1,
+        channels: 1,
+        phones: 1
+      },
+      sort: {
+        createdAt: -1
+      },
+    }, 500);
+
+    restaurants.forEach(rt => {
+      Object.assign(this.rtDict[rt._id.toString()].rt, rt)
+    });
+  }
+
+  getCustomerPhone(row) {
+    return row.customerObj.phone || 'n/a';
+  }
+
+  getCustomerName(row) {
+    let name = '';
+    name += (row.customerObj.firstName + ' ') || '';
+    name += row.customerObj.lastName || '';
+    return name.trim() || 'n/a';
+  }
+
+  getRtPhone(id) {
+    if (!this.rtDict[id]) {
+      return;
+    }
+    const numberFromPhonesArray = this.rtDict[id].rt.phones && this.rtDict[id].rt.phones[0].phoneNumber;
+    const numberFromChannelsArray = (((this.rtDict[id].rt.channels || []).filter(ch => ch.type === 'Phone'))[0] || {}).value;
+
+    return numberFromPhonesArray || numberFromChannelsArray || 'n/a';
   }
 }

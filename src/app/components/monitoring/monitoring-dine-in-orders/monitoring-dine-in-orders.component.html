@@ -1,5 +1,5 @@
 <div class="card">
-    <h1 class="text-center">Dine-In Orders ({{ rows.length }})</h1>
+  <h1 class="text-center">Dine-In Orders ({{ rows.length }})</h1>
 
   <div class="card-body">
 
@@ -7,64 +7,32 @@
     <table class="table">
       <tr>
         <th>Restaurant</th>
-        <th>Phones</th>
-        <th>Order</th>
-        <th>Amount <i class="fas" [ngClass]="{ 'fa-arrow-up': !!descending,  'fa-arrow-down': !descending}"
-            (click)='handleArrow()'> </i></th>
-        <th>Time (delay)</th>
-        <th>Payment</th>
+        <th>Order Time</th>
+        <th>RT Phone</th>
+        <th> Customer Name</th>
+        <th> Customer Phone</th>
       </tr>
       <tr *ngFor="let row of rows">
         <td>
-          <a routerLink="/restaurants/{{ row.restaurant._id }}">{{ row.restaurant.name }} ({{ row.timezone }})</a>
-          <div class="text-muted">
-            <small>{{ getDaysFromId(row.restaurant._id) }} days ago</small>
-          </div>
-          <div class="text-muted">
-            <small>{{ row.restaurant.address | removeUsa }}</small>
-          </div>
+          <!-- RT Name -->
+          <a routerLink="/restaurants/{{ row.restaurantObj._id }}">{{ row.restaurantObj.name }} </a> <br>
+          <small> {{row.restaurantObj._id}}</small>
         </td>
         <td>
-          <div *ngFor="let channel of row.channels">
-            <span *ngIf="showChannel(channel)">
-              {{ channel.value | phone }}
-            </span>
-          </div>
+          <!-- Order Time -->
+          {{row.createdAt | date : 'short'}}
         </td>
         <td>
-          <div *ngFor="let order of row.orders">
-            {{ order.order.orderNumber }}
-            <small class="text-warning">{{ order.createdAt | ago: now }}</small>
-            <hr />
-          </div>
+          <!-- RT Phone -->
+          {{getRtPhone(row.restaurantObj._id)}}
         </td>
         <td>
-          <div *ngFor="let order of row.orders">
-            <small class="text-warning">{{ order.total | currency }}</small>
-            <hr />
-          </div>
-        </td>
-
-        <td>
-          <div *ngFor="let order of row.orders">
-            <div [ngClass]="{ 'text-danger': getTimes(order, row).overdue}"
-              *ngFor="let times of getTimes(order, row).texts">
-              {{ times }}
-            </div>
-
-            <hr />
-          </div>
+          <!-- Customer Name -->
+          {{getCustomerName(row)}}
         </td>
         <td>
-          <div *ngFor="let order of row.orders">
-            {{ order.payment.method }} &nbsp;
-            {{
-            order.payment.paymentType.toLowerCase() === "cash"
-            ? null
-            : order.payment.paymentType
-            }}
-            <hr />
-          </div>
+          <!-- Customer Phone -->
+          {{getCustomerPhone(row)}}
         </td>
       </tr>
     </table>
