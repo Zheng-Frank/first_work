@@ -676,14 +676,20 @@ export class BasicTplComponent implements OnInit {
     const newTemplate = {...this.restaurant.web.template} || {};
 
     newTemplate.isCustomTemplate = this.isCustomTemplate;
-    ((newTemplate.web || {}).template || {}).headerSlider = [ '/assets/images/slider1.jpg', '/assets/images/slider2.jpg'];
-    ((newTemplate.web || {}).template || {}).sectionATitle = this.restaurant.name;
-    ((newTemplate.web || {}).template || {}).sectionAslogan = 'Best Food, Great Value';
-    ((newTemplate.web || {}).template || {}).sectionBTitle = 'Our Specialties';
-    ((newTemplate.web || {}).template || {}).sectionBImageCaption1 = 'Serving with Love';
-    ((newTemplate.web || {}).template || {}).sectionBImageCaption2 = 'Tasty Products';
-    ((newTemplate.web || {}).template || {}).sectionBImageCaption3 = 'Wide Range Flavors';
-    ((newTemplate.web || {}).template || {}).specialties = [
+    ((newTemplate || {}) || {}).navbar = [
+      { label: 'Hpme', url: '/#home'},
+      { label: 'Menu', url: '/menu/'},
+      { label: 'Order Online', url: `https://qmenu.us/#/${this.restaurant.alias}`},
+      { label: 'Contact Us', url: '/#contact'},
+    ];
+    (newTemplate || {}).headerSlider = [ '/assets/images/slider1.jpg', '/assets/images/slider2.jpg'];
+    (newTemplate || {}).sectionATitle = this.restaurant.name;
+    (newTemplate || {}).sectionAslogan = 'Best Food, Great Value';
+    (newTemplate || {}).sectionBTitle = 'Our Specialties';
+    (newTemplate || {}).sectionBImageCaption1 = 'Serving with Love';
+    (newTemplate || {}).sectionBImageCaption2 = 'Tasty Products';
+    (newTemplate || {}).sectionBImageCaption3 = 'Wide Range Flavors';
+    (newTemplate || {}).specialties = [
       '/assets/images/1.jpg',
       '/assets/images/2.jpg',
       '/assets/images/3.jpg',
@@ -691,19 +697,19 @@ export class BasicTplComponent implements OnInit {
       '/assets/images/5.jpg',
       '/assets/images/6.jpg',
     ];
-    ((newTemplate.web || {}).template || {}).sectionCTitle1 = 'Have you ever';
-    ((newTemplate.web || {}).template || {}).sectionCTitle2 = 'Ordered';
-    ((newTemplate.web || {}).template || {}).sectionCTitle3 = 'Online';
-    ((newTemplate.web || {}).template || {}).sectionDTitle = 'People are saying';
-    ((newTemplate.web || {}).template || {}).sectionDSubtext = 'Everything has just been fantastic! I would recommend this restaurant ...';
-    ((newTemplate.web || {}).template || {}).sectionElinkText = 'Open In Maps';
+    (newTemplate || {}).sectionCTitle1 = 'Have you ever';
+    (newTemplate || {}).sectionCTitle2 = 'Ordered';
+    (newTemplate || {}).sectionCTitle3 = 'Online';
+    (newTemplate || {}).sectionDTitle = 'People are saying';
+    (newTemplate || {}).sectionDSubtext = 'Everything has just been fantastic! I would recommend this restaurant ...';
+    (newTemplate || {}).sectionElinkText = 'Open In Maps';
 
     let phone = (this.restaurant.channels || []).filter(c => c.type === 'Phone' && (c.notifications || []).some(n => n === 'Business')).map(c => c.value)[0] || '';
     const _formatted_phone = phone.substring(0, 3) + '-' + phone.substring(3, 6) + '-' + phone.substr(6, 10);
-    ((newTemplate.web || {}).template || {}).sectionEPhone = _formatted_phone;
+    (newTemplate || {}).sectionEPhone = _formatted_phone;
 
-    ((newTemplate.web || {}).template || {}).privacyPolicyText = '';
-    ((newTemplate.web || {}).template || {}).privacyPolicyLink = null;
+    (newTemplate || {}).privacyPolicyText = '';
+    (newTemplate || {}).privacyPolicyLink = null;
 
     try {
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
@@ -720,6 +726,12 @@ export class BasicTplComponent implements OnInit {
     } catch (error) {
       this._global.publishAlert(AlertType.Danger, 'Error while reverting to defaults');
       console.error(error);
+    }
+  }
+
+  buildImagePath(url) {
+    if (!url.includes('qmenu.us')) {
+      return 'https://' + url.replace('https://', '').replace('http://', '').replace('/', '');
     }
   }
 }
