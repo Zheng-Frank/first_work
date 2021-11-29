@@ -717,8 +717,7 @@ export class BasicTplComponent implements OnInit {
         new: { _id: this.restaurant._id, 'web.template': newTemplate }
       }]).toPromise();
 
-      this.restaurant.web.template = this.restaurant.web.template || {};
-      this.restaurant.web.template = newTemplate;
+      await this.refresh();
 
       await this.republishToAWS();
 
@@ -730,8 +729,15 @@ export class BasicTplComponent implements OnInit {
   }
 
   buildImagePath(url) {
-    if (!url.includes('qmenu.us')) {
-      return 'https://' + url.replace('https://', '').replace('http://', '').replace('/', '');
+    if (!url.includes('.com') && !url.includes('qmenu.us')) {
+      return this.restaurant.web.qmenuWebsite + url.replace('/', '');
+    } else {
+      return url;
     }
+
+
+    // if (!url.includes('.com') || !url.includes('.us')) {
+    //   return 'https://' + url.replace('https://', '').replace('http://', '').replace('/', '') + this.restaurant.web.qm;
+    // }
   }
 }
