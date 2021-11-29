@@ -16,6 +16,30 @@ export class MonitoringDineInOrdersComponent implements OnInit {
   rows = []; // {restaurant, orders}
   rtDict = {};
 
+  myColumnDescriptors = [
+    {
+      label: "Restaurant",
+      paths: ["restaurantObj", "name"],
+      sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
+    },
+    {
+      label: "Order Time",
+      paths: ["createdAt"],
+      sort: (a, b) => a.valueOf() > b.valueOf() ? 1 : (a.valueOf() < b.valueOf() ? -1 : 0),
+    },
+    {
+      label: "RT Phone"
+    },
+    {
+      label: "Customer Name",
+      paths: ['customerName'],
+      sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
+    },
+    {
+      label: "Customer Phone"
+    }
+  ];
+
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
@@ -59,7 +83,12 @@ export class MonitoringDineInOrdersComponent implements OnInit {
     });
 
     const rtIds = Object.keys(this.rtDict);
-    this.rows = dineInOrders;
+    this.rows = dineInOrders.map(row => ({
+      ...row,
+      customerName: this.getCustomerName(row),
+      customerPhone: this.getCustomerPhone(row)
+    }));
+
     await this.populateRtData(rtIds);
   }
 

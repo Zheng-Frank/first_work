@@ -4,37 +4,18 @@
   <div class="card-body">
 
     <br />
-    <table class="table">
-      <tr>
-        <th>Restaurant</th>
-        <th>Order Time</th>
-        <th>RT Phone</th>
-        <th> Customer Name</th>
-        <th> Customer Phone</th>
-      </tr>
-      <tr *ngFor="let row of rows">
-        <td>
-          <!-- RT Name -->
-          <a routerLink="/restaurants/{{ row.restaurantObj._id }}">{{ row.restaurantObj.name }} </a> <br>
+
+    <q-table [rows]="rows" [tableColumnDescriptors]="myColumnDescriptors">
+      <tr *tableRowTemplate="let row;">
+        <td> <a routerLink="/restaurants/{{ row.restaurantObj._id }}">{{ row.restaurantObj.name }} </a> <br>
           <small> {{row.restaurantObj._id}}</small>
         </td>
-        <td>
-          <!-- Order Time -->
-          {{row.createdAt | date : 'short'}}
-        </td>
-        <td>
-          <!-- RT Phone -->
-          {{getRtPhone(row.restaurantObj._id)}}
-        </td>
-        <td>
-          <!-- Customer Name -->
-          {{getCustomerName(row)}}
-        </td>
-        <td>
-          <!-- Customer Phone -->
-          {{getCustomerPhone(row)}}
-        </td>
+        <td>{{row.createdAt | date : 'short'}}</td>
+        <td>{{getRtPhone(row.restaurantObj._id)}}</td>
+        <td> {{row.customerName}}</td>
+        <td> {{row.customerPhone}}</td>
       </tr>
-    </table>
+    </q-table>
+
   </div>
 </div>
