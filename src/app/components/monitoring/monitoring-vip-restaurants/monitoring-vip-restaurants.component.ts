@@ -1,11 +1,21 @@
 import { TimezoneHelper } from '@qmenu/ui';
-import { filter } from 'rxjs/operators';
 import { AlertType } from './../../../classes/alert-type';
 import { Log } from 'src/app/classes/log';
 import { environment } from './../../../../environments/environment';
 import { GlobalService } from 'src/app/services/global.service';
 import { ApiService } from 'src/app/services/api.service';
 import { Component, OnInit, ViewChild } from '@angular/core';
+
+enum viewTypes {
+  All = 'All',
+  Overdue = 'Followup overdue',
+  NotOverdue = 'Followup not overdue'
+}
+
+enum ruleTypes {
+  Six_Months = '6 months',
+  Three_Months = '3 months'
+}
 
 @Component({
   selector: 'app-monitoring-vip-restaurants',
@@ -16,6 +26,7 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
 
   @ViewChild('logEditingModal') logEditingModal;
   vipRTs = [];
+  filterVipRTs = [];
   now = new Date();
 
   restaurantsColumnDescriptors = [
@@ -40,26 +51,84 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
   vipFollowUpLogType = 'vip-follow-up';
   logInEditing: Log = new Log({ type: this.vipFollowUpLogType, time: new Date() });
   activeRestaurant;
+  // filter conditions
+  viewModes = [viewTypes.All, viewTypes.Overdue, viewTypes.NotOverdue];
+  viewMode = viewTypes.All;
+  rules = [ruleTypes.Six_Months, ruleTypes.Three_Months];
+  rule = ruleTypes.Six_Months;
+
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
     this.loadVIPRestaurants();
   }
 
-   // our salesperson only wants to know what is the time offset
+  filterFollowUp() {
+    switch (this.viewMode) {
+      case viewTypes.All:
+        // all includes: overdue, or not overdue in six month rules, three month, or haven't lastFollowup
+        this.filterVipRTs = this.vipRTs;
+        break;
+      case viewTypes.Overdue:
+        this.filterVipRTs = this.vipRTs.filter(vipRT => this.followUpOverdue(vipRT) || !vipRT.lastFollowUp);
+        break;
+      case viewTypes.NotOverdue:
+        this.filterVipRTs = this.vipRTs.filter(vipRT => vipRT.lastFollowUp && !this.followUpOverdue(vipRT));
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  followUpOverdue(rt) {
+    // six months
+    if (this.rule === ruleTypes.Six_Months) {
+      return rt.lastFollowUp && rt.lastFollowUp.valueOf() <= (this.now.valueOf() - 6 * 30 * 24 * 3600 * 1000);
+    }
+    // three months 
+    if (this.rule === ruleTypes.Three_Months) {
+      return rt.lastFollowUp && rt.lastFollowUp.valueOf() <= (this.now.valueOf() - 3 * 30 * 24 * 3600 * 1000);
+    }
+  }
+
+  getOverdueDays(rt, isOverDue) {
+    if (isOverDue) { // need to calculate delta with 180 or 90 days
+      // six months
+      if (this.rule === ruleTypes.Six_Months) {
+        return Math.round((this.now.valueOf() - 6 * 30 * 24 * 3600 * 1000 - rt.lastFollowUp.valueOf()) / (24 * 3600 * 1000));
+      }
+      // three months 
+      if (this.rule === ruleTypes.Three_Months) {
+        return Math.round((this.now.valueOf() - 3 * 30 * 24 * 3600 * 1000 - rt.lastFollowUp.valueOf()) / (24 * 3600 * 1000));
+      }
+    } else {
+      // six months
+      if (this.rule === ruleTypes.Six_Months) {
+        return Math.round((this.now.valueOf() - rt.lastFollowUp.valueOf()) / (24 * 3600 * 1000));
+      }
+      // three months 
+      if (this.rule === ruleTypes.Three_Months) {
+        return Math.round((this.now.valueOf() - rt.lastFollowUp.valueOf()) / (24 * 3600 * 1000));
+      }
+    }
+
+  }
+
+  // our salesperson only wants to know what is the time offset
   // between EST and the location of restaurant
-  getTimeOffsetByTimezone(timezone){
-    if(timezone){
+  getTimeOffsetByTimezone(timezone) {
+    if (timezone) {
       let localTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), timezone);
       let ESTTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), 'America/New_York');
-      let offset = (ESTTime.valueOf() - localTime.valueOf())/(3600*1000);
-      return offset > 0 ? "+"+offset.toFixed(0) : offset.toFixed(0);
-    }else{
+      let offset = (ESTTime.valueOf() - localTime.valueOf()) / (3600 * 1000);
+      return offset > 0 ? "+" + offset.toFixed(0) : offset.toFixed(0);
+    } else {
       return 'N/A';
     }
   }
 
-  getTimezoneCity(timezone){
+  getTimezoneCity(timezone) {
     return (timezone || '').split('/')[1] || '';
   }
 
@@ -181,6 +250,7 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
       }
       return r;
     });
+    this.filterFollowUp();
   }
 
   async addLog(row) {
