@@ -55,7 +55,8 @@ export class MonitoringDineInOrdersComponent implements OnInit {
       resource: 'order',
       query: {
         createdAt: { $gt: { $date: oneDayAgo } },
-        type: 'DINE-IN'
+        type: 'DINE-IN',
+        dineInSessionObj: null
       },
       projection: {
         _id: 1,
