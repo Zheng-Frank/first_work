@@ -37,7 +37,6 @@
     <span aria-hidden="true">×</span>
   </button>
   <q-form-builder #editingForm [object]="rateScheduleInEditing" [showDelete]="rateScheduleInEditing.id"
-    [fieldDescriptors]="fieldDescriptors" (submit)="submit($event)"
-    (cancel)="cancel($event)" (remove)="remove($event)">
+    [fieldDescriptors]="fieldDescriptors" (submit)="submit($event)" (cancel)="cancel($event)" (remove)="remove($event)">
   </q-form-builder>
 </q-modal>
