@@ -9,7 +9,7 @@ import { FormSubmit } from '@qmenu/ui/classes';
 import { OrderPaymentMethod } from 'src/app/classes/order-payment-method';
 import { CurrencyPipe } from '@angular/common';
 import { environment } from 'src/environments/environment';
-import {Helper} from '../../../classes/helper';
+import { Helper } from '../../../classes/helper';
 
 @Component({
   selector: 'app-restaurant-fee-schedules',
@@ -108,8 +108,8 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     required: true,
     inputType: "single-select",
     items: [],
-    validate: ()=>{
-      return this.chargeBasisDescriptor.items.some(item=>item.object === this.feeScheduleInEditing.chargeBasis);
+    validate: () => {
+      return this.chargeBasisDescriptor.items.some(item => item.object === this.feeScheduleInEditing.chargeBasis);
     }
   };
 
@@ -152,7 +152,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
       { object: OrderPaymentMethod.Stripe, text: "CC: restaurant using stripe", selected: false },
     ]
   };
-  
+
   unsuitRate = 0.06;
 
   constructor(private _currencyPipe: CurrencyPipe, private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) {
@@ -179,13 +179,15 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
 
   ngOnInit() { }
 
-   /**
-  *show the warning text: "*** WARNING! Are you sure [PERCENTAGE]% is the correct value? ***"
+  /**
+ *show the warning text: "*** WARNING! Are you sure [PERCENTAGE]% is the correct value? ***"
+ *if someone enter an incorrect percentage value 
   *if someone enter an incorrect percentage value 
-  */
-  isRateInvalid(){
+ *if someone enter an incorrect percentage value 
+ */
+  isRateInvalid() {
     return [ChargeBasis.OrderSubtotal, ChargeBasis.OrderPreTotal,
-      ChargeBasis.OrderTotal,ChargeBasis.Commission]
+    ChargeBasis.OrderTotal, ChargeBasis.Commission]
       .includes(this.feeScheduleInEditing.chargeBasis) && this.feeScheduleInEditing.rate > this.unsuitRate;
   }
 
@@ -223,7 +225,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     if (!outOfNow && prev) {
       prev.selected = true;
     }
-    return list.map(x => ({object: x.agent, text: x.agent, selected: x.selected || false}));
+    return list.map(x => ({ object: x.agent, text: x.agent, selected: x.selected || false }));
   }
 
   canViewFeeSchedule(feeSchedule) {
@@ -360,10 +362,10 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     // the following will condition the editor
     // when in editing, we need "2020-08-19" type of format, usibng fr-CA to do so
     if (this.feeScheduleInEditing.fromTime) {
-      this.feeScheduleInEditing.fromTime = this.feeScheduleInEditing.fromTime.toLocaleDateString('en-CA', {  timeZone: this.restaurant.googleAddress.timezone });
+      this.feeScheduleInEditing.fromTime = this.feeScheduleInEditing.fromTime.toLocaleDateString('en-CA', { timeZone: this.restaurant.googleAddress.timezone });
     }
     if (this.feeScheduleInEditing.toTime) {
-      this.feeScheduleInEditing.toTime = this.feeScheduleInEditing.toTime.toLocaleDateString('en-CA', {  timeZone:  this.restaurant.googleAddress.timezone });
+      this.feeScheduleInEditing.toTime = this.feeScheduleInEditing.toTime.toLocaleDateString('en-CA', { timeZone: this.restaurant.googleAddress.timezone });
     }
 
     this.updateFormBuilder();
@@ -384,7 +386,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     // turn 2020-09-01 to timezone form
     const getTransformedDate = (dateString) => {
       // const [year, month, date] = dateString.split('-');
-      return TimezoneHelper.parse(dateString, this.restaurant.googleAddress.timezone );
+      return TimezoneHelper.parse(dateString, this.restaurant.googleAddress.timezone);
     }
     // console.log("this.feeScheduleInEditing.fromTime:"+this.feeScheduleInEditing.fromTime);
     // console.log("this.feeScheduleInEditing.toTime:"+this.feeScheduleInEditing.toTime);
