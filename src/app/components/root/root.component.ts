@@ -64,8 +64,8 @@ export class RootComponent implements OnInit, OnDestroy {
         });
       }
     });
-    // auto check fraud order for user xxx, temporaly solution
-    if (this._global.user && this._global.user.username === 'june') {
+    // auto check fraud order for user xxx, temporary solution
+    if (this._global.user && this._global.user.roles && this._global.user.roles.includes('FRAUD_TRACKER')) {
       // when storage changed, check the new detected order count and update fraud notice state
       window.addEventListener('storage',  ({key, newValue}) => {
         try {
@@ -124,9 +124,11 @@ export class RootComponent implements OnInit, OnDestroy {
         {$project: {logs: 0}},
         {
           $match: {
-            'ccAddress.distanceToStore': {$gt: 200},
-            'computed.total': {$gte: 400},
-            'customerObj._id': {$in: (await this.getOrderedCustomersToday())}
+            $or: [
+              {'ccAddress.distanceToStore': {$gt: 200}},
+              {'computed.total': {$gte: 400}},
+              {'customerObj._id': {$in: (await this.getOrderedCustomersToday())}}
+            ]
           }
         },
         {$sort: {_id: -1}},
