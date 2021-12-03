@@ -461,8 +461,7 @@ export class MyLeads2Component implements OnInit, OnDestroy {
       const ids = leads.map(lead => ({ $oid: lead._id }));
 
       const [count] = await this._api
-        .post(environment.appApiUrl + "smart-restaurant/api", {
-          method: 'get',
+        .get(environment.qmenuApiUrl + "generic", {
           resource: 'raw-lead',
           aggregate: [
             {$match: { assignee: this.reassignTo, 'restaurant._id': {$exists: false} }},
