@@ -109,6 +109,7 @@ export class RestaurantSetupPaymentComponent implements OnInit {
           }else{
             this.pickupCashOpt = pickupCashOptTypes.No;
           }
+          // set other methods except cash, because cash is set in above question
           let otherMethods = service.paymentMethods.filter(method=>method !== this.cashSaveText);
           otherMethods.forEach(method => {
             if (method === this.qmenuSaveText) {
