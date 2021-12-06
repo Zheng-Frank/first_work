@@ -1,4 +1,4 @@
-<div *ngIf="menu && !editingMis" class="{{menu.disabled ? 'app-muted' : ''}}">
+<div *ngIf="menu && editingMis < 0" class="{{menu.disabled ? 'app-muted' : ''}}">
   <!--header of menu-->
   <div (click)="edit()" class="app-category-header-container app-jumbo"
     [ngStyle]="{ 'background-image': 'url(' + getMenuImageUrl() + ')'}" role="button">
@@ -51,7 +51,7 @@
   <!--category cards-->
   <app-menu-category *ngFor="let cat of menu.mcs" [mc]="cat" (onEditAllMenuItems)="editAllItems($event)"
     (onSortMis)="showMiSortingModal($event)" [menuOptions]="restaurant.menuOptions" (onMcClicked)="editMc($event)"
-    (onMiClicked)="editMi($event)" [menu]="menu" [restaurant]="restaurant" [isShowMenuItemStats]="isShowMenuItemStats"> 
+    (onMiClicked)="editMi($event)" [menu]="menu" [restaurant]="restaurant" [isShowMenuItemStats]="isShowMenuItemStats">
   </app-menu-category>
 
   <!--add category section-->
@@ -63,7 +63,7 @@
   </div>
 </div>
 
-<div [hidden]="!editingMis">
+<div [hidden]="editingMis < 0">
   <app-menu-items-editor #misEditor [translations]="restaurant.translations" (onDone)="misDone($event)" (onCancel)="misCancel($event)"></app-menu-items-editor>
 </div>
 

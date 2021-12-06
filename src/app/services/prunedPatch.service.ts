@@ -3,115 +3,95 @@
  */
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
-import { Observable } from 'rxjs';
-
-const EMPTY_INDICATOR = "#>!$!%(@^";
+import { of } from 'rxjs';
 
 @Injectable()
 export class PrunedPatchService {
-    constructor(private _api: ApiService) { }
+  constructor(private _api: ApiService) {
+  }
 
-    patch(api: string, payload: any) {
-        let observable: Observable<any>;
+  patch(api: string, payloads: { old: any, new: any }[]) {
+    console.log('payloads...', payloads);
+    let equivalent = true;
+    let pruned = payloads.map(payload => {
+      let origin = JSON.parse(JSON.stringify(payload.old));
+      let updated = JSON.parse(JSON.stringify(payload.new));
+      let originId = origin._id, updatedId = updated._id;
+      let {ori, upd} = this.prune(origin, updated);
+      equivalent = equivalent && ((!ori && !upd) || (Object.keys(ori).length === 0 && Object.keys(upd).length === 0));
+      return {old: {...ori, _id: originId}, new: {...upd, _id: updatedId}};
+    });
+    if (equivalent) {
+      return of("unchanged");
+    }
+    console.log('pruned...', pruned);
+    return this._api.patch(api, pruned);
+  }
 
-        // clone the passed in objects so we don't modify them
-        let oldObj = JSON.parse(JSON.stringify(payload[0].old));
-        let newObj = JSON.parse(JSON.stringify(payload[0].new));
-        // prune the passed in objects
-        const result = this.prune(oldObj, newObj, true);
-        oldObj = result.old;
-        newObj = result.new;
-
-        // return the observable
-        observable = this._api.patch(api, 
-            [{
-                old: oldObj,
-                new: newObj
-            }]);
-        return observable;
+  private prune(origin: any, updated: any) {
+    if (typeof origin !== typeof updated) {
+      return {ori: origin, upd: updated};
+    }
+    if (typeof origin !== 'object') {
+      if (origin === updated) {
+        return {};
+      }
+      return {ori: origin, upd: updated};
     }
 
-    // recursive method to prune the passed in objects
-    private prune(oldO, newO, isTopLevel) {
-        // Check that they have the same type
-        if (typeof oldO !== typeof newO) {
-            return {old: oldO, new: newO};
-        } 
-
-        // 1. If type is value: Compare them directly
-        if (typeof oldO !== 'object') {
-            if (oldO === newO) {
-                return {old: EMPTY_INDICATOR, new: EMPTY_INDICATOR};
-            } else {
-                return {old: oldO, new: newO};
-            }
-        }
-        // 2. If type is array: iterate through it  
-        else if (Array.isArray(oldO)) {
-            let allSame = true;
-            // prune each elements in the array
-            for (let i = 0; i < Math.min(oldO.length, newO.length); i++) {
-                const result = this.prune(oldO[i], newO[i], false);
-                // replacing same elements with empty objects
-                oldO[i] = result.old == EMPTY_INDICATOR ? {} : result.old;
-                newO[i] = result.new == EMPTY_INDICATOR ? {} : result.new;
-                // if some elements are different, then not all the same
-                if (result.old != EMPTY_INDICATOR || result.new != EMPTY_INDICATOR) {
-                    allSame = false;
-                }
-            }
-
-            // if lengths are not the same, then not all elements are the same
-            if (oldO.length !== newO.length) {
-                allSame = false;
-            }
-
-            if (allSame) {  // if all the same, just return undefines
-                return {old: EMPTY_INDICATOR, new: EMPTY_INDICATOR};
-            } else { 
-                return {old: oldO, new: newO};
-            }
-        }
-        // 3. If type is object: iterate through it
-        else {
-            let allSame = true;
-            let prop;
-            // iterate through the property of the oldO
-            for (prop in oldO) {
-                // prune each property except _id
-                if (prop == '_id' && isTopLevel) {
-                    continue;
-                }
-                // if newObject doesn't own that property, no need to prune
-                if (!newO.hasOwnProperty(prop)) {
-                    continue;
-                }
-                const result = this.prune(oldO[prop], newO[prop], false);
-                oldO[prop] = result.old;
-                newO[prop] = result.new;
-                // delete any undefined property
-                if (oldO[prop] == EMPTY_INDICATOR) {
-                    delete oldO[prop];
-                }
-                if (newO[prop] == EMPTY_INDICATOR) {
-                    delete newO[prop];
-                } 
-                // if there's one property different, then not all the same
-                if (result.old != EMPTY_INDICATOR || result.new != EMPTY_INDICATOR) {
-                    allSame = false;
-                }
-            }
-
-            // if there are still properties left in the new object, then not all the same
-            for (prop in newO) {
-                allSame = false;
-            }
-
-            if (allSame) {  // if all the same, just return undefines
-                return {old: EMPTY_INDICATOR, new: EMPTY_INDICATOR};
-            } else { 
-                return {old: oldO, new: newO};
-            }
-        }
+    // handle null case
+    if (origin === updated) {
+      return {};
     }
+
+    // compare date
+    if (origin instanceof Date) {
+      if (updated instanceof Date) {
+        if (origin.valueOf() === updated.valueOf()) {
+          return {};
+        }
+      }
+      return {ori: origin, upd: updated};
+    }
+    let equal = true;
+    // compare array
+    if (Array.isArray(origin)) {
+      if (Array.isArray(updated)) {
+        for (let i = 0; i < Math.min(origin.length, updated.length); i++) {
+          let {ori, upd} = this.prune(origin[i], updated[i]);
+          origin[i] = ori;
+          updated[i] = upd;
+          equal = equal && (ori === upd);
+        }
+        if (equal && (origin.length === updated.length)) {
+          return {};
+        }
+      }
+      return {ori: origin, upd: updated};
+    }
+    equal = true;
+    // compare plain object
+    Object.keys(origin).forEach(prop => {
+      if (!updated.hasOwnProperty(prop)) {
+        equal = false;
+        return;
+      }
+      const {ori, upd} = this.prune(origin[prop], updated[prop]);
+      origin[prop] = ori;
+      updated[prop] = upd;
+      // delete any undefined property
+      if (ori === undefined) {
+        delete origin[prop];
+      }
+      if (upd === undefined) {
+        delete updated[prop];
+      }
+      equal = equal && ori === upd;
+    });
+
+    if (equal && !Object.keys(updated).length) {
+      return {};
+    }
+    return {ori: origin, upd: updated};
+  }
 }
