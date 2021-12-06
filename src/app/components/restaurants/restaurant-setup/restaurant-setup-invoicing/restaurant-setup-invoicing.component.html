@@ -236,6 +236,18 @@
       Already set up. If you need to edit any invoicing information, go to Settings tab.
     </label>
   </div>
+  <!-- first question finished tip -->
+  <div>
+    <label class="text-info" *ngIf="showToQmenuQuestion && !showFromQmenuQuestion">
+      You already have a method to receive payouts from qMenu.
+    </label>
+  </div>
+  <!-- second question finished tip -->
+  <div>
+    <label class="text-info" *ngIf="!showToQmenuQuestion && showFromQmenuQuestion">
+     You already have a method to send payment to qMenu.
+    </label>
+  </div>
 </ng-container>
 <ng-template #elseBlock>
   <div class="text-danger">Please set payment collection settings first.</div>

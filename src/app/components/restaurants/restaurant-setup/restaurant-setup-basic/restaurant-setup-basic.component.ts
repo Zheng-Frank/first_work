@@ -24,7 +24,8 @@ export class RestaurantSetupBasicComponent implements OnInit {
     primaryContactPersonRoles: [],
     primaryContactPersonPhone: '',
     website: '',
-    localTaxRate: undefined
+    localTaxRate: undefined,
+    pickupTimeEstimate: 0
   };
   // use snapshot to storage local data, to handle repeat save isssue
   snapshot = {
@@ -43,7 +44,7 @@ export class RestaurantSetupBasicComponent implements OnInit {
 
 
   init() {
-    let {googleListing = {}, people = [], web = {}, taxRate, channels} = this.restaurant;
+    let {googleListing = {}, people = [], web = {}, taxRate, channels, pickupTimeEstimate} = this.restaurant;
     let person = people[0] || {};
     let sms = (person.channels || []).find(x => x.type === 'SMS') || {};
     let phone = channels.find(x => x.type === 'Phone') || {};
@@ -54,7 +55,8 @@ export class RestaurantSetupBasicComponent implements OnInit {
       primaryContactPersonRoles: person.roles || [],
       primaryContactPersonPhone: sms.value,
       website: '',
-      localTaxRate: taxRate
+      localTaxRate: taxRate,
+      pickupTimeEstimate: pickupTimeEstimate
     };
     this.snapshot = {
       primaryPhone: phone.value || googleListing.phone,
@@ -96,7 +98,8 @@ export class RestaurantSetupBasicComponent implements OnInit {
     let {
       primaryBusinessPhone, primaryContactPersonTitle,
       primaryContactPersonName, primaryContactPersonRoles,
-      primaryContactPersonPhone, website, localTaxRate
+      primaryContactPersonPhone, website, localTaxRate,
+      pickupTimeEstimate
     } = this.model;
 
     let {people = [], web = {}, taxRate, channels = []} = this.restaurant;
@@ -133,8 +136,8 @@ export class RestaurantSetupBasicComponent implements OnInit {
     }
     web.bizManagedWebsite = website || this.existingWebsite;
     taxRate = localTaxRate || taxRate;
-
-    let newObj = {people, web, taxRate, channels};
+    pickupTimeEstimate = +pickupTimeEstimate || undefined;
+    let newObj = {people, web, taxRate, channels, pickupTimeEstimate};
     this.done.emit(newObj);
   }
 
