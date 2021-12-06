@@ -1,0 +1,21 @@
+<div class="card">
+  <h1 class="text-center">Dine-In Orders ({{ rows.length }})</h1>
+
+  <div class="card-body">
+
+    <br />
+
+    <q-table [rows]="rows" [tableColumnDescriptors]="myColumnDescriptors">
+      <tr *tableRowTemplate="let row;">
+        <td> <a routerLink="/restaurants/{{ row.restaurantObj._id }}">{{ row.restaurantObj.name }} </a> <br>
+          <small> {{row.restaurantObj._id}}</small>
+        </td>
+        <td>{{row.createdAt | date : 'short'}}</td>
+        <td>{{getRtPhone(row.restaurantObj._id)}}</td>
+        <td> {{row.customerName}}</td>
+        <td> {{row.customerPhone}}</td>
+      </tr>
+    </q-table>
+
+  </div>
+</div>
