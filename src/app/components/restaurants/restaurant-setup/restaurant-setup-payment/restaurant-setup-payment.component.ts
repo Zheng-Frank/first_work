@@ -1,4 +1,3 @@
-import { filter } from 'rxjs/operators';
 import { Input, Output, EventEmitter } from '@angular/core';
 import { GlobalService } from 'src/app/services/global.service';
 import { Component, OnInit } from '@angular/core';
