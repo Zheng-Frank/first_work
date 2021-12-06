@@ -1,0 +1,47 @@
+<div class="card">
+  <h2 class="card-title m-3">
+    <!-- <a [routerLink]="['/home']"><i class="fa fa-arrow-left"> Back </i></a> -->
+    <h1 class="text-center">Fax Problems ({{filterRows.length}})</h1>
+  </h2>
+  <div class="card-body">
+    <div class="form-inline">
+      <button class="btn btn-primary" (click)="findPhaxioFailedNumbers()">Execute</button>
+      <label class="text-center ml-4">Show</label>
+      <select [(ngModel)]="type" class="form-control ml-1" style="min-width:220px;max-width:220px;"
+        (change)="filterFaxProblemByType()">
+        <option *ngFor="let type of filterTypes" [value]="type">{{type}}</option>
+      </select>
+    </div>
+    <br /> <br /> <br />
+    <q-table [rows]="filterRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+      <tr *tableRowTemplate="let row;" class="{{!row.succeededOnce ? 'text-danger' : ''}}">
+        <td>
+          <a target="_blank" href="#/restaurants/{{row.restaurant?._id}}">{{row.restaurant?.name}}</a>
+          <div><small>{{row.restaurant?._id}}</small></div>
+        </td>
+        <td>
+          <ng-container *ngIf="row.restaurant?.googleAddress && row.restaurant?.googleAddress?.timezone;else elseBlock;">
+            {{getTimezoneCity(row.restaurant.googleAddress.timezone)}}
+            ({{getTimeOffsetByTimezone(row.restaurant.googleAddress.timezone)}})
+          </ng-container>
+          <ng-template #elseBlock>
+            N/A
+          </ng-template>
+        </td>
+        <td>
+          {{row.phone}}
+        </td>
+        <td>
+          {{ getErrorsCount(row)}}
+        </td>
+        <td>
+          <div *ngFor="let error of row.errorList">
+            {{error}}
+
+          </div>
+        </td>
+        <td>{{row.succeededOnce}}</td>
+      </tr>
+    </q-table>
+  </div>
+</div>

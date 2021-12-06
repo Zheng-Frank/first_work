@@ -262,6 +262,7 @@ import { RestaurantSetupMenuComponent } from './components/restaurants/restauran
 import { RestaurantSetupEntryComponent } from './components/restaurants/restaurant-setup/restaurant-setup-entry/restaurant-setup-entry.component';
 import { RestaurantSetupHoursComponent } from './components/restaurants/restaurant-setup/restaurant-setup-hours/restaurant-setup-hours.component';
 import { RestaurantPosterComponent } from './components/restaurants/restaurant-poster/restaurant-poster.component';
+import { FaxHealthDashboardComponent } from './components/monitoring/fax-health-dashboard/fax-health-dashboard.component';
 
 
 
@@ -496,6 +497,7 @@ import { RestaurantPosterComponent } from './components/restaurants/restaurant-p
     RestaurantSetupHoursComponent,
     RestaurantSetupPaymentComponent,
     RestaurantPosterComponent,
+    FaxHealthDashboardComponent
   ],
   imports: [
     BrowserModule,
