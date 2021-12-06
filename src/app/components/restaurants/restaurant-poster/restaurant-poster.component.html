@@ -1,0 +1,19 @@
+<div>
+  <div class="form-group" *ngIf="websites.length > 0">
+    <div>Restaurant website: </div>
+    <div class="custom-control custom-checkbox" *ngFor="let web of websites">
+      <label class="form-check-label">
+        <input class="form-check-input" type="radio" [value]="web" [(ngModel)]="website">{{web}}
+      </label>
+    </div>
+  </div>
+  <div class="text-danger" *ngIf="websites.length <= 0">
+    Restaurant website: MISSING! (specify under Settings first)
+  </div>
+  <div class="mt-3">
+    <button type="button" class="btn btn-primary" [qLoading]="loading" [disabled]="!website" (click)="download()">Download Poster</button>
+  </div>
+  <div class="mt-3">
+    <canvas id="canvas"></canvas>
+  </div>
+</div>

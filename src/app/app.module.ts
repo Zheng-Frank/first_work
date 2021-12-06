@@ -262,7 +262,7 @@ import { RestaurantSetupMenuComponent } from './components/restaurants/restauran
 import { RestaurantSetupEntryComponent } from './components/restaurants/restaurant-setup/restaurant-setup-entry/restaurant-setup-entry.component';
 import { RestaurantSetupHoursComponent } from './components/restaurants/restaurant-setup/restaurant-setup-hours/restaurant-setup-hours.component';
 import { MonitoringDineInOrdersComponent } from './components/monitoring/monitoring-dine-in-orders/monitoring-dine-in-orders.component';
-
+import { RestaurantPosterComponent } from './components/restaurants/restaurant-poster/restaurant-poster.component';
 
 
 @NgModule({
@@ -495,7 +495,8 @@ import { MonitoringDineInOrdersComponent } from './components/monitoring/monitor
     RestaurantSetupEntryComponent,
     RestaurantSetupHoursComponent,
     RestaurantSetupPaymentComponent,
-    MonitoringDineInOrdersComponent
+    MonitoringDineInOrdersComponent,
+    RestaurantPosterComponent
   ],
   imports: [
     BrowserModule,

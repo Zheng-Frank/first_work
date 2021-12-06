@@ -43,7 +43,7 @@
     </div>
     <div class="card-body">
       <div *ngIf="activeTab === 'Settings'">
-        <app-restaurant-profile [restaurant]="restaurant" [editable]="false"></app-restaurant-profile>
+        <app-restaurant-profile [restaurant]="restaurant" [users]="knownUsers" [editable]="false"></app-restaurant-profile>
       </div>
       <div *ngIf="activeTab === 'GMB'">
         <app-restaurant-gmb [restaurant]="restaurant" [displayFull]="false"></app-restaurant-gmb>

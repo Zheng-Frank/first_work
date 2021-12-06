@@ -18,6 +18,7 @@ export class MenuItemsEditorComponent implements OnInit {
   @Output() onDone = new EventEmitter();
   @Output() onCancel = new EventEmitter();
 
+  editingTranslations = [];
   formatNumber = '';
   checkedItems = [];
   checkedAll = false;
@@ -116,24 +117,23 @@ export class MenuItemsEditorComponent implements OnInit {
 
   setMc(mc: Mc, menuOptions: MenuOption[]) {
 
+    this.editingTranslations = [];
     let mcCopy: Mc;
     mcCopy = new Mc(mc);
     this.mc = mcCopy;
     this.menuOptions = (menuOptions || []).filter(mo => !(mc.menuOptionIds || []).some(id => mo.id === id));
 
-    this.mc.mis.forEach(mi => {
+    this.mc.mis.forEach((mi, i) => {
       let translation = QMenuUIHelper.extractNameTranslation(mi.name) || {en: ''};
       // temporarily add translation to mi for convenient use;
       let { en, zh } = translation;
-      // @ts-ignore
-      mi.translation = (this.translations || []).find(x => x.EN === en) || {EN: en, ZH: zh};
+      this.editingTranslations[i] = (this.translations || []).find(x => x.EN === en) || {EN: en, ZH: zh};
       // attach 2 more size options for existing ones
       [0, 1].forEach(() => {
         const item = new Item();
         mi.sizeOptions.push(item);
       });
     });
-
     let baseId = new Date().valueOf() + '';
     // add 20 extra empty items
     for (let i = 0; i < 20; i++) {
@@ -141,8 +141,7 @@ export class MenuItemsEditorComponent implements OnInit {
       mi.category = mc.id;
       mi.id = baseId + i.toString();
       mi.sizeOptions = [];
-      // @ts-ignore
-      mi.translation = {en: ''} as IMenuTranslation;
+      this.editingTranslations.push({EN: ''});
 
       ['regular', 'small', 'large'].forEach(
         size => {
@@ -181,8 +180,7 @@ export class MenuItemsEditorComponent implements OnInit {
 
     // remove empty mis
     this.mc.mis = this.mc.mis.filter(mi => mi.sizeOptions && mi.sizeOptions.length > 0 && mi.name);
-
-    this.onDone.emit(this.mc);
+    this.onDone.emit({ mc: this.mc, updatedTranslations: this.editingTranslations });
     // restore format number and checked items
     this.formatNumber = '';
     this.checkedAll = false;

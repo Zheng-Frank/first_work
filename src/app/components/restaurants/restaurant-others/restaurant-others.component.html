@@ -30,5 +30,8 @@
     <div *ngIf="activeTab === 'Stats'">
       <app-restaurant-stats [restaurant]="restaurant"></app-restaurant-stats>
     </div>
+    <div *ngIf="activeTab === 'Poster'">
+      <app-restaurant-poster [restaurant]="restaurant"></app-restaurant-poster>
+    </div>
   </div>
 </div>

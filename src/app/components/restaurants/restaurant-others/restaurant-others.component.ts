@@ -23,6 +23,7 @@ export class RestaurantOthersComponent implements OnInit {
       "API Logs": ['ADMIN'],
       "SEO Tracking": ['ADMIN', 'CSR', 'CSR_MANAGER'],
       "Stats": ['ADMIN', 'CSR', 'CSR_MANAGER'],
+      "Poster": ['ADMIN', 'CSR', 'CSR_MANAGER', 'MARKETER'],
     }
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
   }

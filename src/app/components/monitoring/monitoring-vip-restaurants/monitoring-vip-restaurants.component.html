@@ -1,15 +1,36 @@
 <div class="card">
   <h2 class="card-title m-3">
-    <h1 class="text-center">VIP Restaurants ({{vipRTs.length || 0}})</h1>
+    <h1 class="text-center">VIP Restaurants ({{filterVipRTs.length || 0}})</h1>
   </h2>
   <div class="card-body">
-    <div class="col-12 text-right form-group">
-      <button class="btn btn-primary" (click)="loadVIPRestaurants()"><i class="fas fa-sync"></i> Reload</button>
+    <!-- start with filter control -->
+    <div class="row">
+      <div class="col-8 form-inline form-group">
+        <!-- start with view filter -->
+        <label class="text-center ml-1">View</label>
+        <select [(ngModel)]="viewMode" class="form-control ml-1" style="min-width:220px;max-width:220px;"
+          (change)="filterFollowUp()">
+          <option *ngFor="let mode of viewModes" [value]="mode">{{mode}}</option>
+        </select>
+        <!-- end with view filter -->
+        <!-- start with rule filter -->
+        <label class="text-center ml-4">Rule: Followup every</label>
+        <select [(ngModel)]="rule" class="form-control ml-1" style="min-width:220px;max-width:220px;"
+          (change)="filterFollowUp()">
+          <option *ngFor="let r of rules" [value]="r">{{r}}</option>
+        </select>
+        <!-- end with rule filter -->
+      </div>
+      <div class="col-4 text-right form-group">
+        <button class="btn btn-primary" (click)="loadVIPRestaurants()"><i class="fas fa-sync"></i> Reload</button>
+      </div>
     </div>
-    <q-table [rows]="vipRTs" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
+    <!-- end with filter control -->
+
+    <q-table [rows]="filterVipRTs" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
       [pageSize]="100000">
       <tr *tableRowTemplate="let r;">
-        <td>{{vipRTs.indexOf(r) + 1}}</td>
+        <td>{{filterVipRTs.indexOf(r) + 1}}</td>
         <td>
           <a routerLink="/restaurants/{{r['_id']}}">{{r.name}} </a><br>
           <span>{{r._id}}</span>
@@ -26,9 +47,12 @@
         <td>
           <ng-container *ngIf="r.lastFollowUp">
             <label>{{r.lastFollowUp | date : 'shortDate'}} ({{r.lastFollowUp | ago: now}})</label>
+            <div class="text-success" *ngIf="!followUpOverdue(r)">Followup in: {{getOverdueDays(r, followUpOverdue(r))}} days</div>
+            <div class="text-danger" *ngIf="followUpOverdue(r)">Followup overdue by: {{getOverdueDays(r, followUpOverdue(r))}} days</div>
           </ng-container>
           <ng-container *ngIf="!r.lastFollowUp">
             N/A
+            <div class="text-warning">Need Follow up</div>
           </ng-container>
         </td>
         <td style="width:40%;">

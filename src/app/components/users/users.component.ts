@@ -44,7 +44,8 @@ export class UsersComponent implements OnInit {
     'MARKETING_DIRECTOR',
     'MENU_EDITOR', 'PAYER',
     'RATE_EDITOR',
-    'SIGNUP_AGENT'
+    'SIGNUP_AGENT',
+    'FRAUD_TRACKER'
     // NOTE: please add new roles in alphabetical order
   ].map(role => ({
     text: role,

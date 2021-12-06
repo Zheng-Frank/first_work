@@ -20,7 +20,6 @@ export class RestaurantSalesComponent implements OnInit {
 
   rateScheduleInEditing: any = {};
 
-
   fieldDescriptors = [
     {
       field: "date",
@@ -29,19 +28,42 @@ export class RestaurantSalesComponent implements OnInit {
       inputType: "date"
     },
     {
-      field: "agent",
-      label: "Agent Name",
+      field: 'agent',
+      label: 'Agent Name',
       required: true,
-      inputType: "text",
+      inputType: 'select'
     }
   ];
 
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
 
   ngOnInit() {
+    this.populateSalesAgents();
   }
 
-  dateChanged(date) {
+  async populateSalesAgents() {
+    const restaurants = await this._global.getCachedRestaurantListForPicker();
+    let agents = [];
+    restaurants.filter(r => r.rateSchedules).forEach(r => {
+      r.rateSchedules.forEach(rateSchedule => {
+        if (rateSchedule.agent && agents.indexOf(rateSchedule.agent) === -1) {
+          agents.push(rateSchedule.agent);
+        }
+      });
+    });;
+    let enabledUsers = this.users.filter(user => user.disabled);
+    enabledUsers.forEach(eu => {
+      if (agents.indexOf(eu.username) === -1) {
+        agents.push(eu.username.trim());
+      }
+    });
+    agents.sort((a, b) => a.localeCompare(b));
+    this.fieldDescriptors.forEach(fieldDescriptor => {
+      if (fieldDescriptor.label === 'Agent Name') {
+        fieldDescriptor['items'] = agents.map(agent => ({ object: agent, text: agent, selected: false }));
+        fieldDescriptor['items'].unshift({ object: '', text: '', selected: false });
+      }
+    });
   }
 
   edit(rateSchedule?) {
