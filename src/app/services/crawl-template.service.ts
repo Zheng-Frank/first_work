@@ -19,7 +19,7 @@ export class CrawlTemplateService {
       const restaurantId = restaurant._id;
 
       // crawl template
-      await this._api.post(environment.qmenuApiUrl + 'utils/crawl-template', {
+      const result = await this._api.post(environment.qmenuApiUrl + 'utils/crawl-template', {
         domain,
         templateName,
         restaurantId
@@ -31,7 +31,7 @@ export class CrawlTemplateService {
         query: {
           _id: { $oid: restaurant._id }
         },
-        projection: {}
+        projection: { 'web.template': 1}
       }).toPromise();
 
       // Render template

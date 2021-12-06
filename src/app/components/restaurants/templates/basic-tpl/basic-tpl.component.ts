@@ -676,6 +676,40 @@ export class BasicTplComponent implements OnInit {
     const newTemplate = {...this.restaurant.web.template} || {};
 
     newTemplate.isCustomTemplate = this.isCustomTemplate;
+    ((newTemplate || {}) || {}).navbar = [
+      { label: 'Hpme', url: '/#home'},
+      { label: 'Menu', url: '/menu/'},
+      { label: 'Order Online', url: `https://qmenu.us/#/${this.restaurant.alias}`},
+      { label: 'Contact Us', url: '/#contact'},
+    ];
+    (newTemplate || {}).headerSlider = [ '/assets/images/slider1.jpg', '/assets/images/slider2.jpg'];
+    (newTemplate || {}).sectionATitle = this.restaurant.name;
+    (newTemplate || {}).sectionAslogan = 'Best Food, Great Value';
+    (newTemplate || {}).sectionBTitle = 'Our Specialties';
+    (newTemplate || {}).sectionBImageCaption1 = 'Serving with Love';
+    (newTemplate || {}).sectionBImageCaption2 = 'Tasty Products';
+    (newTemplate || {}).sectionBImageCaption3 = 'Wide Range Flavors';
+    (newTemplate || {}).specialties = [
+      '/assets/images/1.jpg',
+      '/assets/images/2.jpg',
+      '/assets/images/3.jpg',
+      '/assets/images/4.jpg',
+      '/assets/images/5.jpg',
+      '/assets/images/6.jpg',
+    ];
+    (newTemplate || {}).sectionCTitle1 = 'Have you ever';
+    (newTemplate || {}).sectionCTitle2 = 'Ordered';
+    (newTemplate || {}).sectionCTitle3 = 'Online';
+    (newTemplate || {}).sectionDTitle = 'People are saying';
+    (newTemplate || {}).sectionDSubtext = 'Everything has just been fantastic! I would recommend this restaurant ...';
+    (newTemplate || {}).sectionElinkText = 'Open In Maps';
+
+    let phone = (this.restaurant.channels || []).filter(c => c.type === 'Phone' && (c.notifications || []).some(n => n === 'Business')).map(c => c.value)[0] || '';
+    const _formatted_phone = phone.substring(0, 3) + '-' + phone.substring(3, 6) + '-' + phone.substr(6, 10);
+    (newTemplate || {}).sectionEPhone = _formatted_phone;
+
+    (newTemplate || {}).privacyPolicyText = '';
+    (newTemplate || {}).privacyPolicyLink = null;
 
     try {
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
@@ -683,8 +717,7 @@ export class BasicTplComponent implements OnInit {
         new: { _id: this.restaurant._id, 'web.template': newTemplate }
       }]).toPromise();
 
-      this.restaurant.web.template = this.restaurant.web.template || {};
-      this.restaurant.web.template = newTemplate;
+      await this.refresh();
 
       await this.republishToAWS();
 
@@ -693,5 +726,18 @@ export class BasicTplComponent implements OnInit {
       this._global.publishAlert(AlertType.Danger, 'Error while reverting to defaults');
       console.error(error);
     }
+  }
+
+  buildImagePath(url) {
+    if (!url.includes('.com') && !url.includes('qmenu.us')) {
+      return this.restaurant.web.qmenuWebsite + url.replace('/', '');
+    } else {
+      return url;
+    }
+
+
+    // if (!url.includes('.com') || !url.includes('.us')) {
+    //   return 'https://' + url.replace('https://', '').replace('http://', '').replace('/', '') + this.restaurant.web.qm;
+    // }
   }
 }
