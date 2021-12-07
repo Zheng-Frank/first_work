@@ -1,42 +1,52 @@
 <div class="card">
+  <h1 class="text-center mt-2">Fax Health Monitoring </h1>
+  <div class="ml-2">
+    <small> Note that total error occurrences may be greater than number of failed jobs. A job may have one or more
+      errors and go to on ultimately succeed. A job is only considered Failed if it never successfully sends after all
+      re-tries.
+    </small>
+  </div>
 
-  <h1 class="text-center">Fax Health Monitoring </h1>
-  <h4 class="text-center">
-
-    Displaying fax events since {{displaySinceDate | date : 'short'}}
-  </h4>
+  <div class="w-25 m-1">
+    <label> Select Date Range to Display:</label>
+    <select class="form-control" [(ngModel)]="queryDate" (change)="queryJobs()">
+      <option>Last hour</option>
+      <option>Last 6 hours</option>
+      <option>Last 24 hours</option>
+      <option>Last 3 days</option>
+      <option>Last 5 days</option>
+    </select>
+  </div>
 
   <div class="card-body">
-    <q-table [rows]="filterRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
-      <tr *tableRowTemplate="let row;" class="{{!row.succeededOnce ? 'text-danger' : ''}}">
+    <q-table [rows]="rows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+      <tr *tableRowTemplate="let row;">
         <td>
-          <a target="_blank" href="#/restaurants/{{row.restaurant?._id}}">{{row.restaurant?.name}}</a>
-          <div><small>{{row.restaurant?._id}}</small></div>
+          {{row.providerName}}
         </td>
         <td>
-          <ng-container
-            *ngIf="row.restaurant?.googleAddress && row.restaurant?.googleAddress?.timezone;else elseBlock;">
-            {{getTimezoneCity(row.restaurant.googleAddress.timezone)}}
-            ({{getTimeOffsetByTimezone(row.restaurant.googleAddress.timezone)}})
-          </ng-container>
-          <ng-template #elseBlock>
-            N/A
-          </ng-template>
+          {{row.successfulJobs}}
         </td>
         <td>
-          {{row.phone}}
+          {{ row.failedJobs}}
         </td>
         <td>
-          {{ getErrorsCount(row)}}
+          {{ row.failureRate}}
         </td>
         <td>
-          <div *ngFor="let error of row.errorList">
-            {{error}}
-
-          </div>
+          <q-table [rows]="row.errorCodes" [tableColumnDescriptors]="errorColumnDescriptors" [compact]="true">
+      <tr *tableRowTemplate="let errorRow">
+        <td>
+          {{errorRow.message}}
         </td>
-        <td>{{row.succeededOnce}}</td>
+        <td>
+          {{errorRow.number}}
+        </td>
       </tr>
+    </q-table>
+    </td>
+
+    </tr>
     </q-table>
   </div>
 </div>
