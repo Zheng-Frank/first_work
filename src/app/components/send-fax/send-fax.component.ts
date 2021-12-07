@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import {environment} from '../../../environments/environment';
-import {AlertType} from '../../classes/alert-type';
-import {ApiService} from '../../services/api.service';
-import {GlobalService} from '../../services/global.service';
-import {HttpClient} from '@angular/common/http';
+import { environment } from '../../../environments/environment';
+import { AlertType } from '../../classes/alert-type';
+import { ApiService } from '../../services/api.service';
+import { GlobalService } from '../../services/global.service';
+import { HttpClient } from '@angular/common/http';
+import { PDFDocument } from 'pdf-lib';
 
 @Component({
   selector: 'app-send-fax',
@@ -13,9 +14,9 @@ import {HttpClient} from '@angular/common/http';
 export class SendFaxComponent implements OnInit {
 
   faxNumber = '';
-  sendFaxType = 'upload';
+  showFaxTips = false;
   faxHTML = '';
-  faxFile = null;
+  faxFiles = null;
   sendingFax = false;
 
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) {
@@ -24,33 +25,59 @@ export class SendFaxComponent implements OnInit {
   }
 
   upload(event) {
-    this.faxFile = event.target.files[0];
+    this.faxFiles = event.target.files;
   }
 
   sendFaxReady() {
-    return this.sendFaxType && this.faxNumber
+    return (this.faxHTML.length > 0 || (this.faxFiles || []).length > 0) && this.faxNumber
       && this.faxNumber.replace(/\D+/g, '').length === 10
-      && ({ 'upload': this.faxFile, 'html': this.faxHTML }[this.sendFaxType]);
+
   }
 
   async sendFax() {
     this.sendingFax = true;
-    // mediaUrl HAS to be a URL of PDF. if we have HTML content, we need to "host" it somewhere
-    const loadParameters = {
-      'content-type': 'text/html; charset=utf-8',
-      body: this.faxHTML,
-    };
+    const faxNumber = this.faxNumber.replace(/\D+/g, '');
+    // populate an array of fax jobs to all be sent at once. html content, if it exists, will be its own fax job
+    // each file will be its own fax job. 
+    const faxJobs = [];
 
-    const url = `${environment.appApiUrl}events/echo?${Object.keys(loadParameters).map(k => `${k}=${encodeURIComponent(loadParameters[k])}`).join('&')}`;
-    let mediaUrl = `${environment.utilsApiUrl}render-url?url=${encodeURIComponent(url)}&format=pdf`;
+    // HTML render 
+    if (this.faxHTML.length > 0) {
+      const loadParameters = {
+        'content-type': 'text/html; charset=utf-8',
+        body: this.faxHTML,
+      };
 
-    if (this.sendFaxType === 'upload') {
-      const apiPath = `utils/qmenu-uploads-s3-signed-url?file=${this.faxFile.name}`;
+      const faxHtmlUrl = `${environment.appApiUrl}events/echo?${Object.keys(loadParameters).map(k => `${k}=${encodeURIComponent(loadParameters[k])}`).join('&')}`;
+      let faxHtmlMediaUrl = `${environment.utilsApiUrl}render-url?url=${encodeURIComponent(faxHtmlUrl)}&format=pdf`;
+
+      faxJobs.push({
+        name: "send-fax",
+        params: {
+          to: faxNumber,
+          mediaUrl: faxHtmlMediaUrl,
+          providerName: "twilio",
+          trigger: {
+            "id": this._global.user._id,
+            "name": this._global.user.username,
+            "source": "CSR",
+            "module": "Send Fax"
+          }
+        }
+      });
+    }
+
+    for (let i = 0; i < (this.faxFiles || []).length; i += 1) {
+      let mediaUrl;
+      const currentFile = this.faxFiles[i];
+      const apiPath = `utils/qmenu-uploads-s3-signed-url?file=${encodeURIComponent(currentFile.name)}`;
+
       // Get presigned url
       const response = await this._api.get(environment.appApiUrl + apiPath).toPromise();
       const presignedUrl = response['url'];
       const fileLocation = presignedUrl.slice(0, presignedUrl.indexOf('?'));
-      await this._http.put(presignedUrl, this.faxFile).toPromise();
+
+      await this._http.put(presignedUrl, currentFile).toPromise();
       // if it's already PDF, then we can directly send it to fax service.
       // otherwise we need to get a PDF version of the uploaded file (fileLocation) from our renderer service
       // please upload an image or text or html file for the following test
@@ -59,28 +86,37 @@ export class SendFaxComponent implements OnInit {
       } else {
         mediaUrl = `${environment.utilsApiUrl}render-url?url=${encodeURIComponent(fileLocation)}&format=pdf`;
       }
+      faxJobs.push({
+        name: "send-fax",
+        params: {
+          to: faxNumber,
+          mediaUrl,
+          providerName: "twilio",
+          trigger: {
+            "id": this._global.user._id,
+            "name": this._global.user.username,
+            "source": "CSR",
+            "module": "Send Fax"
+          }
+        }
+      })
     }
 
-    let faxNumber = this.faxNumber.replace(/\D+/g, '');
-    let job = {
-      name: "send-fax",
-      params: {
-        to: faxNumber,
-        mediaUrl,
-        providerName: "twilio",
-        trigger: {
-          "id": this._global.user._id,
-          "name": this._global.user.username,
-          "source": "CSR",
-          "module": "Send Fax"
-        }
-      }
-    };
-    await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [job]).toPromise();
-    this._global.publishAlert(AlertType.Success, 'Fax sent success');
-    this.sendFaxType = 'upload';
-    // do not clear the fax number or content!
-    this.faxFile = null;
+    try {
+      await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', faxJobs).toPromise();
+      this._global.publishAlert(AlertType.Success, 'Fax sent success');
+    } catch (err) {
+      this._global.publishAlert(AlertType.Danger, 'Fax send failure');
+      console.log(err);
+    }
+
+    this.clearFiles();
     this.sendingFax = false;
+  }
+
+  clearFiles() {
+    this.faxFiles = null;
+    const input = document.getElementById('faxFiles') as HTMLInputElement;
+    input.value = '';
   }
 }

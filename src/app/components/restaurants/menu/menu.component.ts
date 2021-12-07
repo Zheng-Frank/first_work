@@ -10,6 +10,7 @@ import {ApiService} from '../../../services/api.service';
 import {GlobalService} from '../../../services/global.service';
 import {environment} from '../../../../environments/environment';
 import {AlertType} from '../../../classes/alert-type';
+import {PrunedPatchService} from '../../../services/prunedPatch.service';
 
 @Component({
   selector: 'app-menu',
@@ -35,7 +36,7 @@ export class MenuComponent implements OnInit {
 
   @ViewChild('misEditor') misEditor: MenuItemsEditorComponent;
 
-  editingMis = false;
+  editingMis = -1;
   mcOfSortingMis;
   sortMcItems; // it's a mcs which waiting for reordering.
   targetWording = {
@@ -44,7 +45,7 @@ export class MenuComponent implements OnInit {
     'ALL': 'Both online and dine-in',
   };
 
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  constructor(private _prunedPatch: PrunedPatchService, private _global: GlobalService) {
   }
 
   ngOnInit() {
@@ -90,6 +91,7 @@ export class MenuComponent implements OnInit {
       // get index and only update that menu
       const index = this.restaurant.menus.indexOf(menu);
       let beverageMcs = menu.mcs.filter(mc => mc.name.trim().toLowerCase() === 'beverages');
+      let moved = 0;
       beverageMcs.forEach(beverageMc => {
         let beverageMcIndex = menu.mcs.indexOf(beverageMc);
         if (beverageMcIndex !== -1) {
@@ -100,16 +102,11 @@ export class MenuComponent implements OnInit {
       beverageMcs.forEach(beverageMc => menu.mcs.unshift(beverageMc));
 
       try {
-        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-          old: {
-            _id: this.restaurant['_id']
-          }, new: {
-            _id: this.restaurant['_id'],
-            [`menus.${index}.mcs`]: menu.mcs,
-          }
+        await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+          old: {_id: this.restaurant['_id'], [`menus.${index}.mcs`]: this.restaurant.menus[index].mcs},
+          new: {_id: this.restaurant['_id'], [`menus.${index}.mcs`]: menu.mcs}
         }]).toPromise();
         this.restaurant.menus[index].mcs = menu.mcs;
-        console.log(JSON.stringify(menu.mcs));
         this._global.publishAlert(AlertType.Success, 'Resort Success!');
         this.beverageSectionModal.hide();
       } catch (error) {
@@ -138,9 +135,10 @@ export class MenuComponent implements OnInit {
     const index = this.restaurant.menus.indexOf(this.menu);
     const mcIndex = this.menu.mcs.indexOf(this.mcOfSortingMis);
     try {
-      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+      await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: {
-          _id: this.restaurant['_id']
+          _id: this.restaurant['_id'],
+          [`menus.${index}.mcs.${mcIndex}.mis`]: this.restaurant.menus[index].mcs[mcIndex].mis,
         }, new: {
           _id: this.restaurant['_id'],
           [`menus.${index}.mcs.${mcIndex}.mis`]: sortedMis,
@@ -167,11 +165,11 @@ export class MenuComponent implements OnInit {
   async sortMcs(sortedMcs) {
     // get index and only update that menu
     const index = this.restaurant.menus.indexOf(this.menu);
-    console.log(index);
     try {
-      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+      await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: {
-          _id: this.restaurant['_id']
+          _id: this.restaurant['_id'],
+          [`menus.${index}.mcs`]: this.restaurant.menus[index].mcs,
         }, new: {
           _id: this.restaurant['_id'],
           [`menus.${index}.mcs`]: sortedMcs,
@@ -206,14 +204,13 @@ export class MenuComponent implements OnInit {
     } else {
       mcCopy = new Mc(mc);
     }
-    console.log('this.restaurant ', this.restaurant);
     this.mcEditor.setMc(mcCopy, this.restaurant.menuOptions);
     this.mcModal.show();
   }
 
   editAllItems(mc) {
     this.misEditor.setMc(mc, this.restaurant.menuOptions);
-    this.editingMis = true;
+    this.editingMis = this.menu.mcs.indexOf(mc);
   }
 
   mcDone(mc: Mc) {
@@ -272,7 +269,7 @@ export class MenuComponent implements OnInit {
       ));
     }
 
-    this._api
+    this._prunedPatch
       .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: {
           _id: this.restaurant['_id'],
@@ -323,21 +320,18 @@ export class MenuComponent implements OnInit {
   }
 
   mcDelete(mc: Mc) {
-    const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
+    let { menus } = this.restaurant
+    const newMenus = JSON.parse(JSON.stringify(menus));
     newMenus.forEach(eachMenu => {
       if (this.menu.id === eachMenu.id) {
         eachMenu.mcs = eachMenu.mcs.filter(category => category.id !== mc.id);
       }
     });
 
-    this._api
+    this._prunedPatch
       .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {
-          _id: this.restaurant['_id']
-        }, new: {
-          _id: this.restaurant['_id'],
-          menus: newMenus
-        }
+        old: {_id: this.restaurant['_id'], menus},
+        new: {_id: this.restaurant['_id'], menus: newMenus}
       }])
       .subscribe(
         result => {
@@ -398,7 +392,8 @@ export class MenuComponent implements OnInit {
   miDone(mi: Mi) {
     // id == update, no id === new
     let action = mi.id ? 'UPDATE' : 'CREATE';
-    const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
+    let { menus } = this.restaurant;
+    const newMenus = JSON.parse(JSON.stringify(menus));
 
     // in case there is category, we search for it
     if (!mi.category) {
@@ -437,15 +432,10 @@ export class MenuComponent implements OnInit {
     // bug: mi's sizeOptions tied to optionsEditor, which will cause side effects of adding one extra item automatically
     // temp fix to use cleanMiCopy
     const cleanMiCopy = this.cleanMiCopy(mi);
-    this._api
+    this._prunedPatch
       .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        // Just just new menus to overwrite
-        old: {
-          _id: this.restaurant['_id'],
-        }, new: {
-          _id: this.restaurant['_id'],
-          menus: newMenus
-        }
+        old: {_id: this.restaurant['_id'], menus},
+        new: {_id: this.restaurant['_id'], menus: newMenus}
       }])
       .subscribe(
         result => {
@@ -491,7 +481,8 @@ export class MenuComponent implements OnInit {
 
 
   miDelete(mi: Mi) {
-    const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
+    let { menus } = this.restaurant;
+    const newMenus = JSON.parse(JSON.stringify(menus));
     newMenus.forEach(eachMenu => {
       if (this.menu.id === eachMenu.id) {
         eachMenu.mcs.map(mc => mc.mis = mc.mis.filter(item => item.id !== mi.id));
@@ -499,14 +490,10 @@ export class MenuComponent implements OnInit {
     });
 
 
-    this._api
+    this._prunedPatch
       .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {
-          _id: this.restaurant['_id'],
-        }, new: {
-          _id: this.restaurant['_id'],
-          menus: newMenus
-        }
+        old: {_id: this.restaurant['_id'], menus},
+        new: {_id: this.restaurant['_id'], menus: newMenus}
       }])
       .subscribe(
         result => {
@@ -526,38 +513,26 @@ export class MenuComponent implements OnInit {
   }
 
   misDone({ mc, updatedTranslations }) {
-    this.editingMis = false;
-    // menus -> menu -> mc
-    const oldMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
-    // menus -> menu -> mc. We don't need to keep everything, just id is enough
-    // oldMenus.map(menu => menu.mcs = menu.mcs.map(category => ({
-    //   id: category.id,
-    //   mis: category.mis.map(item => item.id)
-    // })));
+    let { translations, menus } = this.restaurant;
 
-
-    const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
-    let { translations } = this.restaurant;
-    translations = translations || [];
+    let menuIndex = menus.indexOf(this.menu);
+    const newMenus = JSON.parse(JSON.stringify(menus));
+    newMenus[menuIndex].mcs[this.editingMis] = mc;
+    let newTrans = translations || [];
     updatedTranslations.forEach(translation => {
       let { EN, ZH } = translation;
-      let tmp = translations.find(x => x.EN === EN);
+      let tmp = newTrans.find(x => x.EN === EN);
       if (tmp) {
         tmp.ZH = ZH;
       } else if (ZH) {
-        translations.push({EN, ZH});
+        newTrans.push({EN, ZH});
       }
     })
-
-    this._api
+    this.editingMis = -1;
+    this._prunedPatch
       .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {
-          _id: this.restaurant['_id']
-        }, new: {
-          _id: this.restaurant['_id'],
-          menus: newMenus,
-          translations
-        }
+        old: {_id: this.restaurant['_id'], menus, translations},
+        new: {_id: this.restaurant['_id'], menus: newMenus, translations: newTrans}
       }])
       .subscribe(
         result => {
@@ -580,7 +555,7 @@ export class MenuComponent implements OnInit {
   }
 
   misCancel(mc) {
-    this.editingMis = false;
+    this.editingMis = -1;
   }
 
   visitMenuOptions() {

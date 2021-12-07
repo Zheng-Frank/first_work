@@ -11,6 +11,8 @@ import { environment } from 'src/environments/environment';
 })
 export class YelpDashboardComponent implements OnInit {
   restaurants = [];
+  rtWithYelp = 0;
+  rtWithoutYelp = 0;
 
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
     this.refresh();
@@ -21,14 +23,13 @@ export class YelpDashboardComponent implements OnInit {
 
   async refresh() {
     // --- restaurant
-    this.restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      query: { yelpListing: { $exists: true } },
+    this.restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      projection: { 'yelpListing.rate': 1 },
-      limit: 100000000
-    }).toPromise();
+      projection: { 'yelpListing.yid': 1 }
+    }, 1000);
 
-    this.restaurants = this.restaurants.filter(rt => rt.yelpListing !== undefined && rt.disabled !== true);
+    this.rtWithYelp = this.restaurants.filter(rt => rt.yelpListing && rt.yelpListing.yid && !rt.disabled).length;
+    this.rtWithoutYelp = this.restaurants.length;
   }
 
 }

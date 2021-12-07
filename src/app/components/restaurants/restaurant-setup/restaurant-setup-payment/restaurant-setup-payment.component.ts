@@ -108,7 +108,9 @@ export class RestaurantSetupPaymentComponent implements OnInit {
           }else{
             this.pickupCashOpt = pickupCashOptTypes.No;
           }
-          service.paymentMethods.forEach(method => {
+          // set other methods except cash, because cash is set in above question
+          let otherMethods = service.paymentMethods.filter(method=>method !== this.cashSaveText);
+          otherMethods.forEach(method => {
             if (method === this.qmenuSaveText) {
               this.paymentPickupParty = paymentPickupPartyTypes.Qmenu;
             } else if (this.pickupPaymentMethods.some(pickupPaymentMethod => pickupPaymentMethod.value === method)) {
@@ -119,7 +121,7 @@ export class RestaurantSetupPaymentComponent implements OnInit {
             }
           });
         }
-  
+        
         // delivery
         if (service.name === this.deliverySaveText && this.isServiceEnabled(service)) {
           if(service.paymentMethods.some(method => method === this.cashSaveText)){
@@ -127,7 +129,8 @@ export class RestaurantSetupPaymentComponent implements OnInit {
           }else{
             this.deliveryCashOpt = deliveryCashOptTypes.No;
           }
-          service.paymentMethods.forEach(method => {
+          let otherMethods = service.paymentMethods.filter(method=>method !== this.cashSaveText);
+          otherMethods.forEach(method => {
             if (method === this.qmenuSaveText) {
               this.paymentDeliveryParty = paymentDeliveryPartyTypes.Qmenu;
             } else if (this.deliveryPaymentMethods.some(deliveryPaymentMethod => deliveryPaymentMethod.value === method)) {
@@ -279,7 +282,7 @@ export class RestaurantSetupPaymentComponent implements OnInit {
       }
       activeRT.serviceSettings.push(serviceSetting);
     }
-
+    
     this.done.emit({
       logs: activeRT.logs,
       serviceSettings: activeRT.serviceSettings
