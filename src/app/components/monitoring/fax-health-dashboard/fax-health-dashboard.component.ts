@@ -104,7 +104,14 @@ export class FaxHealthDashboardComponent implements OnInit {
   computeErrorCodes(failedJobs) {
     const errorRows = [];
     const errorDict = {};
-    const ignoreLogMessages = ['success', 'delivered', 'queued', 'sending', 'media.processed', 'executed'];
+    // strings/statuses that appear in this array are not error messages, and will not be added to the error dictionary
+    const ignoreLogMessages = ['success', 'delivered', 'sending', 'media.processed', 'executed'];
+
+    if (failedJobs[0] && failedJobs[0].logs[0].providerName !== 'phaxio') {
+      // phaxio jobs sometimes get queued but not sent, so we want to consider it as an error code for phaxio, but not
+      //the other two providers
+      ignoreLogMessages.push('queued');
+    }
 
     failedJobs.map(job => job.logs.forEach(log => {
       if (!ignoreLogMessages.includes(log.status)) {
