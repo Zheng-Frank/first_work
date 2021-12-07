@@ -202,7 +202,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
         // inject paymentMeans to invoice. If multiple, choose the first only
         const firstPm = this.paymentMeans[0];
-        if (firstPm) {
+        if (firstPm && firstPm.details && !firstPm.details.onetime) {
           // https://stackoverflow.com/questions/149055/how-can-i-format-numbers-as-dollars-currency-string-in-javascript
           const amountString = '$' + Math.abs(this.invoice.balance).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
 
