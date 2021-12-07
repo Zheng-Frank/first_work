@@ -11,7 +11,6 @@ export class PrunedPatchService {
   }
 
   patch(api: string, payloads: { old: any, new: any }[]) {
-    console.log('payloads...', payloads);
     let equivalent = true;
     let pruned = payloads.map(payload => {
       let origin = JSON.parse(JSON.stringify(payload.old));
@@ -24,7 +23,6 @@ export class PrunedPatchService {
     if (equivalent) {
       return of("unchanged");
     }
-    console.log('pruned...', pruned);
     return this._api.patch(api, pruned);
   }
 

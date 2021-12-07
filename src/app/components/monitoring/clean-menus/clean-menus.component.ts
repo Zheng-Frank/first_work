@@ -7,6 +7,7 @@ import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import {AlertType} from '../../../classes/alert-type';
 import {MenuCleanupComponent} from '../../restaurants/menu-cleanup/menu-cleanup.component';
 import {Helper} from '../../../classes/helper';
+import {PrunedPatchService} from '../../../services/prunedPatch.service';
 
 @Component({
   selector: 'app-clean-menus',
@@ -15,7 +16,7 @@ import {Helper} from '../../../classes/helper';
 })
 export class CleanMenusComponent implements OnInit {
 
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  constructor(private _api: ApiService, private _prunedPatch: PrunedPatchService, private _global: GlobalService) {
   }
 
   @ViewChild('validateModal') validateModal: ModalComponent;
@@ -97,13 +98,9 @@ export class CleanMenusComponent implements OnInit {
 
   async cleanupSave({menus, translations}: any) {
     try {
-      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {
-          _id: this.restaurant['_id']
-        }, new: {
-          _id: this.restaurant['_id'],
-          menus, translations
-        }
+      await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {_id: this.restaurant['_id'], menus: this.restaurant.menus, translations: this.restaurant.translations},
+        new: {_id: this.restaurant['_id'], menus, translations}
       }]).toPromise();
       this._global.publishAlert(AlertType.Success, 'Success!');
       // @ts-ignore

@@ -11,6 +11,7 @@ import { environment } from '../../../../environments/environment';
 import { AlertType } from '../../../classes/alert-type';
 import { MenuCleanupComponent } from '../menu-cleanup/menu-cleanup.component';
 import { ImageItem } from 'src/app/classes/image-item';
+import {PrunedPatchService} from '../../../services/prunedPatch.service';
 
 
 @Component({
@@ -55,7 +56,7 @@ export class MenusComponent implements OnInit {
   menuJson = '';
   isShowMenuItemStats = false;
 
-  constructor(private _api: ApiService, private _global: GlobalService) {
+  constructor(private _api: ApiService, private _prunedPatch: PrunedPatchService, private _global: GlobalService) {
   }
 
   async republishToAWS() {
@@ -137,8 +138,9 @@ export class MenusComponent implements OnInit {
   /*
     remove space of the property's value of mi if it suit for the rules.
   */
-  async doRemoveUnnessarySpace() {
-    const newMenus = JSON.parse(JSON.stringify(this.restaurant.menus));
+  async doRemoveUnnecessarySpace() {
+    let { menus } = this.restaurant;
+    const newMenus = JSON.parse(JSON.stringify(menus));
     newMenus.forEach(menu => {
       menu.name = this.removeSpace(menu.name);
       (menu.mcs || []).forEach(mc => {
@@ -152,13 +154,9 @@ export class MenusComponent implements OnInit {
       });
     });
     try {
-      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {
-          _id: this.restaurant['_id']
-        }, new: {
-          _id: this.restaurant['_id'],
-          menus: newMenus
-        }
+      await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {_id: this.restaurant['_id'], menus},
+        new: {_id: this.restaurant['_id'], menus: newMenus}
       }]).toPromise();
       this._global.publishAlert(AlertType.Success, 'Success!');
       this.restaurant.menus = newMenus.map(menu => new Menu(menu));
@@ -326,14 +324,9 @@ export class MenusComponent implements OnInit {
 
   async cleanupSave({ menus, translations }: any) {
     try {
-      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {
-          _id: this.restaurant['_id']
-        }, new: {
-          _id: this.restaurant['_id'],
-          menus,
-          translations
-        }
+      await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {_id: this.restaurant['_id'], menus: this.restaurant.menus, translations: this.restaurant.translations},
+        new: {_id: this.restaurant['_id'], menus, translations}
       }]).toPromise();
       this._global.publishAlert(AlertType.Success, 'Success!');
       // @ts-ignore
@@ -348,13 +341,9 @@ export class MenusComponent implements OnInit {
 
   async sortMenus(sortedMenus) {
     try {
-      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {
-          _id: this.restaurant['_id']
-        }, new: {
-          _id: this.restaurant['_id'],
-          menus: sortedMenus,
-        }
+      await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {_id: this.restaurant['_id'], menus: this.restaurant.menus},
+        new: {_id: this.restaurant['_id'], menus: sortedMenus,}
       }]).toPromise();
       this.restaurant.menus = sortedMenus;
       this._global.publishAlert(AlertType.Success, 'Success!');
@@ -404,14 +393,9 @@ export class MenusComponent implements OnInit {
     myNewMenus.map(m => delete m.mcs);
     myNewMenus.push(new Menu(testMenu as any));
     try {
-      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {
-          _id: this.restaurant['_id'],
-          menus: myOldMenus
-        }, new: {
-          _id: this.restaurant['_id'],
-          menus: myNewMenus
-        }
+      await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {_id: this.restaurant['_id'], menus: myOldMenus},
+        new: {_id: this.restaurant['_id'], menus: myNewMenus}
       }]).toPromise();
       this._global.publishAlert(AlertType.Success, 'Success!');
       this.restaurant.menus.push(new Menu(testMenu as any));
@@ -460,14 +444,9 @@ export class MenusComponent implements OnInit {
       });
     });
     try {
-      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {
-          _id: this.restaurant['_id'],
-          menus: oldMenus
-        }, new: {
-          _id: this.restaurant['_id'],
-          menus: newMenus
-        }
+      await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {_id: this.restaurant['_id'], menus: oldMenus},
+        new: {_id: this.restaurant['_id'], menus: newMenus}
       }]).toPromise();
       this.restaurant.menus = newMenus.map(each => new Menu(each));
       this._global.publishAlert(AlertType.Success, 'Success!');
@@ -705,14 +684,9 @@ export class MenusComponent implements OnInit {
 
     if (totalMatched > 0) {
       try {
-        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-          old: {
-            _id: this.restaurant['_id'],
-            menus: oldMenus,
-          }, new: {
-            _id: this.restaurant['_id'],
-            menus: newMenus,
-          }
+        await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+          old: {_id: this.restaurant['_id'], menus: oldMenus},
+          new: {_id: this.restaurant['_id'], menus: newMenus}
         }]).toPromise();
         const menus = JSON.parse(JSON.stringify(newMenus));
         this.restaurant.menus = menus.map(x => new Menu(x));
@@ -747,13 +721,9 @@ export class MenusComponent implements OnInit {
 
     // now let's patch!
     try {
-      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {
-          _id: this.restaurant['_id']
-        }, new: {
-          _id: this.restaurant['_id'],
-          menus: newMenus,
-        }
+      await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {_id: this.restaurant['_id'], menus: oldMenus},
+        new: {_id: this.restaurant['_id'], menus: newMenus}
       }]).toPromise();
       this.restaurant.menus = newMenus.map(each => new Menu(each));
       this._global.publishAlert(AlertType.Success, 'Success!');
