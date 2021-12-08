@@ -6,6 +6,7 @@ import { ApiService } from '../../../services/api.service';
 import { GlobalService } from '../../../services/global.service';
 import { environment } from "../../../../environments/environment";
 import { AlertType } from '../../../classes/alert-type';
+import {PrunedPatchService} from '../../../services/prunedPatch.service';
 
 @Component({
   selector: 'app-menu-options',
@@ -20,7 +21,7 @@ export class MenuOptionsComponent implements OnInit {
 
   menuOptionInEditing = new MenuOption();
 
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+  constructor(private _api: ApiService, private _prunedPatch: PrunedPatchService, private _global: GlobalService) { }
 
   ngOnInit() {
   }
@@ -91,7 +92,8 @@ export class MenuOptionsComponent implements OnInit {
   moDone(mo: MenuOption) {
     // id == update, no id === new
     // get a shallow copy
-    const newMenuOptions = this.restaurant.menuOptions.slice(0);
+    let { menuOptions } = this.restaurant;
+    const newMenuOptions = menuOptions.slice(0);
 
     if (!mo.id) {
       // assign a pseudo id
@@ -105,24 +107,16 @@ export class MenuOptionsComponent implements OnInit {
       }
     }
 
-    this._api
+    this._prunedPatch
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
-        old: {
-          _id: this.restaurant['_id']
-        }, new: {
-          _id: this.restaurant['_id'],
-          menuOptions: newMenuOptions
-        }
+        old: {_id: this.restaurant['_id'], menuOptions},
+        new: {_id: this.restaurant['_id'], menuOptions: newMenuOptions}
       }])
       .subscribe(
         result => {
           // let's update original, assuming everything successful
           this.restaurant.menuOptions = newMenuOptions;
-          
-          this._global.publishAlert(
-            AlertType.Success,
-            "Updated successfully"
-          );
+          this._global.publishAlert(AlertType.Success, "Updated successfully");
         },
         error => {
           this._global.publishAlert(AlertType.Danger, "Error updating to DB");
@@ -142,24 +136,16 @@ export class MenuOptionsComponent implements OnInit {
       name: mo.name
     }));
     const newMenuOptions = oldMenuOptions.filter(mo => mo.id !== menuOption.id);
-    this._api
+    this._prunedPatch
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
-        old: {
-          _id: this.restaurant['_id'],
-          menuOptions: oldMenuOptions
-        }, new: {
-          _id: this.restaurant['_id'],
-          menuOptions: newMenuOptions
-        }
+        old: {_id: this.restaurant['_id'], menuOptions: oldMenuOptions},
+        new: {_id: this.restaurant['_id'], menuOptions: newMenuOptions}
       }])
       .subscribe(
         result => {
           // let's update original, assuming everything successful
           this.restaurant.menuOptions = this.restaurant.menuOptions.filter(mo => mo.id !== menuOption.id);
-          this._global.publishAlert(
-            AlertType.Success,
-            "Updated successfully"
-          );
+          this._global.publishAlert(AlertType.Success, "Updated successfully");
         },
         error => {
           this._global.publishAlert(AlertType.Danger, "Error updating to DB");

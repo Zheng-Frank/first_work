@@ -129,7 +129,8 @@ export class MenuCleanupComponent implements OnInit {
       let extracted = Helper.extractMenuItemNames(name);
       if (extracted) {
         let { zh, en } = extracted;
-        let trans = (this.translations || []).find(x => x.EN === en);
+        // en maybe empty, and if user does not input the en and save, the EN will alse be empty;
+        let trans = (this.translations || []).find(x => (en && x.EN === en) || (!en && zh && x.ZH === zh));
 
         if (trans && trans.ZH === zh && !number) {
           return;
@@ -161,6 +162,30 @@ export class MenuCleanupComponent implements OnInit {
       });
     });
     return changed;
+  }
+
+  cleanFields(menus) {
+    menus.forEach(menu => {
+      delete menu.editName;
+      delete menu.cleanedName;
+      delete menu.editNumber;
+      (menu.mcs || []).forEach(mc => {
+        delete mc.editName;
+        delete mc.cleanedName;
+        delete mc.editNumber;
+        (mc.mis || []).forEach(mi => {
+          delete mi.editName;
+          delete mi.cleanedName;
+          delete mi.editNumber;
+          (mi.sizeOptions || []).forEach(so => {
+            delete so.editName;
+            delete so.cleanedName;
+            delete so.editNumber;
+          })
+        })
+      })
+    })
+    return menus;
   }
 
   collect() {
@@ -202,7 +227,7 @@ export class MenuCleanupComponent implements OnInit {
       // if the auto clean is enough for all menus
       // just save the cleaned menus
       if (!this.flattened.length && autoChanged) {
-        this.save.emit({menus: this.copied, translations: this.translations});
+        this.save.emit({menus: this.cleanFields(this.copied), translations: this.translations});
       }
     }
   }
@@ -234,7 +259,8 @@ export class MenuCleanupComponent implements OnInit {
   saveTranslation(item, translations) {
     if (item.translation) {
       let { zh, en, prev_en } = item.translation;
-      let translation = translations.find(x => x.EN === en || x.EN === prev_en);
+      // check by en, then prev_en, if en is empty, we should check zh
+      let translation = translations.find(x => (en && x.EN === en) || (prev_en && x.EN === prev_en) || (!en && zh && x.ZH === zh));
       if (!translation) {
         translation = { EN: en, ZH: zh };
         translations.push(translation);
@@ -281,7 +307,7 @@ export class MenuCleanupComponent implements OnInit {
     let flattened = JSON.parse(JSON.stringify(this.flattened));
     let copied = JSON.parse(JSON.stringify(this.copied));
     let translations = this.extractTranslations(copied, flattened);
-    await this.save.emit({menus: copied, translations});
+    await this.save.emit({menus: this.cleanFields(copied), translations});
   }
 
 }
