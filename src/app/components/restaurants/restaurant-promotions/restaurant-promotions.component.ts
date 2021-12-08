@@ -27,7 +27,7 @@ export class RestaurantPromotionsComponent implements OnInit {
 
   promotionInEditing;
 
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
 
   ngOnInit() {
   }
@@ -43,24 +43,6 @@ export class RestaurantPromotionsComponent implements OnInit {
         expiry: tempDate
       });
     }
-  }
-  update() {
-    let promotions = this.promotionsInEditing.filter(p => p.name && p.code);
-
-    // let's make sure all data are clean
-    promotions = promotions.map(p => {
-      p.amount = Math.abs(p.amount || 0);
-      p.orderMinimum = Math.abs(p.orderMinimum || 0);
-      if (typeof p.expiry === 'string') {
-        p.expiry = new Date(p.expiry);
-        // this is UTC, we need to make it local browser (whoever operating this! Assuming same timezone as restaurant owner)
-        p.expiry.setMinutes(p.expiry.getMinutes() + new Date().getTimezoneOffset());
-      }
-      return p;
-    });
-    this.editing = false;
-    this.promotionsInEditing = [];
-    this.patchDiff(promotions);
   }
 
   editNew() {
@@ -81,7 +63,7 @@ export class RestaurantPromotionsComponent implements OnInit {
 
   onDelete(promotion) {
     const newPromotions = (this.restaurant.promotions || []).filter(p => p.id !== promotion.id);
-    this.patchDiff(newPromotions);
+    this.patchDiff(this.restaurant.promotions, newPromotions);
     this.promotionModal.hide();
   }
 
@@ -99,11 +81,11 @@ export class RestaurantPromotionsComponent implements OnInit {
       promotion.id = new Date().valueOf().toString();
       newPromotions.push(promotion);
     }
-    this.patchDiff(newPromotions);
+    this.patchDiff(this.restaurant.promotions, newPromotions);
     this.promotionModal.hide();
   }
 
-  patchDiff(newPromotions) {
+  patchDiff(oldPromotions, newPromotions) {
     if (Helper.areObjectsEqual(this.restaurant.promotions, newPromotions)) {
       this._global.publishAlert(
         AlertType.Info,
@@ -111,10 +93,11 @@ export class RestaurantPromotionsComponent implements OnInit {
       );
     } else {
       // api update here...
-      this._api
+      this._prunedPatch
         .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
           old: {
-            _id: this.restaurant['_id']
+            _id: this.restaurant['_id'],
+            promotions: oldPromotions
           }, new: {
             _id: this.restaurant['_id'],
             promotions: newPromotions
@@ -135,18 +118,6 @@ export class RestaurantPromotionsComponent implements OnInit {
         );
     }
   }
-
-  /* migrate function is not currently implemented. Checkout functionality has been updated to work with both newer data structures,
-  as well as the older excluded menus method. It should not be necessary to migrate excluded menus unless some other circumstance
-  dictates that it should be done. */
-
-  // migrateExcludedMenusToIncludedMenus() {
-  //   this.restaurant.promotions.forEach((promotion, index) => {
-  //     const withOrderFromList = (this.restaurant.menus || []).filter((menu) => {
-  //       return promotion.excludedMenuIds.indexOf(menu.id) < 0;
-  //     }).map((entry) => new Object({ name: entry.name }));
-  //   })
-  // }
 
 }
 
