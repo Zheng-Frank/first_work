@@ -30,8 +30,11 @@ export class RestaurantPosterComponent implements OnInit {
     orderText = 'Order Online';
     version = 'chinese';
     versions = ['chinese', 'pizza', 'sushi', 'burger']
-    showAddressAndPhone = false;
+    showAddress = false;
+    showPhone = false;
     website = '';
+    address = '';
+    phone = '';
     loading = false;
 
     loadImage(src): Promise<HTMLImageElement> {
@@ -48,8 +51,14 @@ export class RestaurantPosterComponent implements OnInit {
     }
 
     ngOnInit() {
-        let {web, name} = this.restaurant;
+        let {web, name, googleAddress: {formatted_address}, channels} = this.restaurant;
         this.name = name;
+        this.address = formatted_address.replace(', USA', '')
+        let phones = channels.filter(x => x.type === 'Phone');
+        let bizPhone = phones.find(x => x.notifications.includes('Business')) || phones[0];
+        if (bizPhone) {
+          this.phone = bizPhone.value;
+        }
         if (web) {
             let {bizManagedWebsite, qmenuWebsite} = web;
             if (bizManagedWebsite) {
@@ -174,23 +183,17 @@ export class RestaurantPosterComponent implements OnInit {
     }
 
     drawAddress(ctx, maxWidth, topOffset) {
-      let {googleAddress: {formatted_address}} = this.restaurant;
-      let address = formatted_address.replace(', USA', '');
-      let {left, offset } = this.narrowFont(ctx, maxWidth, address, 250, 'BritannicBold', topOffset);
-      ctx.fillText(address, left, 1400 + offset);
+      let {left, offset } = this.narrowFont(ctx, maxWidth, this.address, 250, 'BritannicBold', topOffset);
+      ctx.fillText(this.address, left, 1400 + offset);
     }
 
     drawPhone(ctx, maxWidth, topOffset) {
-      let { channels } = this.restaurant;
-      let phone = channels.find(x => x.type === 'Phone');
-      if (phone) {
-        let digits = phone.value.split('');
-        digits.splice(6, 0, '-')
-        digits.splice(3, 0, '-')
-        phone = digits.join('');
-      }
-      let { left, offset } = this.narrowFont(ctx, maxWidth, phone, 300, 'BritannicBold', topOffset);
-      ctx.fillText(phone, left, 1900 + offset);
+      let digits = this.phone.split('');
+      digits.splice(6, 0, '-')
+      digits.splice(3, 0, '-')
+      let formatted = digits.join('');
+      let { left, offset } = this.narrowFont(ctx, maxWidth, formatted, 300, 'BritannicBold', topOffset);
+      ctx.fillText(formatted, left, 1900 + offset);
     }
 
     async draw(ctx, maxWidth) {
@@ -203,10 +206,13 @@ export class RestaurantPosterComponent implements OnInit {
         let topBase = 2300;
         let topOffset = await this.drawWebsite(ctx, topBase, this.website, maxWidth);
 
-        if (this.showAddressAndPhone) {
+        if (this.showAddress) {
           this.drawAddress(ctx, maxWidth, topOffset);
+        }
+        if (this.showPhone) {
           this.drawPhone(ctx, maxWidth, topOffset);
-        } else {
+        }
+        if (!this.showAddress && !this.showPhone) {
           // draw order online
           ctx.font = 'bolder 250px broadway';
           let { left } = this.narrowFont(ctx, maxWidth, this.orderText, 250, 'broadway');
@@ -219,7 +225,17 @@ export class RestaurantPosterComponent implements OnInit {
     }
 
     canDownload() {
-      return this.name && this.website && (this.showAddressAndPhone || this.orderText);
+      let finished = this.name && this.website;
+      if (this.showAddress) {
+        finished = finished && this.address;
+      }
+      if (this.showPhone) {
+        finished = finished && this.phone;
+      }
+      if (!this.showAddress && !this.showPhone) {
+        finished = finished && this.orderText;
+      }
+      return finished;
     }
 
     async download() {
