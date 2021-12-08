@@ -1,3 +1,8 @@
 canvas {
   display: none;
 }
+
+.poster .form-check-label{
+  margin-right: 0.5rem;
+  font-weight: normal;
+}

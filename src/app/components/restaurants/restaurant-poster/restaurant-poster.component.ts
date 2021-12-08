@@ -26,7 +26,11 @@ export class RestaurantPosterComponent implements OnInit {
     constructor(private _global: GlobalService) {
     }
 
-    websites = [];
+    name = '';
+    orderText = 'Order Online';
+    version = 'chinese';
+    versions = ['chinese', 'pizza', 'sushi', 'burger']
+    showAddressAndPhone = false;
     website = '';
     loading = false;
 
@@ -39,20 +43,21 @@ export class RestaurantPosterComponent implements OnInit {
       });
     }
 
+    pureWebsite(url) {
+      return url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+    }
+
     ngOnInit() {
-        this.websites = [];
-        let {web} = this.restaurant;
+        let {web, name} = this.restaurant;
+        this.name = name;
         if (web) {
             let {bizManagedWebsite, qmenuWebsite} = web;
             if (bizManagedWebsite) {
-                this.websites.push(bizManagedWebsite);
+              this.website = this.pureWebsite(bizManagedWebsite);
             }
             if (qmenuWebsite && qmenuWebsite !== bizManagedWebsite) {
-                this.websites.push(qmenuWebsite);
+              this.website = this.pureWebsite(qmenuWebsite);
             }
-        }
-        if (this.websites.length === 1) {
-            this.website = this.websites[0];
         }
     }
 
@@ -72,12 +77,12 @@ export class RestaurantPosterComponent implements OnInit {
     }
 
     getFont(size) {
-        return `bolder ${size}px broadway, monospace`;
+        return `bolder ${size}px broadway`;
     }
 
     findAppropriateFontSizeAndTop(ctx, topOffset, maxWidth) {
 
-        let text = this.restaurant.name;
+        let text = this.name;
         let minTop = 300, maxTop = 1300 + topOffset;
         let minFont = 250, maxFont = 620;
 
@@ -112,8 +117,9 @@ export class RestaurantPosterComponent implements OnInit {
     }
 
     async drawWebsite(ctx, top, website, maxWidth) {
+        website = this.pureWebsite(website);
         let fontSize = 300, topOffset = 0;
-        ctx.font = `${fontSize}px monospace`;
+        ctx.font = `bold ${fontSize}px Leelawadee UI`;
         let textWidth = ctx.measureText(website).width;
         let iconRatio = 675 / 403, iconMargin = 300;
         let left = (maxWidth - textWidth) / 2;
@@ -124,7 +130,7 @@ export class RestaurantPosterComponent implements OnInit {
             if (iconMargin <= 20) {
                 iconMargin += 20;
             }
-            ctx.font = `${fontSize}px monospace`;
+            ctx.font = `bold ${fontSize}px Leelawadee UI`;
             textWidth = ctx.measureText(website).width;
             left = (maxWidth - textWidth) / 2;
             iconWidth = fontSize * iconRatio;
@@ -152,6 +158,41 @@ export class RestaurantPosterComponent implements OnInit {
         canvas.remove();
     }
 
+    narrowFont(ctx, maxWidth, text, fontSize, fontFamily, offset?) {
+      ctx.font = `bolder ${fontSize}px ${fontFamily}`;
+      let textWidth = ctx.measureText(text).width;
+      while (textWidth >= maxWidth) {
+        fontSize -= 10;
+        ctx.font = `bolder ${fontSize}px ${fontFamily}`;
+        textWidth = ctx.measureText(text).width;
+        if (offset !== undefined) {
+          offset += 10;
+        }
+      }
+      let left = (maxWidth - textWidth) / 2;
+      return { left, offset };
+    }
+
+    drawAddress(ctx, maxWidth, topOffset) {
+      let {googleAddress: {formatted_address}} = this.restaurant;
+      let address = formatted_address.replace(', USA', '');
+      let {left, offset } = this.narrowFont(ctx, maxWidth, address, 250, 'BritannicBold', topOffset);
+      ctx.fillText(address, left, 1400 + offset);
+    }
+
+    drawPhone(ctx, maxWidth, topOffset) {
+      let { channels } = this.restaurant;
+      let phone = channels.find(x => x.type === 'Phone');
+      if (phone) {
+        let digits = phone.value.split('');
+        digits.splice(6, 0, '-')
+        digits.splice(3, 0, '-')
+        phone = digits.join('');
+      }
+      let { left, offset } = this.narrowFont(ctx, maxWidth, phone, 300, 'BritannicBold', topOffset);
+      ctx.fillText(phone, left, 1900 + offset);
+    }
+
     async draw(ctx, maxWidth) {
 
         await this.drawQrCode(ctx, maxWidth);
@@ -162,31 +203,37 @@ export class RestaurantPosterComponent implements OnInit {
         let topBase = 2300;
         let topOffset = await this.drawWebsite(ctx, topBase, this.website, maxWidth);
 
-        // draw order online
-        ctx.font = 'bolder 250px broadway, monospace';
-        let orderText = 'Order Online';
-        let textWidth = ctx.measureText(orderText).width;
-        let left = (maxWidth - textWidth) / 2;
-        ctx.fillText(orderText, left, 1800 + topOffset);
+        if (this.showAddressAndPhone) {
+          this.drawAddress(ctx, maxWidth, topOffset);
+          this.drawPhone(ctx, maxWidth, topOffset);
+        } else {
+          // draw order online
+          ctx.font = 'bolder 250px broadway';
+          let { left } = this.narrowFont(ctx, maxWidth, this.orderText, 250, 'broadway');
+          ctx.fillText(this.orderText, left, 1800 + topOffset);
+        }
 
         // draw name
         this.drawName(ctx, topOffset, maxWidth);
 
     }
 
+    canDownload() {
+      return this.name && this.website && (this.showAddressAndPhone || this.orderText);
+    }
 
     async download() {
         this.loading = true;
         const canvas = document.getElementById('canvas') as HTMLCanvasElement;
         const ctx = canvas.getContext('2d');
-        let image = await this.loadImage('/assets/images/poster.jpg');
+        let image = await this.loadImage(`/assets/images/poster-${this.version}.jpg`);
         canvas.width = image.naturalWidth;
         canvas.height = image.naturalHeight;
         ctx.drawImage(image, 0, 0);
         try {
             await this.draw(ctx, image.naturalWidth);
             const link = document.createElement('a')
-            link.setAttribute('download', this.restaurant.name + '.jpg');
+            link.setAttribute('download', this.name + '.jpg');
             link.setAttribute('href', canvas.toDataURL('image/jpg'))
             link.click();
             link.remove();
@@ -202,7 +249,5 @@ export class RestaurantPosterComponent implements OnInit {
             image.remove();
             this.loading = false;
         }
-
-        image.src = '/assets/images/poster.jpg';
     }
 }

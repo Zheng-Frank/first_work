@@ -1,17 +1,32 @@
-<div>
-  <div class="form-group" *ngIf="websites.length > 0">
-    <div>Restaurant website: </div>
-    <div class="custom-control custom-checkbox" *ngFor="let web of websites">
-      <label class="form-check-label">
-        <input class="form-check-input" type="radio" [value]="web" [(ngModel)]="website">{{web}}
+<div class="poster">
+  <div class="form-group">
+    <label>Restaurant name: <span class="text-danger">*</span></label>
+    <input class="form-control" type="text" [(ngModel)]="name">
+  </div>
+  <div class="form-group">
+    <label>Restaurant website: <span class="text-danger">*</span></label>
+    <input class="form-control" type="text" [(ngModel)]="website">
+  </div>
+  <div class="form-group">
+    <label>Poster version: <span class="text-danger">*</span></label>
+    <div class="form-check form-check-inline">
+      <label class="form-check-label" *ngFor="let ver of versions">
+        <input class="form-check-input" name="version" type="radio" [value]="ver" [(ngModel)]="version">{{ver}}
       </label>
     </div>
   </div>
-  <div class="text-danger" *ngIf="websites.length <= 0">
-    Restaurant website: MISSING! (specify under Settings first)
+  <div class="form-group">
+    <label>Show address and phone:</label>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input position-static" type="checkbox" [value]="true" [(ngModel)]="showAddressAndPhone" />
+    </div>
+  </div>
+  <div class="form-group" *ngIf="!showAddressAndPhone">
+    <label>Order text: <span class="text-danger">*</span></label>
+    <input class="form-control" type="text" [(ngModel)]="orderText">
   </div>
   <div class="mt-3">
-    <button type="button" class="btn btn-primary" [qLoading]="loading" [disabled]="!website" (click)="download()">Download Poster</button>
+    <button type="button" class="btn btn-primary" [qLoading]="loading" [disabled]="!canDownload()" (click)="download()">Download Poster</button>
   </div>
   <div class="mt-3">
     <canvas id="canvas"></canvas>
