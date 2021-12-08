@@ -493,6 +493,50 @@ export class MyLeads2Component implements OnInit, OnDestroy {
     this.releaseReassignModal.hide();
   }
 
+  async releaseUntouched() {
+
+    // user's
+    // remove entire campaign
+    const untouchedLeads = this.myLeads.filter(lead => {
+      const campaign = lead.campaigns[0];
+      // untouched: no scheduledAt, no call logs, has funnel
+      return !campaign.scheduledAt && (campaign.logs || []).length === 0 && campaign.funnel;
+    });
+
+    if (untouchedLeads.length > 0) {
+      const ids = untouchedLeads.map(lead => ({ $oid: lead._id }));
+
+      // remove the very first useless campaign all together
+      await this._api
+        .post(environment.appApiUrl + "smart-restaurant/api", {
+          method: 'pop',
+          resource: 'raw-lead',
+          query: { '_id': { $in: ids } },
+          payload: {
+            campaigns: -1,
+          },
+        })
+        .toPromise();
+
+      // reset assignee and assignedAt
+      await this._api
+        .post(environment.appApiUrl + "smart-restaurant/api", {
+          method: 'unset',
+          resource: 'raw-lead',
+          query: { '_id': { $in: ids } },
+          payload: {
+            assignee: '',
+            assignedAt: ''
+          },
+        })
+        .toPromise();
+      // refresh again
+      this.loadLeads();
+    }
+
+    this.action = null;
+  }
+
   async releaseMulti() {
     const leads = this.getActionLeads();
     if (leads.length > 0) {
