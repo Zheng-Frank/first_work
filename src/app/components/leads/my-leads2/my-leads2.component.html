@@ -136,7 +136,7 @@
 
   <div class="form-group">
     <label>Which leads?</label>
-    <select class="form-control" [ngModel]="actionLeadsType">
+    <select class="form-control" [(ngModel)]="actionLeadsType">
       <option [value]="actionLeadsTypes.Untouched">{{actionLeadsTypes.Untouched}}</option>
       <option [value]="actionLeadsTypes.Touched">{{actionLeadsTypes.Touched}}</option>
       <option [value]="actionLeadsTypes.All">{{actionLeadsTypes.All}}</option>

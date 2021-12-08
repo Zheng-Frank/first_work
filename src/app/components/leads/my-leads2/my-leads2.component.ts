@@ -489,6 +489,7 @@ export class MyLeads2Component implements OnInit, OnDestroy {
   resetAction() {
     this.action = null;
     this.reassignTo = null;
+    this.actionLeadsType = ActionLeadsTypes.Untouched;
     this.releaseReassignModal.hide();
   }
 
