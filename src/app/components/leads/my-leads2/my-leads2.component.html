@@ -153,7 +153,7 @@
       <option [value]="actionLeadsTypes.All">{{actionLeadsTypes.All}}</option>
     </select>
     <small class="form-text text-danger" *ngIf="getActionLeads().length === 0">
-      There is no {{actionLeadsType}} to {{action}}.
+      There are no {{actionLeadsType}} to {{action}}.
     </small>
   </div>
   <ng-container *ngIf="action === 'reassign'">
