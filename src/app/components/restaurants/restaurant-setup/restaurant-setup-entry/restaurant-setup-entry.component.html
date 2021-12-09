@@ -27,8 +27,8 @@
       </div>
       <div id="collapse-menu" class="collapse" aria-labelledby="heading-menu">
         <div class="card-body">
-          <app-restaurant-setup-menu *ngIf="!finished.menu" [restaurant]="restaurant" (done)="stepDone($event)"></app-restaurant-setup-menu>
-          <app-restaurant-setup-hours *ngIf="finished.menu" [restaurant]="restaurant" (done)="stepDone($event)"></app-restaurant-setup-hours>
+          <app-restaurant-setup-menu #menuPanel *ngIf="!finished.menu" [restaurant]="restaurant" (done)="stepDone($event)"></app-restaurant-setup-menu>
+          <app-restaurant-setup-hours #hoursPanel *ngIf="finished.menu" [restaurant]="restaurant" (done)="stepDone($event)"></app-restaurant-setup-hours>
         </div>
       </div>
     </div>

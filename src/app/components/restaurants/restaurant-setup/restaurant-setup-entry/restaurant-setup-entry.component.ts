@@ -9,6 +9,8 @@ import { RestaurantSetupInvoicingComponent } from '../restaurant-setup-invoicing
 import { RestaurantSetupPaymentComponent } from '../restaurant-setup-payment/restaurant-setup-payment.component';
 import { GlobalService } from 'src/app/services/global.service';
 import { AlertType } from 'src/app/classes/alert-type';
+import { RestaurantSetupMenuComponent } from '../restaurant-setup-menu/restaurant-setup-menu.component';
+import { RestaurantSetupHoursComponent } from '../restaurant-setup-hours/restaurant-setup-hours.component';
 
 declare var $: any;
 
@@ -28,6 +30,8 @@ export class RestaurantSetupEntryComponent implements OnInit {
   @ViewChild('deliveryPanel') deliveryPanel: RestaurantSetupDeliveryComponent;
   @ViewChild('paymentPanel') paymentPanel: RestaurantSetupPaymentComponent;
   @ViewChild('invoicingPanel') invoicingPanel: RestaurantSetupInvoicingComponent;
+  @ViewChild('menuPanel') menuPanel: RestaurantSetupMenuComponent;
+  @ViewChild('hoursPanel') hoursPanel: RestaurantSetupHoursComponent;
   temp = null;
   notes: string;
   top = 5;
@@ -39,6 +43,7 @@ export class RestaurantSetupEntryComponent implements OnInit {
   accordion = {
     basic: 'down', menu: 'down', contact: 'down', delivery: 'down', payment: 'down', invoicing: 'down'
   };
+  changeLanguageFlag = this._global.languageType;// this flag decides show English call script or Chinese
 
   ngOnInit() {
     window.addEventListener('scroll', e => {

@@ -5,7 +5,7 @@ import {Helper} from '../../../../classes/helper';
 import {ApiService} from '../../../../services/api.service';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../../../../environments/environment';
-
+import { menuSectionExplanations } from '../restaurant-setup-entry/setup-call-script';
 enum MenuSetupModes {
   UploadImage, SendImage, CopyFromWeb, ScrapeFromUrl, AlreadyExist
 }
@@ -48,9 +48,14 @@ export class RestaurantSetupMenuComponent implements OnInit {
   menus = [];
   copyFrom = '';
   scrapeUrl = '';
-
+  changeLanguageFlag = this._global.languageType;// this flag decides show English call script or Chinese
+  
   ngOnInit() {
 
+  }
+  // make menuSectionExplanations from exporting becomes inner field of class RestaurantSetupMenuComponent
+  get menuSectionExplanations(){
+    return menuSectionExplanations;
   }
 
   get finished() {

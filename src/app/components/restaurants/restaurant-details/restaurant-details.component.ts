@@ -21,6 +21,7 @@ import { Helper } from '../../../classes/helper';
 import { SendMessageComponent } from '../../utilities/send-message/send-message.component';
 import {RevisedOnlineServicesAgreement, FirstDelinquentNotice, SecondDelinquentNotice} from './html-message-templates';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { RestaurantSetupEntryComponent } from '../restaurant-setup/restaurant-setup-entry/restaurant-setup-entry.component';
 declare var $: any;
 
 @Component({
@@ -30,6 +31,7 @@ declare var $: any;
 })
 export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('restaurantProfile') restaurantProfile: RestaurantProfileComponent;
+  @ViewChild('restaurantSetupEntry') restaurantSetupEntry: RestaurantSetupEntryComponent;
   @ViewChild('sendMsgModal') sendMsgModal: ModalComponent;
   @ViewChild('sendMessageComponent') sendMessageComponent: SendMessageComponent;
   languageTypes = [
@@ -633,9 +635,21 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   // select html element change invoke it , and its function is change restaurant profile field into Chinese or English
   changeLanguage() {
     if (this.languageType === LanguageType.ENGLISH) {
-      this.restaurantProfile.changeLanguageFlag = this._global.languageType = LanguageType.ENGLISH;
+      this._global.languageType = LanguageType.ENGLISH;
     } else if (this.languageType === LanguageType.CHINESE) {
-      this.restaurantProfile.changeLanguageFlag = this._global.languageType = LanguageType.CHINESE;
+      this._global.languageType = LanguageType.CHINESE;
+    }
+    // restaurantProfile may be hided
+    if(this.restaurantProfile){
+      this.restaurantProfile.changeLanguageFlag = this._global.languageType;
+    }
+    // restaurantSetupEntry may be hided
+    if(this.restaurantSetupEntry){
+      this.restaurantSetupEntry.changeLanguageFlag = this._global.languageType;
+      this.restaurantSetupEntry.basicPanel.changeLanguageFlag = this.restaurantSetupEntry.changeLanguageFlag; 
+      if(this.restaurantSetupEntry.menuPanel){
+        this.restaurantSetupEntry.menuPanel.changeLanguageFlag = this.restaurantSetupEntry.changeLanguageFlag; 
+      }
     }
   }
 

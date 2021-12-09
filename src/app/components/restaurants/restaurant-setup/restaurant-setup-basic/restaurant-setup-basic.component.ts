@@ -1,8 +1,10 @@
+import { GlobalService } from 'src/app/services/global.service';
 import {environment} from '../../../../../environments/environment';
 import {ApiService} from 'src/app/services/api.service';
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {Restaurant} from '@qmenu/ui';
-
+import { basicSectionExplanations } from '../restaurant-setup-entry/setup-call-script';
+ 
 @Component({
   selector: 'app-restaurant-setup-basic',
   templateUrl: './restaurant-setup-basic.component.html',
@@ -27,21 +29,24 @@ export class RestaurantSetupBasicComponent implements OnInit {
     localTaxRate: undefined,
     pickupTimeEstimate: 0
   };
-  // use snapshot to storage local data, to handle repeat save isssue
+  // use snapshot to storage local data, to handle repeat save issue
   snapshot = {
     primaryPhone: '',
     contactName: '',
     contactPhone: ''
   };
-
-  constructor(private _api: ApiService) {
+  changeLanguageFlag = this._global.languageType;// this flag decides show English call script or Chinese
+  constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
   async ngOnInit() {
     this.init();
     await this.getExistingWebsite();
   }
-
+  // make basicSectionExplanations from exporting becomes inner field of class RestaurantSetupBasicComponent
+  get basicSectionExplanations(){
+    return basicSectionExplanations;
+  }
 
   init() {
     let {googleListing = {}, people = [], web = {}, taxRate, channels, pickupTimeEstimate} = this.restaurant;
@@ -64,6 +69,21 @@ export class RestaurantSetupBasicComponent implements OnInit {
       contactPhone: sms.value,
     };
     this.existingWebsite = web.bizManagedWebsite || googleListing.gmbWebsite;
+    // init explanations according to some existing information.
+    // init open_remark
+    basicSectionExplanations.ChineseExplanations.open_remark = basicSectionExplanations.ChineseExplanations.open_remark.replace("qMenu客服[XXX]","qMenu客服["+this._global.user.username+"]");
+    basicSectionExplanations.EnglishExplanations.open_remark = basicSectionExplanations.EnglishExplanations.open_remark.replace("my name is [XXX]","my name is ["+this._global.user.username+"]");
+    basicSectionExplanations.ChineseExplanations.open_remark = basicSectionExplanations.ChineseExplanations.open_remark.replace("餐馆名称和地址是 [XXX] 和 [XXX]","您的餐馆名称和地址是 ["+this.restaurant.name+"] 和 ["+this.restaurant.googleAddress.formatted_address+"]");
+    basicSectionExplanations.EnglishExplanations.open_remark = basicSectionExplanations.EnglishExplanations.open_remark.replace("restaurant name and address are [XXX] and [XXX]","restaurant name and address are ["+this.restaurant.name+"] and ["+this.restaurant.googleAddress.formatted_address+"]");
+    // init rt_phone_inquiry
+    basicSectionExplanations.ChineseExplanations.rt_phone_inquiry = basicSectionExplanations.ChineseExplanations.rt_phone_inquiry.replace("[XXX]","["+this.model.primaryBusinessPhone+"]");
+    basicSectionExplanations.EnglishExplanations.rt_phone_inquiry = basicSectionExplanations.EnglishExplanations.rt_phone_inquiry.replace("[XXX]","["+this.model.primaryBusinessPhone+"]");
+    // init name_inquiry
+    basicSectionExplanations.ChineseExplanations.name_inquiry = basicSectionExplanations.ChineseExplanations.name_inquiry.replace("[XXX]","["+this.model.primaryContactPersonName+"]");
+    basicSectionExplanations.EnglishExplanations.name_inquiry = basicSectionExplanations.EnglishExplanations.name_inquiry.replace("[XXX]","["+this.model.primaryContactPersonName+"]");
+    // init web_inquiry
+    basicSectionExplanations.ChineseExplanations.web_inquiry = basicSectionExplanations.ChineseExplanations.web_inquiry.replace("[XXX]","["+this.model.website+"]");
+    basicSectionExplanations.EnglishExplanations.web_inquiry = basicSectionExplanations.EnglishExplanations.web_inquiry.replace("[XXX]","["+this.model.website+"]");
   }
 
   checkRole(e) {
