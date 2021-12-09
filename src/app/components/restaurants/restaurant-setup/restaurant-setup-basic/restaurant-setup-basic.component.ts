@@ -82,8 +82,8 @@ export class RestaurantSetupBasicComponent implements OnInit {
     basicSectionExplanations.ChineseExplanations.name_inquiry = basicSectionExplanations.ChineseExplanations.name_inquiry.replace("[XXX]","["+this.model.primaryContactPersonName+"]");
     basicSectionExplanations.EnglishExplanations.name_inquiry = basicSectionExplanations.EnglishExplanations.name_inquiry.replace("[XXX]","["+this.model.primaryContactPersonName+"]");
     // init web_inquiry
-    basicSectionExplanations.ChineseExplanations.web_inquiry = basicSectionExplanations.ChineseExplanations.web_inquiry.replace("[XXX]","["+this.model.website+"]");
-    basicSectionExplanations.EnglishExplanations.web_inquiry = basicSectionExplanations.EnglishExplanations.web_inquiry.replace("[XXX]","["+this.model.website+"]");
+    basicSectionExplanations.ChineseExplanations.web_inquiry = basicSectionExplanations.ChineseExplanations.web_inquiry.replace("[XXX]","["+this.existingWebsite+"]");
+    basicSectionExplanations.EnglishExplanations.web_inquiry = basicSectionExplanations.EnglishExplanations.web_inquiry.replace("[XXX]","["+this.existingWebsite+"]");
   }
 
   checkRole(e) {
