@@ -92,8 +92,7 @@ export class MenuOptionsComponent implements OnInit {
   moDone(mo: MenuOption) {
     // id == update, no id === new
     // get a shallow copy
-    let { menuOptions } = this.restaurant;
-    const newMenuOptions = menuOptions.slice(0);
+    const newMenuOptions = this.restaurant.menuOptions.slice(0);
 
     if (!mo.id) {
       // assign a pseudo id
@@ -106,10 +105,11 @@ export class MenuOptionsComponent implements OnInit {
         }
       }
     }
-
-    this._prunedPatch
+    // mo is sorted by name for display, in this situation,
+    // prunedPatch need more carefully compare and have no much value to reduce log
+    this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
-        old: {_id: this.restaurant['_id'], menuOptions},
+        old: {_id: this.restaurant['_id']},
         new: {_id: this.restaurant['_id'], menuOptions: newMenuOptions}
       }])
       .subscribe(
