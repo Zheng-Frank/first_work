@@ -1,3 +1,11 @@
+<div class="text-info" *ngIf="showCallScript">
+  <div *ngIf="changeLanguageFlag === 'English';else languageBlock"
+    [innerHTML]="hoursSectionCallScript.EnglishCallScript.hours_inquiry"></div>
+  <ng-template #languageBlock>
+    <div [innerHTML]="hoursSectionCallScript.ChineseCallScript.hours_inquiry">
+    </div>
+  </ng-template>
+</div>
 <h5>Store Hours</h5>
 <div *ngIf="restaurant.googleListing?.hours?.length > 0">
   If the hours below are correct, you can proceed to the next step, or you can correct or add hours as needed.
@@ -15,7 +23,8 @@
   <button class="btn btn-link" (click)="addingHours = true"><i class="fa fa-plus"></i> Add Hour</button>
 </div>
 <div *ngIf="addingHours">
-  <lib-hours-picker (cancel)="addingHours = false" (submit)="hourAdd($event)" [timezone]="restaurant?.googleAddress?.timezone"></lib-hours-picker>
+  <lib-hours-picker (cancel)="addingHours = false" (submit)="hourAdd($event)"
+    [timezone]="restaurant?.googleAddress?.timezone"></lib-hours-picker>
 </div>
 <div class="text-end mt-3">
   <button class="btn btn-primary btn-lg" (click)="save()"><i class="fa fa-save"></i> Save</button>

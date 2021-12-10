@@ -1,6 +1,6 @@
 // do a call script in basic setup section to make saleperson work quickly
-const basicSectionExplanations = {
-  ChineseExplanations: {
+const basicSectionCallScript = {
+  ChineseCallScript: {
     open_remark: "您好，我是qMenu客服[XXX]，首先再次感谢您选择加入我们的平台！现在准备帮您设置您帐户，该只需要几分钟。首先跟您确认一些基本信息，好吗？您的餐馆名称和地址是 [XXX] 和 [XXX]，对吗？",
     rt_phone_inquiry: "您的主餐馆电话号码是[XXX]，对吗？",
     name_inquiry: "请问，该怎么称呼您？是[XXX]先生/女士吗？ 您是餐馆的老板还是经理呢？",
@@ -9,7 +9,7 @@ const basicSectionExplanations = {
     web_inquiry: "看起来你们餐馆已经有自己的网站，路由是[XXX]，对吗？",
     tax_rate_inquiry: "请问，您当地的销售税率是多少？ 如果您不确定，我也可以帮您查一下。"
   },
-  EnglishExplanations: {
+  EnglishCallScript: {
     open_remark: "Hello, and thanks again for signing up with qMenu, my name is [XXX], and I’m ready to set up your restaurant's account! It should only take a few minutes. I'll start by confirming a few basic details, OK? Your restaurant name and address are [XXX] and [XXX], is that correct?",
     rt_phone_inquiry: "And your main restaurant’s phone number is [XXX], correct?",
     name_inquiry: "And your name is [XXX]? And are you the owner or manager at the restaurant?",
@@ -20,14 +20,34 @@ const basicSectionExplanations = {
   }
 }
 //do a call script in menu setup section to make saleperson work quickly
-const menuSectionExplanations = {
-  ChineseExplanations: {
-    menu_inquiry: "好的，现在准备设置您的菜单。 您准备向我们发送菜单图片，还是想让我们从另一个平台直接复制菜单呢？"
+const menuSectionCallScript = {
+  ChineseCallScript: {
+    menu_inquiry:  `好的，现在准备设置您的菜单。 您准备向我们发送菜单图片，还是想让我们从另一个平台直接复制菜单呢？
+    <br/>-（可以提供一下菜单 URL 地址吗？）
+    <br/>-（没问题！您可以通过短信或电子邮件将图片发送给我们，您更方便用哪种方式呢？好的；短信请发送到 978-652-9542，电子邮件请发送到 support@qmenu360.com）`
   },
-  EnglishExplanations: {
-    menu_inquiry: "Now, let's make sure we have an up-to-date menu for your restaurant. Can you provide us with photos of your menu, or should we copy the menu from another existing platform?"
+  EnglishCallScript: {
+    menu_inquiry: `Now, let's make sure we have an up-to-date menu for your restaurant. Can you provide us with photos of your menu, or should we copy the menu from another existing platform?
+    <br/>- (Is there a URL where your menu is available?)
+    <br/>- (Sure! You can send the pictures to us via text or email, which one is more convenient for you? You can send the images via text to 978-652-9542 or via email to support@qmenu360.com.)`
   }
 }
+//do a call script in hour setup section to make saleperson work quickly
+const hoursSectionCallScript = {
+  ChineseCallScript: {
+    hours_inquiry:`
+    好的，我准备跟您确认一下餐馆的营业时间，好吗？[给业主念出从Google抓取的餐馆营业时间]。请问，有什么需要修改的信息吗？
+    <br/>- (好的！)
+    <br/>- (好的，我现在为您改一下。)`
+  },
+  EnglishCallScript: {
+    hours_inquiry:`
+    Ok, now I'm just going to read out your store hours to confirm: [READ OUT STORE HOURS]. Is that correct or do I need to modify anything?
+    <br/>- (Ok, perfect!)
+    <br/>- (Ok, I’ll change that for you now.)`
+  }
+}
+
 export {
-  basicSectionExplanations, menuSectionExplanations
+  basicSectionCallScript, menuSectionCallScript, hoursSectionCallScript
 };

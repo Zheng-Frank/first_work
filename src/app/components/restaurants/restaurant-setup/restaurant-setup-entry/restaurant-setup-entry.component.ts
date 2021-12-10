@@ -44,7 +44,7 @@ export class RestaurantSetupEntryComponent implements OnInit {
     basic: 'down', menu: 'down', contact: 'down', delivery: 'down', payment: 'down', invoicing: 'down'
   };
   changeLanguageFlag = this._global.languageType;// this flag decides show English call script or Chinese
-
+  showCallScript = false; // it will display call script when the switch is opened
   ngOnInit() {
     window.addEventListener('scroll', e => {
       this.top = window.scrollY;
@@ -60,6 +60,19 @@ export class RestaurantSetupEntryComponent implements OnInit {
       this.cdr.detectChanges();
     });
     this.checkProgress();
+  }
+  // make subpanel's switch consisently
+  toggleShowCallScript(){
+    // Panel maybe disappear when *ngIf is false
+    if(this.basicPanel){
+      this.basicPanel.showCallScript = this.showCallScript;
+    }
+    if(this.menuPanel){
+      this.menuPanel.showCallScript = this.showCallScript;
+    }
+    if(this.hoursPanel){
+      this.hoursPanel.showCallScript = this.showCallScript;
+    }
   }
 
   async stepDone(data) {

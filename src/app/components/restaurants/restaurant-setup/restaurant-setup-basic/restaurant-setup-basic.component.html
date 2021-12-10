@@ -1,9 +1,9 @@
-<div class="text-info">
-  {{changeLanguageFlag === 'English'? basicSectionExplanations.EnglishExplanations.open_remark : basicSectionExplanations.ChineseExplanations.open_remark}}
+<div class="text-info" *ngIf="showCallScript">
+  {{changeLanguageFlag === 'English'? basicSectionCallScript.EnglishCallScript.open_remark : basicSectionCallScript.ChineseCallScript.open_remark}}
 </div>
 <h5><i class="fas fa-phone-volume"></i> Restaurant Primary Business Phone</h5>
-<div class="text-info">
-  {{changeLanguageFlag === 'English'? basicSectionExplanations.EnglishExplanations.rt_phone_inquiry : basicSectionExplanations.ChineseExplanations.rt_phone_inquiry}}
+<div class="text-info" *ngIf="showCallScript">
+  {{changeLanguageFlag === 'English'? basicSectionCallScript.EnglishCallScript.rt_phone_inquiry : basicSectionCallScript.ChineseCallScript.rt_phone_inquiry}}
 </div>
 <div class="form-group">
   <input type="text" class="form-control" [(ngModel)]="model.primaryBusinessPhone"
@@ -11,8 +11,8 @@
 </div>
 <hr />
 <h5><i class="fas fa-id-card-alt"></i> Primary contact person</h5>
-<div class="text-info">
-  {{changeLanguageFlag === 'English'? basicSectionExplanations.EnglishExplanations.name_inquiry : basicSectionExplanations.ChineseExplanations.name_inquiry}}
+<div class="text-info" *ngIf="showCallScript">
+  {{changeLanguageFlag === 'English'? basicSectionCallScript.EnglishCallScript.name_inquiry : basicSectionCallScript.ChineseCallScript.name_inquiry}}
 </div>
 <div class="form-group">
   <label>Title</label>
@@ -43,15 +43,15 @@
 </div>
 <div class="form-group">
   <label>Cell Phone Number</label>
-  <div class="text-info">
-    {{changeLanguageFlag === 'English'? basicSectionExplanations.EnglishExplanations.cell_phone_inquiry : basicSectionExplanations.ChineseExplanations.cell_phone_inquiry}}
+  <div class="text-info" *ngIf="showCallScript">
+    {{changeLanguageFlag === 'English'? basicSectionCallScript.EnglishCallScript.cell_phone_inquiry : basicSectionCallScript.ChineseCallScript.cell_phone_inquiry}}
   </div>
   <input type="text" class="form-control" [(ngModel)]="model.primaryContactPersonPhone">
 </div>
 <div class="form-group">
   <label>Time Estimate for Pickup</label>
-  <div class="text-info">
-    {{changeLanguageFlag === 'English'? basicSectionExplanations.EnglishExplanations.pickup_inquiry : basicSectionExplanations.ChineseExplanations.pickup_inquiry}}
+  <div class="text-info" *ngIf="showCallScript">
+    {{changeLanguageFlag === 'English'? basicSectionCallScript.EnglishCallScript.pickup_inquiry : basicSectionCallScript.ChineseCallScript.pickup_inquiry}}
   </div>
   <input type="number" class="form-control" [(ngModel)]="model.pickupTimeEstimate">
 </div>
@@ -63,8 +63,8 @@
     No website? No problem! qMenu can create a website for your restaurant for free (Write "None" if no website).
   </small>
 </h5>
-<div class="text-info">
-  {{changeLanguageFlag === 'English'? basicSectionExplanations.EnglishExplanations.web_inquiry : basicSectionExplanations.ChineseExplanations.web_inquiry}}
+<div class="text-info" *ngIf="showCallScript">
+  {{changeLanguageFlag === 'English'? basicSectionCallScript.EnglishCallScript.web_inquiry : basicSectionCallScript.ChineseCallScript.web_inquiry}}
 </div>
 <div class="form-group">
   <div class="form-check" *ngFor="let website of existingWebsites">
@@ -79,8 +79,8 @@
 
 <div class="form-group">
   <label>Local Tax Rate</label>
-  <div class="text-info">
-    {{changeLanguageFlag === 'English'? basicSectionExplanations.EnglishExplanations.tax_rate_inquiry : basicSectionExplanations.ChineseExplanations.tax_rate_inquiry}}
+  <div class="text-info" *ngIf="showCallScript">
+    {{changeLanguageFlag === 'English'? basicSectionCallScript.EnglishCallScript.tax_rate_inquiry : basicSectionCallScript.ChineseCallScript.tax_rate_inquiry}}
   </div>
   <button class="btn btn-sm btn-link" (click)="copyToClipboard(restaurant?.googleAddress?.formatted_address)">
     <i *ngIf="!isCopiedToClipboard" class="fas fa-clipboard"></i>

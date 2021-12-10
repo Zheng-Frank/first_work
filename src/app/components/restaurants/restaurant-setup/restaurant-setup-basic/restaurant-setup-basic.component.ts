@@ -3,7 +3,7 @@ import {environment} from '../../../../../environments/environment';
 import {ApiService} from 'src/app/services/api.service';
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {Restaurant} from '@qmenu/ui';
-import { basicSectionExplanations } from '../restaurant-setup-entry/setup-call-script';
+import { basicSectionCallScript } from '../restaurant-setup-entry/setup-call-script';
  
 @Component({
   selector: 'app-restaurant-setup-basic',
@@ -36,6 +36,7 @@ export class RestaurantSetupBasicComponent implements OnInit {
     contactPhone: ''
   };
   changeLanguageFlag = this._global.languageType;// this flag decides show English call script or Chinese
+  showCallScript = false;// it will display call script when the switch is opened
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
@@ -43,9 +44,9 @@ export class RestaurantSetupBasicComponent implements OnInit {
     this.init();
     await this.getExistingWebsite();
   }
-  // make basicSectionExplanations from exporting becomes inner field of class RestaurantSetupBasicComponent
-  get basicSectionExplanations(){
-    return basicSectionExplanations;
+  // make basicSectionCallScript from exporting becomes inner field of class RestaurantSetupBasicComponent
+  get basicSectionCallScript(){
+    return basicSectionCallScript;
   }
 
   init() {
@@ -71,19 +72,19 @@ export class RestaurantSetupBasicComponent implements OnInit {
     this.existingWebsite = web.bizManagedWebsite || googleListing.gmbWebsite;
     // init explanations according to some existing information.
     // init open_remark
-    basicSectionExplanations.ChineseExplanations.open_remark = basicSectionExplanations.ChineseExplanations.open_remark.replace("qMenu客服[XXX]","qMenu客服["+this._global.user.username+"]");
-    basicSectionExplanations.EnglishExplanations.open_remark = basicSectionExplanations.EnglishExplanations.open_remark.replace("my name is [XXX]","my name is ["+this._global.user.username+"]");
-    basicSectionExplanations.ChineseExplanations.open_remark = basicSectionExplanations.ChineseExplanations.open_remark.replace("餐馆名称和地址是 [XXX] 和 [XXX]","您的餐馆名称和地址是 ["+this.restaurant.name+"] 和 ["+this.restaurant.googleAddress.formatted_address+"]");
-    basicSectionExplanations.EnglishExplanations.open_remark = basicSectionExplanations.EnglishExplanations.open_remark.replace("restaurant name and address are [XXX] and [XXX]","restaurant name and address are ["+this.restaurant.name+"] and ["+this.restaurant.googleAddress.formatted_address+"]");
+    basicSectionCallScript.ChineseCallScript.open_remark = basicSectionCallScript.ChineseCallScript.open_remark.replace("qMenu客服[XXX]","qMenu客服["+this._global.user.username+"]");
+    basicSectionCallScript.EnglishCallScript.open_remark = basicSectionCallScript.EnglishCallScript.open_remark.replace("my name is [XXX]","my name is ["+this._global.user.username+"]");
+    basicSectionCallScript.ChineseCallScript.open_remark = basicSectionCallScript.ChineseCallScript.open_remark.replace("餐馆名称和地址是 [XXX] 和 [XXX]","您的餐馆名称和地址是 ["+this.restaurant.name+"] 和 ["+this.restaurant.googleAddress.formatted_address+"]");
+    basicSectionCallScript.EnglishCallScript.open_remark = basicSectionCallScript.EnglishCallScript.open_remark.replace("restaurant name and address are [XXX] and [XXX]","restaurant name and address are ["+this.restaurant.name+"] and ["+this.restaurant.googleAddress.formatted_address+"]");
     // init rt_phone_inquiry
-    basicSectionExplanations.ChineseExplanations.rt_phone_inquiry = basicSectionExplanations.ChineseExplanations.rt_phone_inquiry.replace("[XXX]","["+this.model.primaryBusinessPhone+"]");
-    basicSectionExplanations.EnglishExplanations.rt_phone_inquiry = basicSectionExplanations.EnglishExplanations.rt_phone_inquiry.replace("[XXX]","["+this.model.primaryBusinessPhone+"]");
+    basicSectionCallScript.ChineseCallScript.rt_phone_inquiry = basicSectionCallScript.ChineseCallScript.rt_phone_inquiry.replace("[XXX]","["+this.model.primaryBusinessPhone+"]");
+    basicSectionCallScript.EnglishCallScript.rt_phone_inquiry = basicSectionCallScript.EnglishCallScript.rt_phone_inquiry.replace("[XXX]","["+this.model.primaryBusinessPhone+"]");
     // init name_inquiry
-    basicSectionExplanations.ChineseExplanations.name_inquiry = basicSectionExplanations.ChineseExplanations.name_inquiry.replace("[XXX]","["+this.model.primaryContactPersonName+"]");
-    basicSectionExplanations.EnglishExplanations.name_inquiry = basicSectionExplanations.EnglishExplanations.name_inquiry.replace("[XXX]","["+this.model.primaryContactPersonName+"]");
+    basicSectionCallScript.ChineseCallScript.name_inquiry = basicSectionCallScript.ChineseCallScript.name_inquiry.replace("[XXX]","["+this.model.primaryContactPersonName+"]");
+    basicSectionCallScript.EnglishCallScript.name_inquiry = basicSectionCallScript.EnglishCallScript.name_inquiry.replace("[XXX]","["+this.model.primaryContactPersonName+"]");
     // init web_inquiry
-    basicSectionExplanations.ChineseExplanations.web_inquiry = basicSectionExplanations.ChineseExplanations.web_inquiry.replace("[XXX]","["+this.existingWebsite+"]");
-    basicSectionExplanations.EnglishExplanations.web_inquiry = basicSectionExplanations.EnglishExplanations.web_inquiry.replace("[XXX]","["+this.existingWebsite+"]");
+    basicSectionCallScript.ChineseCallScript.web_inquiry = basicSectionCallScript.ChineseCallScript.web_inquiry.replace("[XXX]","["+this.existingWebsite+"]");
+    basicSectionCallScript.EnglishCallScript.web_inquiry = basicSectionCallScript.EnglishCallScript.web_inquiry.replace("[XXX]","["+this.existingWebsite+"]");
   }
 
   checkRole(e) {
