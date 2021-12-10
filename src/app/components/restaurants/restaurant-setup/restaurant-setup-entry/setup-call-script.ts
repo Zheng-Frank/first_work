@@ -22,7 +22,7 @@ const basicSectionCallScript = {
 //do a call script in menu setup section to make saleperson work quickly
 const menuSectionCallScript = {
   ChineseCallScript: {
-    menu_inquiry:  `好的，现在准备设置您的菜单。 您准备向我们发送菜单图片，还是想让我们从另一个平台直接复制菜单呢？
+    menu_inquiry: `好的，现在准备设置您的菜单。 您准备向我们发送菜单图片，还是想让我们从另一个平台直接复制菜单呢？
     <br/>-（可以提供一下菜单 URL 地址吗？）
     <br/>-（没问题！您可以通过短信或电子邮件将图片发送给我们，您更方便用哪种方式呢？好的；短信请发送到 978-652-9542，电子邮件请发送到 support@qmenu360.com）`
   },
@@ -35,19 +35,38 @@ const menuSectionCallScript = {
 //do a call script in hour setup section to make saleperson work quickly
 const hoursSectionCallScript = {
   ChineseCallScript: {
-    hours_inquiry:`
+    hours_inquiry: `
     好的，我准备跟您确认一下餐馆的营业时间，好吗？[给业主念出从Google抓取的餐馆营业时间]。请问，有什么需要修改的信息吗？
     <br/>- (好的！)
     <br/>- (好的，我现在为您改一下。)`
   },
   EnglishCallScript: {
-    hours_inquiry:`
+    hours_inquiry: `
     Ok, now I'm just going to read out your store hours to confirm: [READ OUT STORE HOURS]. Is that correct or do I need to modify anything?
     <br/>- (Ok, perfect!)
-    <br/>- (Ok, I’ll change that for you now.)`
+    <br/>- (Ok, I'll change that for you now.)`
+  }
+}
+//do a call script in contact setup section to make saleperson work quickly
+const contactSectionCallScript = {
+  ChineseCallScript: {
+    open_mark: '那么，每次从 qMenu 收到新订单时，您希望如何收到通知呢？ 我们提供多种选择，有电话、短信、传真、电子邮件和云打印，您可以选择任何一个或多个选项。',
+    bizphone_inquiry: '[XXX] 是您希望收到订单通知的电话号码，对吗？',
+    fax_inquiry: '请问，传真的通知我们发到哪一个传真号码？',
+    email_inquiry: '请问，电子邮件通知我们发到哪一个电子邮箱？',
+    cloud_print_inquiry: '至于云打印订单通知，我们的一位客服专家稍后会联系您进行设置。',
+    cellphone_inquiry: '[XXX] 是您希望收到订单通知的手机号码，对吗？'
+  },
+  EnglishCallScript: {
+    open_mark: 'So, how would you like to be notified each time you get a new order from qMenu? We offer several options including phone call, text message, fax, email, and cloud printing. You can choose any or as many of those options as you like.',
+    bizphone_inquiry: 'And is [XXX] the right phone number to call for order notifications?',
+    fax_inquiry: 'And which fax number should we send orders to?',
+    email_inquiry: 'And which email address should we send orders to?',
+    cloud_print_inquiry: 'As for cloud printing notifications, one of our specialists will call you back later to set that up.',
+    cellphone_inquiry: 'And is [XXX] the right cell phone number to send text order notifications to?'
   }
 }
 
 export {
-  basicSectionCallScript, menuSectionCallScript, hoursSectionCallScript
+  basicSectionCallScript, menuSectionCallScript, hoursSectionCallScript, contactSectionCallScript
 };

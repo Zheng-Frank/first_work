@@ -1,7 +1,7 @@
-import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
-import {environment} from '../../../../../environments/environment';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {ApiService} from '../../../../services/api.service';
 import {Restaurant} from '@qmenu/ui';
+import { contactSectionCallScript } from '../restaurant-setup-entry/setup-call-script';
 
 enum NotifyChannels {
   Phone = 'Phone',
@@ -43,6 +43,11 @@ export class RestaurantSetupContactComponent implements OnInit {
 
   ngOnInit() {
     this.init();
+  }
+
+  // make contactSectionCallScript from exporting becomes inner field of class RestaurantSetupContactComponent
+  get contactSectionCallScript(){
+    return contactSectionCallScript;
   }
 
   init() {
