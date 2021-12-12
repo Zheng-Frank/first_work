@@ -50,15 +50,15 @@ const hoursSectionCallScript = {
 //do a call script in contact setup section to make saleperson work quickly
 const contactSectionCallScript = {
   ChineseCallScript: {
-    open_mark: '那么，每次从 qMenu 收到新订单时，您希望如何收到通知呢？ 我们提供多种选择，有电话、短信、传真、电子邮件和云打印，您可以选择任何一个或多个选项。',
+    open_remark: '那么，每次从 qMenu 收到新订单时，您希望如何收到通知呢？ 我们提供多种选择，有电话、短信、传真、电子邮件和云打印，您可以选择任何一个或多个选项。',
     bizphone_inquiry: '[XXX] 是您希望收到订单通知的电话号码，对吗？',
-    fax_inquiry: '请问，传真的通知我们发到哪一个传真号码？',
-    email_inquiry: '请问，电子邮件通知我们发到哪一个电子邮箱？',
-    cloud_print_inquiry: '至于云打印订单通知，我们的一位客服专家稍后会联系您进行设置。',
+    fax_inquiry: '请问，我们应该将订单通知发送到哪个传真号码？',
+    email_inquiry: '请问，我们应该将订单通知发送到哪个电子邮箱？',
+    cloud_print_inquiry: '至于云打印订单通知，我们一位专门的工作人员稍后会联系您进行设置。',
     cellphone_inquiry: '[XXX] 是您希望收到订单通知的手机号码，对吗？'
   },
   EnglishCallScript: {
-    open_mark: 'So, how would you like to be notified each time you get a new order from qMenu? We offer several options including phone call, text message, fax, email, and cloud printing. You can choose any or as many of those options as you like.',
+    open_remark: 'So, how would you like to be notified each time you get a new order from qMenu? We offer several options including phone call, text message, fax, email, and cloud printing. You can choose any or as many of those options as you like.',
     bizphone_inquiry: 'And is [XXX] the right phone number to call for order notifications?',
     fax_inquiry: 'And which fax number should we send orders to?',
     email_inquiry: 'And which email address should we send orders to?',

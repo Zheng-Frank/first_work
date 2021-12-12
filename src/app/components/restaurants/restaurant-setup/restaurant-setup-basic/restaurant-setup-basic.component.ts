@@ -70,7 +70,7 @@ export class RestaurantSetupBasicComponent implements OnInit {
       contactPhone: sms.value,
     };
     this.existingWebsite = web.bizManagedWebsite || googleListing.gmbWebsite;
-    // init explanations according to some existing information.
+    // init call script according to some existing information.
     // init open_remark
     basicSectionCallScript.ChineseCallScript.open_remark = basicSectionCallScript.ChineseCallScript.open_remark.replace("qMenu客服[XXX]","qMenu客服["+this._global.user.username+"]");
     basicSectionCallScript.EnglishCallScript.open_remark = basicSectionCallScript.EnglishCallScript.open_remark.replace("my name is [XXX]","my name is ["+this._global.user.username+"]");

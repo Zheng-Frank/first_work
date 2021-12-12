@@ -62,17 +62,13 @@ export class RestaurantSetupEntryComponent implements OnInit {
     this.checkProgress();
   }
   // make subpanel's switch consisently
-  toggleShowCallScript(){
+  toggleShowCallScript() {
     // Panel maybe disappear when *ngIf is false
-    if(this.basicPanel){
-      this.basicPanel.showCallScript = this.showCallScript;
-    }
-    if(this.menuPanel){
-      this.menuPanel.showCallScript = this.showCallScript;
-    }
-    if(this.hoursPanel){
-      this.hoursPanel.showCallScript = this.showCallScript;
-    }
+    [this.basicPanel, this.menuPanel, this.hoursPanel, this.contactPanel].forEach(panel => {
+      if (panel) {
+        panel.showCallScript = this.showCallScript;
+      }
+    });
   }
 
   async stepDone(data) {
