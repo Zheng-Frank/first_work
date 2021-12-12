@@ -646,7 +646,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     // restaurantSetupEntry may be hided
     if(this.restaurantSetupEntry){
       this.restaurantSetupEntry.changeLanguageFlag = this._global.languageType;
-      [this.restaurantSetupEntry.basicPanel, this.restaurantSetupEntry.menuPanel, this.restaurantSetupEntry.hoursPanel, this.restaurantSetupEntry.contactPanel, this.restaurantSetupEntry.deliveryPanel, this.restaurantSetupEntry.paymentPanel].forEach(panel=>{
+      [this.restaurantSetupEntry.basicPanel, this.restaurantSetupEntry.menuPanel, this.restaurantSetupEntry.hoursPanel, this.restaurantSetupEntry.contactPanel, this.restaurantSetupEntry.deliveryPanel, this.restaurantSetupEntry.paymentPanel, this.restaurantSetupEntry.invoicingPanel].forEach(panel=>{
         if(panel){
           panel.changeLanguageFlag = this.restaurantSetupEntry.changeLanguageFlag; 
         }

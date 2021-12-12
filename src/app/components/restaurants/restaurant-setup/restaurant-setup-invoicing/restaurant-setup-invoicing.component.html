@@ -1,4 +1,7 @@
 <ng-container *ngIf="serviceSettingsFinished;else elseBlock">
+  <div class="text-info" *ngIf="showCallScript">
+    {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.open_remark : invoicingSectionCallScript.ChineseCallScript.open_remark}}
+  </div>
   <!-- start with question 1 -->
   <!-- qMenu -> Restaurant -->
   <div class="form-group">
@@ -8,6 +11,9 @@
     </div>
     <div *ngIf="showFromQmenuQuestion">
       <label>If/when receiving payouts from qMenu, which do you prefer?</label>
+      <div class="text-info" *ngIf="showCallScript">
+        {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.receiving_inquiry : invoicingSectionCallScript.ChineseCallScript.receiving_inquiry}}
+      </div>
       <div class="ml-2" *ngFor="let opt of invoicingFromQmenuOpts">
         <span>
           <input type="radio" (click)="chooseInvoicingFromQmenuOpt(opt)"
@@ -26,6 +32,9 @@
   <!-- qMenu → Restaurant -->
   <div class="form-group mt-2" *ngIf="showFromQmenuQuestion && showDepositInfo()">
     <label>Check Recipient Info</label>
+    <div class="text-info" *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.recipient_inquiry : invoicingSectionCallScript.ChineseCallScript.recipient_inquiry}}
+    </div>
     <div class="ml-2">
       <label>Payee Name</label>
       <div class="text-muted">
@@ -52,6 +61,9 @@
   <!-- qMenu → Restaurant -->
   <div class="form-group mt-2" *ngIf="showFromQmenuQuestion && showDirectDepositMemo() && !showDirectWithdrawalMemo()">
     <label>Bank Info</label>
+    <div class="text-info" *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.bank_detail_inquiry : invoicingSectionCallScript.ChineseCallScript.bank_detail_inquiry}}
+    </div>
     <div class="ml-2">
       <label>Name on Check</label>
       <input type="text" class="form-control" [(ngModel)]="bankInfoModel.name" placeholder="">
@@ -87,6 +99,9 @@
   <!-- Restaurant to qMenu -->
   <div class="form-group" *ngIf="showToQmenuQuestion">
     <label>If/when sending payment to qMenu, which do you prefer?</label>
+    <div *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.send_inquiry : invoicingSectionCallScript.ChineseCallScript.send_inquiry}}
+    </div>
     <div class="ml-2" *ngFor="let opt of invoicingToQmenuOpts">
       <span>
         <input type="radio" (click)="chooseInvoicingToQmenuOpt(opt)" [checked]="invoicingToQmenuOpt === opt.value">
@@ -120,6 +135,9 @@
   <!-- Restaurant → qMenu -->
   <div class="form-group mt-2" *ngIf="showToQmenuQuestion && !showDirectDepositMemo() && showDirectWithdrawalMemo()">
     <label>Bank Info</label>
+    <div class="text-info" *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.bank_detail_inquiry : invoicingSectionCallScript.ChineseCallScript.bank_detail_inquiry}}
+    </div>
     <div class="ml-2">
       <label>Name on Check</label>
       <input type="text" class="form-control" [(ngModel)]="bankInfoModel.name" placeholder="">
@@ -155,6 +173,9 @@
   <div class="form-group mt-2"
     *ngIf="showToQmenuQuestion && showFromQmenuQuestion && !toQmenuFinished && showDirectDepositMemo() && showDirectWithdrawalMemo()">
     <label>Bank Info</label>
+    <div class="text-info" *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.bank_detail_inquiry : invoicingSectionCallScript.ChineseCallScript.bank_detail_inquiry}}
+    </div>
     <div class="ml-2">
       <label>Name on Check</label>
       <input type="text" class="form-control" [(ngModel)]="bankInfoModel.name" placeholder="">
@@ -193,6 +214,9 @@
   <!-- Restaurant → qMenu -->
   <div class="form-group mt-2" *ngIf="showToQmenuQuestion && showCreditCardDetail()">
     <label>Credit Card Details</label>
+    <div class="text-info" *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.card_detail_inquiry : invoicingSectionCallScript.ChineseCallScript.card_detail_inquiry}}
+    </div>
     <div class="ml-2">
       <label>First and Last Names on Card</label>
       <input type="text" class="form-control" [(ngModel)]="creditCardInfoModel.name" placeholder="">
@@ -245,7 +269,7 @@
   <!-- second question finished tip -->
   <div>
     <label class="text-info" *ngIf="!showToQmenuQuestion && showFromQmenuQuestion">
-     You already have a method to send payment to qMenu.
+      You already have a method to send payment to qMenu.
     </label>
   </div>
 </ng-container>
