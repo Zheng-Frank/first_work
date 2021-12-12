@@ -11,6 +11,7 @@ import { GlobalService } from 'src/app/services/global.service';
 import { AlertType } from 'src/app/classes/alert-type';
 import { RestaurantSetupMenuComponent } from '../restaurant-setup-menu/restaurant-setup-menu.component';
 import { RestaurantSetupHoursComponent } from '../restaurant-setup-hours/restaurant-setup-hours.component';
+import { finalSectionCallScript } from './setup-call-script';
 
 declare var $: any;
 
@@ -71,6 +72,11 @@ export class RestaurantSetupEntryComponent implements OnInit {
     });
   }
 
+  // make finalSectionCallScript from exporting becomes inner field of class RestaurantSetupEntryComponent
+  get finalSectionCallScript() {
+    return finalSectionCallScript;
+  }
+
   async stepDone(data) {
     console.log('setup step done...', data);
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
@@ -98,7 +104,7 @@ export class RestaurantSetupEntryComponent implements OnInit {
     let {
       googleListing, people = [], web,
       taxRate, notes, logs, orderNotifications, deliveryFromTime, deliveryEndMinutesBeforeClosing,
-      deliveryTimeEstimate, deliverySettings, courier, serviceSettings
+      deliveryTimeEstimate, deliverySettings, courier, serviceSettings, channels = []
     } = this.restaurant;
     this.notes = notes;
     let person = people[0] || {};
@@ -117,6 +123,11 @@ export class RestaurantSetupEntryComponent implements OnInit {
         $(`#collapse-${mod}`).collapse('show');
       }
     });
+    // init call script according to some existing information.
+    let emailAddress = (channels.find(x => x.type === 'Email') || {}).value;
+    if (emailAddress) {
+      this.finalSectionCallScript.ChineseCallScript.final_inquiry = this.finalSectionCallScript.ChineseCallScript.final_inquiry.replace('[XXX]', "[" + emailAddress + "]");
+    }
   }
 
   async saveNote() {

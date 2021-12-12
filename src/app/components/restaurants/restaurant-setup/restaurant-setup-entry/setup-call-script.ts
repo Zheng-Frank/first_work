@@ -66,7 +66,35 @@ const contactSectionCallScript = {
     cellphone_inquiry: 'And is [XXX] the right cell phone number to send text order notifications to?'
   }
 }
+//do a call script in delivery setup section to make saleperson work quickly
+const deliverySectionCallScript = {
+  ChineseCallScript: {
+
+  },
+  EnglishCallScript: {
+
+  }
+}
+
+// finalization section which restaurant setup has finished
+const finalSectionCallScript = {
+  ChineseCallScript: {
+    final_inquiry:`
+    好的！ 您的帐户即将准备就绪。 请给我一点时间以确保我们没有遗漏任何东西...... [访问logs选项卡以检查未完成任务]
+    <br/>- (看来你的账户只剩下 [剩下步骤] 这几个未完成步骤；一帮您完成后就可以开始接受订单了!)
+    <br/>- 我现在准备向您发送一个测试订单，以确保您的订单通知设置已正确配置。 我也会向您发送qMenu的运营协议，可以发送到您的 [XXX] email 地址吗？。[办理试订手续]
+    `
+  },
+  EnglishCallScript: {
+    final_inquiry:`
+    Perfect! Your account is almost ready. Just give me a moment to make sure I haven't missed anything… [go to logs tab to check on outstanding tasks]
+    <br/>- (It looks like [PENDING ITEMS] are the only steps left to complete before you can start taking orders!)
+    <br/>- Let me send you a quick test order to ensure you’re properly set up to get notifications. I'll also send over our operating agreement, is [XXX] a good email to send it to?. [go through test order procedures]
+    `
+  }
+}
 
 export {
-  basicSectionCallScript, menuSectionCallScript, hoursSectionCallScript, contactSectionCallScript
+  basicSectionCallScript, menuSectionCallScript, hoursSectionCallScript, 
+  contactSectionCallScript, deliverySectionCallScript, finalSectionCallScript
 };
