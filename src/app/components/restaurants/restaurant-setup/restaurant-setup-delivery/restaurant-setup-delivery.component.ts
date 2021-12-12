@@ -1,7 +1,9 @@
+import { GlobalService } from 'src/app/services/global.service';
 import {ApiService} from 'src/app/services/api.service';
 import {environment} from 'src/environments/environment';
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {Restaurant, TimezoneHelper} from '@qmenu/ui';
+import { deliverySectionCallScript } from '../restaurant-setup-entry/setup-call-script';
 
 @Component({
   selector: 'app-restaurant-setup-delivery',
@@ -36,8 +38,10 @@ export class RestaurantSetupDeliveryComponent implements OnInit {
   blockedArea = '';
   postmatesCourier = null;
   serviceSettings = [];
-
-  constructor(private _api: ApiService) {
+  changeLanguageFlag = this._global.languageType;// this flag decides show English call script or Chinese
+  showCallScript = false;// it will display call script when the switch is opened
+  
+  constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
   async ngOnInit() {
@@ -52,6 +56,10 @@ export class RestaurantSetupDeliveryComponent implements OnInit {
     this.postmatesCourier = couriers.find(x => x.name === 'Postmates');
     await this.getViabilityList();
     this.checkPostmatesAvailability();
+  }
+  // make deliverySectionCallScript from exporting becomes inner field of class RestaurantSetupDeliveryComponent
+  get deliverySectionCallScript(){
+    return deliverySectionCallScript;
   }
 
   serviceAlreadySet(serviceType, setBackup = false) {

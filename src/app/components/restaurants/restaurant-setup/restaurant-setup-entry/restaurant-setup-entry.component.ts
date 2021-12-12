@@ -65,7 +65,7 @@ export class RestaurantSetupEntryComponent implements OnInit {
   // make subpanel's switch consisently
   toggleShowCallScript() {
     // Panel maybe disappear when *ngIf is false
-    [this.basicPanel, this.menuPanel, this.hoursPanel, this.contactPanel].forEach(panel => {
+    [this.basicPanel, this.menuPanel, this.hoursPanel, this.contactPanel, this.deliveryPanel, this.paymentPanel].forEach(panel => {
       if (panel) {
         panel.showCallScript = this.showCallScript;
       }

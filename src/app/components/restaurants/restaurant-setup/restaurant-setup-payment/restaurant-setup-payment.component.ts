@@ -1,6 +1,7 @@
 import { Input, Output, EventEmitter } from '@angular/core';
 import { GlobalService } from 'src/app/services/global.service';
 import { Component, OnInit } from '@angular/core';
+import { pickupPaymentCallScript, deliveryPaymentCallScript } from '../restaurant-setup-entry/setup-call-script';
 
 enum paymentDeliveryPartyTypes {
   Qmenu = 'qMenu to collect payment',
@@ -92,10 +93,22 @@ export class RestaurantSetupPaymentComponent implements OnInit {
   qmenuSaveText = 'QMENU';
   stripeSaveText = 'STRIPE';
   cashSaveText = 'CASH';
+  changeLanguageFlag = this._global.languageType;// this flag decides show English call script or Chinese
+  showCallScript = false;// it will display call script when the switch is opened
+
   constructor(private _global: GlobalService) { }
 
   ngOnInit() {
     this.init();
+  }
+
+  // make pickupPaymentCallScript from exporting becomes inner field of class RestaurantSetupPaymentComponent
+  get pickupPaymentCallScript(){
+    return pickupPaymentCallScript;
+  }
+ // make deliveryPaymentCallScript from exporting becomes inner field of class RestaurantSetupPaymentComponent
+  get deliveryPaymentCallScript(){
+    return deliveryPaymentCallScript;
   }
 
   init() {

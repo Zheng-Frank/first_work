@@ -7,6 +7,9 @@
       payments, we'll send you semi-monthly payouts of the funds collected (minus our commissions/fees).
     </small>
   </h5>
+  <div class="text-info ml-2" *ngIf="showCallScript">
+    {{changeLanguageFlag === 'English'? pickupPaymentCallScript.EnglishCallScript.cash_inquiry : pickupPaymentCallScript.ChineseCallScript.cash_inquiry}}
+  </div>
   <div class="ml-2">
     <label>Will you accept cash payment?</label><br>
     <div class="custom-checkbox custom-control-inline ml-2" *ngFor="let opt of pickupCashOpts">
@@ -16,6 +19,9 @@
       </span>
     </div>
   </div>
+  <div class="text-info ml-2" *ngIf="showCallScript">
+    {{changeLanguageFlag === 'English'? pickupPaymentCallScript.EnglishCallScript.credit_card_inquiry : pickupPaymentCallScript.ChineseCallScript.credit_card_inquiry}}
+  </div>
   <div class="ml-2">
     <label>Who should collect credit card payments?</label>
     <div class="ml-2" *ngFor="let party of paymentPickupPartys">
@@ -24,6 +30,9 @@
         {{party}}
       </span>
     </div>
+  </div>
+  <div class="text-info ml-2" *ngIf="showPaymentPickupMethodOpt() && showCallScript">
+    {{changeLanguageFlag === 'English'? pickupPaymentCallScript.EnglishCallScript.rt_collect_inquiry : pickupPaymentCallScript.ChineseCallScript.rt_collect_inquiry}}
   </div>
   <div class="ml-2" *ngIf="showPaymentPickupMethodOpt()">
     <label>How would you like to collect credit card payments?</label>

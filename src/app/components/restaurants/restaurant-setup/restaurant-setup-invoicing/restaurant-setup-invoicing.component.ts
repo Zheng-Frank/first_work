@@ -1,5 +1,7 @@
+import { GlobalService } from './../../../../services/global.service';
 import { EventEmitter } from '@angular/core';
 import { Component, OnInit, Input, Output } from '@angular/core';
+import { invoicingSectionCallScript } from '../restaurant-setup-entry/setup-call-script';
 
 enum invoicingFromQmenuTypes {
   Get_Check = 'Get a check in the mail',
@@ -89,11 +91,18 @@ export class RestaurantSetupInvoicingComponent implements OnInit {
   serviceSettingsFinished = false;
   showToQmenuQuestion = false;// decided to show question one, qMenu → Restaurant
   showFromQmenuQuestion = false;// decided to show question one, Restaurant → qMenu
-  constructor() { }
+  changeLanguageFlag = this._global.languageType;// this flag decides show English call script or Chinese
+  showCallScript = false;// it will display call script when the switch is opened
+
+  constructor(private _global: GlobalService) { }
 
   async ngOnInit() {
     // await this.getRestaurantExample();
     this.init();
+  }
+// make invoicingSectionCallScript from exporting becomes inner field of class RestaurantSetupInvoicingComponent
+  get invoicingSectionCallScript(){
+    return invoicingSectionCallScript;
   }
 
   isServiceEnabled(service) {
