@@ -99,7 +99,7 @@
   <!-- Restaurant to qMenu -->
   <div class="form-group" *ngIf="showToQmenuQuestion">
     <label class="mb-0">If/when sending payment to qMenu, which do you prefer?</label>
-    <div *ngIf="showCallScript">
+    <div class="text-info" *ngIf="showCallScript">
       {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.send_inquiry : invoicingSectionCallScript.ChineseCallScript.send_inquiry}}
     </div>
     <div class="ml-2" *ngFor="let opt of invoicingToQmenuOpts">
