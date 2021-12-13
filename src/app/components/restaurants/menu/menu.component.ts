@@ -357,7 +357,6 @@ export class MenuComponent implements OnInit {
     if (!params.mi) {
       miCopy = new Mi();
       miCopy.category = params.mc.id;
-
       // create default size (regular) options
       miCopy.sizeOptions = [];
       let regularSizeOption = new Item();
@@ -407,26 +406,32 @@ export class MenuComponent implements OnInit {
     if (!mi.id) { // new mi
       mi.id = new Date().valueOf() + '';
       // push it to it's mc!
-      newMenus.map(eachMenu => {
-        eachMenu.mcs.map(mc => {
-          if (mc.id === mi.category) {
-            mc.mis = mc.mis || [];
-            mc.mis.push(mi);
-          }
-        });
+      newMenus.forEach(eachMenu => {
+        if (eachMenu.id === this.menu.id) {
+          eachMenu.mcs.forEach(mc => {
+            if (mc.id === mi.category) {
+              mc.mis = mc.mis || [];
+              mc.mis.push(mi);
+            }
+          });
+        }
       });
 
     } else {
       // old Mi, replace everything
-      newMenus.map(menu => menu.mcs.map(category =>
-        category.mis.map(mii => {
-          if (mii.id === mi.id) {
-            for (const prop of Object.keys(mii)) {
-              delete mii[prop];
-            }
-            Object.assign(mii, mi);
-          }
-        })));
+      newMenus.forEach(menu => {
+        if (menu.id === this.menu.id) {
+          menu.mcs.forEach(category =>
+            category.mis.forEach(mii => {
+              if (mii.id === mi.id) {
+                for (const prop of Object.keys(mii)) {
+                  delete mii[prop];
+                }
+                Object.assign(mii, mi);
+              }
+            }));
+        }
+      });
     }
 
     // bug: mi's sizeOptions tied to optionsEditor, which will cause side effects of adding one extra item automatically
