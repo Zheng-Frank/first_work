@@ -140,6 +140,18 @@ export class FraudDetectionComponent implements OnInit {
       let customers = await this.getOrderedCustomersToday();
       match['customerObj._id'] = {$in: customers};
     }
+
+    if (!this.billingDistanceToDeliveryFactor && !this.multipleOrdersPerDayFactor) {
+      let customers = await this.getOrderedCustomersToday();
+      match = {
+        ...match,
+        $or: [
+          {'ccAddress.distanceToStore': {$gt: 200}},
+          {'customerObj._id': {$in: customers}}
+        ]
+      }
+    }
+
     return match;
   }
 
