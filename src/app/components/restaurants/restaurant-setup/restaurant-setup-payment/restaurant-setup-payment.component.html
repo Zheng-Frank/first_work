@@ -62,10 +62,10 @@
     </ng-template>
   </h5>
   <div class="ml-2" *ngIf="restaurant?.courier?.name !== 'Postmates';else cashBlock;">
-    <label>Will you accept cash payment?</label><br>
-    <div class="text-info ml-2" *ngIf="showCallScript">
+    <div class="text-info" *ngIf="showCallScript">
       {{changeLanguageFlag === 'English'? deliveryPaymentCallScript.EnglishCallScript.cash_inquiry : deliveryPaymentCallScript.ChineseCallScript.cash_inquiry}}
     </div>
+    <label>Will you accept cash payment?</label><br>
     <div class="custom-checkbox custom-control-inline ml-2" *ngFor="let opt of deliveryCashOpts">
       <span>
         <input type="radio" (click)="chooseDeliveryCashOpt(opt)" [disabled]="restaurant?.courier?.name === 'Postmates'"
@@ -80,10 +80,10 @@
     </div>
   </ng-template>
   <div class="ml-2">
-    <label>Who should collect credit card payments?</label>
-    <div class="text-info ml-2" *ngIf="showCallScript">
+    <div class="text-info" *ngIf="showCallScript && restaurant?.courier?.name !== 'Postmates'">
       {{changeLanguageFlag === 'English'? deliveryPaymentCallScript.EnglishCallScript.credit_card_inquiry : deliveryPaymentCallScript.ChineseCallScript.credit_card_inquiry}}
     </div>
+    <label>Who should collect credit card payments?</label>
     <div class="ml-2" *ngFor="let party of paymentDeliveryPartys">
       <span>
         <input type="radio" (click)="choosePaymentDeliveryParty(party)"
@@ -93,10 +93,10 @@
     </div>
   </div>
   <div class="ml-2" *ngIf="showPaymentDeliveryMethodOpt()">
-    <label>How would you like to collect credit card payments?</label>
-    <div class="text-info ml-2" *ngIf="showCallScript">
+    <div class="text-info" *ngIf="showCallScript">
       {{changeLanguageFlag === 'English'? deliveryPaymentCallScript.EnglishCallScript.rt_collect_inquiry : deliveryPaymentCallScript.ChineseCallScript.rt_collect_inquiry}}
     </div>
+    <label>How would you like to collect credit card payments?</label>
     <div class="ml-2" *ngFor="let method of deliveryPaymentMethods">
       <span>
         <input type="radio" (click)="choosePaymentDeliveryMethod(method)"
