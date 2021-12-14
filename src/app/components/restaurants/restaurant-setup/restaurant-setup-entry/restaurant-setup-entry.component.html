@@ -44,7 +44,7 @@
         <div class="card-body">
           <app-restaurant-setup-menu #menuPanel *ngIf="!finished.menu" [restaurant]="restaurant"
             (done)="stepDone($event)"></app-restaurant-setup-menu>
-          <app-restaurant-setup-hours #hoursPanel *ngIf="finished.menu" [restaurant]="restaurant"
+          <app-restaurant-setup-hours #hoursPanel *ngIf="finished.menu" [restaurant]="restaurant" [showCallScript]="showCallScript"
             (done)="stepDone($event)"></app-restaurant-setup-hours>
         </div>
       </div>

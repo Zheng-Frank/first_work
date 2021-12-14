@@ -126,11 +126,11 @@ export class RestaurantSetupInvoicingComponent implements OnInit {
       // Have the two questions been answered?
       this.restaurant.serviceSettings.forEach(service => {
         // received
-        if ((service.paymentMethods || []).some(method => method === 'QMENU') && (this.restaurant.paymentMeans || []).some(payment => (payment || {}).direction === paymentDirectionTypes.Receive)) {
+        if ((service.paymentMethods || []).some(method => method === 'QMENU') && this.hasReceivingPaymentMean()) {
           this.showFromQmenuQuestion = false;
         }
         // send to qMenu
-        if ((service.paymentMethods || []).some(method => this.toPaymentTypes.some(type => type === method)) && (this.restaurant.paymentMeans || []).some(payment => (payment || {}).direction === paymentDirectionTypes.Send)) {
+        if ((service.paymentMethods || []).some(method => this.toPaymentTypes.some(type => type === method)) && this.hasSendPaymentMean()) {
           this.showToQmenuQuestion = false;
         }
       });
@@ -142,6 +142,13 @@ export class RestaurantSetupInvoicingComponent implements OnInit {
 
   }
 
+  hasReceivingPaymentMean(){
+    return (this.restaurant.paymentMeans || []).some(payment => (payment || {}).direction === paymentDirectionTypes.Receive);
+  }
+
+  hasSendPaymentMean(){
+    return (this.restaurant.paymentMeans || []).some(payment => (payment || {}).direction === paymentDirectionTypes.Send);
+  }
 
   // Restaurant → qMenu, three types including Credit_Card, Stripe,Quickbooks_ Bank_Withdraw
   showQmenuCheckAddress() {

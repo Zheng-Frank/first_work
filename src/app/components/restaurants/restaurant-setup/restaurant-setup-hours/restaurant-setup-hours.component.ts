@@ -14,8 +14,9 @@ export class RestaurantSetupHoursComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
   @Output() done = new EventEmitter();
-  changeLanguageFlag = this._global.languageType;// this flag decides show English call script or Chinese
+  @Input()
   showCallScript = false; // it will display call script when the switch is opened
+  changeLanguageFlag = this._global.languageType;// this flag decides show English call script or Chinese
 
   constructor(private _api: ApiService, private _global: GlobalService) {
   }

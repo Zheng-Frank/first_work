@@ -1,11 +1,11 @@
 <ng-container *ngIf="serviceSettingsFinished;else elseBlock">
-  <div class="text-info" *ngIf="showCallScript">
+  <div class="text-info" *ngIf="showCallScript && (showToQmenuQuestion || showFromQmenuQuestion)">
     {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.open_remark : invoicingSectionCallScript.ChineseCallScript.open_remark}}
   </div>
   <!-- start with question 1 -->
   <!-- qMenu -> Restaurant -->
   <div class="form-group">
-    <div class="text-muted" *ngIf="showToQmenuQuestion || showFromQmenuQuestion">
+    <div class="text-muted" *ngIf="!showCallScript && (showToQmenuQuestion || showFromQmenuQuestion)">
       If qMenu collects more in payments than your restaurant owes in commissions/fees, we'll send you semimonthly
       payouts. Otherwise, we'll send you an invoice at the end of the month for commissions/fees owed.
     </div>
@@ -262,13 +262,13 @@
   </div>
   <!-- first question finished tip -->
   <div>
-    <label class="text-info" *ngIf="showToQmenuQuestion && !showFromQmenuQuestion">
+    <label class="text-info" *ngIf="hasReceivingPaymentMean()">
       You already have a method to receive payouts from qMenu.
     </label>
   </div>
   <!-- second question finished tip -->
   <div>
-    <label class="text-info" *ngIf="!showToQmenuQuestion && showFromQmenuQuestion">
+    <label class="text-info" *ngIf="hasSendPaymentMean()">
       You already have a method to send payment to qMenu.
     </label>
   </div>

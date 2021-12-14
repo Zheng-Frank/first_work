@@ -103,26 +103,26 @@ export class RestaurantSetupPaymentComponent implements OnInit {
   }
 
   // make pickupPaymentCallScript from exporting becomes inner field of class RestaurantSetupPaymentComponent
-  get pickupPaymentCallScript(){
+  get pickupPaymentCallScript() {
     return pickupPaymentCallScript;
   }
- // make deliveryPaymentCallScript from exporting becomes inner field of class RestaurantSetupPaymentComponent
-  get deliveryPaymentCallScript(){
+  // make deliveryPaymentCallScript from exporting becomes inner field of class RestaurantSetupPaymentComponent
+  get deliveryPaymentCallScript() {
     return deliveryPaymentCallScript;
   }
 
   init() {
-    if(this.restaurant.serviceSettings && this.restaurant.serviceSettings.length > 0){
+    if (this.restaurant.serviceSettings && this.restaurant.serviceSettings.length > 0) {
       this.restaurant.serviceSettings.forEach(service => {
         // pickup 
         if (service.name === this.pickupSaveText && this.isServiceEnabled(service)) {
-          if(service.paymentMethods.some(method => method === this.cashSaveText)){
+          if (service.paymentMethods.some(method => method === this.cashSaveText)) {
             this.pickupCashOpt = pickupCashOptTypes.Yes;
-          }else{
+          } else {
             this.pickupCashOpt = pickupCashOptTypes.No;
           }
           // set other methods except cash, because cash is set in above question
-          let otherMethods = service.paymentMethods.filter(method=>method !== this.cashSaveText);
+          let otherMethods = service.paymentMethods.filter(method => method !== this.cashSaveText);
           otherMethods.forEach(method => {
             if (method === this.qmenuSaveText) {
               this.paymentPickupParty = paymentPickupPartyTypes.Qmenu;
@@ -134,15 +134,15 @@ export class RestaurantSetupPaymentComponent implements OnInit {
             }
           });
         }
-        
+
         // delivery
         if (service.name === this.deliverySaveText && this.isServiceEnabled(service)) {
-          if(service.paymentMethods.some(method => method === this.cashSaveText)){
+          if (service.paymentMethods.some(method => method === this.cashSaveText)) {
             this.deliveryCashOpt = deliveryCashOptTypes.Yes;
-          }else{
+          } else {
             this.deliveryCashOpt = deliveryCashOptTypes.No;
           }
-          let otherMethods = service.paymentMethods.filter(method=>method !== this.cashSaveText);
+          let otherMethods = service.paymentMethods.filter(method => method !== this.cashSaveText);
           otherMethods.forEach(method => {
             if (method === this.qmenuSaveText) {
               this.paymentDeliveryParty = paymentDeliveryPartyTypes.Qmenu;
@@ -267,9 +267,10 @@ export class RestaurantSetupPaymentComponent implements OnInit {
     if (this.deliveryPaymentMethod) {
       deliveryPaymentMethods.push(this.deliveryPaymentMethod);
     }
+    let { serviceSettings = [] } = activeRT;
     // if has pickup or delivery service settings, just update it
-    if (activeRT.serviceSettings.some(seriveSetting => seriveSetting.name === this.pickupSaveText)) {
-      activeRT.serviceSettings.forEach(seriveSetting => {
+    if (serviceSettings.some(seriveSetting => seriveSetting.name === this.pickupSaveText)) {
+      serviceSettings.forEach(seriveSetting => {
         if (seriveSetting.name === this.pickupSaveText) {
           seriveSetting.paymentMethods = pickupPaymentMethods;
         }
@@ -279,11 +280,11 @@ export class RestaurantSetupPaymentComponent implements OnInit {
         name: this.pickupSaveText,
         paymentMethods: pickupPaymentMethods
       }
-      activeRT.serviceSettings.push(serviceSetting);
+      serviceSettings.push(serviceSetting);
     }
 
-    if (activeRT.serviceSettings.some(seriveSetting => seriveSetting.name === this.deliverySaveText)) {
-      activeRT.serviceSettings.forEach(seriveSetting => {
+    if (serviceSettings.some(seriveSetting => seriveSetting.name === this.deliverySaveText)) {
+      serviceSettings.forEach(seriveSetting => {
         if (seriveSetting.name === this.deliverySaveText) {
           seriveSetting.paymentMethods = deliveryPaymentMethods;
         }
@@ -293,12 +294,12 @@ export class RestaurantSetupPaymentComponent implements OnInit {
         name: this.deliverySaveText,
         paymentMethods: deliveryPaymentMethods
       }
-      activeRT.serviceSettings.push(serviceSetting);
+      serviceSettings.push(serviceSetting);
     }
-    
+
     this.done.emit({
       logs: activeRT.logs,
-      serviceSettings: activeRT.serviceSettings
+      serviceSettings: serviceSettings
     });
   }
 

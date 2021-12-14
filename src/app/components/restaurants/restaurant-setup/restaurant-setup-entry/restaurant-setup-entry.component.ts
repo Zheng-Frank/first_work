@@ -1,3 +1,4 @@
+import { filter } from 'rxjs/operators';
 import { ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
 import { Restaurant } from '@qmenu/ui';
 import { environment } from '../../../../../environments/environment';
@@ -74,7 +75,17 @@ export class RestaurantSetupEntryComponent implements OnInit {
 
   // make finalSectionCallScript from exporting becomes inner field of class RestaurantSetupEntryComponent
   get finalSectionCallScript() {
-    return finalSectionCallScript;
+    let newCallScript = JSON.parse(JSON.stringify(finalSectionCallScript));
+    let { people = [] } = this.restaurant;
+    let emailAddress = '';
+    if (people.length > 0) {
+      emailAddress = (people.find(person => person.roles.some(r => r === 'Owner') && person.channels.some(channel => (channel || {}).type === 'Email')).channels || []).find(channel => (channel || {}).type === 'Email').value || '';
+    }
+    if (emailAddress) {
+      newCallScript.ChineseCallScript.final_inquiry = newCallScript.ChineseCallScript.final_inquiry.replace('[XXX]', "" + emailAddress + "");
+      newCallScript.EnglishCallScript.final_inquiry = newCallScript.EnglishCallScript.final_inquiry.replace('[XXX]', "" + emailAddress + "");
+    }
+    return newCallScript;
   }
 
   async stepDone(data) {
