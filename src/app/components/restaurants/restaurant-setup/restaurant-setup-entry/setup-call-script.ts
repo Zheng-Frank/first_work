@@ -140,15 +140,15 @@ const finalSectionCallScript = {
   ChineseCallScript: {
     final_inquiry: `
     好的！ 您的帐户即将准备就绪。 请给我一点时间以确保我们没有遗漏任何东西...... <span class='text-warning'>[访问logs选项卡以检查未完成任务]</span>
-    <br/>- (看来你的账户只剩下 <span class='text-warning'>[剩下步骤]</span>这几个未完成步骤；一帮您完成后就可以开始接受订单了!)
-    <br/>- 我现在准备向您发送一个测试订单，以确保您的订单通知设置已正确配置。 我也会向您发送qMenu的运营协议，可以发送到您的 [XXX] email 地址吗？。<span class='text-warning'>[办理试订手续]</span>
+    <br/>- (看来你的账户只剩下<span class='text-warning'>[剩下步骤]</span>这几个未完成步骤；一帮您完成后就可以开始接受订单了!)
+    <br/>- 我现在准备向您发送一个测试订单，以确保您的订单通知设置已正确配置。 我也会向您发送qMenu的运营协议，可以发送到您的 [XXX] email 地址吗？<span class='text-warning'>[办理试订手续]</span>
     `
   },
   EnglishCallScript: {
     final_inquiry: `
     Perfect! Your account is almost ready. Just give me a moment to make sure I haven't missed anything… <span class='text-warning'>[go to logs tab to check on outstanding tasks]</span>
     <br/>- (It looks like <span class='text-warning'>[PENDING ITEMS]</span> are the only steps left to complete before you can start taking orders!)
-    <br/>- Let me send you a quick test order to ensure you’re properly set up to get notifications. I'll also send over our operating agreement, is [XXX] a good email to send it to?. <span class='text-warning'>[go through test order procedures]</span>
+    <br/>- Let me send you a quick test order to ensure you’re properly set up to get notifications. I'll also send over our operating agreement, is [XXX] a good email to send it to? <span class='text-warning'>[go through test order procedures]</span>
     `
   }
 }

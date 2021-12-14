@@ -56,11 +56,11 @@
 </div>
 
 <div class="form-group text-info" *ngIf="showCallScript">
-  This call script is used only if selecting cloud print notification option type. (只有选中云打印选项时才会使用此电话脚本) <br>
+  This call script is used only if selecting cloud print notification option type. <span class="text-warning">[只有选中云打印选项时才会使用此电话脚本]</span><br>
   (- {{changeLanguageFlag === 'English'? contactSectionCallScript.EnglishCallScript.cloud_print_inquiry :
   contactSectionCallScript.ChineseCallScript.cloud_print_inquiry}})
 </div>
-<div class="form-group text-muted" *ngIf="showCallScript">
+<div class="form-group text-warning" *ngIf="showCallScript">
   NOTE: If no email given for purposes of order notifications, still ask for an email that we can use to send official
   communications to the restaurant <br>
   (如果商家未提供用于接受订单通知的电子邮件，仍要求电子邮件信息，我们可以将官方通讯方式发送给餐馆)
