@@ -1,9 +1,19 @@
-<h5><i class="fas fa-phone-volume"></i> Restaurant Primary Business Phone</h5>
-<div class="form-group">
-  <input type="text" class="form-control" [(ngModel)]="model.primaryBusinessPhone" placeholder="Input a business phone of restaurant">
+<div class="text-info" *ngIf="showCallScript">
+  {{changeLanguageFlag === 'English'? basicSectionCallScript.EnglishCallScript.open_remark : basicSectionCallScript.ChineseCallScript.open_remark}}
 </div>
-<hr/>
+<h5><i class="fas fa-phone-volume"></i> Restaurant Primary Business Phone</h5>
+<div class="text-info" *ngIf="showCallScript">
+  {{changeLanguageFlag === 'English'? basicSectionCallScript.EnglishCallScript.rt_phone_inquiry : basicSectionCallScript.ChineseCallScript.rt_phone_inquiry}}
+</div>
+<div class="form-group">
+  <input type="text" class="form-control" [(ngModel)]="model.primaryBusinessPhone"
+    placeholder="Input a business phone of restaurant">
+</div>
+<hr />
 <h5><i class="fas fa-id-card-alt"></i> Primary contact person</h5>
+<div class="text-info" *ngIf="showCallScript">
+  {{changeLanguageFlag === 'English'? basicSectionCallScript.EnglishCallScript.name_inquiry : basicSectionCallScript.ChineseCallScript.name_inquiry}}
+</div>
 <div class="form-group">
   <label>Title</label>
   <div>
@@ -24,9 +34,8 @@
   <div>
     <div *ngFor="let role of roles" class="custom-control custom-checkbox custom-control-inline">
       <label class="form-check-label">
-        <input class="form-check-input" type="checkbox" [value]="role"
-               (change)="checkRole($event)" name="primaryContactPersonRole"
-               [checked]="model.primaryContactPersonRoles.includes(role)">
+        <input class="form-check-input" type="checkbox" [value]="role" (change)="checkRole($event)"
+          name="primaryContactPersonRole" [checked]="model.primaryContactPersonRoles.includes(role)">
         {{role}}
       </label>
     </div>
@@ -34,13 +43,19 @@
 </div>
 <div class="form-group">
   <label>Cell Phone Number</label>
+  <div class="text-info" *ngIf="showCallScript">
+    {{changeLanguageFlag === 'English'? basicSectionCallScript.EnglishCallScript.cell_phone_inquiry : basicSectionCallScript.ChineseCallScript.cell_phone_inquiry}}
+  </div>
   <input type="text" class="form-control" [(ngModel)]="model.primaryContactPersonPhone">
 </div>
 <div class="form-group">
   <label>Time Estimate for Pickup</label>
+  <div class="text-info" *ngIf="showCallScript">
+    {{changeLanguageFlag === 'English'? basicSectionCallScript.EnglishCallScript.pickup_inquiry : basicSectionCallScript.ChineseCallScript.pickup_inquiry}}
+  </div>
   <input type="number" class="form-control" [(ngModel)]="model.pickupTimeEstimate">
 </div>
-<hr/>
+<hr />
 
 <h5>
   <div><i class="fas fa-globe"></i> Existing Website</div>
@@ -48,17 +63,25 @@
     No website? No problem! qMenu can create a website for your restaurant for free (Write "None" if no website).
   </small>
 </h5>
+<div class="text-info" *ngIf="showCallScript">
+  {{changeLanguageFlag === 'English'? basicSectionCallScript.EnglishCallScript.web_inquiry : basicSectionCallScript.ChineseCallScript.web_inquiry}}
+</div>
 <div class="form-group">
   <div class="form-check" *ngFor="let website of existingWebsites">
     <label class="form-check-label">
-      <input class="form-check-input" type="radio" name="existingWebsite" [value]="website" [(ngModel)]="existingWebsite"> {{website}}
+      <input class="form-check-input" type="radio" name="existingWebsite" [value]="website"
+        [(ngModel)]="existingWebsite"> {{website}}
     </label>
   </div>
-  <input type="text" *ngIf="existingWebsite === 'Other'" [(ngModel)]="model.website" class="form-control" placeholder="Input an existing website">
+  <input type="text" *ngIf="existingWebsite === 'Other'" [(ngModel)]="model.website" class="form-control"
+    placeholder="Input an existing website">
 </div>
 
 <div class="form-group">
   <label>Local Tax Rate</label>
+  <div class="text-info" *ngIf="showCallScript">
+    {{changeLanguageFlag === 'English'? basicSectionCallScript.EnglishCallScript.tax_rate_inquiry : basicSectionCallScript.ChineseCallScript.tax_rate_inquiry}}
+  </div>
   <button class="btn btn-sm btn-link" (click)="copyToClipboard(restaurant?.googleAddress?.formatted_address)">
     <i *ngIf="!isCopiedToClipboard" class="fas fa-clipboard"></i>
     <i *ngIf="isCopiedToClipboard" class="fas fa-check"></i>
@@ -69,5 +92,5 @@
 </div>
 
 <div class="form-group text-end">
-  <button type="button" class="btn btn-primary btn-lg" (click)="save()" ><i class="fa fa-save"></i> Save</button>
+  <button type="button" class="btn btn-primary btn-lg" (click)="save()"><i class="fa fa-save"></i> Save</button>
 </div>

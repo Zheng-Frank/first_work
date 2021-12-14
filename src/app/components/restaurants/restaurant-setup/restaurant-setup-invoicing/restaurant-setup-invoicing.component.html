@@ -1,13 +1,19 @@
 <ng-container *ngIf="serviceSettingsFinished;else elseBlock">
+  <div class="text-info" *ngIf="showCallScript && (showToQmenuQuestion || showFromQmenuQuestion)">
+    {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.open_remark : invoicingSectionCallScript.ChineseCallScript.open_remark}}
+  </div>
   <!-- start with question 1 -->
   <!-- qMenu -> Restaurant -->
   <div class="form-group">
-    <div class="text-muted" *ngIf="showToQmenuQuestion || showFromQmenuQuestion">
+    <div class="text-muted" *ngIf="!showCallScript && (showToQmenuQuestion || showFromQmenuQuestion)">
       If qMenu collects more in payments than your restaurant owes in commissions/fees, we'll send you semimonthly
       payouts. Otherwise, we'll send you an invoice at the end of the month for commissions/fees owed.
     </div>
     <div *ngIf="showFromQmenuQuestion">
-      <label>If/when receiving payouts from qMenu, which do you prefer?</label>
+      <label class="mb-0">If/when receiving payouts from qMenu, which do you prefer?</label>
+      <div class="text-info" *ngIf="showCallScript">
+        {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.receiving_inquiry : invoicingSectionCallScript.ChineseCallScript.receiving_inquiry}}
+      </div>
       <div class="ml-2" *ngFor="let opt of invoicingFromQmenuOpts">
         <span>
           <input type="radio" (click)="chooseInvoicingFromQmenuOpt(opt)"
@@ -25,23 +31,26 @@
   <!-- start with check deposit info -->
   <!-- qMenu → Restaurant -->
   <div class="form-group mt-2" *ngIf="showFromQmenuQuestion && showDepositInfo()">
-    <label>Check Recipient Info</label>
+    <label class="mb-0">Check Recipient Info</label>
+    <div class="text-info" *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.recipient_inquiry : invoicingSectionCallScript.ChineseCallScript.recipient_inquiry}}
+    </div>
     <div class="ml-2">
-      <label>Payee Name</label>
+      <label class="mb-0">Payee Name</label>
       <div class="text-muted">
         To whom (or to which entity) should we address the check? Please modify if desired.
       </div>
       <input type="text" class="form-control" [(ngModel)]="depositInfoModel.name" placeholder="">
     </div>
     <div class="ml-2 mt-1">
-      <label>Payee address</label>
+      <label class="mb-0">Payee address</label>
       <div class="text-muted">
         Your check will be mailed to this address. Please modify if desired.
       </div>
       <input type="text" class="form-control" [(ngModel)]="depositInfoModel.address" placeholder="">
     </div>
     <div class="ml-2 mt-1">
-      <label>Memo</label>
+      <label class="mb-0">Memo</label>
       <input type="text" class="form-control" [(ngModel)]="depositInfoModel.memo" placeholder="">
     </div>
     <hr>
@@ -51,21 +60,24 @@
   <!-- start with bank info -->
   <!-- qMenu → Restaurant -->
   <div class="form-group mt-2" *ngIf="showFromQmenuQuestion && showDirectDepositMemo() && !showDirectWithdrawalMemo()">
-    <label>Bank Info</label>
+    <label class="mb-0">Bank Info</label>
+    <div class="text-info" *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.bank_detail_inquiry : invoicingSectionCallScript.ChineseCallScript.bank_detail_inquiry}}
+    </div>
     <div class="ml-2">
-      <label>Name on Check</label>
+      <label class="mb-0">Name on Check</label>
       <input type="text" class="form-control" [(ngModel)]="bankInfoModel.name" placeholder="">
     </div>
     <div class="ml-2 mt-1">
-      <label>Billing Address</label>
+      <label class="mb-0">Billing Address</label>
       <input type="text" class="form-control" [(ngModel)]="bankInfoModel.address" placeholder="">
     </div>
     <div class="ml-2 mt-1">
-      <label>Routing Number</label>
+      <label class="mb-0">Routing Number</label>
       <input type="text" class="form-control" [(ngModel)]="bankInfoModel.routingNumber" placeholder="">
     </div>
     <div class="ml-2 mt-1">
-      <label>Account Number</label>
+      <label class="mb-0">Account Number</label>
       <input type="text" class="form-control" [(ngModel)]="bankInfoModel.accountNumber" placeholder="">
     </div>
     <div class="ml-2 mt-1">
@@ -75,7 +87,7 @@
       </label>
     </div>
     <div class="ml-2 mt-1" *ngIf="showDirectDepositMemo()">
-      <label>Memo</label>
+      <label class="mb-0">Memo</label>
       <input type="text" class="form-control" [(ngModel)]="bankInfoModel.memo_direct_deposit" placeholder="">
     </div>
     <hr>
@@ -86,7 +98,10 @@
   <!-- start with question2 -->
   <!-- Restaurant to qMenu -->
   <div class="form-group" *ngIf="showToQmenuQuestion">
-    <label>If/when sending payment to qMenu, which do you prefer?</label>
+    <label class="mb-0">If/when sending payment to qMenu, which do you prefer?</label>
+    <div class="text-info" *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.send_inquiry : invoicingSectionCallScript.ChineseCallScript.send_inquiry}}
+    </div>
     <div class="ml-2" *ngFor="let opt of invoicingToQmenuOpts">
       <span>
         <input type="radio" (click)="chooseInvoicingToQmenuOpt(opt)" [checked]="invoicingToQmenuOpt === opt.value">
@@ -109,7 +124,7 @@
       <small>Suwanee, GA 30024</small>
     </div>
     <div class="ml-2">
-      <label>Memo</label>
+      <label class="mb-0">Memo</label>
       <input type="text" class="form-control" [(ngModel)]="checkAddressMemo" placeholder="">
     </div>
     <hr>
@@ -119,31 +134,34 @@
   <!-- start with bank info -->
   <!-- Restaurant → qMenu -->
   <div class="form-group mt-2" *ngIf="showToQmenuQuestion && !showDirectDepositMemo() && showDirectWithdrawalMemo()">
-    <label>Bank Info</label>
+    <label class="mb-0">Bank Info</label>
+    <div class="text-info" *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.bank_detail_inquiry : invoicingSectionCallScript.ChineseCallScript.bank_detail_inquiry}}
+    </div>
     <div class="ml-2">
-      <label>Name on Check</label>
+      <label class="mb-0">Name on Check</label>
       <input type="text" class="form-control" [(ngModel)]="bankInfoModel.name" placeholder="">
     </div>
     <div class="ml-2 mt-1">
-      <label>Billing Address</label>
+      <label class="mb-0">Billing Address</label>
       <input type="text" class="form-control" [(ngModel)]="bankInfoModel.address" placeholder="">
     </div>
     <div class="ml-2 mt-1">
-      <label>Routing Number</label>
+      <label class="mb-0">Routing Number</label>
       <input type="text" class="form-control" [(ngModel)]="bankInfoModel.routingNumber" placeholder="">
     </div>
     <div class="ml-2 mt-1">
-      <label>Account Number</label>
+      <label class="mb-0">Account Number</label>
       <input type="text" class="form-control" [(ngModel)]="bankInfoModel.accountNumber" placeholder="">
     </div>
     <div class="ml-2 mt-1">
-      <label>
+      <label class="mb-0">
         <input type="checkbox" class="mt-2" placeholder="" [(ngModel)]="bankOneTime">
         I agree to have this payment method charged recurrently
       </label>
     </div>
     <div class="ml-2 mt-1">
-      <label>Memo</label>
+      <label class="mb-0">Memo</label>
       <input type="text" class="form-control" [(ngModel)]="bankInfoModel.memo_direct_withdrawal" placeholder="">
     </div>
     <hr>
@@ -154,35 +172,38 @@
   <!-- qMenu → Restaurant or  Restaurant → qMenu -->
   <div class="form-group mt-2"
     *ngIf="showToQmenuQuestion && showFromQmenuQuestion && !toQmenuFinished && showDirectDepositMemo() && showDirectWithdrawalMemo()">
-    <label>Bank Info</label>
+    <label class="mb-0">Bank Info</label>
+    <div class="text-info" *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.bank_detail_inquiry : invoicingSectionCallScript.ChineseCallScript.bank_detail_inquiry}}
+    </div>
     <div class="ml-2">
-      <label>Name on Check</label>
+      <label class="mb-0">Name on Check</label>
       <input type="text" class="form-control" [(ngModel)]="bankInfoModel.name" placeholder="">
     </div>
     <div class="ml-2 mt-1">
-      <label>Billing Address</label>
+      <label class="mb-0">Billing Address</label>
       <input type="text" class="form-control" [(ngModel)]="bankInfoModel.address" placeholder="">
     </div>
     <div class="ml-2 mt-1">
-      <label>Routing Number</label>
+      <label class="mb-0">Routing Number</label>
       <input type="text" class="form-control" [(ngModel)]="bankInfoModel.routingNumber" placeholder="">
     </div>
     <div class="ml-2 mt-1">
-      <label>Account Number</label>
+      <label class="mb-0">Account Number</label>
       <input type="text" class="form-control" [(ngModel)]="bankInfoModel.accountNumber" placeholder="">
     </div>
     <div class="ml-2 mt-1">
-      <label>
+      <label class="mb-0">
         <input type="checkbox" class="mt-2" placeholder="" [(ngModel)]="bankOneTime">
         I agree to have this payment method charged recurrently
       </label>
     </div>
     <div class="ml-2 mt-1">
-      <label>Memo <span>(regarding direct deposit)</span></label>
+      <label class="mb-0">Memo <span>(regarding direct deposit)</span></label>
       <input type="text" class="form-control" [(ngModel)]="bankInfoModel.memo_direct_deposit" placeholder="">
     </div>
     <div class="ml-2 mt-1">
-      <label>Memo <span>(regarding direct withdrawal)</span></label>
+      <label class="mb-0">Memo <span>(regarding direct withdrawal)</span></label>
       <input type="text" class="form-control" [(ngModel)]="bankInfoModel.memo_direct_withdrawal" placeholder="">
     </div>
     <hr>
@@ -192,25 +213,28 @@
   <!-- start with credit card detail -->
   <!-- Restaurant → qMenu -->
   <div class="form-group mt-2" *ngIf="showToQmenuQuestion && showCreditCardDetail()">
-    <label>Credit Card Details</label>
+    <label class="mb-0">Credit Card Details</label>
+    <div class="text-info" *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.card_detail_inquiry : invoicingSectionCallScript.ChineseCallScript.card_detail_inquiry}}
+    </div>
     <div class="ml-2">
-      <label>First and Last Names on Card</label>
+      <label class="mb-0">First and Last Names on Card</label>
       <input type="text" class="form-control" [(ngModel)]="creditCardInfoModel.name" placeholder="">
     </div>
     <div class="ml-2 mt-1">
-      <label>Credit Card Number</label>
+      <label class="mb-0">Credit Card Number</label>
       <input type="text" class="form-control" [(ngModel)]="creditCardInfoModel.cardNumber" placeholder="">
     </div>
     <div class="ml-2 mt-1">
-      <label>CVV</label>
+      <label class="mb-0">CVV</label>
       <input type="text" class="form-control" [(ngModel)]="creditCardInfoModel.cvc" placeholder="">
     </div>
     <div class="ml-2 mt-1">
-      <label>Expiry</label>
+      <label class="mb-0">Expiry</label>
       <input type="date" class="form-control" [(ngModel)]="creditCardInfoModel.expiry" placeholder="">
     </div>
     <div class="ml-2 mt-1">
-      <label>Zip Code</label>
+      <label class="mb-0">Zip Code</label>
       <input type="text" class="form-control" [(ngModel)]="creditCardInfoModel.zipcode" placeholder="">
     </div>
     <div class="ml-2 mt-1">
@@ -220,7 +244,7 @@
       </label>
     </div>
     <div class="ml-2 mt-1">
-      <label>Memo</label>
+      <label class="mb-0">Memo</label>
       <input type="text" class="form-control" [(ngModel)]="creditCardInfoModel.memo" placeholder="">
     </div>
     <hr>
@@ -238,14 +262,14 @@
   </div>
   <!-- first question finished tip -->
   <div>
-    <label class="text-info" *ngIf="showToQmenuQuestion && !showFromQmenuQuestion">
+    <label class="text-info" *ngIf="hasReceivingPaymentMean()">
       You already have a method to receive payouts from qMenu.
     </label>
   </div>
   <!-- second question finished tip -->
   <div>
-    <label class="text-info" *ngIf="!showToQmenuQuestion && showFromQmenuQuestion">
-     You already have a method to send payment to qMenu.
+    <label class="text-info" *ngIf="hasSendPaymentMean()">
+      You already have a method to send payment to qMenu.
     </label>
   </div>
 </ng-container>

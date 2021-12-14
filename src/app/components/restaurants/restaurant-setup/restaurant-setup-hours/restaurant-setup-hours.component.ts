@@ -1,7 +1,9 @@
+import { GlobalService } from 'src/app/services/global.service';
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {Hour, Menu, Restaurant} from '@qmenu/ui';
 import {ApiService} from '../../../../services/api.service';
 import {Helper} from '../../../../classes/helper';
+import { hoursSectionCallScript } from '../restaurant-setup-entry/setup-call-script';
 
 @Component({
   selector: 'app-restaurant-setup-hours',
@@ -12,8 +14,11 @@ export class RestaurantSetupHoursComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
   @Output() done = new EventEmitter();
+  @Input()
+  showCallScript = false; // it will display call script when the switch is opened
+  changeLanguageFlag = this._global.languageType;// this flag decides show English call script or Chinese
 
-  constructor(private _api: ApiService) {
+  constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
   hours = [];
@@ -24,6 +29,10 @@ export class RestaurantSetupHoursComponent implements OnInit {
     if (googleListing && googleListing.hours) {
       this.hours = Helper.parseGMBHours(googleListing.hours, timezone);
     }
+  }
+// make hoursSectionCallScript from exporting becomes inner field of class RestaurantSetupHoursComponent
+  get hoursSectionCallScript(){
+    return hoursSectionCallScript;
   }
 
   deleteHour(index) {

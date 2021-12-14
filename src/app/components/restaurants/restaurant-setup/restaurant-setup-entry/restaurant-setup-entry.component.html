@@ -1,9 +1,22 @@
+<div class="form-group">
+  <span class="ml-2 mr-2">Show call script (显示呼叫脚本)</span>
+  <q-toggle [(ngModel)]="showCallScript" (change)="toggleShowCallScript()" class="mr-2"></q-toggle>
+</div>
+<div class="form-group text-info" *ngIf="showCallScript">
+  NOTE: The blue wording below is to help you communicate easily with the restaurant while helping them set up their
+  account.
+  <br> (Wording in parentheses should be used depending on the situation and the restaurant's answers to previous
+  questions)
+  <br> 下面的蓝色文字是为了帮助您在帮助餐厅建立账户的同时，轻松与他们沟通。
+  <br> (根据情况和餐厅对之前问题的回答，合理使用括号中的话术)
+</div>
 <div class="setup-root">
   <div id="setup-accordion" class="accordion setup-body">
     <div class="card">
       <div class="card-header" id="heading-basic">
         <h2 class="mb-0 d-flex">
-          <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse-basic" aria-expanded="true" aria-controls="collapse-basic">
+          <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+            data-target="#collapse-basic" aria-expanded="true" aria-controls="collapse-basic">
             Basic Info
           </button>
           <i class="fa fa-angle-{{accordion.basic}}"></i>
@@ -12,14 +25,16 @@
 
       <div id="collapse-basic" class="collapse" aria-labelledby="heading-basic">
         <div class="card-body">
-          <app-restaurant-setup-basic #basicPanel [restaurant]="restaurant" (done)="stepDone($event)"></app-restaurant-setup-basic>
+          <app-restaurant-setup-basic #basicPanel [restaurant]="restaurant" (done)="stepDone($event)">
+          </app-restaurant-setup-basic>
         </div>
       </div>
     </div>
     <div class="card">
       <div class="card-header" id="heading-menu">
         <h2 class="mb-0 d-flex">
-          <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapse-menu" aria-expanded="false" aria-controls="collapse-menu">
+          <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse"
+            data-target="#collapse-menu" aria-expanded="false" aria-controls="collapse-menu">
             Menu Setup
           </button>
           <i class="fa fa-angle-{{accordion.menu}}"></i>
@@ -27,15 +42,18 @@
       </div>
       <div id="collapse-menu" class="collapse" aria-labelledby="heading-menu">
         <div class="card-body">
-          <app-restaurant-setup-menu *ngIf="!finished.menu" [restaurant]="restaurant" (done)="stepDone($event)"></app-restaurant-setup-menu>
-          <app-restaurant-setup-hours *ngIf="finished.menu" [restaurant]="restaurant" (done)="stepDone($event)"></app-restaurant-setup-hours>
+          <app-restaurant-setup-menu #menuPanel *ngIf="!finished.menu" [restaurant]="restaurant"
+            (done)="stepDone($event)"></app-restaurant-setup-menu>
+          <app-restaurant-setup-hours #hoursPanel *ngIf="finished.menu" [restaurant]="restaurant" [showCallScript]="showCallScript"
+            (done)="stepDone($event)"></app-restaurant-setup-hours>
         </div>
       </div>
     </div>
     <div class="card">
       <div class="card-header" id="heading-contact">
         <h2 class="mb-0 d-flex">
-          <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapse-contact" aria-expanded="false" aria-controls="collapse-contact">
+          <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse"
+            data-target="#collapse-contact" aria-expanded="false" aria-controls="collapse-contact">
             Contact Methods/Notifications
           </button>
           <i class="fa fa-angle-{{accordion.contact}}"></i>
@@ -43,14 +61,16 @@
       </div>
       <div id="collapse-contact" class="collapse" aria-labelledby="heading-contact">
         <div class="card-body">
-          <app-restaurant-setup-contact #contactPanel [restaurant]="restaurant" (done)="stepDone($event)"></app-restaurant-setup-contact>
+          <app-restaurant-setup-contact #contactPanel [restaurant]="restaurant" (done)="stepDone($event)">
+          </app-restaurant-setup-contact>
         </div>
       </div>
     </div>
     <div class="card">
       <div class="card-header" id="heading-delivery">
         <h2 class="mb-0 d-flex">
-          <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapse-delivery" aria-expanded="false" aria-controls="collapse-delivery">
+          <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse"
+            data-target="#collapse-delivery" aria-expanded="false" aria-controls="collapse-delivery">
             Delivery
           </button>
           <i class="fa fa-angle-{{accordion.delivery}}"></i>
@@ -58,7 +78,8 @@
       </div>
       <div id="collapse-delivery" class="collapse" aria-labelledby="heading-delivery">
         <div class="card-body">
-          <app-restaurant-setup-delivery #deliveryPanel [restaurant]="restaurant" (done)="stepDone($event)"></app-restaurant-setup-delivery>
+          <app-restaurant-setup-delivery #deliveryPanel [restaurant]="restaurant" (done)="stepDone($event)">
+          </app-restaurant-setup-delivery>
         </div>
       </div>
     </div>
@@ -66,7 +87,8 @@
     <div class="card">
       <div class="card-header" id="heading-payment">
         <h2 class="mb-0 d-flex">
-          <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapse-payment" aria-expanded="false" aria-controls="collapse-payment">
+          <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse"
+            data-target="#collapse-payment" aria-expanded="false" aria-controls="collapse-payment">
             Payment
           </button>
           <i class="fa fa-angle-{{accordion.payment}}"></i>
@@ -74,7 +96,8 @@
       </div>
       <div id="collapse-payment" class="collapse" aria-labelledby="heading-payment">
         <div class="card-body">
-          <app-restaurant-setup-payment #paymentPanel [restaurant]="restaurant" (done)="stepDone($event)"></app-restaurant-setup-payment>
+          <app-restaurant-setup-payment #paymentPanel [restaurant]="restaurant" (done)="stepDone($event)">
+          </app-restaurant-setup-payment>
         </div>
       </div>
     </div>
@@ -83,7 +106,8 @@
     <div class="card">
       <div class="card-header" id="heading-invoicing">
         <h2 class="mb-0 d-flex">
-          <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapse-invoicing" aria-expanded="false" aria-controls="collapse-invoicing">
+          <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse"
+            data-target="#collapse-invoicing" aria-expanded="false" aria-controls="collapse-invoicing">
             Invoicing
           </button>
           <i class="fa fa-angle-{{accordion.invoicing}}"></i>
@@ -91,7 +115,8 @@
       </div>
       <div id="collapse-invoicing" class="collapse" aria-labelledby="heading-invoicing">
         <div class="card-body">
-          <app-restaurant-setup-invoicing #invoicingPanel [restaurant]="restaurant" (done)="stepDone($event)"></app-restaurant-setup-invoicing>
+          <app-restaurant-setup-invoicing #invoicingPanel [restaurant]="restaurant" (done)="stepDone($event)">
+          </app-restaurant-setup-invoicing>
         </div>
       </div>
     </div>
@@ -101,11 +126,20 @@
   <div class="p-1">
     <h5>Finalize Account</h5>
     <div>
-      NOTE: After filling out the information above, be sure to go to the Logs tab to see which action items are remaining.
+      NOTE: After filling out the information above, be sure to go to the Logs tab to see which action items are
+      remaining.
+    </div>
+    <div class="text-info" *ngIf="showCallScript">
+      <div *ngIf="changeLanguageFlag === 'English';else languageBlock"
+        [innerHTML]="finalSectionCallScript.EnglishCallScript.final_inquiry"></div>
+      <ng-template #languageBlock>
+        <div [innerHTML]="finalSectionCallScript.ChineseCallScript.final_inquiry">
+        </div>
+      </ng-template>
     </div>
   </div>
   <div class="setup-note" [ngClass]="{'open': showNotes}" [ngStyle]="{top: top + 'px'}">
-    <span class="trigger" (click)="showNotes = !showNotes" >
+    <span class="trigger" (click)="showNotes = !showNotes">
       <i class="fa fa-angle-double-{{showNotes ? 'right': 'left'}}"></i>
     </span>
     <label class="title">Notes</label>

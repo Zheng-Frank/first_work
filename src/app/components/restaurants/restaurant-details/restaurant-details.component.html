@@ -216,7 +216,7 @@
         <app-restaurant-diagnostics [restaurant]="restaurant"></app-restaurant-diagnostics>
       </div>
       <div *ngIf="activeTab === 'Setup'">
-        <app-restaurant-setup-entry [restaurant]="restaurant"></app-restaurant-setup-entry>
+        <app-restaurant-setup-entry #restaurantSetupEntry [restaurant]="restaurant"></app-restaurant-setup-entry>
       </div>
 
       <div *ngIf="activeTab === 'Others'">

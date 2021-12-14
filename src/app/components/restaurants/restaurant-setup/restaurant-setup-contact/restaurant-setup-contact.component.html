@@ -1,38 +1,71 @@
 <h5><i class="fas fa-bell"></i> Order Notifications</h5>
 <div class="form-group">
-  <label>How would you like to receive incoming order notifications ? (Check all that apply)</label>
+  <label class="mb-0">How would you like to receive incoming order notifications ? (Check all that apply)</label>
+  <div class="text-info" *ngIf="showCallScript">
+    {{changeLanguageFlag === 'English'? contactSectionCallScript.EnglishCallScript.open_remark : contactSectionCallScript.ChineseCallScript.open_remark}}
+  </div>
   <div>
     <div class="custom-control custom-checkbox custom-control-inline" *ngFor="let channel of channels">
       <label class="form-check-label">
-        <input class="form-check-input" type="checkbox" [checked]="checkedChannels.includes(channel)" [value]="channel" (change)="checkChannel($event)">
+        <input class="form-check-input" type="checkbox" [checked]="checkedChannels.includes(channel)" [value]="channel"
+          (change)="checkChannel($event)">
         {{channel}}</label>
     </div>
   </div>
 </div>
 
 <div class="form-group">
-  <label>Phone number (for receiving order notification calls)</label>
-  <input type="text" [(ngModel)]="phoneNumber" (change)="inputChanged(notifyChannels.Phone)" class="form-control" placeholder="Input a phone number">
+  <label class="mb-0">Phone number (for receiving order notification calls)</label>
+  <div class="text-info" *ngIf="showCallScript">
+    {{changeLanguageFlag === 'English'? contactSectionCallScript.EnglishCallScript.bizphone_inquiry : contactSectionCallScript.ChineseCallScript.bizphone_inquiry}}
+  </div>
+  <input type="text" [(ngModel)]="phoneNumber" (change)="inputChanged(notifyChannels.Phone)" class="form-control"
+    placeholder="Input a phone number">
 </div>
 
 <div class="form-group">
-  <label><i class="fas fa-fax"></i> Fax Number</label>
-  <input type="text" [(ngModel)]="faxNumber" (change)="inputChanged(notifyChannels.Fax)" class="form-control" placeholder="Input a fax number">
+  <label class="mb-0"><i class="fas fa-fax"></i> Fax Number</label>
+  <div class="text-info" *ngIf="showCallScript">
+    {{changeLanguageFlag === 'English'? contactSectionCallScript.EnglishCallScript.fax_inquiry : contactSectionCallScript.ChineseCallScript.fax_inquiry}}
+  </div>
+  <input type="text" [(ngModel)]="faxNumber" (change)="inputChanged(notifyChannels.Fax)" class="form-control"
+    placeholder="Input a fax number">
 </div>
 
 <div class="form-group">
-  <label><i class="fas fa-envelope"></i> Email</label>
-  <small class="form-text text-muted">
-    This can be the restaurant's official email or the owner/manager's email address
-  </small>
-  <input type="text" [(ngModel)]="emailAddress" (change)="inputChanged(notifyChannels.Email)" class="form-control" placeholder="Input an email">
+  <label class="mb-0"><i class="fas fa-envelope"></i> Email</label>
+  <h5>
+    <small class="form-text text-muted">
+      This can be the restaurant's official email or the owner/manager's email address
+    </small>
+  </h5>
+  <div class="text-info" *ngIf="showCallScript">
+    {{changeLanguageFlag === 'English'? contactSectionCallScript.EnglishCallScript.email_inquiry : contactSectionCallScript.ChineseCallScript.email_inquiry}}
+  </div>
+  <input type="text" [(ngModel)]="emailAddress" (change)="inputChanged(notifyChannels.Email)" class="form-control"
+    placeholder="Input an email">
 </div>
 
 <div class="form-group">
-  <label><i class="fas fa-comments"></i> Cell Phone Number (SMS)</label>
-  <input type="text" [(ngModel)]="smsNumber" (change)="inputChanged(notifyChannels.SMS)" class="form-control" placeholder="Input a cell phone number (SMS)">
+  <label class="mb-0"><i class="fas fa-comments"></i> Cell Phone Number (SMS)</label>
+  <div class="text-info" *ngIf="showCallScript">
+    {{changeLanguageFlag === 'English'? contactSectionCallScript.EnglishCallScript.cellphone_inquiry : contactSectionCallScript.ChineseCallScript.cellphone_inquiry}}
+  </div>
+  <input type="text" [(ngModel)]="smsNumber" (change)="inputChanged(notifyChannels.SMS)" class="form-control"
+    placeholder="Input a cell phone number (SMS)">
 </div>
 
+<div class="form-group text-info" *ngIf="showCallScript">
+  This call script is used only if selecting cloud print notification option type. <span class="text-warning">[只有选中云打印选项时才会使用此电话脚本]</span><br>
+  (- {{changeLanguageFlag === 'English'? contactSectionCallScript.EnglishCallScript.cloud_print_inquiry :
+  contactSectionCallScript.ChineseCallScript.cloud_print_inquiry}})
+</div>
+<div class="form-group text-warning" *ngIf="showCallScript">
+  NOTE: If no email given for purposes of order notifications, still ask for an email that we can use to send official
+  communications to the restaurant <br>
+  (如果商家未提供用于接受订单通知的电子邮件，仍要求电子邮件信息，我们可以将官方通讯方式发送给餐馆)
+</div>
 <div class="form-group text-end">
-  <button class="btn btn-primary btn-lg" [disabled]="!canSave()" (click)="save()" type="button"><i class="fa fa-save"></i> Save</button>
+  <button class="btn btn-primary btn-lg" [disabled]="!canSave()" (click)="save()" type="button"><i
+      class="fa fa-save"></i> Save</button>
 </div>

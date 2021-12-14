@@ -1,5 +1,7 @@
+import { GlobalService } from './../../../../services/global.service';
 import { EventEmitter } from '@angular/core';
 import { Component, OnInit, Input, Output } from '@angular/core';
+import { invoicingSectionCallScript } from '../restaurant-setup-entry/setup-call-script';
 
 enum invoicingFromQmenuTypes {
   Get_Check = 'Get a check in the mail',
@@ -89,11 +91,18 @@ export class RestaurantSetupInvoicingComponent implements OnInit {
   serviceSettingsFinished = false;
   showToQmenuQuestion = false;// decided to show question one, qMenu → Restaurant
   showFromQmenuQuestion = false;// decided to show question one, Restaurant → qMenu
-  constructor() { }
+  changeLanguageFlag = this._global.languageType;// this flag decides show English call script or Chinese
+  showCallScript = false;// it will display call script when the switch is opened
+
+  constructor(private _global: GlobalService) { }
 
   async ngOnInit() {
     // await this.getRestaurantExample();
     this.init();
+  }
+// make invoicingSectionCallScript from exporting becomes inner field of class RestaurantSetupInvoicingComponent
+  get invoicingSectionCallScript(){
+    return invoicingSectionCallScript;
   }
 
   isServiceEnabled(service) {
@@ -117,11 +126,11 @@ export class RestaurantSetupInvoicingComponent implements OnInit {
       // Have the two questions been answered?
       this.restaurant.serviceSettings.forEach(service => {
         // received
-        if ((service.paymentMethods || []).some(method => method === 'QMENU') && (this.restaurant.paymentMeans || []).some(payment => (payment || {}).direction === paymentDirectionTypes.Receive)) {
+        if ((service.paymentMethods || []).some(method => method === 'QMENU') && this.hasReceivingPaymentMean()) {
           this.showFromQmenuQuestion = false;
         }
         // send to qMenu
-        if ((service.paymentMethods || []).some(method => this.toPaymentTypes.some(type => type === method)) && (this.restaurant.paymentMeans || []).some(payment => (payment || {}).direction === paymentDirectionTypes.Send)) {
+        if ((service.paymentMethods || []).some(method => this.toPaymentTypes.some(type => type === method)) && this.hasSendPaymentMean()) {
           this.showToQmenuQuestion = false;
         }
       });
@@ -133,6 +142,13 @@ export class RestaurantSetupInvoicingComponent implements OnInit {
 
   }
 
+  hasReceivingPaymentMean(){
+    return (this.restaurant.paymentMeans || []).some(payment => (payment || {}).direction === paymentDirectionTypes.Receive);
+  }
+
+  hasSendPaymentMean(){
+    return (this.restaurant.paymentMeans || []).some(payment => (payment || {}).direction === paymentDirectionTypes.Send);
+  }
 
   // Restaurant → qMenu, three types including Credit_Card, Stripe,Quickbooks_ Bank_Withdraw
   showQmenuCheckAddress() {

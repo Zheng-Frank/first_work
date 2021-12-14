@@ -1,7 +1,8 @@
-import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
-import {environment} from '../../../../../environments/environment';
-import {ApiService} from '../../../../services/api.service';
-import {Restaurant} from '@qmenu/ui';
+import { GlobalService } from 'src/app/services/global.service';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ApiService } from '../../../../services/api.service';
+import { Restaurant } from '@qmenu/ui';
+import { contactSectionCallScript } from '../restaurant-setup-entry/setup-call-script';
 
 enum NotifyChannels {
   Phone = 'Phone',
@@ -37,16 +38,22 @@ export class RestaurantSetupContactComponent implements OnInit {
     [NotifyChannels.Email]: '',
     [NotifyChannels.Fax]: ''
   };
-
-  constructor(private _api: ApiService) {
+  changeLanguageFlag = this._global.languageType;// this flag decides show English call script or Chinese
+  showCallScript = false;// it will display call script when the switch is opened
+  constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
   ngOnInit() {
     this.init();
   }
 
+  // make contactSectionCallScript from exporting becomes inner field of class RestaurantSetupContactComponent
+  get contactSectionCallScript() {
+    return contactSectionCallScript;
+  }
+
   init() {
-    let {googleListing = {}, people = [], logs = [], channels = [], orderNotifications = []} = this.restaurant;
+    let { googleListing = {}, people = [], logs = [], channels = [], orderNotifications = [] } = this.restaurant;
     let person = people[0] || {};
     let sms = (person.channels || []).find(x => x.type === 'SMS') || {};
     let phone = channels.find(x => x.type === 'Phone') || {};
@@ -66,6 +73,15 @@ export class RestaurantSetupContactComponent implements OnInit {
       [NotifyChannels.Fax]: this.faxNumber,
       [NotifyChannels.Email]: this.emailAddress
     };
+    // init call script according to some existing information.
+    if (this.phoneNumber) {
+      contactSectionCallScript.ChineseCallScript.bizphone_inquiry = contactSectionCallScript.ChineseCallScript.bizphone_inquiry.replace('[XXX]', "[" + this.phoneNumber + "]");
+      contactSectionCallScript.EnglishCallScript.bizphone_inquiry = contactSectionCallScript.EnglishCallScript.bizphone_inquiry.replace('[XXX]', "[" + this.phoneNumber + "]");
+    }
+    if (this.smsNumber) {
+      contactSectionCallScript.ChineseCallScript.cellphone_inquiry = contactSectionCallScript.ChineseCallScript.cellphone_inquiry.replace('[XXX]', "[" + this.smsNumber + "]");
+      contactSectionCallScript.EnglishCallScript.cellphone_inquiry = contactSectionCallScript.EnglishCallScript.cellphone_inquiry.replace('[XXX]', "[" + this.smsNumber + "]");
+    }
   }
 
   get notifyChannels() {
@@ -85,7 +101,7 @@ export class RestaurantSetupContactComponent implements OnInit {
   }
 
   checkChannel(e) {
-    let {target: {checked, value}} = e;
+    let { target: { checked, value } } = e;
     if (checked) {
       this.checkedChannels.push(value);
     } else {
@@ -135,7 +151,7 @@ export class RestaurantSetupContactComponent implements OnInit {
         if (existOrderNotification) {
           if (channel.value) {
             if (this.checkedChannels.includes(ch)) {
-              existOrderNotification.channel = {...channel};
+              existOrderNotification.channel = { ...channel };
               let notes = channel.notifications || [];
               if (!notes.includes('Order')) {
                 channel.notifications = [...notes, 'Order'];
@@ -149,7 +165,7 @@ export class RestaurantSetupContactComponent implements OnInit {
           }
         } else {
           if (channel.value && this.checkedChannels.includes(ch)) {
-            orderNotifications.push({channel: {...channel}});
+            orderNotifications.push({ channel: { ...channel } });
             let notes = channel.notifications || [];
             if (!notes.includes('Order')) {
               channel.notifications = [...notes, 'Order'];
@@ -158,7 +174,7 @@ export class RestaurantSetupContactComponent implements OnInit {
         }
       }
     });
-    this.done.emit({orderNotifications, channels, logs});
+    this.done.emit({ orderNotifications, channels, logs });
   }
 
 }
