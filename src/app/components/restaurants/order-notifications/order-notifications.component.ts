@@ -115,7 +115,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     inputType: "multi-select",
     items: [
       {
-        object: "addLineBreaks", text: "Add Line Breaks on Translations", selected: false
+        object: "addLineBreaks", text: "Add Line Breaks between Translations", selected: false
       },
       // other presets can be added here, they will also need CSS values populated in presetMap
     ]
