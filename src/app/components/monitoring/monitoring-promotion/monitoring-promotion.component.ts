@@ -1,9 +1,9 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
-import {ApiService} from '../../../services/api.service';
-import {GlobalService} from '../../../services/global.service';
-import {environment} from '../../../../environments/environment';
-import {Promotion, Restaurant, TimezoneHelper} from '@qmenu/ui';
-import {AlertType} from '../../../classes/alert-type';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { ApiService } from '../../../services/api.service';
+import { GlobalService } from '../../../services/global.service';
+import { environment } from '../../../../environments/environment';
+import { Promotion, Restaurant, TimezoneHelper } from '@qmenu/ui';
+import { AlertType } from '../../../classes/alert-type';
 
 @Component({
   selector: 'app-monitoring-promotion',
@@ -19,7 +19,7 @@ export class MonitoringPromotionComponent implements OnInit {
   @ViewChild('importModal') importModal;
   @ViewChild('validateModal') validateModal;
   rts = [];
-  restaurant: Restaurant = null;
+  restaurant = null;
   gmbWebsiteOwner = '';
   generalGmbOwners = [];
   majorCompetitorGmbOwners = [];
@@ -35,20 +35,20 @@ export class MonitoringPromotionComponent implements OnInit {
     this.query();
   }
 
-    // our salesperson only wants to know what is the time offset
+  // our salesperson only wants to know what is the time offset
   // between EST and the location of restaurant
-  getTimeOffsetByTimezone(timezone){
-    if(timezone){
+  getTimeOffsetByTimezone(timezone) {
+    if (timezone) {
       let localTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), timezone);
       let ESTTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), 'America/New_York');
-      let offset = (ESTTime.valueOf() - localTime.valueOf())/(3600*1000);
-      return offset > 0 ? "+"+offset.toFixed(0) : offset.toFixed(0);
-    }else{
+      let offset = (ESTTime.valueOf() - localTime.valueOf()) / (3600 * 1000);
+      return offset > 0 ? "+" + offset.toFixed(0) : offset.toFixed(0);
+    } else {
       return 'N/A';
     }
   }
 
-  getTimezoneCity(timezone){
+  getTimezoneCity(timezone) {
     return (timezone || '').split('/')[1] || '';
   }
 
@@ -59,7 +59,7 @@ export class MonitoringPromotionComponent implements OnInit {
   async crawl(rt) {
     try {
       this._global.publishAlert(AlertType.Info, 'Crawling...');
-      const {coupons, error, failedTypes} = await this._api.post(environment.appApiUrl + 'utils/menu', {
+      const { coupons, error, failedTypes } = await this._api.post(environment.appApiUrl + 'utils/menu', {
         name: 'crawl-coupon',
         payload: {
           restaurantId: rt._id,
@@ -81,7 +81,7 @@ export class MonitoringPromotionComponent implements OnInit {
   }
 
   checkCoupon(e) {
-    let {target: {value}} = e;
+    let { target: { value } } = e;
     if (value === 'all') {
       if (this.checkedCoupons.length === this.coupons.length) {
         // already checked all, uncheck all
@@ -108,13 +108,13 @@ export class MonitoringPromotionComponent implements OnInit {
     try {
       this._global.publishAlert(AlertType.Info, 'Update promotions...');
 
-      let {promotions} = this.restaurant;
+      let { promotions } = this.restaurant;
       promotions = promotions || [];
       const newPromotions = [...promotions, ...this.coupons.filter(x => this.checkedCoupons.includes(x.id))];
 
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {_id: this.restaurant['_id'], promotions},
-        new: {_id: this.restaurant['_id'], promotions: newPromotions}
+        old: { _id: this.restaurant['_id'], promotions },
+        new: { _id: this.restaurant['_id'], promotions: newPromotions }
       }]).toPromise();
       this._global.publishAlert(AlertType.Success, 'Promotions updated success!');
       this.importModal.hide();
@@ -147,7 +147,7 @@ export class MonitoringPromotionComponent implements OnInit {
       return;
     }
     let competitors = {};
-    const Providers = {BeyondMenu: 'beyondmenu', CMO: 'chinesemenuonline'};
+    const Providers = { BeyondMenu: 'beyondmenu', CMO: 'chinesemenuonline' };
     rt.promotions.forEach(p => {
       if (p.source && !competitors[p.source]) {
         let provider = rt.providers.find(x => x.name === Providers[p.source]);
@@ -156,7 +156,7 @@ export class MonitoringPromotionComponent implements OnInit {
         }
       }
     });
-    this.competitorSites = Object.entries(competitors).map(([k, v]) => ({name: k, url: v}));
+    this.competitorSites = Object.entries(competitors).map(([k, v]) => ({ name: k, url: v }));
   }
 
   closeModal(modal) {
@@ -170,9 +170,15 @@ export class MonitoringPromotionComponent implements OnInit {
   async updatePromotion(old) {
     try {
       this._global.publishAlert(AlertType.Info, 'Update promotion...');
-      const {_id, promotions} = this.restaurant;
+      let { _id, promotions, dealWithAllPromotions = false} = this.restaurant;
+      // judge whether this restaurant has dealed all promotions and set dealWithAllPromotions flag as true if all was dealed
+      /**
+       * promotion.source = undefined;
+         promotion.expiry = undefined;
+       */
+      dealWithAllPromotions = promotions.every(promotion=> !promotion.source && !promotion.expiry);
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {_id, old}, new: {_id, promotions}
+        old: { _id, old }, new: { _id, promotions, dealWithAllPromotions}
       }]).toPromise();
       this._global.publishAlert(AlertType.Success, 'Promotions updated success!');
       this.stat(this.rts);
@@ -185,7 +191,7 @@ export class MonitoringPromotionComponent implements OnInit {
   }
 
   async approve(promotion) {
-    let {promotions} = this.restaurant;
+    let { promotions } = this.restaurant;
     promotions = JSON.parse(JSON.stringify(promotions));
     promotion.source = undefined;
     promotion.expiry = undefined;
@@ -193,7 +199,7 @@ export class MonitoringPromotionComponent implements OnInit {
   }
 
   async reject(promotion: Promotion) {
-    let {promotions} = this.restaurant;
+    let { promotions } = this.restaurant;
     promotions = JSON.parse(JSON.stringify(promotions));
     const index = promotions.findIndex(x => x.id === promotion.id);
     this.restaurant.promotions.splice(index, 1);
@@ -228,7 +234,7 @@ export class MonitoringPromotionComponent implements OnInit {
         || (rt.promotions.every(p => p.expiry && new Date(p.expiry).valueOf() < Date.now()));
     });
 
-    const generalCountMap = {empty: 0, qmenu: 0, unknown: 0};
+    const generalCountMap = { empty: 0, qmenu: 0, unknown: 0 };
     const specificCountMap = {};
 
     this.rts.forEach(rt => {
@@ -236,7 +242,7 @@ export class MonitoringPromotionComponent implements OnInit {
         rt.hasError = true;
       }
       if (rt.googleListing && rt.googleListing.gmbOwner) {
-        const {gmbOwner} = rt.googleListing;
+        const { gmbOwner } = rt.googleListing;
         if (generalCountMap.hasOwnProperty(gmbOwner)) {
           generalCountMap[gmbOwner]++;
         } else {
@@ -248,10 +254,10 @@ export class MonitoringPromotionComponent implements OnInit {
     });
 
     this.generalGmbOwners = [
-      {owner: 'qmenu', count: generalCountMap.qmenu},
-      {owner: 'not-qmenu', count: this.rts.length - generalCountMap.qmenu},
-      {owner: 'unknown', count: generalCountMap.unknown},
-      {owner: 'empty', count: generalCountMap.empty}
+      { owner: 'qmenu', count: generalCountMap.qmenu },
+      { owner: 'not-qmenu', count: this.rts.length - generalCountMap.qmenu },
+      { owner: 'unknown', count: generalCountMap.unknown },
+      { owner: 'empty', count: generalCountMap.empty }
     ];
 
     const competitors = Object.keys(specificCountMap).map(k => ({
@@ -270,9 +276,10 @@ export class MonitoringPromotionComponent implements OnInit {
     const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
-        $or: [{disabled: false}, {disabled: {$exists: false}}]
+        dealWithAllPromotions: { $ne: true },
+        $or: [{ disabled: false }, { disabled: { $exists: false } }]
       },
-      projection: {'googleListing.gmbOwner': 1, name: 1, _id: 1, promotions: 1, providers: 1, 'googleAddress.timezone': 1},
+      projection: { 'googleListing.gmbOwner': 1, name: 1, _id: 1, promotions: 1, providers: 1, 'googleAddress.timezone': 1 },
     }, 3000);
 
     this.stat(rts);
