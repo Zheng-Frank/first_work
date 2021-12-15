@@ -241,7 +241,6 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
   }
 
   submit(event) {
-    console.log(event);
     const cloned = this.handleCustomRenderingPresets(JSON.parse(JSON.stringify(this.notificationInEditing)));
     const index = this.orderNotifications.indexOf(this.originalNotification);
     const oldOrderNotifications = JSON.parse(JSON.stringify(this.orderNotifications));
@@ -258,8 +257,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
       cloned.menuFilters = JSON.parse(JSON.stringify(this.menuFilters));
     }
 
-    console.log(this.orderNotifications);
-    // this.patchDiff(this.orderNotifications, oldOrderNotifications);
+    this.patchDiff(this.orderNotifications, oldOrderNotifications);
     this.modalNotification.hide();
     this.notificationInEditing = {};
     event.acknowledge(null);
@@ -454,7 +452,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
       // other preset values can be added here
     };
 
-    notification.customizedRenderingPresets.forEach(preset => {
+    (notification.customizedRenderingPresets || []).forEach(preset => {
       notification.customizedRenderingStyles += presetMap[preset];
     });
 
