@@ -108,18 +108,31 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     inputType: "textarea",
   };
 
+  customizedRenderingPresetsDescriptor = {
+    field: "customizedRenderingPresets",
+    label: "Customized Rendering Presets",
+    required: false,
+    inputType: "multi-select",
+    items: [
+      {
+        object: "addLineBreaks", text: "Add Line Breaks on Translations", selected: false
+      },
+      // other presets can be added here, they will also need CSS values populated in presetMap
+    ]
+  };
+
   notificationFieldDescriptors: any = [
     this.channelDescriptor,
   ];
 
   validFieldDescriptorMap = {
     SMS: [this.channelDescriptor, this.orderTypesDescriptor],
-    Fax: [this.channelDescriptor, this.orderTypesDescriptor, this.customizedRenderingStylesDescriptor],
+    Fax: [this.channelDescriptor, this.orderTypesDescriptor, this.customizedRenderingStylesDescriptor, this.customizedRenderingPresetsDescriptor],
     Phone: [this.channelDescriptor, this.orderTypesDescriptor],
-    Email: [this.channelDescriptor, this.orderTypesDescriptor],
+    Email: [this.channelDescriptor, this.orderTypesDescriptor, this.languagesDescriptor],
     'fei-e': [this.channelDescriptor, this.orderTypesDescriptor, this.copiesDescriptor],
-    'longhorn': [this.channelDescriptor, this.orderTypesDescriptor, this.copiesDescriptor],
-    'phoenix': [this.channelDescriptor, this.orderTypesDescriptor, this.formatDescriptor, this.templateNameDescriptor, this.languagesDescriptor, this.copiesDescriptor, this.customizedRenderingStylesDescriptor],
+    'longhorn': [this.channelDescriptor, this.orderTypesDescriptor, this.copiesDescriptor, this.languagesDescriptor, this.customizedRenderingPresetsDescriptor],
+    'phoenix': [this.channelDescriptor, this.orderTypesDescriptor, this.formatDescriptor, this.templateNameDescriptor, this.languagesDescriptor, this.copiesDescriptor, this.customizedRenderingStylesDescriptor, this.customizedRenderingPresetsDescriptor],
   }
 
   menuFilters = [];
@@ -219,16 +232,17 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     // let's also remove irrelevant fields
     const uselessFields = Object.keys(this.notificationInEditing).filter(k => !this.notificationFieldDescriptors.map(fd => fd.field).some(f => f === k));
     const infoIndex = uselessFields.findIndex(entry => entry === 'info');
-    if (infoIndex >= 0 ) {
+    if (infoIndex >= 0) {
       // we don't want to create a visible UI section for the notification's "info" property, but if it exists we want to preserve it
       // remove the uselessFields entry for 'info' property so that it won't be deleted on the next line
-      uselessFields.splice(infoIndex, 1); 
+      uselessFields.splice(infoIndex, 1);
     }
     uselessFields.map(f => delete this.notificationInEditing[f]);
   }
 
   submit(event) {
-    const cloned = JSON.parse(JSON.stringify(this.notificationInEditing));
+    console.log(event);
+    const cloned = this.handleCustomRenderingPresets(JSON.parse(JSON.stringify(this.notificationInEditing)));
     const index = this.orderNotifications.indexOf(this.originalNotification);
     const oldOrderNotifications = JSON.parse(JSON.stringify(this.orderNotifications));
     if (index >= 0) {
@@ -244,7 +258,8 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
       cloned.menuFilters = JSON.parse(JSON.stringify(this.menuFilters));
     }
 
-    this.patchDiff(this.orderNotifications, oldOrderNotifications);
+    console.log(this.orderNotifications);
+    // this.patchDiff(this.orderNotifications, oldOrderNotifications);
     this.modalNotification.hide();
     this.notificationInEditing = {};
     event.acknowledge(null);
@@ -428,5 +443,23 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
       }
     }
     return url;
+  }
+
+  handleCustomRenderingPresets(notification) {
+    if ((notification.customizedRenderingPresets || []).length && !notification.customizedRenderingStyles) {
+      notification.customizedRenderingStyles = "";
+    }
+    const presetMap = {
+      addLineBreaks: ".translated::before {content: '\A' !important;}",
+      // other preset values can be added here
+    };
+
+    notification.customizedRenderingPresets.forEach(preset => {
+      notification.customizedRenderingStyles += presetMap[preset];
+    });
+
+    delete notification.customizedRenderingPresets;
+
+    return notification;
   }
 }
