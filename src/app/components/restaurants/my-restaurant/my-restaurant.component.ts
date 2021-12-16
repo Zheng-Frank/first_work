@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Restaurant } from '@qmenu/ui';
+import {Restaurant, TimezoneHelper} from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
@@ -670,8 +670,7 @@ export class MyRestaurantComponent implements OnInit {
   // 02~ by rate 2 (use the latest in same month), rate 1 skipped
   // case 3. 2020-01-01 ~ , user 1, rate 1, 2020-05-06 ~, user 2, rate 2
   // 02~05 use rate 1 for user 1, 06 ~ use rate 2 for user 2
-  getCommissionPeriods(row) {
-    let { rateSchedules, feeSchedules, googleAddress: {timezone} } = row.restaurant;
+  getCommissionPeriods(feeSchedules, rateSchedules, timezone) {
     // periods: { '2020-01': { commission: 1, timestamp: xxx } }
     let periods = this.commissionByRateSchedules(rateSchedules, timezone);
     if (feeSchedules && feeSchedules.length) {
@@ -686,13 +685,12 @@ export class MyRestaurantComponent implements OnInit {
     let dict = {};
     schedules.filter(x => x.chargeBasis.toLowerCase() === 'commission').forEach(({fromTime, toTime, rate, payee}) => {
       let commission = (payee === this.username ? rate : 0) || 0;
-      // todo: timezone issue
-      let temp = new Date(fromTime);
+      let temp = TimezoneHelper.getTimezoneDateFromBrowserDate(fromTime, timezone);
       temp.setDate(1);
       temp.setHours(0, 0, 0, 0);
       temp.setMonth(temp.getMonth() + 1);
       let key = `${temp.getFullYear()}-${Helper.padNumber(temp.getMonth() + 1)}`;
-      let start = new Date(fromTime);
+      let start = TimezoneHelper.getTimezoneDateFromBrowserDate(fromTime, timezone);
       if (dict[key]) {
         let {timestamp} = dict[key];
         if (timestamp <= start.valueOf()) {
@@ -702,7 +700,7 @@ export class MyRestaurantComponent implements OnInit {
         dict[key] = { timestamp: start.valueOf(), commission }
       }
       if (toTime) {
-        let end = new Date(toTime);
+        let end = TimezoneHelper.getTimezoneDateFromBrowserDate(toTime, timezone);
         while (temp.valueOf() < end.valueOf()) {
           temp.setMonth(temp.getMonth() + 1);
           key = `${temp.getFullYear()}-${Helper.padNumber(temp.getMonth() + 1)}`;
@@ -721,17 +719,16 @@ export class MyRestaurantComponent implements OnInit {
   }
 
   commissionByRateSchedules(schedules, timezone) {
-    // should skip non-agent's schedule
-    let dict = {}, nonAgents = ['none', 'auto', 'qmenu', 'invalid', 'no-gmb'];
-    schedules.filter(x => !nonAgents.includes(x.agent)).forEach(({date, agent, commission}) => {
+    // should exclude non-agent's schedule
+    let dict = {}, nonAgents = ['none', 'auto', 'AUTO', 'random_name', 'qmenu', 'invalid', 'no-gmb'];
+    schedules.filter(x => x.agent && !nonAgents.includes(x.agent)).forEach(({date, agent, commission}) => {
       commission = (agent === this.username ? commission : 0) || 0;
-      // todo: timezone issue
-      let temp = new Date(date);
+      let temp = TimezoneHelper.parse(date, timezone);
       temp.setDate(1);
       temp.setHours(0, 0, 0, 0);
       temp.setMonth(temp.getMonth() + 1);
       let key = `${temp.getFullYear()}-${Helper.padNumber(temp.getMonth() + 1)}`;
-      let start = new Date(date);
+      let start = TimezoneHelper.parse(date, timezone);
       if (dict[key]) {
         let {timestamp} = dict[key];
         if (timestamp <= start.valueOf()) {
@@ -749,13 +746,16 @@ export class MyRestaurantComponent implements OnInit {
     row.notCollected = 0;
     row.earned = 0;
     row.notEarned = 0;
-    let periods = this.getCommissionPeriods(row);
+    let { rateSchedules, feeSchedules, googleAddress: {timezone} } = row.restaurant;
+    let periods = this.getCommissionPeriods(feeSchedules, rateSchedules, timezone);
     let latest = periods[0] || {commission: 0};
     row.commission = latest.commission || 0;
     row.invoices.forEach(invoice => {
       const commissionAdjustment = invoice.adjustment - invoice.transactionAdjustment;
       let temp = invoice.commission - commissionAdjustment;
-      let period = periods.find(p => new Date(p.period).valueOf() < new Date(invoice.fromDate).valueOf());
+      let period = periods.find(p => {
+        return Helper.getTimezoneDate('start', timezone, `${p.period}-01`).valueOf() <= invoice.fromDate.valueOf();
+      });
       if (period) {
         let { commission } = period;
         if (invoice.paid) {
