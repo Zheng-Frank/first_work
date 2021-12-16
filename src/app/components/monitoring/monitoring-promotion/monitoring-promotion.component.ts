@@ -170,7 +170,7 @@ export class MonitoringPromotionComponent implements OnInit {
   async updatePromotion(old) {
     try {
       this._global.publishAlert(AlertType.Info, 'Update promotion...');
-      let { _id, promotions, dealWithAllPromotions = false} = this.restaurant;
+      let { _id, promotions } = this.restaurant;
       // judge whether this restaurant has dealed all promotions and set dealWithAllPromotions flag as true if all was dealed
       /**
        * promotion.source = undefined;
