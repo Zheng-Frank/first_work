@@ -176,9 +176,14 @@ export class MonitoringPromotionComponent implements OnInit {
        * promotion.source = undefined;
          promotion.expiry = undefined;
        */
-      dealWithAllPromotions = promotions.every(promotion=> !promotion.source && !promotion.expiry);
+      let allPromotionsHasDealt = promotions.every(promotion=> !promotion.source && !promotion.expiry);
+      let newObj = { _id, promotions};
+      if(allPromotionsHasDealt){
+        newObj['dealtWithAllPromotionsAt'] = new Date();
+      }
+
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: { _id, old }, new: { _id, promotions, dealWithAllPromotions}
+        old: { _id, old }, new: newObj
       }]).toPromise();
       this._global.publishAlert(AlertType.Success, 'Promotions updated success!');
       this.stat(this.rts);
@@ -276,7 +281,7 @@ export class MonitoringPromotionComponent implements OnInit {
     const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
-        dealWithAllPromotions: { $ne: true },
+        dealtWithAllPromotionsAt: { $exists: false },
         $or: [{ disabled: false }, { disabled: { $exists: false } }]
       },
       projection: { 'googleListing.gmbOwner': 1, name: 1, _id: 1, promotions: 1, providers: 1, 'googleAddress.timezone': 1 },
