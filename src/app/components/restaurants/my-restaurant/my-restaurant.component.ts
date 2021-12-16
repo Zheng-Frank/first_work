@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { Restaurant } from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
-import { GlobalService } from "../../../services/global.service";;
+import { GlobalService } from "../../../services/global.service";
 import { Invoice } from 'src/app/classes/invoice';
+import {Helper} from '../../../classes/helper';
 
 @Component({
   selector: 'app-my-restaurant',
@@ -112,7 +113,7 @@ export class MyRestaurantComponent implements OnInit {
       sort: (a, b) => {
         a = a.split("/");
         b = b.split("/");
-        //return new Date(a[1], a[0]) > new Date(b[1], b[0])
+        // return new Date(a[1], a[0]) > new Date(b[1], b[0])
         return new Date(a[1], a[0]).valueOf() - new Date(b[1], b[0]).valueOf()
       }
 
@@ -445,9 +446,11 @@ export class MyRestaurantComponent implements OnInit {
       projection: {
         name: 1,
         "googleAddress.formatted_address": 1,
+        "googleAddress.timezone": 1,
         disabled: 1,
         createdAt: 1,
         rateSchedules: 1,
+        feeSchedules: 1,
         salesBase: 1,
         salesBonus: 1,
         salesThreeMonthAverage: 1,
@@ -532,7 +535,7 @@ export class MyRestaurantComponent implements OnInit {
         projection: {
           isCanceled: 1,
           commission: 1,
-          feesForQmenu:1,
+          feesForQmenu: 1,
           fromDate: 1,
           toDate: 1,
           isPaymentCompleted: 1,
@@ -541,7 +544,7 @@ export class MyRestaurantComponent implements OnInit {
           adjustment: 1,
           transactionAdjustment: 1,
           createdAt: 1,
-          //previousBalance: 1
+          // previousBalance: 1
         },
         skip: skip,
         limit: limit
@@ -556,53 +559,42 @@ export class MyRestaurantComponent implements OnInit {
     }
 
     invoices = invoices.filter(i => !i.isCanceled).filter(i => restaurantRowMap[i.restaurant.id]);
-    invoices.map(i => restaurantRowMap[i.restaurant.id].invoices.push(i));
+    const invoiceMap = {};
+    invoices.forEach(i => {
+      restaurantRowMap[i.restaurant.id].invoices.push(i);
+      invoiceMap[i._id] = i;
+    });
 
     this.rolledInvoiceIdsSet = new Set(invoices.filter(invoice => invoice.previousInvoiceId).map(invoice => invoice.previousInvoiceId));
 
     // make invoice as finally collected (if an invoice's paid, its rolled ancestors are also paid):
-    const markAncestorsAsCollected = function (invoice, invoices) {
+    const markAncestorsAsCollected = function (invoice) {
       if (invoice.previousInvoiceId) {
-        const previousInvoice = invoices.filter(i => i._id === invoice.previousInvoiceId)[0];
+        const previousInvoice = invoiceMap[invoice.previousInvoiceId];
         if (previousInvoice) {
           previousInvoice.paid = true;
-          markAncestorsAsCollected(previousInvoice, invoices);
+          markAncestorsAsCollected(previousInvoice);
         } else {
           console.log('Not found previous invoice!', invoice);
         }
       }
     }
 
-    invoices.map(invoice => {
+    invoices.forEach(invoice => {
       if (invoice.isPaymentCompleted) {
         invoice.paid = true;
-        markAncestorsAsCollected(invoice, invoices);
+        markAncestorsAsCollected(invoice);
       }
     });
 
-    this.rows.map(row => row.collected = row.invoices.reduce((sum, invoice) => {
-      const commisionAdjustment = invoice.adjustment - invoice.transactionAdjustment;
-      return sum + (invoice.paid ? (invoice.commission - commisionAdjustment) : 0);
-    }, 0));
-
-    this.rows.map(row => row.notCollected = row.invoices.reduce((sum, invoice) => {
-      const commisionAdjustment = invoice.adjustment - invoice.transactionAdjustment;
-      return sum + (invoice.paid ? 0 : (invoice.commission - commisionAdjustment));
-    }, 0));
-
-    this.rows.map(row => {
-      row.commission = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].commission || 0;
-      // row.adjustment = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].commission || 0;
+    this.rows.forEach(row => {
+      this.calculateRowCommission(row);
       row.rate = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].rate || 0;
-
       row.fixed = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].fixed || 0;
-
-      row.earned = row.commission * row.collected;
-      row.notEarned = row.commission * row.notCollected;
 
       const invoiceRequiredCutoffDate = new Date('2019-09-11');
       const invoiceMustPayCutoffDate = new Date('2020-02-19');
-      //const invoiceCheckOk = new Date(row.restaurant.createdAt).valueOf() < invoiceRequiredCutoffDate.valueOf() || row.invoices.length > 0;
+      // const invoiceCheckOk = new Date(row.restaurant.createdAt).valueOf() < invoiceRequiredCutoffDate.valueOf() || row.invoices.length > 0;
       const veryOldRestaurant = new Date(row.restaurant.createdAt).valueOf() < invoiceRequiredCutoffDate.valueOf();
       const havingPaid = row.invoices.some(i => i.isPaymentCompleted);
       const beforeMustPayOk = row.invoices.some(i => new Date(i.createdAt).valueOf() < invoiceMustPayCutoffDate.valueOf());
@@ -669,6 +661,112 @@ export class MyRestaurantComponent implements OnInit {
     this.currentPublishedTotal = this.rows.reduce((sum, a) => sum + (a.published || 0), 0);
 
 
+  }
+
+  // use commission for 1 month delay
+  // case 1. 2020-01-01 ~ 2020-03-04, rate 1, 2020-03-06 ~ , rate 2
+  // 02~03 by rate 1, 04 by rate 2
+  // case 2. 2020-01-01 ~ 2020-01-20, rate 1, 2020-01-30 ~ , rate 2
+  // 02~ by rate 2 (use the latest in same month), rate 1 skipped
+  // case 3. 2020-01-01 ~ , user 1, rate 1, 2020-05-06 ~, user 2, rate 2
+  // 02~05 use rate 1 for user 1, 06 ~ use rate 2 for user 2
+  getCommissionPeriods(row) {
+    let { rateSchedules, feeSchedules, googleAddress: {timezone} } = row.restaurant;
+    // periods: { '2020-01': { commission: 1, timestamp: xxx } }
+    let periods = this.commissionByRateSchedules(rateSchedules, timezone);
+    if (feeSchedules && feeSchedules.length) {
+      periods = this.commissionByFeeSchedules(feeSchedules, timezone);
+    }
+    // @ts-ignore
+    return Object.entries(periods).map(([key, {commission}]) => ({ period: key, commission }))
+      .sort((a, b) => new Date(b.period).valueOf() - new Date(a.period).valueOf())
+  }
+
+  commissionByFeeSchedules(schedules, timezone) {
+    let dict = {};
+    schedules.filter(x => x.chargeBasis.toLowerCase() === 'commission').forEach(({fromTime, toTime, rate, payee}) => {
+      let commission = (payee === this.username ? rate : 0) || 0;
+      // todo: timezone issue
+      let temp = new Date(fromTime);
+      temp.setDate(1);
+      temp.setHours(0, 0, 0, 0);
+      temp.setMonth(temp.getMonth() + 1);
+      let key = `${temp.getFullYear()}-${Helper.padNumber(temp.getMonth() + 1)}`;
+      let start = new Date(fromTime);
+      if (dict[key]) {
+        let {timestamp} = dict[key];
+        if (timestamp <= start.valueOf()) {
+          dict[key] = { timestamp: start.valueOf(), commission }
+        }
+      } else {
+        dict[key] = { timestamp: start.valueOf(), commission }
+      }
+      if (toTime) {
+        let end = new Date(toTime);
+        while (temp.valueOf() < end.valueOf()) {
+          temp.setMonth(temp.getMonth() + 1);
+          key = `${temp.getFullYear()}-${Helper.padNumber(temp.getMonth() + 1)}`;
+          if (dict[key]) {
+            let {timestamp} = dict[key];
+            if (timestamp <= end.valueOf()) {
+              dict[key] = { timestamp: end.valueOf(), commission }
+            }
+          } else {
+            dict[key] = { timestamp: end.valueOf(), commission }
+          }
+        }
+      }
+    })
+    return dict;
+  }
+
+  commissionByRateSchedules(schedules, timezone) {
+    // should skip non-agent's schedule
+    let dict = {}, nonAgents = ['none', 'auto', 'qmenu', 'invalid', 'no-gmb'];
+    schedules.filter(x => !nonAgents.includes(x.agent)).forEach(({date, agent, commission}) => {
+      commission = (agent === this.username ? commission : 0) || 0;
+      // todo: timezone issue
+      let temp = new Date(date);
+      temp.setDate(1);
+      temp.setHours(0, 0, 0, 0);
+      temp.setMonth(temp.getMonth() + 1);
+      let key = `${temp.getFullYear()}-${Helper.padNumber(temp.getMonth() + 1)}`;
+      let start = new Date(date);
+      if (dict[key]) {
+        let {timestamp} = dict[key];
+        if (timestamp <= start.valueOf()) {
+          dict[key] = { timestamp: start.valueOf(), commission }
+        }
+      } else {
+        dict[key] = { timestamp: start.valueOf(), commission }
+      }
+    });
+    return dict;
+  }
+
+  calculateRowCommission(row) {
+    row.collected = 0;
+    row.notCollected = 0;
+    row.earned = 0;
+    row.notEarned = 0;
+    let periods = this.getCommissionPeriods(row);
+    let latest = periods[0] || {commission: 0};
+    row.commission = latest.commission || 0;
+    row.invoices.forEach(invoice => {
+      const commissionAdjustment = invoice.adjustment - invoice.transactionAdjustment;
+      let temp = invoice.commission - commissionAdjustment;
+      let period = periods.find(p => new Date(p.period).valueOf() < new Date(invoice.fromDate).valueOf());
+      if (period) {
+        let { commission } = period;
+        if (invoice.paid) {
+          row.collected += temp
+          row.earned += temp * commission;
+        } else {
+          row.notCollected += temp;
+          row.notEarned += temp * commission;
+        }
+      }
+    });
   }
 
   getTotal(field) {
