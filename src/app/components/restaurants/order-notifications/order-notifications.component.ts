@@ -448,12 +448,12 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
       notification.customizedRenderingStyles = "";
     }
     const presetMap = {
-      addLineBreaks: ".translated::before {content: '\A' !important;}",
+      addLineBreaks: ".translated::before {content: '\\A' !important;}",
       // other preset values can be added here
     };
 
     (notification.customizedRenderingPresets || []).forEach(preset => {
-      notification.customizedRenderingStyles += presetMap[preset];
+      notification.customizedRenderingStyles += presetMap[preset]
     });
 
     delete notification.customizedRenderingPresets;
