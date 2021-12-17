@@ -131,8 +131,6 @@ export class MenuOptionEditorComponent implements OnInit, OnChanges {
             mpPlacementAmount[size] = mpPlacementAmount[size] || 0;
             mpPlacement[amount] = mpPlacementAmount;
             mp.pricing[placement] = mpPlacement;
-            mp.pricing[placement][amount][size] =
-              mp.pricing[placement][amount][size] || 0;
           })
         })
       });
