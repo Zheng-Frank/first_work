@@ -33,6 +33,8 @@ export class MenuOptionEditorComponent implements OnInit, OnChanges {
   maxQuantities = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Any"];
   minQuantities = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
+  groupedMaterialsAndItems = []; // {materials: a,b,c, pricing: {'left,extra,small': 12}]}
+
   constructor() {}
 
   ngOnInit() {}
@@ -99,23 +101,41 @@ export class MenuOptionEditorComponent implements OnInit, OnChanges {
       .map(v => v.trim())
       .filter(v => v !== "" && v !== null)
       .map(v => arrayObj.push(v));
-    // fillup missing
-    this.groupedMaterialsAndItems.map(mp => {
+    // if anyone is empty, should clear the items data
+    if (!(this.placements.length && this.amounts.length && this.sizes.length)) {
+      this.groupedMaterialsAndItems = [];
+    }
+    this.groupedMaterialsAndItems.forEach(mp => {
+      // first, clean old data
+      Object.keys(mp.pricing).forEach(key => {
+        if (!this.placements.includes(key)) {
+          delete mp.pricing[key]
+        }
+      });
       this.menuOption.items = this.menuOption.items || [];
-      this.placements.map(placement =>
-        this.amounts.map(amount =>
-          this.sizes.map(size => {
-            mp.pricing[placement] = mp.pricing[placement] || {};
-            mp.pricing[placement][amount] = mp.pricing[placement][amount] || {};
-            mp.pricing[placement][amount][size] =
-              mp.pricing[placement][amount][size] || 0;
+      this.placements.forEach(placement => {
+        let mpPlacement = mp.pricing[placement] || {};
+        Object.keys(mpPlacement).forEach(key => {
+          if (!this.amounts.includes(key)) {
+            delete mpPlacement[key];
+          }
+        })
+        this.amounts.forEach(amount => {
+          let mpPlacementAmount = mpPlacement[amount] || {};
+          Object.keys(mpPlacementAmount).forEach(key => {
+            if (!this.sizes.includes(key)) {
+              delete mpPlacementAmount[key]
+            }
           })
-        )
-      );
+          this.sizes.forEach(size => {
+            mpPlacementAmount[size] = mpPlacementAmount[size] || 0;
+            mpPlacement[amount] = mpPlacementAmount;
+            mp.pricing[placement] = mpPlacement;
+          })
+        })
+      });
     });
   }
-
-  groupedMaterialsAndItems = []; // {materials: a,b,c, pricing: {'left,extra,small': 12}]}
 
   add() {
     // making sure we ALWAYS have default placement, size, and amount
