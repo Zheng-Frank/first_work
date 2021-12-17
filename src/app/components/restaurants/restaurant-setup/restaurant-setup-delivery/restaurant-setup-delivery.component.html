@@ -3,12 +3,6 @@
     {{changeLanguageFlag === 'English'? deliverySectionCallScript.EnglishCallScript.open_remark : deliverySectionCallScript.ChineseCallScript.open_remark}}
   </div>
   <label class="mb-0">Does your restaurant offer delivery?</label>
-  <h5>
-    <small class="form-text text-muted">
-      Qmenu facilitates all types of orders placed online, including pickup, delivery, and dine-in. If you don't have
-      your own delivery drivers, we can handle delivery for you.
-    </small>
-  </h5>
   <div class="text-info" *ngIf="showCallScript">
     <div *ngIf="changeLanguageFlag === 'English';else languageBlock"
       [innerHTML]="deliverySectionCallScript.EnglishCallScript.offer_inquiry"></div>
@@ -37,12 +31,7 @@
   <div class="form-group">
     <label class="mb-0">Is Delivery Taxable?</label>
     <div class="text-info" *ngIf="showCallScript">
-      <div *ngIf="changeLanguageFlag === 'English';else languageBlock"
-        [innerHTML]="deliverySectionCallScript.EnglishCallScript.taxable_inquiry"></div>
-      <ng-template #languageBlock>
-        <div [innerHTML]="deliverySectionCallScript.ChineseCallScript.taxable_inquiry">
-        </div>
-      </ng-template>
+      {{changeLanguageFlag === 'English'? deliverySectionCallScript.EnglishCallScript.taxable_inquiry : deliverySectionCallScript.ChineseCallScript.taxable_inquiry}}
     </div>
     <div>
       <div class="custom-control custom-checkbox custom-control-inline">
@@ -62,33 +51,30 @@
 
   <div class="form-group">
     <label class="mb-0">Blocked Cities/Zip Codes (if applicable)</label>
-    <h5>
-      <small class="form-text text-muted">
-        Are there any cities or zip codes to which you do not deliver? Enter each one in comma-separated format (e.g.
-        30305, Peachtree City, 30342, Decatur)
-      </small>
-    </h5>
+    <div class="text-info" *ngIf="showCallScript">
+      <div *ngIf="changeLanguageFlag === 'English';else languageBlock"
+        [innerHTML]="deliverySectionCallScript.EnglishCallScript.city_zip_inquiry"></div>
+      <ng-template #languageBlock>
+        <div [innerHTML]="deliverySectionCallScript.ChineseCallScript.city_zip_inquiry">
+        </div>
+      </ng-template>
+    </div>
     <input type="text" class="form-control" [(ngModel)]="blockedArea">
   </div>
 
   <div class="form-group">
     <label class="mb-0">Time Estimate for Delivery</label>
-    <h5>
-      <small class="form-text text-muted">
-        The time it takes from when you get a new delivery order to the time the food arrives on the customer's
-        doorstep.
-      </small>
-    </h5>
+    <div class="text-info" *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? deliverySectionCallScript.EnglishCallScript.estimate_delivery_inquiry : deliverySectionCallScript.ChineseCallScript.estimate_delivery_inquiry}}
+    </div>
     <input type="text" class="form-control" [(ngModel)]="deliveryTimeEstimate">
   </div>
 
   <div class="form-group">
     <label class="mb-0">Delivery Start Time</label>
-    <h5>
-      <small class="form-text text-muted">
-        At what time will you start accepting new delivery orders (that you deliver yourself)?
-      </small>
-    </h5>
+    <div class="text-info" *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? deliverySectionCallScript.EnglishCallScript.start_time_inquiry : deliverySectionCallScript.ChineseCallScript.start_time_inquiry}}
+    </div>
     <select class="form-control" [(ngModel)]="deliveryFromTime">
       <option *ngFor="let startTime of deliveryFromTimes" [value]="startTime.value">{{startTime.text}}</option>
     </select>
@@ -96,11 +82,9 @@
 
   <div class="form-group">
     <label class="mb-0">Delivery End Time</label>
-    <h5>
-      <small class="form-text text-muted">
-        At what time will you stop accepting new delivery orders (that you deliver yourself)?
-      </small>
-    </h5>
+    <div class="text-info" *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? deliverySectionCallScript.EnglishCallScript.end_time_inquiry : deliverySectionCallScript.ChineseCallScript.end_time_inquiry}}
+    </div>
     <select class="form-control" [(ngModel)]="deliveryEndTime">
       <option *ngFor="let endTime of deliveryEndTimes" [value]="endTime.value">{{endTime.text}}</option>
     </select>
@@ -108,12 +92,9 @@
 
   <div class="ml-2 mt-4">
     <label class="mb-0">Delivery Range, Minimum Order Amounts, and Fees</label>
-    <h5>
-      <small class="form-text text-muted">
-        What is your delivery range, what delivery fees do you charge (based on distance), and what are the minimum
-        order amounts for each delivery range? (e.g. 1 mile/$20/$3, 2 miles/$25/$4.50).
-      </small>
-    </h5>
+    <div class="text-info" *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? deliverySectionCallScript.EnglishCallScript.delivery_arrange_inquiry : deliverySectionCallScript.ChineseCallScript.delivery_arrange_inquiry}}
+    </div>
     <div>
       <table class="table table-borderless">
         <thead>

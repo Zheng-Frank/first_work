@@ -2,16 +2,17 @@
 <div class="form-group">
   <h5>
     <div><i class="fas fa-bell"></i> Payment Collection (Pickup orders)</div>
-    <small class="form-text text-muted">
-      If you collect payment, we'll invoice you for commissions/fees owned at the end of the month. If qMenu collects
-      payments, we'll send you semi-monthly payouts of the funds collected (minus our commissions/fees).
-    </small>
   </h5>
-  <div class="text-info ml-2" *ngIf="showCallScript">
-    {{changeLanguageFlag === 'English'? pickupPaymentCallScript.EnglishCallScript.cash_inquiry : pickupPaymentCallScript.ChineseCallScript.cash_inquiry}}
+
+  <div class="text-info" *ngIf="showCallScript">
+    {{changeLanguageFlag === 'English'? pickupPaymentCallScript.EnglishCallScript.open_remark : pickupPaymentCallScript.ChineseCallScript.open_remark}}
   </div>
+
   <div class="ml-2">
-    <label>Will you accept cash payment?</label><br>
+    <label class="mb-0">Cash payment?</label><br>
+    <div class="text-info" *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? pickupPaymentCallScript.EnglishCallScript.cash_inquiry : pickupPaymentCallScript.ChineseCallScript.cash_inquiry}}
+    </div>
     <div class="custom-checkbox custom-control-inline ml-2" *ngFor="let opt of pickupCashOpts">
       <span>
         <input type="radio" (click)="choosePickupCashOpt(opt)" [checked]="pickupCashOpt === opt">
@@ -19,11 +20,12 @@
       </span>
     </div>
   </div>
-  <div class="text-info ml-2" *ngIf="showCallScript">
-    {{changeLanguageFlag === 'English'? pickupPaymentCallScript.EnglishCallScript.credit_card_inquiry : pickupPaymentCallScript.ChineseCallScript.credit_card_inquiry}}
-  </div>
+
   <div class="ml-2">
-    <label>Who should collect credit card payments?</label>
+    <label class="mb-0">Who should collect credit card payments?</label>
+    <div class="text-info" *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? pickupPaymentCallScript.EnglishCallScript.credit_card_inquiry : pickupPaymentCallScript.ChineseCallScript.credit_card_inquiry}}
+    </div>
     <div class="ml-2" *ngFor="let party of paymentPickupPartys">
       <span>
         <input type="radio" (click)="choosePaymentPickupParty(party)" [checked]="paymentPickupParty === party">
@@ -31,11 +33,12 @@
       </span>
     </div>
   </div>
-  <div class="text-info ml-2" *ngIf="showPaymentPickupMethodOpt() && showCallScript">
-    {{changeLanguageFlag === 'English'? pickupPaymentCallScript.EnglishCallScript.rt_collect_inquiry : pickupPaymentCallScript.ChineseCallScript.rt_collect_inquiry}}
-  </div>
+
   <div class="ml-2" *ngIf="showPaymentPickupMethodOpt()">
-    <label>How would you like to collect credit card payments?</label>
+    <label class="mb-0">How would you like to collect credit card payments?</label>
+    <div class="text-info" *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? pickupPaymentCallScript.EnglishCallScript.rt_collect_inquiry : pickupPaymentCallScript.ChineseCallScript.rt_collect_inquiry}}
+    </div>
     <div class="ml-2" *ngFor="let method of pickupPaymentMethods">
       <span>
         <input type="radio" (click)="choosePaymentPickupMethod(method)"
@@ -51,7 +54,7 @@
 <div class="form-group mt-4">
   <h5>
     <i class="fas fa-bell"></i> Payment Collection (Delivery orders)
-    <small class="form-text text-muted" *ngIf="restaurant?.courier?.name === 'Postmates';else tipBlock">
+    <small class="form-text text-info" *ngIf="restaurant?.courier?.name === 'Postmates';else tipBlock">
       For orders delivered through qMenu's courier partners, qMenu will collect payment.
     </small>
     <ng-template #tipBlock>
@@ -62,10 +65,10 @@
     </ng-template>
   </h5>
   <div class="ml-2" *ngIf="restaurant?.courier?.name !== 'Postmates';else cashBlock;">
+    <label class="mb-0">Cash payment?</label><br>
     <div class="text-info" *ngIf="showCallScript">
       {{changeLanguageFlag === 'English'? deliveryPaymentCallScript.EnglishCallScript.cash_inquiry : deliveryPaymentCallScript.ChineseCallScript.cash_inquiry}}
     </div>
-    <label>Will you accept cash payment?</label><br>
     <div class="custom-checkbox custom-control-inline ml-2" *ngFor="let opt of deliveryCashOpts">
       <span>
         <input type="radio" (click)="chooseDeliveryCashOpt(opt)" [disabled]="restaurant?.courier?.name === 'Postmates'"
@@ -80,10 +83,10 @@
     </div>
   </ng-template>
   <div class="ml-2">
+    <label class="mb-0">Who should collect credit card payments?</label>
     <div class="text-info" *ngIf="showCallScript && restaurant?.courier?.name !== 'Postmates'">
       {{changeLanguageFlag === 'English'? deliveryPaymentCallScript.EnglishCallScript.credit_card_inquiry : deliveryPaymentCallScript.ChineseCallScript.credit_card_inquiry}}
     </div>
-    <label>Who should collect credit card payments?</label>
     <div class="ml-2" *ngFor="let party of paymentDeliveryPartys">
       <span>
         <input type="radio" (click)="choosePaymentDeliveryParty(party)"
@@ -93,10 +96,10 @@
     </div>
   </div>
   <div class="ml-2" *ngIf="showPaymentDeliveryMethodOpt()">
+    <label class="mb-0">How would you like to collect credit card payments?</label>
     <div class="text-info" *ngIf="showCallScript">
       {{changeLanguageFlag === 'English'? deliveryPaymentCallScript.EnglishCallScript.rt_collect_inquiry : deliveryPaymentCallScript.ChineseCallScript.rt_collect_inquiry}}
     </div>
-    <label>How would you like to collect credit card payments?</label>
     <div class="ml-2" *ngFor="let method of deliveryPaymentMethods">
       <span>
         <input type="radio" (click)="choosePaymentDeliveryMethod(method)"
