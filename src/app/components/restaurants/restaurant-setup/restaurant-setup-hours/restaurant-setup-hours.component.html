@@ -1,5 +1,5 @@
 <div class="text-info" *ngIf="showCallScript">
-  {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.hours_inquiry : invoicingSectionCallScript.ChineseCallScript.hours_inquiry}}
+  {{changeLanguageFlag === 'English'? hoursSectionCallScript.EnglishCallScript.hours_inquiry : hoursSectionCallScript.ChineseCallScript.hours_inquiry}}
 </div>
 <h5>Store Hours</h5>
 <div *ngIf="restaurant.googleListing?.hours?.length > 0">
