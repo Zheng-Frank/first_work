@@ -31,7 +31,7 @@ export class RootComponent implements OnInit, OnDestroy {
   now = new Date();
   ivrEnabled = false;
   apiRequesting = false;
-  fraudOrderCount = 0;
+  fraudOrderIds = new Set();
   fraudDetectionSubscription = null;
   constructor(private _api: ApiService, private _global: GlobalService, private ref: ChangeDetectorRef,
               private _router: Router, private _connect: AmazonConnectService) {
@@ -71,7 +71,9 @@ export class RootComponent implements OnInit, OnDestroy {
         try {
           if (key === FraudDetectionStorageKey) {
             let data = JSON.parse(newValue);
-            this.fraudOrderCount += data.count;
+            if (data) {
+              data.orderIds.forEach(id => this.fraudOrderIds.add(id))
+            }
           }
         } catch (e) {
           console.log('storage data parsing error...', e);
@@ -89,7 +91,7 @@ export class RootComponent implements OnInit, OnDestroy {
   }
 
   async getOrderedCustomersToday() {
-    let start = Helper.getNewYorkDate('start');
+    let start = Helper.getNewYorkDate('start', '2021-12-16');
     const customers = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'order',
       aggregate: [
@@ -104,8 +106,8 @@ export class RootComponent implements OnInit, OnDestroy {
     return Object.entries(customerOrderCount).filter(([, count]) => count > 1).map(([customerId]) => customerId);
   }
 
-  async queryFraudOrder() {
-    let now = new Date(), time = now.valueOf();
+  async queryFraudOrder(time) {
+    let now = new Date(time);
     let end = TimezoneHelper.getTimezoneDateFromBrowserDate(now, 'America/New_York');
     now.setMinutes(now.getMinutes() - 2);
     let start = TimezoneHelper.getTimezoneDateFromBrowserDate(now, 'America/New_York');
@@ -132,15 +134,19 @@ export class RootComponent implements OnInit, OnDestroy {
           }
         },
         {$sort: {_id: -1}},
+        {$project: {_id: 1}}
       ]
     }).toPromise();
-    let result  = {time, count: orders.length};
+    let result  = {time, orderIds: orders.map(x => x._id)};
     window.localStorage.setItem(FraudDetectionStorageKey, JSON.stringify(result));
+    // window storage event not trigger in current tab, need to update data manually
+    result.orderIds.forEach(id => this.fraudOrderIds.add(id))
   }
 
   async checkFraudOrder(n) {
     try {
       let prev = window.localStorage.getItem(FraudDetectionStorageKey);
+      let time = Date.now().valueOf();
       if (prev) {
         prev = JSON.parse(prev);
         // @ts-ignore
@@ -149,7 +155,8 @@ export class RootComponent implements OnInit, OnDestroy {
           return;
         }
       }
-      await this.queryFraudOrder();
+      window.localStorage.setItem(FraudDetectionStorageKey, JSON.stringify({time, orderIds: []}));
+      await this.queryFraudOrder(time);
     } catch (e) {
       console.log('check fraud order error...', e);
     }
