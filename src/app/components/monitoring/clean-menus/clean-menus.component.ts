@@ -99,7 +99,7 @@ export class CleanMenusComponent implements OnInit {
   async cleanupSave({menus, translations}: any) {
     try {
       await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {_id: this.restaurant['_id'], menus: this.restaurant.menus, translations: this.restaurant.translations},
+        old: {_id: this.restaurant['_id']},
         new: {_id: this.restaurant['_id'], menus, translations}
       }]).toPromise();
       this._global.publishAlert(AlertType.Success, 'Success!');

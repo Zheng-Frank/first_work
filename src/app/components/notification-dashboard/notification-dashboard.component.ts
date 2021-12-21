@@ -173,13 +173,7 @@ export class NotificationDashboardComponent implements OnInit {
       );
     } else {
       await this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=system", [{
-        old: {
-          _id: this.system._id,
-        },
-        new: {
-          _id: this.system._id,
-          templates: newTemplates
-        }
+        old: {_id: this.system._id}, new: {_id: this.system._id, templates: newTemplates}
       }])
         .subscribe(
           result => {

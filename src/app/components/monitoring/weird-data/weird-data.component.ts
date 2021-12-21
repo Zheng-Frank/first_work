@@ -105,7 +105,7 @@ export class WeirdDataComponent implements OnInit {
 
   patchLog(oldRestaurant, updatedRestaurant, acknowledge) {
     this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant',
-      [{ old: { _id: oldRestaurant._id, logs: oldRestaurant.logs }, new: { _id: updatedRestaurant._id, logs: updatedRestaurant.logs } }])
+      [{ old: { _id: oldRestaurant._id }, new: { _id: updatedRestaurant._id, logs: updatedRestaurant.logs } }])
       .subscribe(
         result => {
           // let's update original, assuming everything successful
@@ -125,7 +125,7 @@ export class WeirdDataComponent implements OnInit {
       );
   }
 
-  //note:some restaurant has some Extreme problem data,we should could the data and fix it
+  // note:some restaurant has some Extreme problem data,we should could the data and fix it
   async populateExtremeData() {
     for (const key in this.weridDataListObj) {
       this.weridDataListObj[key] = await this._api.get(environment.qmenuApiUrl + "generic", {

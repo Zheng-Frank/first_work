@@ -504,12 +504,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     } else {
       newObj.notificationExpiry = undefined;
     }
-    this._prunedPatch
-      .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
-        {
-          old: oldObj,
-          new: newObj
-        }])
+    this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+        {old: oldObj, new: newObj}])
       .subscribe(
         result => {
           // let's update original, assuming everything successful

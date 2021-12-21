@@ -181,9 +181,9 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
 
   /**
  *show the warning text: "*** WARNING! Are you sure [PERCENTAGE]% is the correct value? ***"
- *if someone enter an incorrect percentage value 
-  *if someone enter an incorrect percentage value 
- *if someone enter an incorrect percentage value 
+ *if someone enter an incorrect percentage value
+  *if someone enter an incorrect percentage value
+ *if someone enter an incorrect percentage value
  */
   isRateInvalid() {
     return [ChargeBasis.OrderSubtotal, ChargeBasis.OrderPreTotal,
@@ -419,8 +419,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     let newFeeSchedules;
     if (index >= 0) {
       newFeeSchedules = [...this.feeSchedules.slice(0, index), myFs, ...this.feeSchedules.slice(index + 1)];
-    }
-    else {
+    } else {
       myFs.id = new Date().valueOf().toString(); // we use timestamp as id
       newFeeSchedules = [... this.feeSchedules, myFs];
     }
@@ -440,15 +439,14 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     try {
       await this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
         {
-          old: { _id: this.restaurant._id, feeSchedules: [...this.feeSchedules] },
+          old: { _id: this.restaurant._id },
           new: { _id: this.restaurant._id, feeSchedules: newFeeSchedules },
         }]);
       this.feeSchedules = newFeeSchedules;
       this.restaurant['feeSchedules'] = newFeeSchedules;
       acknowledge(null);
       this.modalFeeSchedule.hide();
-    }
-    catch (error) {
+    } catch (error) {
       acknowledge(JSON.stringify(error));
     }
   }

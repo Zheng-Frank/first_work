@@ -100,7 +100,7 @@ export class QrRestaurantListComponent implements OnInit {
   tempQRCodesObtained;
   /* use rtStats to track rt stats. example:
      {
-       "57c4dc97a941661100c642b4": { 
+       "57c4dc97a941661100c642b4": {
          lastKnownAliveTime: "2021-07-03T17:43:36.966Z",
          events:[{
            code: "C2",
@@ -161,12 +161,12 @@ export class QrRestaurantListComponent implements OnInit {
      Has fee schedules (not rate schedules)
      Must have at least one menu with dine-in type (or both dine-in and online)
      Must have fee setting for dine-in specifically:
-     must have at least one fee where: 
-     a) Qmenu is receiving money, 
-     b) the service type includes dine-in, 
-     c) the type is "service fee", 
+     must have at least one fee where:
+     a) Qmenu is receiving money,
+     b) the service type includes dine-in,
+     c) the type is "service fee",
      d) amount/percent is NOT 0.
-     it also need qrSettings.code exists and is not null. 
+     it also need qrSettings.code exists and is not null.
     */
     switch (this.filterType) {
       case QRConfiguredTypes.ALL:
@@ -223,10 +223,10 @@ export class QrRestaurantListComponent implements OnInit {
     this.tempHasQRTraining = this.hasQRTraining;
     this.tempQRCodesMailed = this.qrCodesMailed;
     this.tempQRCodesObtained = this.qrCodesObtained;
-   
+
   }
 
-  // add qr setting filter 
+  // add qr setting filter
   addQRSettingFilters(selectRestaurant, key) {
     /*
       hasSignHolders;
@@ -255,11 +255,11 @@ export class QrRestaurantListComponent implements OnInit {
       );
   }
 
-  // the qr restaurant also has some other features need to show modal and filter. 
+  // the qr restaurant also has some other features need to show modal and filter.
   showQRSettingsFilters() {
     this.QRSettingsFiltersModal.show();
   }
-  // it hides the qrsetttings modal , and counts all qr restaurants. 
+  // it hides the qrsetttings modal , and counts all qr restaurants.
   cancelQRSettingsFilter() {
     this.hasSignHolders = this.tempHasSignHolders;
     this.hasQRTraining = this.tempHasQRTraining;
@@ -267,7 +267,7 @@ export class QrRestaurantListComponent implements OnInit {
     this.qrCodesObtained = this.tempQRCodesObtained;
     this.QRSettingsFiltersModal.hide();
   }
-  // the function is used to hide restaurant whose qr orders more than 20. 
+  // the function is used to hide restaurant whose qr orders more than 20.
   hidenRTsMoreThan20Orders() {
     if (this.hideMore20OrdersFlag) {
       this.qrFilterRestaurantListRows = this.qrFilterRestaurantListRows
@@ -306,7 +306,7 @@ export class QrRestaurantListComponent implements OnInit {
 
   patchLog(oldRestaurant, updatedRestaurant, acknowledge) {
     this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant',
-      [{ old: { _id: oldRestaurant._id, logs: oldRestaurant.logs }, new: { _id: updatedRestaurant._id, logs: updatedRestaurant.logs } }])
+      [{ old: { _id: oldRestaurant._id }, new: { _id: updatedRestaurant._id, logs: updatedRestaurant.logs } }])
       .subscribe(
         result => {
           // let's update original, assuming everything successful
@@ -381,7 +381,7 @@ export class QrRestaurantListComponent implements OnInit {
       }
       let agent = restaurant.qrSettings.agent || 'None';
       restaurant.qrSettings.agent = agent; // it also needs to give row's agent a default value to avoid undefined condition.
-      
+
       if (this.qrSalespeople.indexOf(agent) === -1) {
         this.qrSalespeople.push(agent);
       }
