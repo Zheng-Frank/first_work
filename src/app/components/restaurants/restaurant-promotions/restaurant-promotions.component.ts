@@ -93,15 +93,8 @@ export class RestaurantPromotionsComponent implements OnInit {
       );
     } else {
       // api update here...
-      this._prunedPatch
-        .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
-          old: {
-            _id: this.restaurant['_id'],
-            promotions: oldPromotions
-          }, new: {
-            _id: this.restaurant['_id'],
-            promotions: newPromotions
-          }
+      this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+          old: {_id: this.restaurant['_id']}, new: {_id: this.restaurant['_id'], promotions: newPromotions}
         }])
         .subscribe(
           result => {

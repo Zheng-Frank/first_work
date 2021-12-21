@@ -29,7 +29,7 @@ export class RestaurantRateSchedulesComponent implements OnInit {
 
    /**
   *show the warning text: "*** WARNING! Are you sure [PERCENTAGE]% is the correct value? ***"
-  *if someone enter an incorrect percentage value 
+  *if someone enter an incorrect percentage value
   */
   isRateInvalid(rateType,rateValue){
     return rateValue > this.percentValidationMap[rateType];
@@ -90,12 +90,7 @@ export class RestaurantRateSchedulesComponent implements OnInit {
       alert('FAILED: no rate schedules for order types ' + uncoveredOrderTypes.join(', '));
       return;
     }
-    this._prunedPatch
-      .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
-        {
-          old: oldR,
-          new: newR
-        }])
+    this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{old: oldR, new: newR}])
       .subscribe(
         result => {
           // let's update original, assuming everything successful

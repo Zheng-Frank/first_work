@@ -415,8 +415,7 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
 
       newBody[field] = newValue;
 
-      this._prunedPatch
-        .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+      this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
           old: oldBody, new: newBody
         }])
         .subscribe(
