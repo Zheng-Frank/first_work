@@ -499,7 +499,6 @@ import { FaxHealthDashboardComponent } from './components/monitoring/fax-health-
     RestaurantPosterComponent,
     FaxHealthDashboardComponent,
     MonitoringDineInOrdersComponent,
-    
   ],
   imports: [
     BrowserModule,

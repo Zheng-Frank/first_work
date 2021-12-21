@@ -51,12 +51,13 @@
         </div>
       </div>
     </div>
+    <!-- start with channels and notifications -->
     <div class="card">
       <div class="card-header" id="heading-contact">
         <h2 class="mb-0 d-flex">
           <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse"
             data-target="#collapse-contact" aria-expanded="false" aria-controls="collapse-contact">
-            Contact Methods and Order Notifications
+            Channels and Notifications
           </button>
           <i class="fa fa-angle-{{accordion.contact}}"></i>
         </h2>
@@ -68,25 +69,7 @@
         </div>
       </div>
     </div>
-    <!-- start with invoice notifications -->
-    <div class="card">
-      <div class="card-header" id="heading-contact">
-        <h2 class="mb-0 d-flex">
-          <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse"
-            data-target="#collapse-contact" aria-expanded="false" aria-controls="collapse-contact">
-            Invoice Notifications
-          </button>
-          <i class="fa fa-angle-{{accordion.contact}}"></i>
-        </h2>
-      </div>
-      <div id="collapse-contact" class="collapse" aria-labelledby="heading-contact">
-        <div class="card-body">
-          <app-restaurant-setup-contact #contactPanel [restaurant]="restaurant" (done)="stepDone($event)">
-          </app-restaurant-setup-contact>
-        </div>
-      </div>
-    </div>
-    <!-- end with invoice notifications -->
+    <!-- end with channels and notifications -->
     <div class="card">
       <div class="card-header" id="heading-delivery">
         <h2 class="mb-0 d-flex">

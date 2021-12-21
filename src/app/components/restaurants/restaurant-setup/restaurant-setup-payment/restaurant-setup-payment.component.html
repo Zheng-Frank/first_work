@@ -54,13 +54,13 @@
 <div class="form-group mt-4">
   <h5>
     <i class="fas fa-bell"></i> Payment Collection (Delivery orders)
-    <small class="form-text text-info" *ngIf="restaurant?.courier?.name === 'Postmates';else tipBlock">
-      For orders delivered through qMenu's courier partners, qMenu will collect payment.
+    <small class="form-text text-info"
+      *ngIf="restaurant?.courier?.name === 'Postmates' && showCallScript;else tipBlock">
+      {{changeLanguageFlag === 'English'? deliveryPaymentCallScript.EnglishCallScript.postmate_inquiry : deliveryPaymentCallScript.ChineseCallScript.postmate_inquiry}}
     </small>
     <ng-template #tipBlock>
-      <small class="form-text text-muted">
-        If you collect payment, we'll invoice you for commissions/fees owned at the end of the month. If qMenu collects
-        payments, we'll send you semi-monthly payouts of the funds collected (minus our commissions/fees).
+      <small class="form-text text-info" *ngIf="showCallScript">
+        {{changeLanguageFlag === 'English'? deliveryPaymentCallScript.EnglishCallScript.open_remark : deliveryPaymentCallScript.ChineseCallScript.open_remark}}
       </small>
     </ng-template>
   </h5>

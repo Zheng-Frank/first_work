@@ -22,48 +22,41 @@ const basicSectionCallScript = {
 //do a call script in menu setup section to make saleperson work quickly
 const menuSectionCallScript = {
   ChineseCallScript: {
-    menu_inquiry: `好的，现在准备设置您的菜单。 您准备向我们发送菜单图片，还是想让我们从另一个平台直接复制菜单呢？`,
-    upload_image_inquiry: '',
-    send_image_inquiry: '',
-    copy_inquiry: '',
-    provide_url_inquiry: ''
+    open_remark: `好的，现在准备设置您的菜单。您准备向我们发送菜单图片，还是想让我们从另一个平台直接复制菜单呢？`,
+    upload_image_inquiry: '[请在此上传菜单图片。(限10张图片)]',
+    send_image_inquiry: '请将图片发送至978-652-9542，或发送电子邮件至support@qmenu360.com。请在文本或电子邮件中包含餐厅名称或商务电话，以便我们可以将菜单图像与您的帐户匹配。',
+    copy_inquiry: '我们应该参考哪个平台来更新您餐厅的菜单？（例如，UberEats、DoorDash等）',
+    provide_url_inquiry: '请问我们应该通过哪个URL地址找到您餐厅的菜单呢？'
   },
   EnglishCallScript: {
-    menu_inquiry: `Now, let's make sure we have an up-to-date menu for your restaurant. Can you provide us with photos of your menu, or should we copy the menu from another existing platform?
-    <br/>- (Is there a URL where your menu is available?)
-    <br/>- (Sure! You can send the pictures to us via text or email, which one is more convenient for you? You can send the images via text to 978-652-9542 or via email to support@qmenu360.com.)`
+    open_remark: `Now, let's make sure we have an up-to-date menu for your restaurant. Can you provide us with photos of your menu, or should we copy the menu from another existing platform?`,
+    upload_image_inquiry: '[Please upload menu images here. (Limit 10 images)]',
+    send_image_inquiry: `Please text images to 978-652-9542, or email to support@qmenu360.com. Please include the
+    restaurant name or business phone in the text or email so we can match the menu images with your account.`,
+    copy_inquiry: `Which platform should we reference for an updated version of your restaurant's menu? (e.g. UberEats, DoorDash, etc)`,
+    provide_url_inquiry: 'Could you tell me the URL where we can find your menu?'
   }
 }
 //do a call script in hour setup section to make saleperson work quickly
 const hoursSectionCallScript = {
   ChineseCallScript: {
     hours_inquiry: `
-    好的，我准备跟您确认一下餐馆的营业时间，好吗？请问，有什么需要修改的信息吗？
+    好的，我准备跟您确认一下餐馆的营业时间，好吗？...请问，有什么需要修改的信息吗？
     `
   },
   EnglishCallScript: {
     hours_inquiry: `
-    Ok, now I'm just going to read out your store hours to confirm. Is that correct or do I need to modify anything?
+    Ok, now I'm just going to read out your store hours to confirm... Is that correct or do I need to modify anything?
     `
   }
 }
 //do a call script in contact setup section to make saleperson work quickly
 const contactSectionCallScript = {
   ChineseCallScript: {
-    open_remark: '那么，每次从 qMenu 收到新订单时，您希望如何收到通知呢？ 我们提供多种选择，有电话、短信、传真、电子邮件和云打印，您可以选择任何一个或多个选项。',
-    bizphone_inquiry: '[XXX] 是您希望收到订单通知的电话号码，对吗？',
-    fax_inquiry: '请问，我们应该将订单通知发送到哪个传真号码？',
-    email_inquiry: `请问，我们应该将订单通知发送到哪个电子邮箱？<span class='text-warning'>[这将成为餐厅的官方电子邮件或所有者/经理的电子邮件]</span>`,
-    cloud_print_inquiry: '至于云打印订单通知，我们一位专门的工作人员稍后会联系您进行设置。',
-    cellphone_inquiry: '[XXX] 是您希望收到订单通知的手机号码，对吗？'
+    open_remark: '那么，每次从 qMenu 收到新订单时，您希望如何收到通知呢？ 我们提供多种选择，有电话、短信、传真、电子邮件和云打印，您可以选择任何一个或多个选项。。。还有，请问一下，qMenu应该通过什么样的练习方式向您发送账单呢？',
   },
   EnglishCallScript: {
-    open_remark: 'So, how would you like to be notified each time you get a new order from qMenu? We offer several options including phone call, text message, fax, email, and cloud printing. You can choose any or as many of those options as you like.',
-    bizphone_inquiry: 'And is [XXX] the right phone number to call for order notifications?',
-    fax_inquiry: 'And which fax number should we send orders to?',
-    email_inquiry: `And which email address should we send orders to?<span class='text-warning'>[This can be the restaurant's official email or the owner/manager's email address]</span>`,
-    cloud_print_inquiry: 'As for cloud printing notifications, one of our specialists will call you back later to set that up.',
-    cellphone_inquiry: 'And is [XXX] the right cell phone number to send text order notifications to?'
+    open_remark: 'So, how would you like to be notified each time you get a new order from qMenu? We offer several options including phone call, text message, fax, email, and cloud printing. You can choose any or as many of those options as you like...And to which contact channels should qMenu send invoice notifications?',
   }
 }
 //do a call script in delivery setup section to make saleperson work quickly
@@ -101,13 +94,13 @@ const deliverySectionCallScript = {
 //do a call script in pickup payment setup section to make saleperson work quickly
 const pickupPaymentCallScript = {
   ChineseCallScript: {
-    open_remark:'好的，我们配置一下您的收款设置。如果您收取款项，我们将在月底向您开佣金/费用的发票。如果qMenu收取款项，我们将每半个月向您发送所收取资金的支出账单(减去我们的佣金/费用)。',
+    open_remark: '好的，我们配置一下您的收款设置。如果您收取款项，我们将在月底向您开佣金/费用的发票。如果qMenu收取款项，我们将每半个月向您发送所收取资金的支出账单(减去我们的佣金/费用)。',
     cash_inquiry: '请问，对于取餐订单，您将如何接受付款？ 您接受现金吗？',
     credit_card_inquiry: '信用卡付款，您希望自己收款还是 qMenu 为您安全实时代收呢？',
     rt_collect_inquiry: '好的，您是希望等客户取餐时刷卡，还是我们当客户下单时将信用卡信息发送给您来输入？(或如果您有自己的 Stripe 帐户，我们可以链接到该帐户)'
   },
   EnglishCallScript: {
-    open_remark:`Ok, moving on to payment collection. If you collect payment, we'll invoice you for commissions/fees owned at the end of the month. If qMenu collects
+    open_remark: `Ok, moving on to payment collection. If you collect payment, we'll invoice you for commissions/fees owned at the end of the month. If qMenu collects
     payments, we'll send you semi-monthly payouts of the funds collected (minus our commissions/fees).`,
     cash_inquiry: ' So, for pickup orders, how will you accept payment? Will you accept cash?',
     credit_card_inquiry: 'And for credit card payments, would you like to collect those yourself or qMenu to collect payment securely online for you?',
@@ -117,12 +110,16 @@ const pickupPaymentCallScript = {
 
 const deliveryPaymentCallScript = {
   ChineseCallScript: {
+    postmate_inquiry: `如果您的外送订单由qMenu合作伙伴提供外送服务，我们将代您收款。`,
+    open_remark: `好的，现在让我们来设置一下您的外送账单。`,
     cash_inquiry: '请问，对于外送订单，您将如何接受付款？ 您接受现金吗？',
     credit_card_inquiry: '信用卡付款，您希望自己收款还是 qMenu 为您安全实时代收呢？',
     rt_collect_inquiry: '好的，您是希望等客户取餐时刷卡，还是我们当客户下单时将信用卡信息发送给您来输入？(或如果您有自己的 Stripe 帐户，我们可以链接到该帐户)',
     qmenu_provide_inquiry: '对于外送订单，根据我们的使用政策并为您提供方便，我们将代您收款。'
   },
   EnglishCallScript: {
+    postmate_inquiry: `For orders delivered through qMenu's courier partners, qMenu will collect payment.`,
+    open_remark: `Ok, now let's set up payment collection for delivery orders.`,
     cash_inquiry: 'And for delivery orders, how will you accept payment? Will you accept cash?',
     credit_card_inquiry: 'And for credit card payments, would you like to collect those yourself or qMenu to collect payment securely online for you?',
     rt_collect_inquiry: 'Alright, so the customer will swipe in person when they get their food, or should we send you the CC number for key-in when they place the order? (Or do you have your own Stripe account that we should link to?)',
@@ -132,7 +129,7 @@ const deliveryPaymentCallScript = {
 // do a call script in invoicing setup section to make saleperson work quickly
 const invoicingSectionCallScript = {
   ChineseCallScript: {
-    open_remark: `好的，我们快完成了！ 那么，对于发票，如果 qMenu 收取的付款比您餐馆欠的费用多，我们将每半个月向您发送一次付款。 否则，我们会在每个月末向您发送发票。`,
+    open_remark: `好的，我们快完成了！那么，对于发票，如果 qMenu 收取的付款比您餐馆欠的费用多，我们将每半个月向您发送一次付款。 否则，我们会在每个月末向您发送发票。`,
     receiving_inquiry: '收到来自 qMenu 的付款，您希望如何收到这些付款？ 获得直接存款，还是邮寄支票？',
     send_inquiry: '而如果向 qMenu 付款，您更喜欢哪种方式？ 直接取款，通过信用卡付款，还是寄支票给qMenu呢？',
     recipient_inquiry: '请问，给您开支票时，收款人应该写[XXX]，是不是？ 我们把支票寄到餐馆地址，还是其他地址呢？',
