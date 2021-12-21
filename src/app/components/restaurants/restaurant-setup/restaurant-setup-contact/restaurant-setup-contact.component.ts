@@ -24,8 +24,8 @@ export class RestaurantSetupContactComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
   @Output() done = new EventEmitter();
-  channels = [];
-  notifyChannelTypes = [NotifyChannels.Phone, NotifyChannels.SMS, NotifyChannels.Fax, NotifyChannels.Email];
+  channels;
+  notifyChannelTypes;
   changeLanguageFlag = this._global.languageType;// this flag decides show English call script or Chinese
   showCallScript = false;// it will display call script when the switch is opened
   constructor(private _global: GlobalService) { }
@@ -40,6 +40,8 @@ export class RestaurantSetupContactComponent implements OnInit {
   }
 
   init() {
+    this.channels = [];
+    this.notifyChannelTypes = [NotifyChannels.Phone, NotifyChannels.SMS, NotifyChannels.Fax, NotifyChannels.Email];
     let { googleListing = {}, people = [], logs = [], channels = [] } = this.restaurant;
     if (!this.channels.includes(NotifyChannels.CloudPrinting) && !logs.some(l => l.type === 'cloud-printing')) {
       this.notifyChannelTypes.push(NotifyChannels.CloudPrinting);
@@ -90,7 +92,6 @@ export class RestaurantSetupContactComponent implements OnInit {
         this.channels.push(ch);
       }
     }
-    console.log(JSON.stringify(this.channels));
   }
 
   get NotifyChannels() {
@@ -110,15 +111,14 @@ export class RestaurantSetupContactComponent implements OnInit {
   }
 
   canSave() {
-    return this.channels.some(ch => ch.value);
+    return this.channels.some(ch => ch.value && ch.notifications.order === NotificationsTypes.Order);
   }
 
   // invoive doesn't have cloud print notification channel, and need to disable 
   selectChannelType(channel) {
-    console.log(JSON.stringify(channel));
-    
     if (this.disabledNotify(channel)) {
       channel.notifications.invoice = false;
+      channel.value = '';
     }
   }
 
@@ -132,12 +132,10 @@ export class RestaurantSetupContactComponent implements OnInit {
     let savedChannels = [];
     // remove depulicate rows
     this.channels.forEach(ch => {
-      if (ch.value && ch.type && !savedChannels.some(x => x && x.value === ch.value && x.type === ch.type)) {
+      if (((ch.value && ch.type) || (ch.type === NotifyChannels.CloudPrinting)) && !savedChannels.some(x => x && x.value === ch.value && x.type === ch.type)) {
         savedChannels.push(ch);
       }
     });
-    console.log(JSON.stringify(savedChannels));
-
     savedChannels.forEach(ch => {
       // if select cloud printing, add a log and only need to add once
       if (ch.type === NotifyChannels.CloudPrinting && !addCloudPrintLog) {
@@ -150,7 +148,6 @@ export class RestaurantSetupContactComponent implements OnInit {
         addCloudPrintLog = true;
       } else {
         let existChannel = channels.find(c => c && c.type === ch.type && c.value === ch.value);
-        console.log(JSON.stringify(existChannel));
         let existNotification = orderNotifications.find(x => x.channel && x.channel.type === ch.type && x.channel.value === ch.value);
 
         if (existChannel) {
@@ -193,8 +190,6 @@ export class RestaurantSetupContactComponent implements OnInit {
         }
       }
     });
-    console.log(JSON.stringify(channels));
-    console.log(JSON.stringify(orderNotifications));
 
     this.done.emit({ orderNotifications, channels, logs });
   }

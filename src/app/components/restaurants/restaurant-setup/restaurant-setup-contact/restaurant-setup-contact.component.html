@@ -11,7 +11,7 @@
     <tbody>
       <tr *ngFor="let channel of channels;">
         <td>
-          <input type="text" class="form-control" [(ngModel)]="channel.value">
+          <input type="text" class="form-control" [disabled]="disabledNotify(channel)" [(ngModel)]="channel.value">
         </td>
         <td>
           <select class="form-control" [(ngModel)]="channel.type" (change)="selectChannelType(channel)">
