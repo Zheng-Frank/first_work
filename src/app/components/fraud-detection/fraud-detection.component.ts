@@ -53,7 +53,7 @@ export class FraudDetectionComponent implements OnInit {
     OrderAmountFactors.Above400,
     OrderAmountFactors.None,
   ];
-  billingDistanceToDeliveryFactor = true;
+  billingDistanceToDeliveryFactor = false;
   multipleOrdersPerDayFactor = false;
   orderAmountFactors = {
     [OrderAmountFactors.From120To200]: {$and: [ {'computed.total': {$gte: 120}} , {'computed.total': {$lt: 200}}]},
