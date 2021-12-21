@@ -78,7 +78,10 @@ export class RestaurantSetupEntryComponent implements OnInit {
     let { people = [] } = this.restaurant;
     let emailAddress = '';
     if (people.length > 0) {
-      emailAddress = (people.find(person => person.roles.some(r => r === 'Owner') && person.channels.some(channel => (channel || {}).type === 'Email')).channels || []).find(channel => (channel || {}).type === 'Email').value || '';
+      let person = people.find(person => person.roles.some(r => r === 'Owner') && person.channels.some(channel => (channel || {}).type === 'Email'));
+      if(person){
+        emailAddress = (person.channels || []).find(channel => (channel || {}).type === 'Email').value || '';
+      }
     }
     if (emailAddress) {
       newCallScript.ChineseCallScript.final_inquiry = newCallScript.ChineseCallScript.final_inquiry.replace('[XXX]', "" + emailAddress + "");
