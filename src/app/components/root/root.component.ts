@@ -91,7 +91,7 @@ export class RootComponent implements OnInit, OnDestroy {
   }
 
   async getOrderedCustomersToday() {
-    let start = Helper.getNewYorkDate('start', '2021-12-16');
+    let start = Helper.getNewYorkDate('start');
     const customers = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'order',
       aggregate: [
