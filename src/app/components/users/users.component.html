@@ -58,6 +58,12 @@
 
 
 <q-modal [title]="userInEditing._id ? 'Edit User: ' + userInEditing.username : 'Create New User' " #editingModal>
-  <q-form-builder [object]="userInEditing" [showDelete]="userInEditing._id && isAdmin()" [fieldDescriptors]="formFieldDescriptors"
-    (submit)="formSubmit($event)" (remove)="formRemove($event)" (cancel)="editingModal.hide()"></q-form-builder>
+  <q-form-builder [object]="userInEditing" [showDelete]="userInEditing._id && isAdmin()"
+    [fieldDescriptors]="formFieldDescriptors" (submit)="formSubmit($event)" (remove)="formRemove($event)"
+    (cancel)="editingModal.hide()">
+    <button class="btn btn-link form-group" (click)="showMore=!showMore">Show More
+    </button>
+    <textarea *ngIf="showMore" class="form-control form-group" rows="10" [(ngModel)]="userInEditing.notes"
+      placeholder="user input includes: Paypal username, Label, Email, Phone, Skype, Notes and limit limit 1000 characters."></textarea>
+  </q-form-builder>
 </q-modal>
