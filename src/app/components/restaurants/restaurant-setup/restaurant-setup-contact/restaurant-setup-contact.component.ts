@@ -48,7 +48,7 @@ export class RestaurantSetupContactComponent implements OnInit {
     }
     if (channels.length > 0) {
       channels.forEach(channel => {
-        if (channel && ((channel.notifications || []).includes(NotificationsTypes.Order) || (channel.notifications || []).includes(NotificationsTypes.Invoice))) {
+        if (channel && channel.type !== NotifyChannels.CloudPrinting && ((channel.notifications || []).includes(NotificationsTypes.Order) || (channel.notifications || []).includes(NotificationsTypes.Invoice))) {
           let ch = {
             value: channel.value,
             type: channel.type,
@@ -57,7 +57,6 @@ export class RestaurantSetupContactComponent implements OnInit {
               invoice: false
             }
           };
-
           if ((channel.notifications || []).includes(NotificationsTypes.Order)) {
             ch.notifications.order = true;
           }
