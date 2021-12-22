@@ -111,7 +111,7 @@ export class RestaurantSetupContactComponent implements OnInit {
   }
 
   canSave() {
-    return this.channels.some(ch => ch.value && ch.notifications.order === NotificationsTypes.Order);
+    return this.channels.some(ch => ch.value && ch.notifications.order);
   }
 
   // invoive doesn't have cloud print notification channel, and need to disable 
