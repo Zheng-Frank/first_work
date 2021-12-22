@@ -77,11 +77,6 @@
       </span>
     </div>
   </div>
-  <ng-template #cashBlock>
-    <div class="text-info ml-2" *ngIf="showCallScript">
-      {{changeLanguageFlag === 'English'? deliveryPaymentCallScript.EnglishCallScript.qmenu_provide_inquiry : deliveryPaymentCallScript.ChineseCallScript.qmenu_provide_inquiry}}
-    </div>
-  </ng-template>
   <div class="ml-2">
     <label class="mb-0">Who should collect credit card payments?</label>
     <div class="text-info" *ngIf="showCallScript && restaurant?.courier?.name !== 'Postmates'">

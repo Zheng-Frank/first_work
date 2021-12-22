@@ -42,11 +42,17 @@ const hoursSectionCallScript = {
   ChineseCallScript: {
     hours_inquiry: `
     好的，我准备跟您确认一下餐馆的营业时间，好吗？...请问，有什么需要修改的信息吗？
+    `,
+    no_hours_inquiry:`
+    好的，接下来麻烦请您告诉我一下您一周中每天的营业时间。
     `
   },
   EnglishCallScript: {
     hours_inquiry: `
     Ok, now I'm just going to read out your store hours to confirm... Is that correct or do I need to modify anything?
+    `,
+    no_hours_inquiry:`
+    Ok, could you please tell me your store hours for each day of the week?
     `
   }
 }
@@ -115,7 +121,6 @@ const deliveryPaymentCallScript = {
     cash_inquiry: '请问，对于外送订单，您将如何接受付款？ 您接受现金吗？',
     credit_card_inquiry: '信用卡付款，您希望自己收款还是 qMenu 为您安全实时代收呢？',
     rt_collect_inquiry: '好的，您是希望等客户取餐时刷卡，还是我们当客户下单时将信用卡信息发送给您来输入？(或如果您有自己的 Stripe 帐户，我们可以链接到该帐户)',
-    qmenu_provide_inquiry: '对于外送订单，根据我们的使用政策并为您提供方便，我们将代您收款。'
   },
   EnglishCallScript: {
     postmate_inquiry: `For orders delivered through qMenu's courier partners, qMenu will collect payment.`,
@@ -123,7 +128,6 @@ const deliveryPaymentCallScript = {
     cash_inquiry: 'And for delivery orders, how will you accept payment? Will you accept cash?',
     credit_card_inquiry: 'And for credit card payments, would you like to collect those yourself or qMenu to collect payment securely online for you?',
     rt_collect_inquiry: 'Alright, so the customer will swipe in person when they get their food, or should we send you the CC number for key-in when they place the order? (Or do you have your own Stripe account that we should link to?)',
-    qmenu_provide_inquiry: `Just to inform you, as for delivery orders, per our usage policy and for your convenience, we'll be collecting payment on your behalf.`
   }
 }
 // do a call script in invoicing setup section to make saleperson work quickly
