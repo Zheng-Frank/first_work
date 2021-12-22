@@ -43,7 +43,7 @@ export class RestaurantSetupContactComponent implements OnInit {
     this.channels = [];
     this.notifyChannelTypes = [NotifyChannels.Phone, NotifyChannels.SMS, NotifyChannels.Fax, NotifyChannels.Email];
     let { googleListing = {}, people = [], logs = [], channels = [] } = this.restaurant;
-    if (!this.channels.includes(NotifyChannels.CloudPrinting) && !logs.some(l => l.type === 'cloud-printing')) {
+    if (!this.channels.includes(NotifyChannels.CloudPrinting) && !logs.some(l => (l || {}).type === 'cloud-printing')) {
       this.notifyChannelTypes.push(NotifyChannels.CloudPrinting);
     }
     if (channels.length > 0) {

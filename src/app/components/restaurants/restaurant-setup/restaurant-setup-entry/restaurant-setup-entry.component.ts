@@ -78,8 +78,8 @@ export class RestaurantSetupEntryComponent implements OnInit {
     let { people = [] } = this.restaurant;
     let emailAddress = '';
     if (people.length > 0) {
-      let person = people.find(person => person.roles.some(r => r === 'Owner') && person.channels.some(channel => (channel || {}).type === 'Email'));
-      if(person){
+      let person = people.find(person => (person.roles || []).some(r => r === 'Owner') && (person.channels || []).some(channel => (channel || {}).type === 'Email'));
+      if (person) {
         emailAddress = (person.channels || []).find(channel => (channel || {}).type === 'Email').value || '';
       }
     }
@@ -133,9 +133,9 @@ export class RestaurantSetupEntryComponent implements OnInit {
     this.finished.delivery = deliveryWithPostmates || selfDeliveryFinished || nonDeliveryFinished;
     // check payment, invoicing section progress
     this.finished.payment = (serviceSettings || []).some(x => x && x.name === 'Pickup' && x.paymentMethods && x.paymentMethods.length > 0);
-    this.finished.invoicing = (paymentMeans || []).some(x=> x && (x.direction === 'Send' || x.direction === 'Receive'));
+    this.finished.invoicing = (paymentMeans || []).some(x => x && (x.direction === 'Send' || x.direction === 'Receive'));
 
-    ['basic', 'menu', 'contact', 'delivery',  'payment', 'invoicing'].forEach(mod => {
+    ['basic', 'menu', 'contact', 'delivery', 'payment', 'invoicing'].forEach(mod => {
       if (!this.finished[mod]) {
         $(`#collapse-${mod}`).collapse('show');
       }
