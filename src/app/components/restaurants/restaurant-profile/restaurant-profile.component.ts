@@ -207,7 +207,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       "DoNotHideUselessMenuItems": "By default, on the customer app, in each menu category, we will show menu items sorted by ordering frequency, and hide menu items that have never been ordered before. This setting can be turned off to simply show all menu items in their original order.",
       "TipSettings": "If tip settings are not specified at restaurant level, system default tip will be 15% for pickup and dine-in, and 20% for delivery. Tips cannot exceed the maximum of $1000 or 100%.",
       "qMenuWebsite": "The URL for this website's restaurant managed by qMenu",
-      "PreventOrdersDuringNonOpenTime": "By default, customer can order by schedule even during non-open time. If turn on this, customer will cannot order by schedule during non-open time."
+      "PreventOrdersDuringNonOpenTime": "By default, customers can place orders scheduled for a later time, even during non-open hours. If this setting is turned on, however, the customer won't be able to places orders during non-open hours at all."
     }
   }
 
