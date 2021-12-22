@@ -163,7 +163,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       "DoNotHideUselessMenuItems": "默认情况下，在客户APP上，在每个菜单类别中，我们将显示按订购频率排序的菜单项，并隐藏以前从未订购过的菜单项。 可以关闭此设置以简单地按原始顺序显示所有菜单项。",
       "TipSettings": "如果餐厅级别未指定小费设置，pickup和dine-in的系统小费默认值为 15%，delivery默认值为20%。 无论如何，小费不能超过 1000 美元或 100% 的最大值",
       "qMenuWebsite": "qMenu 网站",
-      "PreventOrdersDuringNonOpenTime": "默认情况下，即使在非营业时间，顾客也可以下单预定，如果打开此设置，在非营业时间将会禁止顾客下单。"
+      "PreventOrdersDuringNonOpenTime": "默认情况下，即使在非营业时间，顾客也可以下单预定，如果打开此设置，在非营业时间将会禁止顾客下任何订单。"
     },
     EnglishExplanations: {
       "Name": "Name of restaurant",
