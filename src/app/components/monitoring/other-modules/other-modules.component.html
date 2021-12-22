@@ -1,5 +1,41 @@
-<div class="container row mt-3">
-  <div class="col-md-4 col-lg-3 col-sm-6 col-xs-12 mb-3" *ngFor="let mod of visibleModules">
-    <a class="btn btn-primary" [routerLink]="['/' + mod.route]">{{mod.name}}</a>
+<div class="container mt-3">
+  <label>Routines</label>
+  <div class="row">
+    <ng-container *ngFor="let mod of modules.Routines">
+      <div class="col-md-4 col-lg-3 col-sm-6 col-xs-12 mb-3" *ngIf="visibleModules(mod)">
+        <a class="btn btn-primary" [routerLink]="['/' + mod.route]"><i class="fas fa-laptop"></i> {{mod.name}}</a>
+      </div>
+    </ng-container>
+  </div>
+</div>
+<div class="container mt-3">
+  <label>Developers</label>
+  <div class="row">
+    <ng-container *ngFor="let mod of modules.Developers">
+      <div class="col-md-4 col-lg-3 col-sm-6 col-xs-12 mb-3" *ngIf="visibleModules(mod)">
+        <a class="btn btn-primary" [routerLink]="['/' + mod.route]"><i class="fa fa-male"></i> {{mod.name}}</a>
+      </div>
+    </ng-container>
+  </div>
+</div>
+<div class="container mt-3">
+  <label>Management</label>
+  <div class="row">
+    <ng-container *ngFor="let mod of modules.Management">
+      <div class="col-md-4 col-lg-3 col-sm-6 col-xs-12 mb-3" *ngIf="visibleModules(mod)">
+        <a class="btn btn-primary" [routerLink]="['/' + mod.route]"><i class="fas fa-project-diagram"></i>
+          {{mod.name}}</a>
+      </div>
+    </ng-container>
+  </div>
+</div>
+<div class="container mt-3">
+  <label>Old</label>
+  <div class="row">
+    <ng-container *ngFor="let mod of modules.Old">
+      <div class="col-md-4 col-lg-3 col-sm-6 col-xs-12 mb-3" *ngIf="visibleModules(mod)">
+        <a class="btn btn-primary" [routerLink]="['/' + mod.route]"><i class="fas fa-level-down-alt"></i> {{mod.name}}</a>
+      </div>
+    </ng-container>
   </div>
 </div>
