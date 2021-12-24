@@ -176,16 +176,35 @@ export class MonitoringEmailComponent implements OnInit {
     });
   }
 
+  splitEmailList(list: string[]) {
+    // sort by length, long -> short
+    // so if 0-size is small enough, the rest slices are small enough;
+    list.sort((a, b) => b.length - a.length);
+    let size = list.length, length = list.slice(0, size).join(',').length;
+    // while length > 7000, query will fail, for too long url
+    while (length > 6500) {
+      size = Math.floor(size / 2);
+      length = list.slice(0, size).length;
+    }
+    return size
+  }
+
   async getCustomers(emails: Set<string>) {
-    const customers = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'customer',
-      query: {email: {$in: Array.from(emails)}},
-      projection: {firstName: 1, lastName: 1, email: 1},
-      limit: 10000
-    }).toPromise();
-    customers.forEach(({_id, firstName, lastName, email}) => {
-      this.emailCustomerDict[email] = {_id, name: firstName + ' ' + lastName};
-    });
+    let list = Array.from(emails), total = list.length;
+    let size = this.splitEmailList(list), index = 0;
+    while (index * size < total) {
+      let slice = list.slice(index * size, Math.min(size * (index + 1), total));
+      const customers = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'customer',
+        query: {email: {$in: slice}},
+        projection: {firstName: 1, lastName: 1, email: 1},
+        limit: 10000
+      }).toPromise();
+      customers.forEach(({_id, firstName, lastName, email}) => {
+        this.emailCustomerDict[email] = {_id, name: firstName + ' ' + lastName};
+      });
+      index++;
+    }
   }
 
   async query() {
