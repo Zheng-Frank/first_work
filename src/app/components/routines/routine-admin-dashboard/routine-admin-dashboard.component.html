@@ -32,13 +32,13 @@
       </thead>
       <tbody>
         <tr *ngFor="let routinesOfAgent of routinesOfAgents;">
-          <td>
+          <td class="text-center">
             {{routinesOfAgent.agentName || 'None'}}
           </td>
-          <td>
+          <td class="text-center">
             {{routinesOfAgent.numTask || 0}}
           </td>
-          <td>
+          <td class="text-center">
             <ng-container *ngIf="routinesOfAgent.tasksList;else tBlock">
               {{routinesOfAgent.tasksList.join('; ')}}
             </ng-container>
