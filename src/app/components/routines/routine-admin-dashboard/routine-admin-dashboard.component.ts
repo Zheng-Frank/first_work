@@ -50,6 +50,7 @@ export class RoutineAdminDashboardComponent implements OnInit {
   selectedAgent = 'All';
   routineViewBys = [routineViewTypes.Routine, routineViewTypes.Agent];
   routineViewBy = routineViewTypes.Routine;
+  routinesOfAgents = [];
   constructor(private _api: ApiService, private _global: GlobalService, private _task: TaskService) {
     this.user = this._global.user;
   }
@@ -128,6 +129,33 @@ export class RoutineAdminDashboardComponent implements OnInit {
     this.getRoutineNames();
     this.filterRoutineLogs();
     await this.populateStats();
+    this.pupulateRoutineOfAgent();
+  }
+  // routine list view by agent 
+  pupulateRoutineOfAgent() {
+    let agents = JSON.parse(JSON.stringify(this.agents));
+    agents.shift();// remove 'All'
+    (agents || []).forEach(agent => {
+      let routinesOfAgent = {
+        agentName: agent,
+        numTask: 0,
+        tasksList: []
+      }
+      // count numTask
+      this.routines.forEach(routine => {
+        if ((routine.assignees || []).includes(agent)) {
+          routinesOfAgent.numTask++;
+        }
+      });
+      // populate routine instances which agent has completed.
+      let myRoutines = this.routines.filter(routine => (routine.assignees || []).includes(agent));
+      myRoutines.forEach(routine => {
+        let myRoutineInstances = this.routineInstances.filter(routineInstance => routineInstance.routineId === routine._id && routineInstance.assignee === agent);
+        let taskCompleted = routine.name + " (" + myRoutineInstances.length + ")";
+        routinesOfAgent.tasksList.push(taskCompleted);
+      });
+      this.routinesOfAgents.push(routinesOfAgent);
+    });
   }
 
   get routineViewTypes() {
@@ -255,6 +283,8 @@ export class RoutineAdminDashboardComponent implements OnInit {
   filterRoutinesAndInstances() {
     this.routines = this.allRoutines.slice().sort((a, b) => a.name > b.name ? 1 : -1);
     this.routineInstances = this.allInstances.slice();
+    // routine instances of some agents may change
+    this.pupulateRoutineOfAgent();
   }
 
   hasInstances(routine) {

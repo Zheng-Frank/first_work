@@ -31,15 +31,20 @@
         <th class="text-center">Tasks List (instances completed)</th>
       </thead>
       <tbody>
-        <tr *ngFor="let channel of channels;">
+        <tr *ngFor="let routinesOfAgent of routinesOfAgents;">
           <td>
-           
+            {{routinesOfAgent.agentName || 'None'}}
           </td>
           <td>
-           
+            {{routinesOfAgent.numTask || 0}}
           </td>
           <td>
-           
+            <ng-container *ngIf="routinesOfAgent.tasksList;else tBlock">
+              {{routinesOfAgent.tasksList.join('; ')}}
+            </ng-container>
+            <ng-template #sBlock>
+              N/A
+            </ng-template>
           </td>
         </tr>
       </tbody>
