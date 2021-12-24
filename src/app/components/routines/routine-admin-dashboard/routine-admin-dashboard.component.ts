@@ -7,6 +7,12 @@ import { TaskService } from '../../../services/task.service';
 import { AlertType } from '../../../classes/alert-type';
 import { FormEvent, Helper } from '@qmenu/ui';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+
+enum routineViewTypes {
+  Routine = 'View by Routine',
+  Agent = 'View by Agent'
+}
+
 @Component({
   selector: 'app-routine-admin-dashboard',
   templateUrl: './routine-admin-dashboard.component.html',
@@ -42,7 +48,8 @@ export class RoutineAdminDashboardComponent implements OnInit {
   routineNames = [];
   selectedRoutineName = 'All';
   selectedAgent = 'All';
-
+  routineViewBys = [routineViewTypes.Routine, routineViewTypes.Agent];
+  routineViewBy = routineViewTypes.Routine;
   constructor(private _api: ApiService, private _global: GlobalService, private _task: TaskService) {
     this.user = this._global.user;
   }
@@ -88,6 +95,17 @@ export class RoutineAdminDashboardComponent implements OnInit {
         }))
       },
       {
+        field: "supervisors",
+        label: "Supervisors",
+        required: false,
+        inputType: "multi-select",
+        items: enabledUsers.map(user => ({
+          object: user.username,
+          text: user.username,
+          selected: false
+        }))
+      },
+      {
         field: "startDate", //
         label: "Start Date",
         required: true,
@@ -110,6 +128,10 @@ export class RoutineAdminDashboardComponent implements OnInit {
     this.getRoutineNames();
     this.filterRoutineLogs();
     await this.populateStats();
+  }
+
+  get routineViewTypes() {
+    return routineViewTypes;
   }
 
   async populateStats() {
@@ -307,10 +329,10 @@ export class RoutineAdminDashboardComponent implements OnInit {
   }
 
   onSelectRoutine() {
-    if(this.selectedRoutineName === 'All'){
+    if (this.selectedRoutineName === 'All') {
       this.selectedRoutine = this.routines;
       this.selectedInstanceList = this.allInstances;
-    }else{
+    } else {
       this.selectedRoutine = this.routines.filter(r => r.name === this.selectedRoutineName);
       this.selectedInstanceList = this.allInstances.filter(inst => inst.routineId === this.selectedRoutine[0]._id);
     }
