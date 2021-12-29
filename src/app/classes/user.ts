@@ -9,6 +9,7 @@ export class User {
   disabled: boolean;
   languages: string;
   ivrUsername?: string;
+  notes: string; // record some managed info of a user includes  Paypal username, Label, Email, Phone, Skype, Notes limit 1000 characters
 
   constructor(user?: any) {
     if (user) {

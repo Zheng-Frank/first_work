@@ -136,9 +136,8 @@ export class MenuOptionsComponent implements OnInit {
       name: mo.name
     }));
     const newMenuOptions = oldMenuOptions.filter(mo => mo.id !== menuOption.id);
-    this._prunedPatch
-      .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
-        old: {_id: this.restaurant['_id'], menuOptions: oldMenuOptions},
+    this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+        old: {_id: this.restaurant['_id']},
         new: {_id: this.restaurant['_id'], menuOptions: newMenuOptions}
       }])
       .subscribe(

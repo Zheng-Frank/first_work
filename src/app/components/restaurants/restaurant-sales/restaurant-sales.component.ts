@@ -50,7 +50,7 @@ export class RestaurantSalesComponent implements OnInit {
           agents.push(rateSchedule.agent);
         }
       });
-    });;
+    });
     let enabledUsers = this.users.filter(user => user.disabled);
     enabledUsers.forEach(eu => {
       if (agents.indexOf(eu.username) === -1) {
@@ -113,14 +113,13 @@ export class RestaurantSalesComponent implements OnInit {
     try {
       await this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
         {
-          old: { _id: this.restaurant._id, rateSchedules: [...(this.restaurant.rateSchedules || [])] },
+          old: { _id: this.restaurant._id },
           new: { _id: this.restaurant._id, rateSchedules: newRateSchedules },
         }]);
       this.restaurant.rateSchedules = newRateSchedules;
       acknowledge(null);
       this.modalRateSchedule.hide();
-    }
-    catch (error) {
+    } catch (error) {
       acknowledge(JSON.stringify(error));
     }
   }

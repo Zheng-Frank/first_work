@@ -269,15 +269,8 @@ export class MenuComponent implements OnInit {
       ));
     }
 
-    this._prunedPatch
-      .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {
-          _id: this.restaurant['_id'],
-          menus: oldMenus
-        }, new: {
-          _id: this.restaurant['_id'],
-          menus: newMenus
-        }
+    this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {_id: this.restaurant['_id']}, new: {_id: this.restaurant['_id'], menus: newMenus}
       }])
       .subscribe(
         result => {
@@ -328,9 +321,8 @@ export class MenuComponent implements OnInit {
       }
     });
 
-    this._prunedPatch
-      .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {_id: this.restaurant['_id'], menus},
+    this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {_id: this.restaurant['_id']},
         new: {_id: this.restaurant['_id'], menus: newMenus}
       }])
       .subscribe(
@@ -437,9 +429,8 @@ export class MenuComponent implements OnInit {
     // bug: mi's sizeOptions tied to optionsEditor, which will cause side effects of adding one extra item automatically
     // temp fix to use cleanMiCopy
     const cleanMiCopy = this.cleanMiCopy(mi);
-    this._prunedPatch
-      .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {_id: this.restaurant['_id'], menus},
+    this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {_id: this.restaurant['_id']},
         new: {_id: this.restaurant['_id'], menus: newMenus}
       }])
       .subscribe(
@@ -495,9 +486,8 @@ export class MenuComponent implements OnInit {
     });
 
 
-    this._prunedPatch
-      .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {_id: this.restaurant['_id'], menus},
+    this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {_id: this.restaurant['_id']},
         new: {_id: this.restaurant['_id'], menus: newMenus}
       }])
       .subscribe(
@@ -534,9 +524,8 @@ export class MenuComponent implements OnInit {
       }
     })
     this.editingMis = -1;
-    this._prunedPatch
-      .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {_id: this.restaurant['_id'], menus, translations},
+    this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: {_id: this.restaurant['_id']},
         new: {_id: this.restaurant['_id'], menus: newMenus, translations: newTrans}
       }])
       .subscribe(

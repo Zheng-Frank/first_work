@@ -222,7 +222,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     if (infoIndex >= 0 ) {
       // we don't want to create a visible UI section for the notification's "info" property, but if it exists we want to preserve it
       // remove the uselessFields entry for 'info' property so that it won't be deleted on the next line
-      uselessFields.splice(infoIndex, 1); 
+      uselessFields.splice(infoIndex, 1);
     }
     uselessFields.map(f => delete this.notificationInEditing[f]);
   }
@@ -258,13 +258,8 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
       );
     } else {
       await this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
-        old: {
-          _id: this.restaurant._id,
-        },
-        new: {
-          _id: this.restaurant._id,
-          orderNotifications: newNotifications
-        }
+        old: {_id: this.restaurant._id},
+        new: {_id: this.restaurant._id, orderNotifications: newNotifications}
       }])
         .subscribe(
           result => {

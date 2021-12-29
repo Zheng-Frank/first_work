@@ -1,0 +1,57 @@
+<div class="msg-logs">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Sent to</th>
+        <th>Message</th>
+        <th>Send Time</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let job of jobs; let i = index">
+        <td class="text-nowrap">{{job.params.to}}</td>
+        <td class="text-break">
+          <ng-container *ngIf="job.name === 'send-sms'">
+          {{job.params.message}}
+          </ng-container>
+          <ng-container *ngIf="job.name === 'send-email'">
+            <div class="email-line">
+              <label>Subject: </label>
+              <span>{{job.params.subject}}</span>
+            </div>
+            <div class="email-line">
+              <label>Content: </label>
+              <span>
+                {{job.params.html.substr(0, 200)}}
+                <a *ngIf="job.params.html.length > 200" class="text-nowrap btn-link" (click)="showEmailHtml(job)">... Show More</a>
+              </span>
+              <a class="text-nowrap btn-link" (click)="showEmailPreview(job)">Preview</a>
+            </div>
+          </ng-container>
+        </td>
+        <td class="text-nowrap">
+          {{job.createdAt | dateTz: 'shortDate': restaurant?.googleAddress?.timezone }}
+          <span class="text-muted">{{job.createdAt | dateTz: 'shortTime': restaurant?.googleAddress?.timezone }}</span>
+        </td>
+        <td class="text-nowrap">{{getStatus(job.logs)}} <a class="btn-link" (click)="showJson(job)">Show JSON</a></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<q-modal #detailModal>
+  <pre>
+    {{ current | json}}
+  </pre>
+</q-modal>
+
+<q-modal #emailHtmlModal>
+  <div>{{ current?.params?.html }}</div>
+</q-modal>
+
+<q-modal #emailPreviewModal [size]="'600px'">
+  <div style="overflow: auto" [innerHTML]="sanitized(current?.params?.html)"></div>
+</q-modal>
+
+

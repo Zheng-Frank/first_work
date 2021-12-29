@@ -1,12 +1,10 @@
-.btn-primary{
-    width: 100%;
-    color: #fff;
-    background-color: #c00;
-    border-color: #c00;
+.btn-primary {
+  width: 100%;
+  color: #fff;
+  background-color: #c00;
+  border-color: #c00;
 }
 
-
-
-
-
-
+.container {
+  margin-left: 0;
+}
