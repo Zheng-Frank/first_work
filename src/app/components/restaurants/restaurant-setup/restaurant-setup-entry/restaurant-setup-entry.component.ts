@@ -1,4 +1,3 @@
-import { filter } from 'rxjs/operators';
 import { ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
 import { Restaurant } from '@qmenu/ui';
 import { environment } from '../../../../../environments/environment';
@@ -79,7 +78,10 @@ export class RestaurantSetupEntryComponent implements OnInit {
     let { people = [] } = this.restaurant;
     let emailAddress = '';
     if (people.length > 0) {
-      emailAddress = (people.find(person => person.roles.some(r => r === 'Owner') && person.channels.some(channel => (channel || {}).type === 'Email')).channels || []).find(channel => (channel || {}).type === 'Email').value || '';
+      let person = people.find(person => (person.roles || []).some(r => r === 'Owner') && (person.channels || []).some(channel => (channel || {}).type === 'Email'));
+      if (person) {
+        emailAddress = (person.channels || []).find(channel => (channel || {}).type === 'Email').value || '';
+      }
     }
     if (emailAddress) {
       newCallScript.ChineseCallScript.final_inquiry = newCallScript.ChineseCallScript.final_inquiry.replace('[XXX]', "" + emailAddress + "");
@@ -115,7 +117,8 @@ export class RestaurantSetupEntryComponent implements OnInit {
     let {
       googleListing, people = [], web,
       taxRate, notes, logs, orderNotifications, deliveryFromTime, deliveryEndMinutesBeforeClosing,
-      deliveryTimeEstimate, deliverySettings, courier, serviceSettings, channels = []
+      deliveryTimeEstimate, deliverySettings, courier, serviceSettings, channels = [],
+      paymentMeans
     } = this.restaurant;
     this.notes = notes;
     let person = people[0] || {};
@@ -126,10 +129,13 @@ export class RestaurantSetupEntryComponent implements OnInit {
     this.finished.contact = orderNotifications && orderNotifications.some(x => x.channel.type === 'Phone');
     let deliveryWithPostmates = !!courier;
     let selfDeliveryFinished = !!(deliveryFromTime && deliveryEndMinutesBeforeClosing && deliveryTimeEstimate && deliverySettings && deliverySettings.length > 0);
-    let nonDeliveryFinished = (serviceSettings || []).find(x => x.paymentMethods && x.paymentMethods.length > 0);
+    let nonDeliveryFinished = (serviceSettings || []).find(x => x && x.paymentMethods && x.paymentMethods.length > 0);
     this.finished.delivery = deliveryWithPostmates || selfDeliveryFinished || nonDeliveryFinished;
+    // check payment, invoicing section progress
+    this.finished.payment = (serviceSettings || []).some(x => x && x.name === 'Pickup' && x.paymentMethods && x.paymentMethods.length > 0);
+    this.finished.invoicing = (paymentMeans || []).some(x => x && (x.direction === 'Send' || x.direction === 'Receive'));
 
-    ['basic', 'menu', 'contact', 'delivery'].forEach(mod => {
+    ['basic', 'menu', 'contact', 'delivery', 'payment', 'invoicing'].forEach(mod => {
       if (!this.finished[mod]) {
         $(`#collapse-${mod}`).collapse('show');
       }

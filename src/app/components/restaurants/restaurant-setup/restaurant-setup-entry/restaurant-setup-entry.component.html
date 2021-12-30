@@ -2,13 +2,15 @@
   <span class="ml-2 mr-2">Show call script (显示呼叫脚本)</span>
   <q-toggle [(ngModel)]="showCallScript" (change)="toggleShowCallScript()" class="mr-2"></q-toggle>
 </div>
-<div class="form-group text-info" *ngIf="showCallScript">
-  NOTE: The blue wording below is to help you communicate easily with the restaurant while helping them set up their
-  account.
-  <br> (Wording in parentheses should be used depending on the situation and the restaurant's answers to previous
-  questions)
-  <br> 下面的蓝色文字是为了帮助您在帮助餐厅建立账户的同时，轻松与他们沟通。
-  <br> (根据情况和餐厅对之前问题的回答，合理使用括号中的话术)
+<div class="form-group" *ngIf="showCallScript">
+  <small class="form-text text-muted">
+    NOTE: The blue wording below is to help you communicate easily with the restaurant while helping them set up their
+    account.
+    <br> (Wording in parentheses should be used depending on the situation and the restaurant's answers to previous
+    questions)
+    <br> 下面的蓝色文字是为了帮助您在帮助餐厅建立账户的同时，轻松与他们沟通。
+    <br> (根据情况和餐厅对之前问题的回答，合理使用括号中的话术)
+  </small>
 </div>
 <div class="setup-root">
   <div id="setup-accordion" class="accordion setup-body">
@@ -35,7 +37,7 @@
         <h2 class="mb-0 d-flex">
           <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse"
             data-target="#collapse-menu" aria-expanded="false" aria-controls="collapse-menu">
-            Menu Setup
+            Menu and Store Hours Setup
           </button>
           <i class="fa fa-angle-{{accordion.menu}}"></i>
         </h2>
@@ -44,17 +46,18 @@
         <div class="card-body">
           <app-restaurant-setup-menu #menuPanel *ngIf="!finished.menu" [restaurant]="restaurant"
             (done)="stepDone($event)"></app-restaurant-setup-menu>
-          <app-restaurant-setup-hours #hoursPanel *ngIf="finished.menu" [restaurant]="restaurant" [showCallScript]="showCallScript"
-            (done)="stepDone($event)"></app-restaurant-setup-hours>
+          <app-restaurant-setup-hours #hoursPanel *ngIf="finished.menu" [restaurant]="restaurant"
+            [showCallScript]="showCallScript" (done)="stepDone($event)"></app-restaurant-setup-hours>
         </div>
       </div>
     </div>
+    <!-- start with channels and notifications -->
     <div class="card">
       <div class="card-header" id="heading-contact">
         <h2 class="mb-0 d-flex">
           <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse"
             data-target="#collapse-contact" aria-expanded="false" aria-controls="collapse-contact">
-            Contact Methods/Notifications
+            Channels and Notifications
           </button>
           <i class="fa fa-angle-{{accordion.contact}}"></i>
         </h2>
@@ -66,6 +69,7 @@
         </div>
       </div>
     </div>
+    <!-- end with channels and notifications -->
     <div class="card">
       <div class="card-header" id="heading-delivery">
         <h2 class="mb-0 d-flex">

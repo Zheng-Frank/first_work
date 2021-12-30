@@ -72,7 +72,7 @@ export class RestaurantSetupBasicComponent implements OnInit {
   }
 
   init() {
-    let { googleListing = {}, people = [], web = {}, taxRate, channels, pickupTimeEstimate } = this.restaurant;
+    let { googleListing = {}, people = [], web = {}, taxRate, channels = [], pickupTimeEstimate } = this.restaurant;
     let person = people[0] || {};
     let sms = (person.channels || []).find(x => x.type === 'SMS') || {};
     let phone = channels.find(x => x.type === 'Phone') || {};
