@@ -202,6 +202,7 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
         index: -1 // we use index as Id since JSON doesn't have Id for each obj,
       } as Channel;
       this.channelBeforeEditing = JSON.parse(JSON.stringify(this.channelInEditing));
+      this.matchingNotificationIndex = -1
     } else {
       this.channelInEditing = JSON.parse(JSON.stringify(channel));
       this.channelBeforeEditing = JSON.parse(JSON.stringify(channel));
