@@ -136,8 +136,9 @@ export class MenuOptionsComponent implements OnInit {
       name: mo.name
     }));
     const newMenuOptions = oldMenuOptions.filter(mo => mo.id !== menuOption.id);
+    // menu options used here is mapped to name and id, must set both old and new to compare the real diff
     this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
-        old: {_id: this.restaurant['_id']},
+        old: {_id: this.restaurant['_id'], menuOptions: oldMenuOptions},
         new: {_id: this.restaurant['_id'], menuOptions: newMenuOptions}
       }])
       .subscribe(
