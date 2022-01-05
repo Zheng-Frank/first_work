@@ -14,7 +14,7 @@ const { version: appVersion } = require('../../../../package.json');
 
 declare var $: any;
 
-const FraudDetectInterval = 30 * 1000;
+const FraudDetectInterval = 10 * 1000;
 const FraudDetectionStorageKey = 'fraud-detection';
 
 @Component({
@@ -148,6 +148,7 @@ export class RootComponent implements OnInit, OnDestroy {
     try {
       let prev = window.localStorage.getItem(FraudDetectionStorageKey);
       let time = Date.now().valueOf();
+      console.log(time, prev);
       if (prev) {
         prev = JSON.parse(prev);
         // @ts-ignore
