@@ -148,7 +148,6 @@ export class RootComponent implements OnInit, OnDestroy {
     try {
       let prev = window.localStorage.getItem(FraudDetectionStorageKey);
       let time = Date.now().valueOf();
-      console.log(time, prev);
       if (prev) {
         prev = JSON.parse(prev);
         // @ts-ignore
