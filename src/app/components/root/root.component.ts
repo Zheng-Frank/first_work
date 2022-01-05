@@ -64,6 +64,7 @@ export class RootComponent implements OnInit, OnDestroy {
         });
       }
     });
+    console.log(this._global.user.username, this._global.user.roles)
     // auto check fraud order for user xxx, temporary solution
     if (this._global.user && this._global.user.roles && this._global.user.roles.includes('FRAUD_TRACKER')) {
       // when storage changed, check the new detected order count and update fraud notice state
