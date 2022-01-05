@@ -141,6 +141,7 @@ export class RootComponent implements OnInit, OnDestroy {
     window.localStorage.setItem(FraudDetectionStorageKey, JSON.stringify(result));
     // window storage event not trigger in current tab, need to update data manually
     result.orderIds.forEach(id => this.fraudOrderIds.add(id))
+    console.log('fraud order: ', this.fraudOrderIds.size)
   }
 
   async checkFraudOrder(n) {
