@@ -127,11 +127,11 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
 
   validFieldDescriptorMap = {
     SMS: [this.channelDescriptor, this.orderTypesDescriptor],
-    Fax: [this.channelDescriptor, this.orderTypesDescriptor, this.languagesDescriptor,this.customizedRenderingStylesDescriptor, this.customizedRenderingPresetsDescriptor],
+    Fax: [this.channelDescriptor, this.orderTypesDescriptor, this.customizedRenderingStylesDescriptor],
     Phone: [this.channelDescriptor, this.orderTypesDescriptor],
-    Email: [this.channelDescriptor, this.orderTypesDescriptor, this.languagesDescriptor],
+    Email: [this.channelDescriptor, this.orderTypesDescriptor],
     'fei-e': [this.channelDescriptor, this.orderTypesDescriptor, this.copiesDescriptor],
-    'longhorn': [this.channelDescriptor, this.orderTypesDescriptor, this.copiesDescriptor, this.languagesDescriptor, this.customizedRenderingPresetsDescriptor],
+    'longhorn': [this.channelDescriptor, this.orderTypesDescriptor, this.copiesDescriptor],
     'phoenix': [this.channelDescriptor, this.orderTypesDescriptor, this.formatDescriptor, this.templateNameDescriptor, this.languagesDescriptor, this.copiesDescriptor, this.customizedRenderingStylesDescriptor, this.customizedRenderingPresetsDescriptor],
   }
 
