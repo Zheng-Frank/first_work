@@ -309,7 +309,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
 
   async toggleInvoiceStatus(field) {
     if (field === 'isCanceled' && this.invoice.isCanceled) {
-      if (!confirm('Are you sure to uncancel?') || this.invoice.adjustments) {
+      if (!confirm('Are you sure to uncancel?') || (this.invoice.adjustments || []).length > 0) {
         return alert('Not canceled or because order has adjustments.');
       }
     }
@@ -339,31 +339,17 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
       }
     }
 
-
-    this.setInvoiceStatus(field, !this.invoice[field]);
-    await this.addLog(
-      {
-        time: new Date(),
-        action: "set",
-        user: this._global.user.username,
-        value: field + '=' + !this.invoice[field]
-      }
-    );
+    let nextValue = !this.invoice[field];
+    await this.setInvoiceStatus(field, nextValue);
+    await this.addLog({time: new Date(), action: "set", user: this._global.user.username, value: field + '=' + nextValue});
   }
 
   async setInvoiceStatus(field, value) {
-
-    const oldInvoice = JSON.parse(JSON.stringify(this.invoice));
-    const updatedInvoice = JSON.parse(JSON.stringify(this.invoice));
-    updatedInvoice[field] = value;
-
     try {
-      const result = await this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).toPromise();
-      this.invoice[field] = updatedInvoice[field];
-      this._global.publishAlert(
-        AlertType.Success,
-        field + " was updated"
-      );
+      let payload = {old: { _id: this.invoice['_id'] }, new: {_id: this.invoice['_id'], [field]: value}};
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [payload]).toPromise();
+      this.invoice[field] = value;
+      this._global.publishAlert(AlertType.Success, field + " was updated");
       if (field === 'isCanceled' && this.invoice.adjustments && this.invoice.adjustments.length > 0) {
         // we need to reverse adjustment logs to be un-resolved!
         const updatedLogs = JSON.parse(JSON.stringify(this.restaurantLogs)).map(log => new Log(log));
@@ -516,22 +502,20 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
   }
 
   async addLog(log) {
-    const oldInvoice = JSON.parse(JSON.stringify(this.invoice));
-    const updatedInvoice = JSON.parse(JSON.stringify(this.invoice));
-    updatedInvoice.logs = updatedInvoice.logs || [];
     const logTime = log.time;
     // when updating, we need to convert to time format of database
     log.time = { $date: logTime };
-    updatedInvoice.logs.push(log);
+    let logs = [...(this.invoice.logs || [])];
+    logs.push(log)
     try {
-      const result = await this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [{ old: oldInvoice, new: updatedInvoice }]).toPromise();
+      let payload = {old: {_id: this.invoice['_id']}, new: {_id: this.invoice['_id'], logs}};
+      await this._api.patch(environment.qmenuApiUrl + "generic?resource=invoice", [payload]).toPromise();
       // let's update original, assuming everything successful
-      this.invoice.logs = updatedInvoice.logs;
+      this.invoice.logs = logs;
       // the last log's time should convert back to normal (without $date)
       this.invoice.logs[this.invoice.logs.length - 1].time = logTime;
 
-    }
-    catch (e) {
+    } catch (e) {
       this._global.publishAlert(AlertType.Danger, "Error updating to DB");
       throw e;
     }
@@ -542,8 +526,8 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
     if (amount < 0) {
       amount = Math.abs(amount);
     }
-    //console.log('this.invoice.restaurant=', this.invoice.restaurant);
-    //if multiple payment means, choose the first only
+    // console.log('this.invoice.restaurant=', this.invoice.restaurant);
+    // if multiple payment means, choose the first only
     let paymentMean = this.invoice.restaurant.paymentMeans[0];
     let address, destination;
     if (paymentMean && paymentMean.direction === 'Receive' && paymentMean.type === 'Check Deposit') {
@@ -568,8 +552,7 @@ export class InvoiceDetailsComponent implements OnInit, OnDestroy {
           "address_state": Helper.getState(formatted_address),
           "address_zip": Helper.getZipcode(formatted_address)
         }
-      }
-      else {
+      } else {
         this._global.publishAlert(AlertType.Danger, "Missing address");
         throw "Missing address"
       }
