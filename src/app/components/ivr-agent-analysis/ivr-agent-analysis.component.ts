@@ -220,7 +220,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
     this.charts.forEach(chart => chart.destroy());
     this.charts = [];
     let ivrName = this._global.user.ivrUsername;
-    if (!this.isAdmin() && !this.isSalesDirector() && !ivrName) {
+    if (!this.isAdmin() && !this.isMarketerManager() && !ivrName) {
       this.list = [];
       this.totalRecords = 0;
       return;
@@ -249,7 +249,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
     } as any;
     if (this.isAdmin()) {
       query['Agent.Username'] = { $exists: true };
-    } else if (this.isSalesDirector()) {
+    } else if (this.isMarketerManager()) {
       query['Agent.Username'] = { $in: this.marketers }
     } else {
       query['Agent.Username'] = ivrName;
@@ -332,7 +332,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
     return this._global.user.roles.some(role => role === 'ADMIN');
   }
 
-  isSalesDirector() {
+  isMarketerManager() {
     return this._global.user.roles.some(role => role === 'MARKETER_MANAGER');
   }
 
