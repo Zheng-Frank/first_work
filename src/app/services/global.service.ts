@@ -647,14 +647,14 @@ export class GlobalService {
           href: "#/sops",
           fa: "fas fa-project-diagram",
           accessibleRoles: ['ADMIN', 'ACCOUNT', 'CRM', 'CSR', 'CSR_MANAGER', 'DRIVER', 'GMB_SPECIALIST', 'GMB', 'INVOICE_VIEWER', 'IVR_CSR_MANAGER', 'IVR_GMB_MANAGER', 'IVR_INTERNAL_MANAGER',
-            'IVR_SALES_MANAGER', 'MARKETER_EXTERNAL', 'MARKETER_INTERNAL', 'MARKETER', 'MARKETER_DIRECTOR', 'MENU_EDITOR', 'PAYER', 'RATE_EDITOR',
+            'IVR_SALES_MANAGER', 'MARKETER_EXTERNAL', 'MARKETER_INTERNAL', 'MARKETER', 'MARKETING_DIRECTOR', 'MENU_EDITOR', 'PAYER', 'RATE_EDITOR',
             'SIGNUP_AGENT']
         },
         {
           name: "Monitoring",
           href: "#/monitoring",
           fa: "fas fa-heartbeat",
-          accessibleRoles: ["CSR", 'CSR_MANAGER', "ADMIN"]
+          accessibleRoles: ["CSR", 'CSR_MANAGER', "ADMIN", "SALES_DIRECTOR"]
         },
         {
           name: "System",

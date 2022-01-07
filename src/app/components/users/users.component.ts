@@ -45,7 +45,8 @@ export class UsersComponent implements OnInit {
     'MENU_EDITOR', 'PAYER',
     'RATE_EDITOR',
     'SIGNUP_AGENT',
-    'FRAUD_TRACKER'
+    'FRAUD_TRACKER',
+    'SALES_DIRECTOR'
     // NOTE: please add new roles in alphabetical order
   ].map(role => ({
     text: role,
@@ -196,7 +197,7 @@ export class UsersComponent implements OnInit {
   }
 
   formSubmit(event) {
-    
+
     if(this.userInEditing.notes && this.userInEditing.notes.length > 1000){
       event.acknowledge(null);
       return this._global.publishAlert(AlertType.Danger, 'Notes limit 1000 characters!');

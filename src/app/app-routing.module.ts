@@ -105,7 +105,7 @@ const routes: Routes = [
   { path: 'leads', component: LeadDashboard2Component, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'GMB', 'CSR', 'CSR_MANAGER'] } },
   { path: 'leads', component: LeadDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'GMB'] } },
   { path: 'my-leads-old', component: MyLeadsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETER'] } },
-  { path: 'my-leads', component: MyLeads2Component, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR'] } },
+  { path: 'my-leads', component: MyLeads2Component, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETER', 'MARKETING_DIRECTOR', 'SALES_DIRECTOR'] } },
   { path: 'login', component: LoginComponent },
   { path: 'orders', component: OrderDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER'] } },
   { path: 'profile', component: ProfileComponent },
@@ -129,7 +129,7 @@ const routes: Routes = [
   { path: 'messaging', component: NotificationDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'couriers', component: CourierDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'chains', component: ChainsDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
-  { path: 'monitoring', component: MonitoringDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
+  { path: 'monitoring', component: MonitoringDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER', 'SALES_DIRECTOR'] } },
   { path: 'users', component: UsersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'tasks', component: TaskDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETING_DIRECTOR', 'MARKETER', 'GMB', 'CSR', 'CSR_MANAGER', 'ACCOUNTANT', 'MENU_EDITOR', 'DRIVER', 'RATE_EDITOR'] } },
   { path: 'gmb-accounts', component: GmbAccountListComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'GMB'] } },
@@ -150,7 +150,7 @@ const routes: Routes = [
     data: {
       roles: [
         'ADMIN', 'ACCOUNT', 'CRM', 'CSR', 'CSR_MANAGER', 'DRIVER', 'GMB_SPECIALIST', 'GMB', 'INVOICE_VIEWER', 'IVR_CSR_MANAGER', 'IVR_GMB_MANAGER', 'IVR_INTERNAL_MANAGER',
-        'IVR_SALES_MANAGER', 'MARKETER_EXTERNAL', 'MARKETER_INTERNAL', 'MARKETER', 'MARKETER_DIRECTOR', 'MENU_EDITOR', 'PAYER', 'RATE_EDITOR', 'SIGNUP_AGENT'
+        'IVR_SALES_MANAGER', 'MARKETER_EXTERNAL', 'MARKETER_INTERNAL', 'MARKETER', 'MARKETING_DIRECTOR', 'MENU_EDITOR', 'PAYER', 'RATE_EDITOR', 'SIGNUP_AGENT'
       ]
     }
   },
@@ -175,7 +175,7 @@ const routes: Routes = [
   { path: 'banned-customers', component: BannedCustomersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'schemas', component: SchemasComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'DEVELOPER'] } },
   { path: 'seamless-integration', component: SeamlessIntegrationComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'SIGNUP_AGENT'] }, },
-  { path: 'ivr-agent-analysis', component: IvrAgentAnalysisComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'SIGNUP_AGENT', 'MARKETING_DIRECTOR', 'MARKETER', 'INVOICE_VIEWER', 'GMB', 'CSR', 'CSR_MANAGER', 'ACCOUNTANT', 'MENU_EDITOR', 'RATE_EDITOR'] }, },
+  { path: 'ivr-agent-analysis', component: IvrAgentAnalysisComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'SIGNUP_AGENT', 'MARKETING_DIRECTOR', 'MARKETER', 'INVOICE_VIEWER', 'GMB', 'CSR', 'CSR_MANAGER', 'ACCOUNTANT', 'MENU_EDITOR', 'RATE_EDITOR', 'SALES_DIRECTOR'] }, },
   { path: 'weird-data', component: WeirdDataComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'api-logs', component: ApiLogsDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'routines', component: RoutineDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETING_DIRECTOR', 'MARKETER', 'GMB', 'CSR', 'CSR_MANAGER', 'ACCOUNTANT', 'MENU_EDITOR', 'DRIVER', 'RATE_EDITOR'] } },

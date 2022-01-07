@@ -33,7 +33,7 @@ export class OtherModulesComponent implements OnInit {
       { name: 'SEO Tracking', route: 'seo-tracking', authRoles: ['CSR', 'CSR_MANAGER'] },
       { name: 'API Logs Dashboard', route: 'api-logs', authRoles: [] },
       { name: 'Orderless Signups', route: 'orderless-signups', authRoles: ['CSR', 'CSR_MANAGER'] },
-      { name: 'IVR Dashboard', route: 'ivr-agent-analysis', authRoles: ['CSR', 'CSR_MANAGER', 'MARKETER'] },
+      { name: 'IVR Dashboard', route: 'ivr-agent-analysis', authRoles: ['CSR', 'CSR_MANAGER', 'MARKETER', 'SALES_DIRECTOR'] },
       { name: 'Restaurants by Provider', route: 'rts-by-provider', authRoles: ['CSR', 'CSR_MANAGER', 'MARKETER'] },
       { name: 'Banned Customers', route: 'banned-customers', authRoles: ['CSR', 'CSR_MANAGER'] },
       { name: 'Disabled Restaurants', route: 'disabled-restaurants', authRoles: ['CSR', 'CSR_MANAGER'] },
