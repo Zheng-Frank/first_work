@@ -448,7 +448,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     };
 
     (notification.customizedRenderingPresets || []).forEach(preset => {
-      notification.customizedRenderingStyles += presetMap[preset]
+      notification.customizedRenderingStyles += "\n" + presetMap[preset];
     });
 
     delete notification.customizedRenderingPresets;
