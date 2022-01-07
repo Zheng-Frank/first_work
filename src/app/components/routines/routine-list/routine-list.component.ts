@@ -74,6 +74,9 @@ export class RoutineListComponent {
       label: "Assignees",
     },
     {
+      label: "Supervisors"
+    },
+    {
       label: "Metrics",
     },
     {

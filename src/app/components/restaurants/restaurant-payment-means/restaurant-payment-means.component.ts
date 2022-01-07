@@ -52,8 +52,8 @@ export class RestaurantPaymentMeansComponent implements OnInit {
     const newPaymentMeans = (this.restaurant.paymentMeans || []).filter(pm => pm !== this.originalPaymentMeansInEditing);
     this.patch(newPaymentMeans, event.formEvent.acknowledge);
   }
-  
-  
+
+
   onSubmit(event) {
     // let's get a shadow copy
     const newPaymentMeans = (this.restaurant.paymentMeans || []).slice(0);
@@ -76,8 +76,7 @@ export class RestaurantPaymentMeansComponent implements OnInit {
       this.paymentMeansModal.hide();
     } else {
       // api update here...
-      this._prunedPatch
-        .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+      this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
           old: {
             _id: this.restaurant['_id'],
             paymentMeans: this.restaurant.paymentMeans

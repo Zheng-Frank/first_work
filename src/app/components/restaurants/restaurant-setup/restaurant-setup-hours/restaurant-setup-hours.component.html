@@ -1,10 +1,8 @@
-<div class="text-info" *ngIf="showCallScript">
-  <div *ngIf="changeLanguageFlag === 'English';else languageBlock"
-    [innerHTML]="hoursSectionCallScript.EnglishCallScript.hours_inquiry"></div>
-  <ng-template #languageBlock>
-    <div [innerHTML]="hoursSectionCallScript.ChineseCallScript.hours_inquiry">
-    </div>
-  </ng-template>
+<div class="text-info" *ngIf="showCallScript && hours.length > 0">
+  {{changeLanguageFlag === 'English'? hoursSectionCallScript.EnglishCallScript.hours_inquiry : hoursSectionCallScript.ChineseCallScript.hours_inquiry}}
+</div>
+<div class="text-info" *ngIf="showCallScript && hours.length === 0">
+  {{changeLanguageFlag === 'English'? hoursSectionCallScript.EnglishCallScript.no_hours_inquiry : hoursSectionCallScript.ChineseCallScript.no_hours_inquiry}}
 </div>
 <h5>Store Hours</h5>
 <div *ngIf="restaurant.googleListing?.hours?.length > 0">

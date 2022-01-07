@@ -55,7 +55,7 @@ export class UsersComponent implements OnInit {
   exisingLanguages = ['EN', 'CH'].map(lan => ({ text: lan, object: lan }));
 
   deleting = false;
-
+  showMore = false;
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   get userRoles() {
@@ -135,7 +135,7 @@ export class UsersComponent implements OnInit {
     {
       field: 'manager',
       label: 'Manager',
-      inputType: 'single-select',
+      inputType: 'select',
       required: false,
       items: this.users
         .filter(u => u.username !== user.username && !u.disabled)
@@ -174,7 +174,7 @@ export class UsersComponent implements OnInit {
       required: false,
     }
     ];
-
+    this.showMore = false;
     this.userInEditing = user;
     this.editingModal.show();
   }
@@ -196,6 +196,11 @@ export class UsersComponent implements OnInit {
   }
 
   formSubmit(event) {
+    
+    if(this.userInEditing.notes && this.userInEditing.notes.length > 1000){
+      event.acknowledge(null);
+      return this._global.publishAlert(AlertType.Danger, 'Notes limit 1000 characters!');
+    }
     if (this.userInEditing._id) {
       // patching
       const originalUser = this.users.filter(u => u._id === this.userInEditing._id)[0];
@@ -235,6 +240,11 @@ export class UsersComponent implements OnInit {
       }
 
     } else {
+      // return error message if user exists
+      if(this.users.some(u => u.username === this.userInEditing.username)){
+        event.acknowledge(null);
+        return this._global.publishAlert(AlertType.Danger, 'User exists!');
+      }
       // must be new
       this._api.post(environment.qmenuApiUrl + 'users', [this.userInEditing]).subscribe(result => {
         event.acknowledge(null);

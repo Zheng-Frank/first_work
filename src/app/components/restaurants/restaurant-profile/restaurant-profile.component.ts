@@ -68,7 +68,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     'serviceSettings',
     "doNotHideUselessMenuItems",
     "notificationExpiry",
-    "web"
+    "web",
+    "preventOrdersDuringNonOpenTime"
   ];
   controlExpiry = false; // a flag to contorl broadcast expiry date input showing or not.
   notificationExpiry: string; // this value is needed to decide when shows the broadcast on customer pwa.
@@ -161,7 +162,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       "Photos": "(菜单编辑负责这一点，客服+销售可以忽略) 此处上传的图片将是餐厅qMenu订购网站上的网站背景图片。",
       "DoNotHideUselessMenuItems": "默认情况下，在客户APP上，在每个菜单类别中，我们将显示按订购频率排序的菜单项，并隐藏以前从未订购过的菜单项。 可以关闭此设置以简单地按原始顺序显示所有菜单项。",
       "TipSettings": "如果餐厅级别未指定小费设置，pickup和dine-in的系统小费默认值为 15%，delivery默认值为20%。 无论如何，小费不能超过 1000 美元或 100% 的最大值",
-      "qMenuWebsite": "qMenu 网站"
+      "qMenuWebsite": "qMenu 网站",
+      "PreventOrdersDuringNonOpenTime": "默认情况下，即使在非营业时间，顾客也可以下单预定，如果打开此设置，在非营业时间将会禁止顾客下任何订单。"
     },
     EnglishExplanations: {
       "Name": "Name of restaurant",
@@ -205,6 +207,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       "DoNotHideUselessMenuItems": "By default, on the customer app, in each menu category, we will show menu items sorted by ordering frequency, and hide menu items that have never been ordered before. This setting can be turned off to simply show all menu items in their original order.",
       "TipSettings": "If tip settings are not specified at restaurant level, system default tip will be 15% for pickup and dine-in, and 20% for delivery. Tips cannot exceed the maximum of $1000 or 100%.",
       "qMenuWebsite": "The URL for this website's restaurant managed by qMenu",
+      "PreventOrdersDuringNonOpenTime": "By default, customers can place orders scheduled for a later time, even during non-open hours. If this setting is turned on, however, the customer won't be able to places orders during non-open hours at all."
     }
   }
 
@@ -504,12 +507,8 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     } else {
       newObj.notificationExpiry = undefined;
     }
-    this._prunedPatch
-      .patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
-        {
-          old: oldObj,
-          new: newObj
-        }])
+    this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+        {old: oldObj, new: newObj}])
       .subscribe(
         result => {
           // let's update original, assuming everything successful

@@ -10,9 +10,46 @@
 <!-- Routines Display -->
 <div>
   <h1 class="text-center"> Admin Routine Dashboard </h1>
-  <app-routine-list [routineList]="routines" [instanceList]="routineInstances" [user]="user" [fullDisplayMode]="true"
-    (sendReport)="postNewInstance($event)" (editRoutine)="edit($event)">
+  <div class="row logs-filters">
+    <div class="col-auto">
+      <div class="input-group">
+        <select class="custom-select" [(ngModel)]="routineViewBy">
+          <option *ngFor="let viewBy of routineViewBys" [value]="viewBy">{{viewBy}}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <app-routine-list *ngIf="this.routineViewBy === routineViewTypes.Routine;else viewBlock" [routineList]="routines"
+    [instanceList]="routineInstances" [user]="user" [fullDisplayMode]="true" (sendReport)="postNewInstance($event)"
+    (editRoutine)="edit($event)">
   </app-routine-list>
+  <ng-template #viewBlock>
+    <table class="table table-sm">
+      <thead>
+        <th class="text-center">Agent Name</th>
+        <th class="text-center">Num Task</th>
+        <th class="text-center">Tasks List (instances completed)</th>
+      </thead>
+      <tbody>
+        <tr *ngFor="let routinesOfAgent of routinesOfAgents;">
+          <td class="text-center">
+            {{routinesOfAgent.agentName || 'None'}}
+          </td>
+          <td class="text-center">
+            {{routinesOfAgent.numTask || 0}}
+          </td>
+          <td class="text-center">
+            <ng-container *ngIf="routinesOfAgent.tasksList;else tBlock">
+              {{routinesOfAgent.tasksList.join('; ')}}
+            </ng-container>
+            <ng-template #sBlock>
+              N/A
+            </ng-template>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </ng-template>
 </div>
 
 <hr>
@@ -39,10 +76,11 @@
   </div>
 
   <h2 class="text-center text-capitalize">
-    {{selectedRoutineName === 'All' ? 'All' : selectedRoutine[0]?.name || ""}} Routine Logs ({{selectedInstanceList.length || 0}})
+    {{selectedRoutineName === 'All' ? 'All' : selectedRoutine[0]?.name || ""}} Routine Logs
+    ({{selectedInstanceList.length || 0}})
   </h2>
-  <app-routine-instance-list [routineList]="selectedRoutine" [fullDisplayModeAndShowAll]="selectedRoutineName === 'All'" [instanceList]="selectedInstanceList"
-    [fullDisplayMode]="true">
+  <app-routine-instance-list [routineList]="selectedRoutine" [fullDisplayModeAndShowAll]="selectedRoutineName === 'All'"
+    [instanceList]="selectedInstanceList" [fullDisplayMode]="true">
   </app-routine-instance-list>
 </div>
 

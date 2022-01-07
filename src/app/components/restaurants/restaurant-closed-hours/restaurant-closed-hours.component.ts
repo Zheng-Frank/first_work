@@ -72,15 +72,8 @@ export class RestaurantClosedHoursComponent implements OnInit, OnChanges {
       );
     } else {
       // api update here...
-      this._prunedPatch
-        .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
-          old: {
-            _id: this.restaurant['_id'],
-            closedHours: oldClosedHours
-          }, new: {
-            _id: this.restaurant['_id'],
-            closedHours: newClosedHours
-          }
+      this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+          old: {_id: this.restaurant['_id']}, new: {_id: this.restaurant['_id'], closedHours: newClosedHours}
         }])
         .subscribe(
           result => {

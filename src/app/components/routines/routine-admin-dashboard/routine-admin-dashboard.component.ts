@@ -7,6 +7,12 @@ import { TaskService } from '../../../services/task.service';
 import { AlertType } from '../../../classes/alert-type';
 import { FormEvent, Helper } from '@qmenu/ui';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+
+enum routineViewTypes {
+  Routine = 'View by Routine',
+  Agent = 'View by Agent'
+}
+
 @Component({
   selector: 'app-routine-admin-dashboard',
   templateUrl: './routine-admin-dashboard.component.html',
@@ -42,7 +48,9 @@ export class RoutineAdminDashboardComponent implements OnInit {
   routineNames = [];
   selectedRoutineName = 'All';
   selectedAgent = 'All';
-
+  routineViewBys = [routineViewTypes.Routine, routineViewTypes.Agent];
+  routineViewBy = routineViewTypes.Routine;
+  routinesOfAgents = [];
   constructor(private _api: ApiService, private _global: GlobalService, private _task: TaskService) {
     this.user = this._global.user;
   }
@@ -88,6 +96,17 @@ export class RoutineAdminDashboardComponent implements OnInit {
         }))
       },
       {
+        field: "supervisors",
+        label: "Supervisors",
+        required: false,
+        inputType: "multi-select",
+        items: enabledUsers.map(user => ({
+          object: user.username,
+          text: user.username,
+          selected: false
+        }))
+      },
+      {
         field: "startDate", //
         label: "Start Date",
         required: true,
@@ -110,6 +129,37 @@ export class RoutineAdminDashboardComponent implements OnInit {
     this.getRoutineNames();
     this.filterRoutineLogs();
     await this.populateStats();
+    this.pupulateRoutineOfAgent();
+  }
+  // routine list view by agent 
+  pupulateRoutineOfAgent() {
+    let agents = JSON.parse(JSON.stringify(this.agents));
+    agents.shift();// remove 'All'
+    (agents || []).forEach(agent => {
+      let routinesOfAgent = {
+        agentName: agent,
+        numTask: 0,
+        tasksList: []
+      }
+      // count numTask
+      this.routines.forEach(routine => {
+        if ((routine.assignees || []).includes(agent)) {
+          routinesOfAgent.numTask++;
+        }
+      });
+      // populate routine instances which agent has completed.
+      let myRoutines = this.routines.filter(routine => (routine.assignees || []).includes(agent));
+      myRoutines.forEach(routine => {
+        let myRoutineInstances = this.routineInstances.filter(routineInstance => routineInstance.routineId === routine._id && routineInstance.assignee === agent);
+        let taskCompleted = routine.name + " (" + myRoutineInstances.length + ")";
+        routinesOfAgent.tasksList.push(taskCompleted);
+      });
+      this.routinesOfAgents.push(routinesOfAgent);
+    });
+  }
+
+  get routineViewTypes() {
+    return routineViewTypes;
   }
 
   async populateStats() {
@@ -233,6 +283,8 @@ export class RoutineAdminDashboardComponent implements OnInit {
   filterRoutinesAndInstances() {
     this.routines = this.allRoutines.slice().sort((a, b) => a.name > b.name ? 1 : -1);
     this.routineInstances = this.allInstances.slice();
+    // routine instances of some agents may change
+    this.pupulateRoutineOfAgent();
   }
 
   hasInstances(routine) {
@@ -307,10 +359,10 @@ export class RoutineAdminDashboardComponent implements OnInit {
   }
 
   onSelectRoutine() {
-    if(this.selectedRoutineName === 'All'){
+    if (this.selectedRoutineName === 'All') {
       this.selectedRoutine = this.routines;
       this.selectedInstanceList = this.allInstances;
-    }else{
+    } else {
       this.selectedRoutine = this.routines.filter(r => r.name === this.selectedRoutineName);
       this.selectedInstanceList = this.allInstances.filter(inst => inst.routineId === this.selectedRoutine[0]._id);
     }

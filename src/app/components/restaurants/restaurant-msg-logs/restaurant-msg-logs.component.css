@@ -1,0 +1,18 @@
+.msg-logs .btn-link {
+  cursor: pointer;
+}
+
+.email-line {
+  display: flex;
+  align-items: flex-start;
+}
+
+.email-line label {
+  white-space: nowrap;
+  word-break: keep-all;
+  margin-right: 5px;
+}
+
+.email-line span {
+  margin-right: 5px;
+}

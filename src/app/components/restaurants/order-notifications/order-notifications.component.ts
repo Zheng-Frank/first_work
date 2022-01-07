@@ -271,13 +271,8 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
       );
     } else {
       await this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
-        old: {
-          _id: this.restaurant._id,
-        },
-        new: {
-          _id: this.restaurant._id,
-          orderNotifications: newNotifications
-        }
+        old: {_id: this.restaurant._id},
+        new: {_id: this.restaurant._id, orderNotifications: newNotifications}
       }])
         .subscribe(
           result => {

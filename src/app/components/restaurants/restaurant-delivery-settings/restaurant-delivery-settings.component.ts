@@ -43,7 +43,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     return hour.toTime && this.now > hour.toTime;
   }
 
-  // control whether show delivery start time and end time 
+  // control whether show delivery start time and end time
   hasDeliveryHours(){
     return (this.restaurant.deliveryHours || []).filter(h => h.occurence === 'WEEKLY' && !this.isDeliveryHoursExpired(h)).length > 0;
   }
@@ -264,12 +264,8 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     });
 
     console.log(oldR, newR);
-    this._prunedPatch
-      .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
-        {
-          old: oldR,
-          new: newR
-        }])
+    this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [
+        {old: oldR, new: newR}])
       .subscribe(
         result => {
           caredFields.map(field => {

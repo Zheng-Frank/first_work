@@ -5,12 +5,8 @@
   <!-- start with question 1 -->
   <!-- qMenu -> Restaurant -->
   <div class="form-group">
-    <div class="text-muted" *ngIf="!showCallScript && (showToQmenuQuestion || showFromQmenuQuestion)">
-      If qMenu collects more in payments than your restaurant owes in commissions/fees, we'll send you semimonthly
-      payouts. Otherwise, we'll send you an invoice at the end of the month for commissions/fees owed.
-    </div>
     <div *ngIf="showFromQmenuQuestion">
-      <label class="mb-0">If/when receiving payouts from qMenu, which do you prefer?</label>
+      <label class="mb-0">Receiving payouts from qMenu?</label>
       <div class="text-info" *ngIf="showCallScript">
         {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.receiving_inquiry : invoicingSectionCallScript.ChineseCallScript.receiving_inquiry}}
       </div>
@@ -98,7 +94,7 @@
   <!-- start with question2 -->
   <!-- Restaurant to qMenu -->
   <div class="form-group" *ngIf="showToQmenuQuestion">
-    <label class="mb-0">If/when sending payment to qMenu, which do you prefer?</label>
+    <label class="mb-0">Sending payments to qMenu?</label>
     <div class="text-info" *ngIf="showCallScript">
       {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.send_inquiry : invoicingSectionCallScript.ChineseCallScript.send_inquiry}}
     </div>
