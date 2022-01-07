@@ -43,7 +43,7 @@
 | My Leads (Old) | `ADMIN`, `MARKETER ` |
 | Excess SMS Notifications | `ADMIN`, `CSR`, `CSR_MANAGER` |
 | Restaurants by Provider | `ADMIN`, `CSR`, `CSR_MANAGER`, `MARKETER` |
-| IVR Dashboard | `ADMIN`, `CSR`, `CSR_MANAGER`, `MARKETER`, `SALES_DIRECTOR` |
+| IVR Dashboard | `ADMIN`, `CSR`, `CSR_MANAGER`, `MARKETER`, `MARKETER_MANAGER` |
 | VIP Restaurants | `ADMIN`, `CSR_MANAGER` |
 
 ## Restaurant

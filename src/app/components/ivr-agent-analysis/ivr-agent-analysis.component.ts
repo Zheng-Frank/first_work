@@ -333,7 +333,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
   }
 
   isSalesDirector() {
-    return this._global.user.roles.some(role => role === 'SALES_DIRECTOR');
+    return this._global.user.roles.some(role => role === 'MARKETER_MANAGER');
   }
 
   async getUsers() {

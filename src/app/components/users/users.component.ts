@@ -41,12 +41,11 @@ export class UsersComponent implements OnInit {
     'MARKETER_EXTERNAL',
     'MARKETER_INTERNAL',
     'MARKETER',
-    'MARKETING_DIRECTOR',
+    'MARKETER_MANAGER',
     'MENU_EDITOR', 'PAYER',
     'RATE_EDITOR',
     'SIGNUP_AGENT',
-    'FRAUD_TRACKER',
-    'SALES_DIRECTOR'
+    'FRAUD_TRACKER'
     // NOTE: please add new roles in alphabetical order
   ].map(role => ({
     text: role,
