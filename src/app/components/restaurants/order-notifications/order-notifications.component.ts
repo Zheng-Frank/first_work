@@ -217,6 +217,15 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
 
       // 2. menuFilters
       this.menuFilters = n.menuFilters || [];
+      const presets = Object.keys(this.presetMap);
+      this.notificationInEditing.customizedRenderingPresets = [];
+
+      presets.forEach(preset => {
+        if (this.isCustomRenderingPresetEnabled(n, preset)) {
+          this.notificationInEditing.customizedRenderingPresets.push(preset);
+        }
+      });
+
     }
     // re-org UI
     this.updateFormEditor();
