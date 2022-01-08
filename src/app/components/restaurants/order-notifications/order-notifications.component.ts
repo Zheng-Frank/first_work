@@ -135,6 +135,12 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     'phoenix': [this.channelDescriptor, this.orderTypesDescriptor, this.formatDescriptor, this.templateNameDescriptor, this.languagesDescriptor, this.copiesDescriptor, this.customizedRenderingStylesDescriptor, this.customizedRenderingPresetsDescriptor],
   }
 
+  presetMap = {
+    addLineBreaks: ".translated::before {content: '\\A' !important;}",
+    // other preset values can be added here
+  };
+
+
   menuFilters = [];
   removable = false;
   originalNotification;
@@ -211,6 +217,15 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
 
       // 2. menuFilters
       this.menuFilters = n.menuFilters || [];
+      const presets = Object.keys(this.presetMap);
+      this.notificationInEditing.customizedRenderingPresets = [];
+
+      presets.forEach(preset => {
+        if (this.isCustomRenderingPresetEnabled(n, preset)) {
+          this.notificationInEditing.customizedRenderingPresets.push(preset);
+        }
+      });
+
     }
     // re-org UI
     this.updateFormEditor();
@@ -271,8 +286,8 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
       );
     } else {
       await this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
-        old: {_id: this.restaurant._id},
-        new: {_id: this.restaurant._id, orderNotifications: newNotifications}
+        old: { _id: this.restaurant._id },
+        new: { _id: this.restaurant._id, orderNotifications: newNotifications }
       }])
         .subscribe(
           result => {
@@ -439,20 +454,23 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
   }
 
   handleCustomRenderingPresets(notification) {
-    if ((notification.customizedRenderingPresets || []).length && !notification.customizedRenderingStyles) {
+    if ((notification.customizedRenderingPresets || []).length > 0 && !notification.customizedRenderingStyles) {
       notification.customizedRenderingStyles = "";
     }
-    const presetMap = {
-      addLineBreaks: ".translated::before {content: '\\A' !important;}",
-      // other preset values can be added here
-    };
 
     (notification.customizedRenderingPresets || []).forEach(preset => {
-      notification.customizedRenderingStyles += presetMap[preset]
+      if (!this.isCustomRenderingPresetEnabled(notification, preset)) {
+        notification.customizedRenderingStyles += "\n" + this.presetMap[preset];
+      }
     });
 
     delete notification.customizedRenderingPresets;
-
     return notification;
   }
+
+  isCustomRenderingPresetEnabled(notification, preset) {
+    const customizedRenderingStyles = notification.customizedRenderingStyles || "";
+    return customizedRenderingStyles.includes(this.presetMap[preset])
+  }
+
 }
