@@ -108,6 +108,19 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     inputType: "textarea",
   };
 
+  customizedRenderingPresetsDescriptor = {
+    field: "customizedRenderingPresets",
+    label: "Customized Rendering Presets",
+    required: false,
+    inputType: "multi-select",
+    items: [
+      {
+        object: "addLineBreaks", text: "Add Line Breaks between Translations", selected: false
+      },
+      // other presets can be added here, they will also need CSS values populated in presetMap
+    ]
+  };
+
   notificationFieldDescriptors: any = [
     this.channelDescriptor,
   ];
@@ -119,8 +132,14 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     Email: [this.channelDescriptor, this.orderTypesDescriptor],
     'fei-e': [this.channelDescriptor, this.orderTypesDescriptor, this.copiesDescriptor],
     'longhorn': [this.channelDescriptor, this.orderTypesDescriptor, this.copiesDescriptor],
-    'phoenix': [this.channelDescriptor, this.orderTypesDescriptor, this.formatDescriptor, this.templateNameDescriptor, this.languagesDescriptor, this.copiesDescriptor, this.customizedRenderingStylesDescriptor],
+    'phoenix': [this.channelDescriptor, this.orderTypesDescriptor, this.formatDescriptor, this.templateNameDescriptor, this.languagesDescriptor, this.copiesDescriptor, this.customizedRenderingStylesDescriptor, this.customizedRenderingPresetsDescriptor],
   }
+
+  presetMap = {
+    addLineBreaks: ".translated::before {content: '\\A' !important;}",
+    // other preset values can be added here
+  };
+
 
   menuFilters = [];
   removable = false;
@@ -198,6 +217,15 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
 
       // 2. menuFilters
       this.menuFilters = n.menuFilters || [];
+      const presets = Object.keys(this.presetMap);
+      this.notificationInEditing.customizedRenderingPresets = [];
+
+      presets.forEach(preset => {
+        if (this.isCustomRenderingPresetEnabled(n, preset)) {
+          this.notificationInEditing.customizedRenderingPresets.push(preset);
+        }
+      });
+
     }
     // re-org UI
     this.updateFormEditor();
@@ -219,7 +247,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     // let's also remove irrelevant fields
     const uselessFields = Object.keys(this.notificationInEditing).filter(k => !this.notificationFieldDescriptors.map(fd => fd.field).some(f => f === k));
     const infoIndex = uselessFields.findIndex(entry => entry === 'info');
-    if (infoIndex >= 0 ) {
+    if (infoIndex >= 0) {
       // we don't want to create a visible UI section for the notification's "info" property, but if it exists we want to preserve it
       // remove the uselessFields entry for 'info' property so that it won't be deleted on the next line
       uselessFields.splice(infoIndex, 1);
@@ -228,7 +256,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
   }
 
   submit(event) {
-    const cloned = JSON.parse(JSON.stringify(this.notificationInEditing));
+    const cloned = this.handleCustomRenderingPresets(JSON.parse(JSON.stringify(this.notificationInEditing)));
     const index = this.orderNotifications.indexOf(this.originalNotification);
     const oldOrderNotifications = JSON.parse(JSON.stringify(this.orderNotifications));
     if (index >= 0) {
@@ -258,8 +286,8 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
       );
     } else {
       await this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
-        old: {_id: this.restaurant._id},
-        new: {_id: this.restaurant._id, orderNotifications: newNotifications}
+        old: { _id: this.restaurant._id },
+        new: { _id: this.restaurant._id, orderNotifications: newNotifications }
       }])
         .subscribe(
           result => {
@@ -424,4 +452,25 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     }
     return url;
   }
+
+  handleCustomRenderingPresets(notification) {
+    if ((notification.customizedRenderingPresets || []).length > 0 && !notification.customizedRenderingStyles) {
+      notification.customizedRenderingStyles = "";
+    }
+
+    (notification.customizedRenderingPresets || []).forEach(preset => {
+      if (!this.isCustomRenderingPresetEnabled(notification, preset)) {
+        notification.customizedRenderingStyles += "\n" + this.presetMap[preset];
+      }
+    });
+
+    delete notification.customizedRenderingPresets;
+    return notification;
+  }
+
+  isCustomRenderingPresetEnabled(notification, preset) {
+    const customizedRenderingStyles = notification.customizedRenderingStyles || "";
+    return customizedRenderingStyles.includes(this.presetMap[preset])
+  }
+
 }

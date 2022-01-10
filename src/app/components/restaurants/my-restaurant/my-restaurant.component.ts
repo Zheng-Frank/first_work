@@ -306,8 +306,9 @@ export class MyRestaurantComponent implements OnInit {
       let updated = false;
       let appliedPolicy;
       if (r.rateSchedules && r.rateSchedules.length > 0) {
-        const agent = r.rateSchedules[r.rateSchedules.length - 1].agent;
-
+        const nonAgents = ['none', 'auto', 'AUTO', 'random_name', 'qmenu', 'invalid', 'no-gmb'];
+        let sorted = r.rateSchedules.filter(x => x.agent && !nonAgents.includes(x.agent)).sort((a, b) => new Date(b.date).valueOf() - new Date(a.date).valueOf());
+        let agent = (sorted[0] || {}).agent;
         const policies = policiesMap[agent] || [];
         for (let i = 0; i < policies.length; i++) {
           const policy = policies[i];
