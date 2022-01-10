@@ -273,9 +273,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
       cloned.menuFilters = JSON.parse(JSON.stringify(this.menuFilters));
     }
 
-    console.log(this.orderNotifications);
-    console.log(oldOrderNotifications);
-    // this.patchDiff(this.orderNotifications, oldOrderNotifications);
+    this.patchDiff(this.orderNotifications, oldOrderNotifications);
     this.modalNotification.hide();
     this.notificationInEditing = {};
     event.acknowledge(null);
