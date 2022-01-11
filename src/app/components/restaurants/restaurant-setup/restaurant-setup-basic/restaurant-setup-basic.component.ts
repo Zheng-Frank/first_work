@@ -108,14 +108,18 @@ export class RestaurantSetupBasicComponent implements OnInit {
   }
 
   async getExistingWebsite() {
-    const gmbWebsites = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'gmbBiz',
-      query: { cid: this.restaurant.googleListing.cid },
-      projection: { gmbWebsite: 1 },
-      limit: 100000000
-    }).toPromise();
-    let { googleListing, web } = this.restaurant;
-    let websites = (gmbWebsites || []).map(w => (w.gmbWebsite || '').split('?')[0]);
+    console.log(this.restaurant.googleListing.cid);
+    let gmbWebsites = [];
+    let {googleListing = {}, web = {}} = this.restaurant;
+    if(googleListing.cid){
+      gmbWebsites = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        query: { cid: googleListing.cid },
+        projection: { gmbWebsite: 1 },
+        limit: 100000000
+      }).toPromise();
+    }
+    let websites = gmbWebsites.map(w => (w.gmbWebsite || '').split('?')[0]);
     websites.push(googleListing.gmbWebsite, web.bizManagedWebsite, 'Other');
     this.existingWebsites = Array.from(new Set(websites.filter(x => !!x)));
     this.existingWebsite = web.bizManagedWebsite || googleListing.gmbWebsite;
