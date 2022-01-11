@@ -108,7 +108,6 @@ export class RestaurantSetupBasicComponent implements OnInit {
   }
 
   async getExistingWebsite() {
-    console.log(this.restaurant.googleListing.cid);
     let gmbWebsites = [];
     let {googleListing = {}, web = {}} = this.restaurant;
     if(googleListing.cid){
