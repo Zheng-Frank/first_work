@@ -54,7 +54,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
   ivrUsers = {};
   userRoleMap = {};
   showCharts = false;
-
+  marketers = [];
   restaurants = [];
 
   get now(): string {
@@ -220,7 +220,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
     this.charts.forEach(chart => chart.destroy());
     this.charts = [];
     let ivrName = this._global.user.ivrUsername;
-    if (!this.isAdmin() && !ivrName) {
+    if (!this.isAdmin() && !this.isMarketerManager() && !ivrName) {
       this.list = [];
       this.totalRecords = 0;
       return;
@@ -249,6 +249,8 @@ export class IvrAgentAnalysisComponent implements OnInit {
     } as any;
     if (this.isAdmin()) {
       query['Agent.Username'] = { $exists: true };
+    } else if (this.isMarketerManager()) {
+      query['Agent.Username'] = { $in: this.marketers }
     } else {
       query['Agent.Username'] = ivrName;
     }
@@ -330,6 +332,10 @@ export class IvrAgentAnalysisComponent implements OnInit {
     return this._global.user.roles.some(role => role === 'ADMIN');
   }
 
+  isMarketerManager() {
+    return this._global.user.roles.some(role => role === 'MARKETER_MANAGER');
+  }
+
   async getUsers() {
     let users = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'user',
@@ -340,6 +346,9 @@ export class IvrAgentAnalysisComponent implements OnInit {
     users.forEach(({ username, ivrUsername, roles }) => {
       this.ivrUsers[ivrUsername] = username;
       this.userRoleMap[username] = roles;
+      if (roles.includes('MARKETER') || roles.includes('MARKETER_INTERNAL')) {
+        this.marketers.push(ivrUsername)
+      }
     });
   }
 
@@ -408,7 +417,7 @@ export class IvrAgentAnalysisComponent implements OnInit {
 
   newSignUpCount() {
     // only count sign-ups for agents whose stats are currently displayed on the page. otherwise, we may have a mismatch
-    // between the total count displayed at the top of the page and the total of the individual agents' numbers 
+    // between the total count displayed at the top of the page and the total of the individual agents' numbers
     return (this.restaurants || []).reduce((prev, val) => {
       const displayedUsers = this.filteredList.map(item => item.agent);
       if (displayedUsers.includes(val.rateSchedules[0].agent)) {

@@ -65,7 +65,7 @@ export class MyLeadsComponent implements OnInit {
               u =>
                 u.manager == this._global.user.username &&
                 (u.roles || []).some(
-                  r => ["MARKETER", "MARKETING_DIRECTOR"].indexOf(r) >= 0
+                  r => ["MARKETER", "MARKETER_MANAGER"].indexOf(r) >= 0
                 )
             );
           this.marketingUsers.push(this._global.user);
