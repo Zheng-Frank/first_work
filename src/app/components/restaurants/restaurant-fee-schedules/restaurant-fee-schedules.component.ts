@@ -22,6 +22,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   @ViewChild('editingForm') editingForm: FormBuilderComponent;
   @Input() restaurant: Restaurant;
   @Input() users = [];
+  @Input() notUpdateDB = false;  // rt quick setup section request don't submit to backend immediatedly
 
   username;
   now = new Date(); // to tell if a fee schedule is expired
@@ -170,7 +171,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     }
   }
 
-  async ngOnChanges(changes: SimpleChanges) {
+  async ngOnChanges() {
     this.feeSchedules = [];
     if (this.restaurant) {
       this.feeSchedules = (this.restaurant['feeSchedules'] || []).map(fs => new FeeSchedule(fs));
@@ -388,8 +389,6 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
       // const [year, month, date] = dateString.split('-');
       return TimezoneHelper.parse(dateString, this.restaurant.googleAddress.timezone);
     }
-    // console.log("this.feeScheduleInEditing.fromTime:"+this.feeScheduleInEditing.fromTime);
-    // console.log("this.feeScheduleInEditing.toTime:"+this.feeScheduleInEditing.toTime);
     if (this.feeScheduleInEditing.fromTime) {
       myFs.fromTime = getTransformedDate(this.feeScheduleInEditing.fromTime);
     }
@@ -423,7 +422,14 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
       myFs.id = new Date().valueOf().toString(); // we use timestamp as id
       newFeeSchedules = [... this.feeSchedules, myFs];
     }
-    await this.saveNewFeeSchedulesToDbAndAcknowledge(newFeeSchedules, event.acknowledge);
+    if (!this.notUpdateDB) {
+      await this.saveNewFeeSchedulesToDbAndAcknowledge(newFeeSchedules, event.acknowledge);
+    } else {
+      event.acknowledge(null);
+      this.restaurant['feeSchedules'] = newFeeSchedules;
+      console.log(newFeeSchedules);
+      this.modalFeeSchedule.hide();
+    }
   }
 
   cancel(event) {
@@ -432,7 +438,14 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
 
   async remove(event: FormSubmit) {
     const newFeeSchedules = this.feeSchedules.filter(fs => fs.id !== this.feeScheduleInEditing.id);
-    await this.saveNewFeeSchedulesToDbAndAcknowledge(newFeeSchedules, event.acknowledge);
+    if (!this.notUpdateDB) {
+      await this.saveNewFeeSchedulesToDbAndAcknowledge(newFeeSchedules, event.acknowledge);
+    } else {
+      event.acknowledge(null);
+      this.restaurant['feeSchedules'] = newFeeSchedules;
+      console.log(newFeeSchedules);
+      this.modalFeeSchedule.hide();
+    }
   }
 
   async saveNewFeeSchedulesToDbAndAcknowledge(newFeeSchedules, acknowledge) {
