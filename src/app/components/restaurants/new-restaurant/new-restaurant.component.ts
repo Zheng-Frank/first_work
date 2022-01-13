@@ -124,7 +124,6 @@ export class NewRestaurantComponent implements OnInit {
       //   this.restaurant.googleAddress = addressDetails;
       // }
       this.restaurant.googleAddress = addressDetails;
-
     } catch (error) {
       this.apiRequesting = false;
       this.checkExistenceError = "Error: google address query.";
@@ -146,6 +145,7 @@ export class NewRestaurantComponent implements OnInit {
     //   },
     //   limit: 5
     // }).toPromise();
+
     // query existing restaurant with SAME place_id or phone number
     const allExistingRestaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: "restaurant",
@@ -153,7 +153,8 @@ export class NewRestaurantComponent implements OnInit {
         $or: [
           {
             "channels.value": crawledResult.phone || 'non-existing',
-            "googleAddress.postal_code": this.restaurant.googleAddress.postal_code
+            "googleAddress.postal_code": this.restaurant.googleAddress.postal_code,
+            "googleAddress.street_number": this.restaurant.googleAddress.street_number
           },
           {
             "googleAddress.place_id": crawledResult.place_id
