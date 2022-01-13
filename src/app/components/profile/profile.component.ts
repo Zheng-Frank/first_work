@@ -19,7 +19,7 @@ export class ProfileComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
-    if (this._global.isUserInRoles(["ADMIN", "MARKETING_DIRECTOR"])) {
+    if (this._global.isUserInRoles(["ADMIN", "MARKETER_MANAGER"])) {
       // grab all users and make an assignee list!
       // get all users
       this._api
@@ -48,7 +48,7 @@ export class ProfileComponent implements OnInit {
   }
 
   shouldShowMyMarketers() {
-    return this._global.isUserInRoles(["ADMIN", "MARKETING_DIRECTOR"]);
+    return this._global.isUserInRoles(["ADMIN", "MARKETER_MANAGER"]);
   }
 
   getMyTeamData() {

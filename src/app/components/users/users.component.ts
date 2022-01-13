@@ -41,7 +41,7 @@ export class UsersComponent implements OnInit {
     'MARKETER_EXTERNAL',
     'MARKETER_INTERNAL',
     'MARKETER',
-    'MARKETING_DIRECTOR',
+    'MARKETER_MANAGER',
     'MENU_EDITOR', 'PAYER',
     'RATE_EDITOR',
     'SIGNUP_AGENT',
@@ -196,7 +196,7 @@ export class UsersComponent implements OnInit {
   }
 
   formSubmit(event) {
-    
+
     if(this.userInEditing.notes && this.userInEditing.notes.length > 1000){
       event.acknowledge(null);
       return this._global.publishAlert(AlertType.Danger, 'Notes limit 1000 characters!');

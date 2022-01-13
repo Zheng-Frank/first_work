@@ -39,15 +39,15 @@ export class LeadDashboardComponent implements OnInit {
   beforeCloseFlag = false; // three conditions of timer filters, and one must be checked at least.
   betweenHoursFlag = false;
   openNowFlag = false;
-  //timeFilterHours is an array needed in second condition of time filters, 
+  //timeFilterHours is an array needed in second condition of time filters,
   timeFiltersHours = ['00 AM', '01 AM', '02 AM', '03 AM', '04 AM', '05 AM', '06 AM', '07 AM', '08 AM', '09 AM', '10 AM',
     '11 AM', '12 AM', '01 PM', '02 PM', '03 PM', '04 PM', '05 PM', '06 PM', '07 PM', '08 PM', '09 PM', '10 PM', '11 PM', '12 PM'];
   // minsBeforeClosings is an array needed in first condition of time filters, whose elements from 1 - 60.
   minsBeforeClosings = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
     31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60];
-  minsBeforeClosing = 60; // the first condition of time filters 
-  timeFiltersStartHours; // the first variable of second condition of time filters 
-  timeFiltersEndHours; // the second variable of second condition of time filters 
+  minsBeforeClosing = 60; // the first condition of time filters
+  timeFiltersStartHours; // the first variable of second condition of time filters
+  timeFiltersEndHours; // the second variable of second condition of time filters
   removeLeadsNoLogs = false; // if the value is true,we need to filter which has no logs.
   chainDelRestaurants = []; // the field is the chain restaurants which needs to be deleted.
   searchDelRTText = ''; // try to search the name of removed chain restaurant.
@@ -382,7 +382,7 @@ export class LeadDashboardComponent implements OnInit {
       ]
     },
   ];
-  // select id, which it is used to assign/unassign restaurant to new salesperson. 
+  // select id, which it is used to assign/unassign restaurant to new salesperson.
   selectId;
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -417,7 +417,7 @@ export class LeadDashboardComponent implements OnInit {
             .map(u => new User(u))
             .filter(u =>
               (u.roles || []).some(
-                r => ["MARKETER", "MARKETING_DIRECTOR"].indexOf(r) >= 0
+                r => ["MARKETER", "MARKETER_MANAGER"].indexOf(r) >= 0
               )
             );
 
@@ -605,7 +605,7 @@ export class LeadDashboardComponent implements OnInit {
     this.removeRTModal.show();
   }
 
-  // sales person 
+  // sales person
   viewFilter() {
     switch (this.viewType) {
       case enumViewTypes.ALL:
@@ -1336,7 +1336,7 @@ export class LeadDashboardComponent implements OnInit {
     }
     this.assigneeModal.show();
   }
-  // using in many leads be checked of the table. 
+  // using in many leads be checked of the table.
   assignOnSelected() {
     this.multipleChoice = true;
     this.assigneeObj = {
@@ -1448,7 +1448,7 @@ export class LeadDashboardComponent implements OnInit {
     }
   }
 
-  // using in many leads be checked of the table. 
+  // using in many leads be checked of the table.
   unassignOnSelected() {
 
     this.leads.filter(lead => this.selectionSet.has(lead._id)).map(lead => {

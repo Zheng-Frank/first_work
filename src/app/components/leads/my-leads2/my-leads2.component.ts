@@ -116,7 +116,7 @@ export class MyLeads2Component implements OnInit, OnDestroy {
   constructor(private _global: GlobalService, private _api: ApiService) {
     this.username = _global.user.username;
     console.log('current user...', _global.user.username);
-    this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
+    this.isAdmin = _global.user.roles.some(r => r === 'ADMIN' || r === 'MARKETER_MANAGER');
     if (this.isAdmin) {
       this.loadUsernames();
     }
