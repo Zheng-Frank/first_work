@@ -18,7 +18,7 @@ export class RestaurantOthersComponent implements OnInit {
       "Translations": ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
       "1099K": ['ADMIN', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER'],
       "GMB Posts": ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER'],
-      "Web Template": ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER'],
+      "Web Template": ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', "MARKETER"],
       "Yelp": ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
       "API Logs": ['ADMIN'],
       "SEO Tracking": ['ADMIN', 'CSR', 'CSR_MANAGER'],
