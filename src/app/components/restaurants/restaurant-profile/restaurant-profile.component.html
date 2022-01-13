@@ -544,6 +544,19 @@
                         <td>{{!tipSettings.Pickup.tipHide}}</td>
                         <td>{{!tipSettings.Delivery.tipHide}}</td>
                       </tr>
+                      <tr>
+                        <th class="pl-5">{{changeLanguageFlag === 'English' ? 'Prevent Online Tip If Cash' : '如果现金支付禁止线上展示小费' }}
+                          <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
+                            (mouseover)="showCorrespondingTranslation('PreventOnlineTipIfCash')" (mouseout)="translating = ''">
+                            <div *ngIf="translating === 'PreventOnlineTipIfCash'" class="left tip-talk radius">
+                              <p>Prevent Online Tip If Cash:{{Explanations.EnglishExplanations.PreventOnlineTipIfCash}}</p>
+                              -------------<br>
+                              <p>如果现金支付禁止线上展示小费:{{Explanations.ChineseExplanations.PreventOnlineTipIfCash}}</p>
+                            </div>
+                          </i>
+                        </th>
+                        <td>{{!!restaurant.preventOnlineTipIfCash}}</td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
@@ -1421,6 +1434,9 @@
                 </tr>
               </tbody>
             </table>
+            <div class="ml-5">
+              <input type="checkbox" [(ngModel)]="preventOnlineTipIfCash"/><label class="ml-1">Prevent online tipping if cash order</label> 
+            </div>
           </div>
         </ng-container>
         <!-- Other Preferences -->
