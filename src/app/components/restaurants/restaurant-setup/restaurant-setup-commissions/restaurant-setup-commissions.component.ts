@@ -2,10 +2,10 @@ import { AlertType } from 'src/app/classes/alert-type';
 import { ApiService } from './../../../../services/api.service';
 import { GlobalService } from 'src/app/services/global.service';
 import { OrderPaymentMethod } from './../../../../classes/order-payment-method';
-import { TimezoneHelper, OrderType, CreditCard } from '@qmenu/ui';
+import { TimezoneHelper, OrderType } from '@qmenu/ui';
 import { EventEmitter, ViewChild } from '@angular/core';
 import { Component, OnInit, Input, Output } from '@angular/core';
-import { Restaurant, FeeSchedule, ChargeBasis } from '@qmenu/ui';
+import { Restaurant, ChargeBasis } from '@qmenu/ui';
 import { RestaurantFeeSchedulesComponent } from '../../restaurant-fee-schedules/restaurant-fee-schedules.component';
 import { environment } from 'src/environments/environment';
 
@@ -15,7 +15,7 @@ enum commissionStandardTypes {
 }
 
 enum whoPayTypes {
-  Customer = 'Have the customer pay (recommentded)',
+  Customer = 'Have the customer pay (recommended)',
   RT = 'I will pay'
 }
 
@@ -58,6 +58,7 @@ export class RestaurantSetupCommissionsComponent implements OnInit {
   now = new Date();
   knownUsers = [];
   newfeeSchedules = [];
+  originfeeSchedules = [];
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
@@ -86,8 +87,9 @@ export class RestaurantSetupCommissionsComponent implements OnInit {
   }
 
   setSnapRTFeeSchedules() {
-    if(this.feeSchedulesComponent){
-      this.snapRestaurant.feeSchedules = [];
+    if (this.feeSchedulesComponent) {
+      this.originfeeSchedules = [];
+      this.originfeeSchedules = this.restaurant.feeSchedules;
       if (this.canSave()) {
         // set the feeSchedules of rt only if two question has been selected
         let feeSchedule1, feeSchedule2, feeSchedule3, feeSchedule4;
@@ -95,7 +97,7 @@ export class RestaurantSetupCommissionsComponent implements OnInit {
         // predefined 4 type schedule (see trello card714)
         // case 1: No matter what, fee configuration "c" (or "e") will be pre-populated 
         feeSchedule1 = {
-          id: new Date(new Date().valueOf() + Math.round(Math.random() + 1) * 100).valueOf().toString(),
+          id: "",
           payer: PayerTypes.Customer, // recommended
           payee: PayeeTypes.Qmenu,
           name: feeScheduleNameTypes.Service_Fee,
@@ -121,7 +123,7 @@ export class RestaurantSetupCommissionsComponent implements OnInit {
         // case 2: If the restaurant chose to have qMenu collect credit card payment for ANY order type, we'll have configuration "a"
         if (serviceSettings.some(serviceSetting => (serviceSetting.paymentMethod || []).includes(OrderPaymentMethod.Qmenu))) {
           feeSchedule2 = {
-            id: new Date(new Date().valueOf() + Math.round(Math.random() + 1) * 100).valueOf().toString(),
+            id: "",
             payer: PayerTypes.Customer, // recommended
             payee: PayeeTypes.Qmenu,
             name: feeScheduleNameTypes.Credit_card_Fee,
@@ -141,7 +143,7 @@ export class RestaurantSetupCommissionsComponent implements OnInit {
         // case 3: If the restaurant has delivery but handles it themselves, we'll have configuration "d" (or "f")
         if (!courier) {
           feeSchedule3 = {
-            id: new Date(new Date().valueOf() + Math.round(Math.random() + 1) * 100).valueOf().toString(),
+            id: "",
             payer: PayerTypes.Customer, // recommended
             payee: PayeeTypes.Qmenu,
             name: feeScheduleNameTypes.Service_Fee,
@@ -167,7 +169,7 @@ export class RestaurantSetupCommissionsComponent implements OnInit {
         } else if (courier && courier.name === 'Postmates') {
           // case 4: If the restaurant has delivery and chose to have qMenu handle it for them, we will have configuration "b"
           feeSchedule4 = {
-            id: new Date(new Date().valueOf() + Math.round(Math.random() + 1) * 100).valueOf().toString(),
+            id: "",
             payer: PayerTypes.Customer, // recommended
             payee: PayeeTypes.Qmenu,
             name: feeScheduleNameTypes.Service_Fee,
@@ -185,11 +187,33 @@ export class RestaurantSetupCommissionsComponent implements OnInit {
           }
         }
         this.newfeeSchedules = [feeSchedule1, feeSchedule2, feeSchedule3, feeSchedule4].filter(feeSchedule => !!feeSchedule);
+        // make id of fee schedule unique
+        this.newfeeSchedules.forEach(feeSchedule => {
+          feeSchedule.id = (new Date().valueOf() + (Math.random() + 1) * 100000).toFixed(2).toString();
+        });
       }
-      this.snapRestaurant.feeSchedules = [ ...this.newfeeSchedules, ...(this.snapRestaurant.feeSchedules || [])];
-      console.log(JSON.stringify(this.snapRestaurant.feeSchedules));
+      this.snapRestaurant.feeSchedules = [...this.newfeeSchedules, ...this.originfeeSchedules];
       this.feeSchedulesComponent.ngOnChanges();
     }
+  }
+
+  handleUpdateSetupSchedules(newFeeSchedules) {
+    // sub component has change so parent component should also be changed.
+    // step1: update newfeeSchedules
+    for (let i = 0; i < this.newfeeSchedules.length; i++) {
+      let feeSchedule = this.newfeeSchedules[i];
+      let fs = (newFeeSchedules || []).find(fs => fs.id === feeSchedule.id);
+      this.newfeeSchedules[i] = fs ? fs : undefined;
+    }
+    this.newfeeSchedules = this.newfeeSchedules.filter(schedule => !!schedule);
+    // step2: update originSchedules
+    for (let i = 0; i < this.originfeeSchedules.length; i++) {
+      let feeSchedule = this.originfeeSchedules[i];
+      let fs = (newFeeSchedules || []).find(fs => fs.id === feeSchedule.id);
+      this.originfeeSchedules[i] = fs? fs: undefined;
+    }
+    this.originfeeSchedules = this.originfeeSchedules.filter(schedule => !!schedule);
+    // console.log(JSON.stringify(this.newfeeSchedules));
   }
 
   canSave() {
@@ -214,9 +238,9 @@ export class RestaurantSetupCommissionsComponent implements OnInit {
   }
 
   save() {
-    let existingFeeSchedules = this.restaurant.feeSchedules || [];
-    let qmenuTOMarketerSchedules = existingFeeSchedules.filter(feeSchedule => feeSchedule.payer === 'CUSTOMER' && (feeSchedule.payee === 'marketer' || feeSchedule.payee === 'NONE'));
-    let otherFeeSchedules = existingFeeSchedules.filter(feeSchedule => !(feeSchedule.payer === 'CUSTOMER' && (feeSchedule.payee === 'marketer' || feeSchedule.payee === 'NONE')));
+    let existingFeeSchedules = this.originfeeSchedules;
+    let qmenuTOMarketerSchedules = existingFeeSchedules.filter(feeSchedule => feeSchedule.payer === 'CUSTOMER' && (this.knownUsers.some(user => user.username === feeSchedule.payee) || feeSchedule.payee === 'NONE'));
+    let otherFeeSchedules = existingFeeSchedules.filter(feeSchedule => !(feeSchedule.payer === 'CUSTOMER' && (this.knownUsers.some(user => user.username === feeSchedule.payee) || feeSchedule.payee === 'NONE')));
     // set previous fee schedules configurations expiry
     otherFeeSchedules.forEach(feeSchedule => {
       let offset = 24 * 3600 * 1000;
@@ -224,7 +248,7 @@ export class RestaurantSetupCommissionsComponent implements OnInit {
     });
     let feeSchedules = [...qmenuTOMarketerSchedules, ...otherFeeSchedules, ...this.newfeeSchedules];
     console.log("saved:" + JSON.stringify(feeSchedules));
-    this.done.emit({feeSchedules: feeSchedules});
+    // this.done.emit({feeSchedules: feeSchedules});
   }
 
 }

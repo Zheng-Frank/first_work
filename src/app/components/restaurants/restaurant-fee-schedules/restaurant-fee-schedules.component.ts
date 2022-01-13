@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ViewChild, SimpleChanges, OnChanges } from '@angular/core';
+import { Component, OnInit, Input, ViewChild, SimpleChanges, OnChanges, Output, EventEmitter } from '@angular/core';
 import { Restaurant, FeeSchedule, ChargeBasis, TimezoneHelper } from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
 import { GlobalService } from "../../../services/global.service";
@@ -23,6 +23,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   @Input() restaurant: Restaurant;
   @Input() users = [];
   @Input() notUpdateDB = false;  // rt quick setup section request don't submit to backend immediatedly
+  @Output() updateSetupSchedules = new EventEmitter();
 
   username;
   now = new Date(); // to tell if a fee schedule is expired
@@ -426,8 +427,9 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
       await this.saveNewFeeSchedulesToDbAndAcknowledge(newFeeSchedules, event.acknowledge);
     } else {
       event.acknowledge(null);
+      this.feeSchedules = newFeeSchedules;
       this.restaurant['feeSchedules'] = newFeeSchedules;
-      console.log(newFeeSchedules);
+      this.updateSetupSchedules.emit(newFeeSchedules);
       this.modalFeeSchedule.hide();
     }
   }
@@ -442,8 +444,9 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
       await this.saveNewFeeSchedulesToDbAndAcknowledge(newFeeSchedules, event.acknowledge);
     } else {
       event.acknowledge(null);
+      this.feeSchedules = newFeeSchedules;
       this.restaurant['feeSchedules'] = newFeeSchedules;
-      console.log(newFeeSchedules);
+      this.updateSetupSchedules.emit(newFeeSchedules);
       this.modalFeeSchedule.hide();
     }
   }

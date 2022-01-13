@@ -1,6 +1,4 @@
 <ng-container *ngIf="!restaurant.feeSchedules;else elseBlock">
-  <label class="mb-0">Your restaurant don't have fee Schedules, do you want to convert rate schedules to fee
-    schedules?</label>
   <button class="btn btn-link" (click)="convertToFeeSchedules()">→ Convert to Fees Schedules</button>
 </ng-container>
 <ng-template #elseBlock>
@@ -24,7 +22,7 @@
     </div>
   </div>
   <div class="form-group">
-    <app-restaurant-fee-schedules #feeSchedulesComponent [notUpdateDB]="true" [restaurant]="snapRestaurant" [users]="knownUsers">
+    <app-restaurant-fee-schedules #feeSchedulesComponent [notUpdateDB]="true" (updateSetupSchedules)="handleUpdateSetupSchedules($event)"  [restaurant]="snapRestaurant" [users]="knownUsers">
     </app-restaurant-fee-schedules>
   </div>
 
