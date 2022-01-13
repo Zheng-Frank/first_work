@@ -3,7 +3,7 @@ import { ApiService } from './../../../../services/api.service';
 import { GlobalService } from 'src/app/services/global.service';
 import { OrderPaymentMethod } from './../../../../classes/order-payment-method';
 import { TimezoneHelper, OrderType } from '@qmenu/ui';
-import { EventEmitter, ViewChild } from '@angular/core';
+import { EventEmitter, ViewChild, AfterViewInit } from '@angular/core';
 import { Component, OnInit, Input, Output } from '@angular/core';
 import { Restaurant, ChargeBasis } from '@qmenu/ui';
 import { RestaurantFeeSchedulesComponent } from '../../restaurant-fee-schedules/restaurant-fee-schedules.component';
@@ -43,7 +43,7 @@ enum feeScheduleNameTypes {
   templateUrl: './restaurant-setup-commissions.component.html',
   styleUrls: ['./restaurant-setup-commissions.component.css']
 })
-export class RestaurantSetupCommissionsComponent implements OnInit {
+export class RestaurantSetupCommissionsComponent implements OnInit, AfterViewInit {
 
   @ViewChild('feeSchedulesComponent') feeSchedulesComponent: RestaurantFeeSchedulesComponent;
   @Input()
@@ -52,9 +52,9 @@ export class RestaurantSetupCommissionsComponent implements OnInit {
   @Output()
   done = new EventEmitter();
   commissionStandardOpts = [commissionStandardTypes.Zero_Nine_Nine, commissionStandardTypes.Four_Percentage];
-  commissionStandardOpt = '';
+  commissionStandardOpt = commissionStandardTypes.Four_Percentage;
   whoPayOpts = [whoPayTypes.Customer, whoPayTypes.RT];
-  whoPayOpt = '';
+  whoPayOpt = whoPayTypes.Customer;
   now = new Date();
   knownUsers = [];
   newfeeSchedules = [];
@@ -68,6 +68,10 @@ export class RestaurantSetupCommissionsComponent implements OnInit {
   init() {
     this.snapRestaurant = JSON.parse(JSON.stringify(this.restaurant));
     this._global.getCachedUserList().then(users => this.knownUsers = users).catch(console.error);
+    this.setSnapRTFeeSchedules();
+  }
+  // init data before rendering fee schedules component 
+  ngAfterViewInit(){
     this.setSnapRTFeeSchedules();
   }
 
@@ -88,6 +92,7 @@ export class RestaurantSetupCommissionsComponent implements OnInit {
 
   setSnapRTFeeSchedules() {
     if (this.feeSchedulesComponent) {
+      
       this.originfeeSchedules = [];
       this.originfeeSchedules = this.restaurant.feeSchedules;
       if (this.canSave()) {
@@ -121,7 +126,7 @@ export class RestaurantSetupCommissionsComponent implements OnInit {
           feeSchedule1.payer = PayerTypes.Customer;
         }
         // case 2: If the restaurant chose to have qMenu collect credit card payment for ANY order type, we'll have configuration "a"
-        if (serviceSettings.some(serviceSetting => (serviceSetting.paymentMethod || []).includes(OrderPaymentMethod.Qmenu))) {
+        if (serviceSettings.some(serviceSetting => (serviceSetting.paymentMethods || []).includes(OrderPaymentMethod.Qmenu))) {
           feeSchedule2 = {
             id: "",
             payer: PayerTypes.Customer, // recommended
@@ -141,7 +146,7 @@ export class RestaurantSetupCommissionsComponent implements OnInit {
           }
         }
         // case 3: If the restaurant has delivery but handles it themselves, we'll have configuration "d" (or "f")
-        if (!courier) {
+        if (!courier && serviceSettings.some(serviceSetting => serviceSetting && serviceSetting.name === 'Delivery' && serviceSetting.paymentMethods && serviceSetting.paymentMethods.length > 0)) {
           feeSchedule3 = {
             id: "",
             payer: PayerTypes.Customer, // recommended
@@ -213,7 +218,6 @@ export class RestaurantSetupCommissionsComponent implements OnInit {
       this.originfeeSchedules[i] = fs? fs: undefined;
     }
     this.originfeeSchedules = this.originfeeSchedules.filter(schedule => !!schedule);
-    // console.log(JSON.stringify(this.newfeeSchedules));
   }
 
   canSave() {
