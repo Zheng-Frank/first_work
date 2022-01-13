@@ -136,7 +136,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
   }
 
   presetMap = {
-    addLineBreaks: ".translated::before {content: '\\A' !important;}",
+    "addLineBreaks": ".translated::before {content: '\\A' !important;}",
     // other preset values can be added here
   };
 
@@ -217,6 +217,7 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
 
       // 2. menuFilters
       this.menuFilters = n.menuFilters || [];
+
       const presets = Object.keys(this.presetMap);
       this.notificationInEditing.customizedRenderingPresets = [];
 
@@ -458,6 +459,16 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
       notification.customizedRenderingStyles = "";
     }
 
+    /* presets that are both 
+    1) present in the customizedRenderingStyles property && 
+    2) not present in the customizedRenderingPresets array
+    have been deselected, so they should be deleted */
+    const deselectedPresets = Object.keys(this.presetMap).filter(p => this.isCustomRenderingPresetEnabled(notification, p) && !notification.customizedRenderingPresets.includes(p));
+    deselectedPresets.forEach(p => {
+      notification.customizedRenderingStyles = this.deleteSelectedPreset(notification.customizedRenderingStyles, p);
+    });
+
+    // add newly enabled presets that are not already present in the customizedRenderlingStyles property
     (notification.customizedRenderingPresets || []).forEach(preset => {
       if (!this.isCustomRenderingPresetEnabled(notification, preset)) {
         notification.customizedRenderingStyles += "\n" + this.presetMap[preset];
@@ -473,4 +484,9 @@ export class OrderNotificationsComponent implements OnInit, OnChanges {
     return customizedRenderingStyles.includes(this.presetMap[preset])
   }
 
+  deleteSelectedPreset(style, preset) {
+    const startIndex = style.indexOf(this.presetMap[preset]);
+    const endIndex = startIndex + this.presetMap[preset].length;
+    return style.slice(0, startIndex) + style.slice(endIndex);
+  }
 }
