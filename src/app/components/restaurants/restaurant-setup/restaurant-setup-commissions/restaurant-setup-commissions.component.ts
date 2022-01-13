@@ -52,9 +52,9 @@ export class RestaurantSetupCommissionsComponent implements OnInit, AfterViewIni
   @Output()
   done = new EventEmitter();
   commissionStandardOpts = [commissionStandardTypes.Zero_Nine_Nine, commissionStandardTypes.Four_Percentage];
-  commissionStandardOpt = commissionStandardTypes.Four_Percentage;
+  commissionStandardOpt = '';
   whoPayOpts = [whoPayTypes.Customer, whoPayTypes.RT];
-  whoPayOpt = whoPayTypes.Customer;
+  whoPayOpt = '';
   now = new Date();
   knownUsers = [];
   newfeeSchedules = [];
@@ -66,6 +66,10 @@ export class RestaurantSetupCommissionsComponent implements OnInit, AfterViewIni
   }
 
   init() {
+    this.commissionStandardOpt = '';
+    this.whoPayOpt = '';
+    this.newfeeSchedules = [];
+    this.originfeeSchedules = [];
     this.snapRestaurant = JSON.parse(JSON.stringify(this.restaurant));
     this._global.getCachedUserList().then(users => this.knownUsers = users).catch(console.error);
     this.setSnapRTFeeSchedules();
@@ -92,8 +96,7 @@ export class RestaurantSetupCommissionsComponent implements OnInit, AfterViewIni
 
   setSnapRTFeeSchedules() {
     if (this.feeSchedulesComponent) {
-      
-      this.originfeeSchedules = [];
+     
       this.originfeeSchedules = this.restaurant.feeSchedules;
       if (this.canSave()) {
         // set the feeSchedules of rt only if two question has been selected
@@ -251,8 +254,7 @@ export class RestaurantSetupCommissionsComponent implements OnInit, AfterViewIni
       feeSchedule.toTime = new Date(this.now.valueOf() - offset);
     });
     let feeSchedules = [...qmenuTOMarketerSchedules, ...otherFeeSchedules, ...this.newfeeSchedules];
-    console.log("saved:" + JSON.stringify(feeSchedules));
-    // this.done.emit({feeSchedules: feeSchedules});
+    this.done.emit({feeSchedules});
   }
 
 }
