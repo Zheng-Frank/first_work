@@ -28,11 +28,13 @@ export class MenuOptionsComponent implements OnInit {
 
   getMenuOptions() {
     if (this.restaurant) {
-      return this.restaurant.menuOptions.sort((i1, i2) => {
-        if (i1.name < i2.name)
+      return [...this.restaurant.menuOptions].sort((i1, i2) => {
+        if (i1.name < i2.name) {
           return -1;
-        if (i1.name > i2.name)
+        }
+        if (i1.name > i2.name) {
           return 1;
+        }
         return 0;
       });
 
@@ -60,7 +62,7 @@ export class MenuOptionsComponent implements OnInit {
     // we use a copy of mo:
     let moCopy = new MenuOption(mo);
     moCopy.items = moCopy.items || [];
-    //assign id to be undefined to create the new id in the service side
+    // assign id to be undefined to create the new id in the service side
     moCopy.id = undefined;
 
     this.menuOptionInEditing = moCopy;
@@ -136,8 +138,10 @@ export class MenuOptionsComponent implements OnInit {
       name: mo.name
     }));
     const newMenuOptions = oldMenuOptions.filter(mo => mo.id !== menuOption.id);
+    // mo is sorted by name for display, in this situation,
+    // prunedPatch need more carefully compare and have no much value to reduce log
     // menu options used here is mapped to name and id, must set both old and new to compare the real diff
-    this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
+    this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {_id: this.restaurant['_id'], menuOptions: oldMenuOptions},
         new: {_id: this.restaurant['_id'], menuOptions: newMenuOptions}
       }])
