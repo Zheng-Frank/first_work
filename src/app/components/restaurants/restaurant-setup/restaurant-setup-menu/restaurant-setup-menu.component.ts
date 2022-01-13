@@ -74,11 +74,13 @@ export class RestaurantSetupMenuComponent implements OnInit {
       this.images.push(data.Location);
       // create menu
       let menu = {
+        id: new Date().valueOf(),
         name: "Menu Img " + this.images.length,
         description: "",
         restaurant: this.restaurant._id,
         disabled: true,
         type: "",
+        mcs: [],
         backgroundImageUrl: data.Location
       };
       this.menus.push(menu);

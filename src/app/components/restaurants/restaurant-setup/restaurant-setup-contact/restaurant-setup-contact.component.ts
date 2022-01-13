@@ -43,6 +43,7 @@ export class RestaurantSetupContactComponent implements OnInit {
     this.channels = [];
     this.notifyChannelTypes = [NotifyChannels.Phone, NotifyChannels.SMS, NotifyChannels.Fax, NotifyChannels.Email];
     let { googleListing = {}, people = [], logs = [], channels = [] } = this.restaurant;
+    
     if (!this.channels.includes(NotifyChannels.CloudPrinting) && !logs.some(l => (l || {}).type === 'cloud-printing')) {
       this.notifyChannelTypes.push(NotifyChannels.CloudPrinting);
     }
@@ -148,12 +149,11 @@ export class RestaurantSetupContactComponent implements OnInit {
       } else {
         let existChannel = channels.find(c => c && c.type === ch.type && c.value === ch.value);
         let existNotification = orderNotifications.find(x => x.channel && x.channel.type === ch.type && x.channel.value === ch.value);
-
         if (existChannel) {
           // edit existing channel and order notification
           existChannel.value = ch.value;
           existChannel.type = ch.type;
-          if (ch.notifications.order) {
+          if (ch.notifications.order && existNotification && existNotification.channel) {
             existNotification.channel.value = ch.value;
             existNotification.channel.type = ch.type;
           }

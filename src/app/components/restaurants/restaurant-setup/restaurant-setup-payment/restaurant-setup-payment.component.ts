@@ -1,3 +1,4 @@
+import { filter } from 'rxjs/operators';
 import { Input, Output, EventEmitter } from '@angular/core';
 import { GlobalService } from 'src/app/services/global.service';
 import { Component, OnInit } from '@angular/core';
@@ -210,12 +211,12 @@ export class RestaurantSetupPaymentComponent implements OnInit {
   }
 
   savePayment() {
-    let newLogs = [];
     let activeRT = JSON.parse(JSON.stringify(this.restaurant));
+    let { logs = [] } = activeRT;
     // set logs of payment for pick up orders or delivery orders 
     if (this.pickupPaymentMethod === this.stripeSaveText || this.deliveryPaymentMethod === this.stripeSaveText) {
-      if (this.pickupPaymentMethod === this.stripeSaveText) {
-        newLogs.push({
+      if (this.pickupPaymentMethod === this.stripeSaveText && !logs.some(log => log.type === 'payment-pickup-setup')) {
+        logs.push({
           time: new Date(),
           username: this._global.user.username,
           problem: 'Stripe account integration pending',
@@ -224,8 +225,8 @@ export class RestaurantSetupPaymentComponent implements OnInit {
           type: 'payment-pickup-setup'
         });
       }
-      if (this.deliveryPaymentMethod === this.stripeSaveText) {
-        newLogs.push({
+      if (this.deliveryPaymentMethod === this.stripeSaveText && !logs.some(log => log.type === 'payment-delivery-setup')) {
+        logs.push({
           time: new Date(new Date().valueOf() + Math.round((Math.random() + 1) * 100)),// add a time offset to make it different from previous
           username: this._global.user.username,
           problem: 'Stripe account integration pending',
@@ -234,12 +235,8 @@ export class RestaurantSetupPaymentComponent implements OnInit {
           type: 'payment-delivery-setup'
         });
       }
-      let { logs = [] } = activeRT;
-      newLogs = [...logs, ...newLogs];
     }
-    if (newLogs.length > 0) {
-      activeRT.logs = newLogs;
-    }
+
     // set service settings of restaurant
     let pickupPaymentMethods = [];
     let deliveryPaymentMethods = [];
@@ -298,8 +295,8 @@ export class RestaurantSetupPaymentComponent implements OnInit {
     }
 
     this.done.emit({
-      logs: activeRT.logs,
-      serviceSettings: serviceSettings
+      logs,
+      serviceSettings
     });
   }
 
