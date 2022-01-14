@@ -136,10 +136,10 @@ export class RestaurantSetupEntryComponent implements OnInit {
     this.finished.delivery = deliveryWithPostmates || selfDeliveryFinished || nonDeliveryFinished;
     // check payment, commissions ,invoicing section progress
     this.finished.payment = (serviceSettings || []).some(x => x && x.name === 'Pickup' && x.paymentMethods && x.paymentMethods.length > 0);
-    this.finished.commissions = (feeSchedules || []).some(x => x && x.name === 'service fee' && x.toTime && new Date() > new Date(x.toTime));
+    this.finished.commissions = (feeSchedules || []).some(x => x && (x.payer === "CUSTOMER" || x.payer === "RESTAURANT") && x.payee === "QMENU" && (x.amount === 0.99 || x.rate === 0.04) && !(x.toTime && new Date() > new Date(x.toTime)));
     this.finished.invoicing = (paymentMeans || []).some(x => x && (x.direction === 'Send' || x.direction === 'Receive'));
     
-    ['basic', 'menu', 'contact', 'delivery', 'payment', 'invoicing'].forEach(mod => {
+    ['basic', 'menu', 'contact', 'delivery', 'payment', 'commissions' ,'invoicing'].forEach(mod => {
       if (!this.finished[mod]) {
         $(`#collapse-${mod}`).collapse('show');
       }

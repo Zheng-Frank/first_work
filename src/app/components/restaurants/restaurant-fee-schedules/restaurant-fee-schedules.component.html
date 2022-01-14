@@ -23,8 +23,8 @@
   </ng-template>
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
-      <label class="checkbox-inline" *ngIf="getExpiredFeeSchedules().length > 0 && hasFullFeePrivilege()"><input
-          type="checkbox" [(ngModel)]="showExpired"> Show expired
+      <label class="checkbox-inline" *ngIf="getExpiredFeeSchedules().length > 0 && hasFullFeePrivilege() && !notUpdateDB"><input
+          type="checkbox" [(ngModel)]="showExpired" > Show expired
         ({{getExpiredFeeSchedules().length}})</label>
       <table class="table table-borderless table-striped table-sm">
         <thead>

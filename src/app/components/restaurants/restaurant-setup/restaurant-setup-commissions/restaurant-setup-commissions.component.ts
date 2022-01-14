@@ -25,7 +25,7 @@ enum PayerTypes {
 }
 
 enum PayeeTypes {
-  Custoemr = 'CUSTOMER',
+  Customer = 'CUSTOMER',
   RT = "RESTAURANT",
   Qmenu = 'QMENU',
   NONE = 'NONE'
@@ -66,17 +66,30 @@ export class RestaurantSetupCommissionsComponent implements OnInit, AfterViewIni
   }
 
   init() {
-    this.commissionStandardOpt = '';
-    this.whoPayOpt = '';
-    this.newfeeSchedules = [];
-    this.originfeeSchedules = [];
-    this.snapRestaurant = JSON.parse(JSON.stringify(this.restaurant));
-    this._global.getCachedUserList().then(users => this.knownUsers = users).catch(console.error);
-    this.setSnapRTFeeSchedules();
+    if (!this.completedFeeSchedulesSetting()) {
+      this.commissionStandardOpt = '';
+      this.whoPayOpt = '';
+      this.newfeeSchedules = [];
+      this.originfeeSchedules = [];
+      this.snapRestaurant = JSON.parse(JSON.stringify(this.restaurant));
+      this._global.getCachedUserList().then(users => this.knownUsers = users).catch(console.error);
+      this.setSnapRTFeeSchedules();
+    }
   }
   // init data before rendering fee schedules component 
-  ngAfterViewInit(){
-    this.setSnapRTFeeSchedules();
+  ngAfterViewInit() {
+    if (!this.completedFeeSchedulesSetting()) {
+      this.setSnapRTFeeSchedules();
+    }
+  }
+  // if fee schedules of rt has correct setting, then we don't need to show two questions 
+  completedFeeSchedulesSetting() {
+    // has config c and not overdue
+    return (this.restaurant.feeSchedules || []).some(fs => (fs.payer === PayerTypes.Customer || fs.payer === PayerTypes.RT) && fs.payee === PayeeTypes.Qmenu && (fs.amount === 0.99 || fs.rate === 0.04) && !this.isFeeScheduleExpired(fs));
+  }
+
+  isFeeScheduleExpired(feeSchedule) {
+    return feeSchedule.toTime && this.now > new Date(feeSchedule.toTime);
   }
 
   chooseCommissionStandardsOpt(opt) {
@@ -96,7 +109,6 @@ export class RestaurantSetupCommissionsComponent implements OnInit, AfterViewIni
 
   setSnapRTFeeSchedules() {
     if (this.feeSchedulesComponent) {
-     
       this.originfeeSchedules = this.restaurant.feeSchedules;
       if (this.canSave()) {
         // set the feeSchedules of rt only if two question has been selected
@@ -218,7 +230,7 @@ export class RestaurantSetupCommissionsComponent implements OnInit, AfterViewIni
     for (let i = 0; i < this.originfeeSchedules.length; i++) {
       let feeSchedule = this.originfeeSchedules[i];
       let fs = (newFeeSchedules || []).find(fs => fs.id === feeSchedule.id);
-      this.originfeeSchedules[i] = fs? fs: undefined;
+      this.originfeeSchedules[i] = fs ? fs : undefined;
     }
     this.originfeeSchedules = this.originfeeSchedules.filter(schedule => !!schedule);
   }
@@ -245,6 +257,7 @@ export class RestaurantSetupCommissionsComponent implements OnInit, AfterViewIni
   }
 
   save() {
+    this.originfeeSchedules = this.originfeeSchedules.filter(feeSchedule => feeSchedule.amount !== 0 || feeSchedule.rate !== 0);
     let existingFeeSchedules = this.originfeeSchedules;
     let qmenuTOMarketerSchedules = existingFeeSchedules.filter(feeSchedule => feeSchedule.payer === 'CUSTOMER' && (this.knownUsers.some(user => user.username === feeSchedule.payee) || feeSchedule.payee === 'NONE'));
     let otherFeeSchedules = existingFeeSchedules.filter(feeSchedule => !(feeSchedule.payer === 'CUSTOMER' && (this.knownUsers.some(user => user.username === feeSchedule.payee) || feeSchedule.payee === 'NONE')));
@@ -254,7 +267,7 @@ export class RestaurantSetupCommissionsComponent implements OnInit, AfterViewIni
       feeSchedule.toTime = new Date(this.now.valueOf() - offset);
     });
     let feeSchedules = [...qmenuTOMarketerSchedules, ...otherFeeSchedules, ...this.newfeeSchedules];
-    this.done.emit({feeSchedules});
+    this.done.emit({ feeSchedules });
   }
 
 }
