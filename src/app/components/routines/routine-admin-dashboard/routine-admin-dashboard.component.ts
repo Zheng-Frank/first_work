@@ -131,7 +131,7 @@ export class RoutineAdminDashboardComponent implements OnInit {
     await this.populateStats();
     this.pupulateRoutineOfAgent();
   }
-  // routine list view by agent 
+  // routine list view by agent
   pupulateRoutineOfAgent() {
     let agents = JSON.parse(JSON.stringify(this.agents));
     agents.shift();// remove 'All'
@@ -258,13 +258,12 @@ export class RoutineAdminDashboardComponent implements OnInit {
 
   async populateRoutineInstances() {
     // in future, we should only need to load relevant ones!
-    const routineInstances = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const routineInstances = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: "routine-instance",
       query: {},
       projection: {},
-      limit: 100000,
       sort: { _id: -1 }
-    }).toPromise();
+    }, 10000);
     this.allInstances = routineInstances;
   }
 

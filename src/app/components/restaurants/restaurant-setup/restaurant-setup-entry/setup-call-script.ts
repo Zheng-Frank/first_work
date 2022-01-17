@@ -59,7 +59,7 @@ const hoursSectionCallScript = {
 //do a call script in contact setup section to make saleperson work quickly
 const contactSectionCallScript = {
   ChineseCallScript: {
-    open_remark: '那么，每次从 qMenu 收到新订单时，您希望如何收到通知呢？ 我们提供多种选择，有电话、短信、传真、电子邮件和云打印，您可以选择任何一个或多个选项。。。还有，请问一下，qMenu应该通过什么样的练习方式向您发送账单呢？',
+    open_remark: '那么，每次从 qMenu 收到新订单时，您希望如何收到通知呢？ 我们提供多种选择，有电话、短信、传真、电子邮件和云打印，您可以选择任何一个或多个选项。。。还有，请问一下，qMenu应该通过什么样的联系方式向您发送账单呢？',
   },
   EnglishCallScript: {
     open_remark: 'So, how would you like to be notified each time you get a new order from qMenu? We offer several options including phone call, text message, fax, email, and cloud printing. You can choose any or as many of those options as you like...And to which contact channels should qMenu send invoice notifications?',

@@ -849,7 +849,7 @@ export class RestaurantOrdersComponent implements OnInit {
 
       let copyOrder = { ...this.undoOrder };
       copyOrder.statuses = copyOrder.statuses.filter(s => s.status !== 'CANCELED');
-      const { customerNotice, restaurantNotie, ..._newOrder } = copyOrder;
+      const { customerNotice, restaurantNotice, ..._newOrder } = copyOrder;
 
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=order', [
         {
