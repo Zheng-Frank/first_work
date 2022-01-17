@@ -59,14 +59,20 @@ export class RestaurantSetupCommissionsComponent implements OnInit, AfterViewIni
   knownUsers = [];
   newfeeSchedules = [];
   originfeeSchedules = [];
+  firstEnterCommissions = true;
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
+    if(this.completedFeeSchedulesSetting()){
+      this._global.storeSet("firstEnterCommissions", false);
+    }
     this.init();
+    this.firstEnterCommissions = this._global.storeGet("firstEnterCommissions");
   }
 
   init() {
     if (!this.completedFeeSchedulesSetting()) {
+      this._global.storeSet("firstEnterCommissions", true);
       this.commissionStandardOpt = '';
       this.whoPayOpt = '';
       this.newfeeSchedules = [];
@@ -109,7 +115,7 @@ export class RestaurantSetupCommissionsComponent implements OnInit, AfterViewIni
 
   setSnapRTFeeSchedules() {
     if (this.feeSchedulesComponent) {
-      this.originfeeSchedules = this.restaurant.feeSchedules;
+      this.originfeeSchedules = this.restaurant.feeSchedules.filter(feeSchedule => feeSchedule.amount !== 0 || feeSchedule.rate !== 0);;
       if (this.canSave()) {
         // set the feeSchedules of rt only if two question has been selected
         let feeSchedule1, feeSchedule2, feeSchedule3, feeSchedule4;
@@ -249,7 +255,7 @@ export class RestaurantSetupCommissionsComponent implements OnInit, AfterViewIni
       }).toPromise();
       const [rtFeeSchedules] = results;
       console.log("converted", rtFeeSchedules);
-      this.snapRestaurant.feeSchedules = this.restaurant.feeSchedules = rtFeeSchedules.feeSchedules;
+      this.snapRestaurant.feeSchedules = this.restaurant.feeSchedules = rtFeeSchedules.feeSchedules.filter(feeSchedule => feeSchedule.amount !== 0 || feeSchedule.rate !== 0);
     } catch (error) {
       console.log(error);
       this._global.publishAlert(AlertType.Danger, "Failed!");
