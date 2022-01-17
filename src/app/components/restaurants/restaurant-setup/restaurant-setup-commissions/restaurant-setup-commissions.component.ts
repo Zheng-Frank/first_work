@@ -22,6 +22,7 @@ enum whoPayTypes {
 enum PayerTypes {
   Customer = 'CUSTOMER',
   RT = "RESTAURANT",
+  QMENU = "QMENU"
 }
 
 enum PayeeTypes {
@@ -264,15 +265,16 @@ export class RestaurantSetupCommissionsComponent implements OnInit, AfterViewIni
 
   save() {
     this.originfeeSchedules = this.originfeeSchedules.filter(feeSchedule => feeSchedule.amount !== 0 || feeSchedule.rate !== 0);
-    let existingFeeSchedules = this.originfeeSchedules;
-    let qmenuTOMarketerSchedules = existingFeeSchedules.filter(feeSchedule => feeSchedule.payer === 'CUSTOMER' && (this.knownUsers.some(user => user.username === feeSchedule.payee) || feeSchedule.payee === 'NONE'));
-    let otherFeeSchedules = existingFeeSchedules.filter(feeSchedule => !(feeSchedule.payer === 'CUSTOMER' && (this.knownUsers.some(user => user.username === feeSchedule.payee) || feeSchedule.payee === 'NONE')));
+    // let existingFeeSchedules = this.originfeeSchedules;
+    // let qmenuTOMarketerSchedules = existingFeeSchedules.filter(feeSchedule => feeSchedule.payer === PayerTypes.QMENU && this.knownUsers.some(user => user.username === feeSchedule.payee) || feeSchedule.payee === PayeeTypes.NONE);
+    // let otherFeeSchedules = existingFeeSchedules.filter(feeSchedule => !(feeSchedule.payer === PayerTypes.QMENU && this.knownUsers.some(user => user.username === feeSchedule.payee) || feeSchedule.payee === PayeeTypes.NONE));
     // set previous fee schedules configurations expiry
-    otherFeeSchedules.forEach(feeSchedule => {
-      let offset = 24 * 3600 * 1000;
-      feeSchedule.toTime = new Date(this.now.valueOf() - offset);
-    });
-    let feeSchedules = [...qmenuTOMarketerSchedules, ...otherFeeSchedules, ...this.newfeeSchedules];
+    // otherFeeSchedules.forEach(feeSchedule => {
+    //   let offset = 24 * 3600 * 1000;
+    //   feeSchedule.toTime = new Date(this.now.valueOf() - offset);
+    // });
+    // let feeSchedules = [...qmenuTOMarketerSchedules, ...otherFeeSchedules, ...this.newfeeSchedules];
+    let feeSchedules = [...this.originfeeSchedules, ...this.newfeeSchedules];
     this.done.emit({ feeSchedules });
   }
 
