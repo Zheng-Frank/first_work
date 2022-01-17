@@ -15,7 +15,7 @@
     <!-- start with filter condition -->
     <label *ngIf="isAdmin()">Admin view<q-toggle class="mr-2 ml-1 mt-2" [(ngModel)]="adminViewMode"
         (change)="reloadIVRByManagerRoles()"></q-toggle></label>
-    <input [qDebounce]="500" (debounce)="filter($event)" type="text" class="form-control mr-2 mt-2"
+    <input [qDebounce]="500" (debounce)="filter()" type="text" class="form-control mr-2 mt-2"
       placeholder="phone or restaurant ID" [(ngModel)]="searchFilter" />
     <!-- start with IVR roles filter -->
     <select (change)="reloadIVRByManagerRoles()" *ngIf="adminViewMode" [(ngModel)]="managerRole"
@@ -25,18 +25,21 @@
       </option>
     </select>
     <!-- end with IVR roles filter -->
-    <select (change)="filterQueue()" [(ngModel)]="selectedQueue" class="form-control mr-2 mt-2">
-      <option *ngFor="let q of queuesForFilter" [ngValue]="q">
+    <select (change)="refreshCtrs()" [(ngModel)]="selectedQueue" class="form-control mr-2 mt-2">
+      <option [ngValue]="defaultSelectedQueue">{{defaultSelectedQueue.name}}</option>
+      <option *ngFor="let q of getQueues()" [ngValue]="q">
         {{ q.name || (q.arn ? "(no name))" : "(no arn)") }}
       </option>
     </select>
-    <select (change)="filterQueue()" [(ngModel)]="selectedAgent" class="form-control mr-4 mt-2">
-      <option *ngFor="let agent of agentsForFilter" [ngValue]="agent">
+    <select (change)="refreshCtrs()" [(ngModel)]="selectedAgent" class="form-control mr-4 mt-2">
+      <option [ngValue]="defaultSelectedAgent">{{defaultSelectedAgent}}</option>
+      <option *ngFor="let agent of getAgents()" [ngValue]="agent">
         {{ agent || "(no agent)" }}
       </option>
     </select>
-    <select (change)="filterQueue()" [(ngModel)]="selectedLanguageCode" class="form-control mr-2 mt-2">
-      <option *ngFor="let languageCode of languageCodesForFilter" [ngValue]="languageCode">
+    <select (change)="refreshCtrs()" [(ngModel)]="selectedLanguageCode" class="form-control mr-2 mt-2">
+      <option [ngValue]="defaultSelectedLanguageCode">{{defaultSelectedLanguageCode}}</option>
+      <option *ngFor="let languageCode of languages" [ngValue]="languageCode">
         {{ languageCode || "(N/A)" }}
       </option>
     </select>
@@ -46,7 +49,7 @@
     <!-- end with filter condition -->
     <!-- start with refresh button -->
     <div class="form-inline refresh-btn">
-      <label class="checkbox-inline mt-2" for="id-gmb" *ngIf="!showDateSearch"><input type="checkbox" 
+      <label class="checkbox-inline mt-2" for="id-gmb" *ngIf="!showDateSearch"><input type="checkbox"
         class="mx-1"  [(ngModel)]="needRefreshCtrs">
         Auto Refresh
       </label>
