@@ -168,7 +168,7 @@ const routes: Routes = [
   { path: 'fax-problems', component: MonitoringFaxComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'email-problems', component: MonitoringEmailComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'monitoring-hours', component: MonitoringHoursComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
-  { path: 'disabled-restaurants', component: MonitoringDisabledRestaurantsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
+  { path: 'disabled-restaurants', component: MonitoringDisabledRestaurantsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER', 'MARKETER'] } },
   { path: 'closed-restaurants', component: MonitoringClosedRestaurantsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'manage-images', component: ImageManagerComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'restaurants-promotion', component: MonitoringPromotionComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
