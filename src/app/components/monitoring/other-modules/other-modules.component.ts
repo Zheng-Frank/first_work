@@ -36,7 +36,7 @@ export class OtherModulesComponent implements OnInit {
       { name: 'IVR Dashboard', route: 'ivr-agent-analysis', authRoles: ['CSR', 'CSR_MANAGER', 'MARKETER', 'MARKETER_MANAGER'] },
       { name: 'Restaurants by Provider', route: 'rts-by-provider', authRoles: ['CSR', 'CSR_MANAGER', 'MARKETER'] },
       { name: 'Banned Customers', route: 'banned-customers', authRoles: ['CSR', 'CSR_MANAGER'] },
-      { name: 'Disabled Restaurants', route: 'disabled-restaurants', authRoles: ['CSR', 'CSR_MANAGER'] },
+      { name: 'Disabled Restaurants', route: 'disabled-restaurants', authRoles: ['CSR', 'CSR_MANAGER', 'MARKETER'] },
       { name: 'Closed Restaurants', route: 'closed-restaurants', authRoles: ['CSR', 'CSR_MANAGER'] },
       { name: 'Manage Images', route: 'manage-images', authRoles: ['CSR', 'CSR_MANAGER'] },
     ],
