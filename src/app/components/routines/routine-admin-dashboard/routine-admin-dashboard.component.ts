@@ -51,13 +51,14 @@ export class RoutineAdminDashboardComponent implements OnInit {
   routineViewBys = [routineViewTypes.Routine, routineViewTypes.Agent];
   routineViewBy = routineViewTypes.Routine;
   routinesOfAgents = [];
+  enabledUsers: User[] = [];
   constructor(private _api: ApiService, private _global: GlobalService, private _task: TaskService) {
     this.user = this._global.user;
   }
 
   async ngOnInit() {
     // need enabled users to populate possible assingees
-    const enabledUsers = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    this.enabledUsers = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: "user",
       query: { disabled: { $ne: true } },
       projection: {
@@ -66,7 +67,7 @@ export class RoutineAdminDashboardComponent implements OnInit {
       },
       limit: 1000000
     }).toPromise();
-    enabledUsers.sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase()));
+    this.enabledUsers.sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase()));
 
     // describes what's needed for q-form-builder
     this.routineFieldDescriptors = [
@@ -89,7 +90,7 @@ export class RoutineAdminDashboardComponent implements OnInit {
         label: "Assignees",
         required: false,
         inputType: "multi-select",
-        items: enabledUsers.map(user => ({
+        items: this.enabledUsers.map(user => ({
           object: user.username,
           text: user.username,
           selected: false
@@ -100,7 +101,7 @@ export class RoutineAdminDashboardComponent implements OnInit {
         label: "Supervisors",
         required: false,
         inputType: "multi-select",
-        items: enabledUsers.map(user => ({
+        items: this.enabledUsers.map(user => ({
           object: user.username,
           text: user.username,
           selected: false
@@ -151,7 +152,7 @@ export class RoutineAdminDashboardComponent implements OnInit {
       let myRoutines = this.routines.filter(routine => (routine.assignees || []).includes(agent));
       myRoutines.forEach(routine => {
         let myRoutineInstances = this.routineInstances.filter(routineInstance => routineInstance.routineId === routine._id && routineInstance.assignee === agent);
-        let taskCompleted = routine.name + " (" + myRoutineInstances.length + ")";
+        let taskCompleted = `${routine.name} (${myRoutineInstances.length})`;
         routinesOfAgent.tasksList.push(taskCompleted);
       });
       this.routinesOfAgents.push(routinesOfAgent);
@@ -281,6 +282,12 @@ export class RoutineAdminDashboardComponent implements OnInit {
 
   filterRoutinesAndInstances() {
     this.routines = this.allRoutines.slice().sort((a, b) => a.name > b.name ? 1 : -1);
+    // filter non-disabled assignees for every routine in routines
+    this.routines = this.routines.map(routine => {
+      routine.assignees = (routine.assignees || []).filter(assignee => this.enabledUsers.some(enabledUser=>enabledUser.username === assignee));
+      return routine;
+    });
+    
     this.routineInstances = this.allInstances.slice();
     // routine instances of some agents may change
     this.pupulateRoutineOfAgent();
