@@ -65,7 +65,6 @@ export class IvrRecord {
 
         const transcripts = (((ctr.Attributes || {}).voicemail || {}).transcript || {}).transcripts || [];
         if (transcripts.length > 0) {
-            console.log(transcripts);
             ir.transcriptFull = transcripts.map(t => t.transcript).join("\n");
             ir.transcriptPartial = ir.transcriptFull.slice(0, 64);
         }
