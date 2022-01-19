@@ -81,12 +81,11 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
     });
     // Current user may not have all IVR manager permissions, even if he is an admin.
     if (this.isAdmin()) {
-      // this.managerRoles = this.managerRoles.filter(role => this._global.user.roles.some(r => r === role));
+      this.managerRoles = this.managerRoles.filter(role => this._global.user.roles.some(r => r === role));
       this.managerRoles.sort((a, b) => a.localeCompare(b));
       this.managerRole = this.managerRoles[0];
       this.adminViewMode = true;
     }
-    console.log(this.isAdmin(), this.managerRoles, this.managerRole, this.adminViewMode)
     this.populateFilters();
   }
 
@@ -154,14 +153,17 @@ export class IvrAgentComponent implements OnInit, OnDestroy {
   }
 
   getQueues() {
-    if (!this.managerRole) {
-      return [];
+    if (this.adminViewMode) {
+      if (!this.managerRole) {
+        return [];
+      }
+      let role = this.managerRole.split("_")[1].toLowerCase();
+      if (["sales", "gmb", "internal"].includes(role)) {
+        return this.queues.filter(({name}) => (name || "").startsWith(role));
+      }
+      return this.queues.filter(({name}) => !["sales", "gmb", "internal"].some(x => (name || "").startsWith(x)));
     }
-    let role = this.managerRole.split("_")[1].toLowerCase();
-    if (["sales", "gmb", "internal"].includes(role)) {
-      return this.queues.filter(({name}) => (name || "").startsWith(role));
-    }
-    return this.queues.filter(({name}) => !["sales", "gmb", "internal"].some(x => (name || "").startsWith(x)));
+    return [...this.visibleQueues];
   }
 
   getAgents() {
