@@ -56,6 +56,7 @@ export class UsersComponent implements OnInit {
 
   deleting = false;
   showMore = false;
+  showNotes = false; // it will show email info, skype info and others in notes field of user json if it is checked
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   get userRoles() {
