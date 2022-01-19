@@ -72,7 +72,7 @@ export class RestaurantSalesComponent implements OnInit {
       rateSchedule.id = rateSchedule.id || new Date().valueOf().toString();
       this.rateScheduleInEditing = JSON.parse(JSON.stringify(rateSchedule));
     } else {
-      this.rateScheduleInEditing = {};
+      this.rateScheduleInEditing = {id: new Date().valueOf().toString()};
     }
     this.modalRateSchedule.show();
   }

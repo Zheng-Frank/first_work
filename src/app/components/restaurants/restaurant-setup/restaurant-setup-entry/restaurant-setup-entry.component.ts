@@ -1,3 +1,4 @@
+import { RestaurantSetupCommissionsComponent } from './../restaurant-setup-commissions/restaurant-setup-commissions.component';
 import { ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
 import { Restaurant } from '@qmenu/ui';
 import { environment } from '../../../../../environments/environment';
@@ -30,6 +31,7 @@ export class RestaurantSetupEntryComponent implements OnInit {
   @ViewChild('contactPanel') contactPanel: RestaurantSetupContactComponent;
   @ViewChild('deliveryPanel') deliveryPanel: RestaurantSetupDeliveryComponent;
   @ViewChild('paymentPanel') paymentPanel: RestaurantSetupPaymentComponent;
+  @ViewChild('commissionsPanel') commissionsPanel: RestaurantSetupCommissionsComponent;
   @ViewChild('invoicingPanel') invoicingPanel: RestaurantSetupInvoicingComponent;
   @ViewChild('menuPanel') menuPanel: RestaurantSetupMenuComponent;
   @ViewChild('hoursPanel') hoursPanel: RestaurantSetupHoursComponent;
@@ -39,10 +41,10 @@ export class RestaurantSetupEntryComponent implements OnInit {
   showNotes = true;
   menuSaved = false;
   finished = {
-    basic: false, menu: false, contact: false, delivery: false, payment: false, invoicing: false
+    basic: false, menu: false, contact: false, delivery: false, payment: false, commissions: false, invoicing: false
   };
   accordion = {
-    basic: 'down', menu: 'down', contact: 'down', delivery: 'down', payment: 'down', invoicing: 'down'
+    basic: 'down', menu: 'down', contact: 'down', delivery: 'down', payment: 'down', commissions: 'down', invoicing: 'down'
   };
   changeLanguageFlag = this._global.languageType;// this flag decides show English call script or Chinese
   showCallScript = false; // it will display call script when the switch is opened
@@ -102,6 +104,7 @@ export class RestaurantSetupEntryComponent implements OnInit {
     this.contactPanel.init();
     this.deliveryPanel.init();
     this.paymentPanel.init();
+    this.commissionsPanel.init();
     this.invoicingPanel.init();
     this._global.publishAlert(AlertType.Success, 'Saved !');
   }
@@ -118,7 +121,7 @@ export class RestaurantSetupEntryComponent implements OnInit {
       googleListing, people = [], web,
       taxRate, notes, logs, orderNotifications, deliveryFromTime, deliveryEndMinutesBeforeClosing,
       deliveryTimeEstimate, deliverySettings, courier, serviceSettings, channels = [],
-      paymentMeans
+      paymentMeans, feeSchedules
     } = this.restaurant;
     this.notes = notes;
     let person = people[0] || {};
@@ -131,11 +134,12 @@ export class RestaurantSetupEntryComponent implements OnInit {
     let selfDeliveryFinished = !!(deliveryFromTime && deliveryEndMinutesBeforeClosing && deliveryTimeEstimate && deliverySettings && deliverySettings.length > 0);
     let nonDeliveryFinished = (serviceSettings || []).find(x => x && x.paymentMethods && x.paymentMethods.length > 0);
     this.finished.delivery = deliveryWithPostmates || selfDeliveryFinished || nonDeliveryFinished;
-    // check payment, invoicing section progress
+    // check payment, commissions ,invoicing section progress
     this.finished.payment = (serviceSettings || []).some(x => x && x.name === 'Pickup' && x.paymentMethods && x.paymentMethods.length > 0);
+    this.finished.commissions = (feeSchedules || []).some(x => x && (x.payer === "CUSTOMER" || x.payer === "RESTAURANT") && x.payee === "QMENU" && (x.amount === 0.99 || x.rate === 0.04) && !(x.toTime && new Date() > new Date(x.toTime)));
     this.finished.invoicing = (paymentMeans || []).some(x => x && (x.direction === 'Send' || x.direction === 'Receive'));
-
-    ['basic', 'menu', 'contact', 'delivery', 'payment', 'invoicing'].forEach(mod => {
+    
+    ['basic', 'menu', 'contact', 'delivery', 'payment', 'commissions' ,'invoicing'].forEach(mod => {
       if (!this.finished[mod]) {
         $(`#collapse-${mod}`).collapse('show');
       }

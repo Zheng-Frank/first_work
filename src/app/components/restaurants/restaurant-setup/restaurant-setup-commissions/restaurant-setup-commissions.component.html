@@ -1,0 +1,41 @@
+<ng-container *ngIf="!restaurant.feeSchedules">
+  <button class="btn btn-link" (click)="convertToFeeSchedules()">→ Convert to Fees Schedules</button>
+</ng-container>
+<ng-container *ngIf="restaurant.feeSchedules">
+  <label *ngIf="completedFeeSchedulesSetting() && !firstEnterCommissions" class="text-danger">
+    Please check existing fee schedules from Settings tab and make edits there if necessary.
+    (请检查"设置"选项卡中的现有费用计划，并在必要时进行编辑。)
+  </label>
+  <ng-container *ngIf="!completedFeeSchedulesSetting()">
+    <div class="form-group">
+      <label class="mb-0">As the standard qMenu commission, would you prefer a $0.99 flat fee per or a fee of 4%
+        of the order subtotal amount?</label><br>
+      <div class="custom-checkbox custom-control-inline ml-2" *ngFor="let opt of commissionStandardOpts">
+        <span>
+          <input type="radio" (click)="chooseCommissionStandardsOpt(opt)" [checked]="commissionStandardOpt === opt">
+          {{opt}}
+        </span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="mb-0">Would you like the customer to pay the order commission or pay it yourself?</label><br>
+      <div class="custom-checkbox custom-control-inline ml-2" *ngFor="let opt of whoPayOpts">
+        <span>
+          <input type="radio" (click)="chooseWhoPayOpt(opt)" [checked]="whoPayOpt === opt">
+          {{opt}}
+        </span>
+      </div>
+    </div>
+  </ng-container>
+  <div class="form-group" *ngIf="!completedFeeSchedulesSetting() || (completedFeeSchedulesSetting() && firstEnterCommissions)">
+    <app-restaurant-fee-schedules #feeSchedulesComponent [updateFeeSchedulesEvent]="updateFeeSchedulesEvent" [restaurant]="snapRestaurant" [users]="knownUsers">
+    </app-restaurant-fee-schedules>
+  </div>
+  <ng-container *ngIf="!completedFeeSchedulesSetting()">
+    <div class="form-group text-end">
+      <button class="btn btn-primary btn-lg" (click)="save()" [disabled]="!canSave()">
+        <i class="fa fa-save"></i> Save
+      </button>
+    </div>
+  </ng-container>
+</ng-container>
