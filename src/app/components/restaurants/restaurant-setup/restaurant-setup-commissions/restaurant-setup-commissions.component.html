@@ -28,8 +28,7 @@
     </div>
   </ng-container>
   <div class="form-group" *ngIf="!completedFeeSchedulesSetting() || (completedFeeSchedulesSetting() && firstEnterCommissions)">
-    <app-restaurant-fee-schedules #feeSchedulesComponent [notUpdateDB]="true"
-      (updateSetupSchedules)="handleUpdateSetupSchedules($event)" [restaurant]="snapRestaurant" [users]="knownUsers">
+    <app-restaurant-fee-schedules #feeSchedulesComponent [updateFeeSchedulesEvent]="updateFeeSchedulesEvent" [restaurant]="snapRestaurant" [users]="knownUsers">
     </app-restaurant-fee-schedules>
   </div>
   <ng-container *ngIf="!completedFeeSchedulesSetting()">

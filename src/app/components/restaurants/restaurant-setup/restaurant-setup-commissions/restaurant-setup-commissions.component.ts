@@ -61,6 +61,10 @@ export class RestaurantSetupCommissionsComponent implements OnInit, AfterViewIni
   newfeeSchedules = [];
   originfeeSchedules = [];
   firstEnterCommissions = true;
+  updateFeeSchedulesEvent = {
+    notUpdateDB: true,
+    event: "commissions-setup"
+  }
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
@@ -116,7 +120,7 @@ export class RestaurantSetupCommissionsComponent implements OnInit, AfterViewIni
 
   setSnapRTFeeSchedules() {
     if (this.feeSchedulesComponent) {
-      this.originfeeSchedules = this.restaurant.feeSchedules.filter(feeSchedule => feeSchedule.amount !== 0 || feeSchedule.rate !== 0);;
+      this.originfeeSchedules = this.restaurant.feeSchedules;
       if (this.canSave()) {
         // set the feeSchedules of rt only if two question has been selected
         let feeSchedule1, feeSchedule2, feeSchedule3, feeSchedule4;
@@ -219,27 +223,9 @@ export class RestaurantSetupCommissionsComponent implements OnInit, AfterViewIni
           feeSchedule.id = (new Date().valueOf() + (Math.random() + 1) * 100000).toFixed(2).toString();
         });
       }
-      this.snapRestaurant.feeSchedules = [...this.newfeeSchedules, ...this.originfeeSchedules];
+      this.snapRestaurant.feeSchedules = this.newfeeSchedules;
       this.feeSchedulesComponent.ngOnChanges();
     }
-  }
-
-  handleUpdateSetupSchedules(newFeeSchedules) {
-    // sub component has change so parent component should also be changed.
-    // step1: update newfeeSchedules
-    for (let i = 0; i < this.newfeeSchedules.length; i++) {
-      let feeSchedule = this.newfeeSchedules[i];
-      let fs = (newFeeSchedules || []).find(fs => fs.id === feeSchedule.id);
-      this.newfeeSchedules[i] = fs ? fs : undefined;
-    }
-    this.newfeeSchedules = this.newfeeSchedules.filter(schedule => !!schedule);
-    // step2: update originSchedules
-    for (let i = 0; i < this.originfeeSchedules.length; i++) {
-      let feeSchedule = this.originfeeSchedules[i];
-      let fs = (newFeeSchedules || []).find(fs => fs.id === feeSchedule.id);
-      this.originfeeSchedules[i] = fs ? fs : undefined;
-    }
-    this.originfeeSchedules = this.originfeeSchedules.filter(schedule => !!schedule);
   }
 
   canSave() {
@@ -256,7 +242,7 @@ export class RestaurantSetupCommissionsComponent implements OnInit, AfterViewIni
       }).toPromise();
       const [rtFeeSchedules] = results;
       console.log("converted", rtFeeSchedules);
-      this.snapRestaurant.feeSchedules = this.restaurant.feeSchedules = rtFeeSchedules.feeSchedules.filter(feeSchedule => feeSchedule.amount !== 0 || feeSchedule.rate !== 0);
+      this.restaurant.feeSchedules = rtFeeSchedules.feeSchedules;
     } catch (error) {
       console.log(error);
       this._global.publishAlert(AlertType.Danger, "Failed!");
@@ -264,17 +250,7 @@ export class RestaurantSetupCommissionsComponent implements OnInit, AfterViewIni
   }
 
   save() {
-    this.originfeeSchedules = this.originfeeSchedules.filter(feeSchedule => feeSchedule.amount !== 0 || feeSchedule.rate !== 0);
-    // let existingFeeSchedules = this.originfeeSchedules;
-    // let qmenuTOMarketerSchedules = existingFeeSchedules.filter(feeSchedule => feeSchedule.payer === PayerTypes.QMENU && this.knownUsers.some(user => user.username === feeSchedule.payee) || feeSchedule.payee === PayeeTypes.NONE);
-    // let otherFeeSchedules = existingFeeSchedules.filter(feeSchedule => !(feeSchedule.payer === PayerTypes.QMENU && this.knownUsers.some(user => user.username === feeSchedule.payee) || feeSchedule.payee === PayeeTypes.NONE));
-    // set previous fee schedules configurations expiry
-    // otherFeeSchedules.forEach(feeSchedule => {
-    //   let offset = 24 * 3600 * 1000;
-    //   feeSchedule.toTime = new Date(this.now.valueOf() - offset);
-    // });
-    // let feeSchedules = [...qmenuTOMarketerSchedules, ...otherFeeSchedules, ...this.newfeeSchedules];
-    let feeSchedules = [...this.originfeeSchedules, ...this.newfeeSchedules];
+    let feeSchedules = [...this.snapRestaurant.feeSchedules, ...this.originfeeSchedules];
     this.done.emit({ feeSchedules });
   }
 

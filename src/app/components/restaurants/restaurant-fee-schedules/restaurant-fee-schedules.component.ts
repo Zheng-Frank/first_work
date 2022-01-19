@@ -22,7 +22,10 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   @ViewChild('editingForm') editingForm: FormBuilderComponent;
   @Input() restaurant: Restaurant;
   @Input() users = [];
-  @Input() notUpdateDB = false;  // rt quick setup section request don't submit to backend immediatedly
+  @Input() updateFeeSchedulesEvent = {
+    notUpdateDB: false,
+    event: "none"
+  }  // rt quick setup section request don't submit to backend immediatedly
   @Output() updateSetupSchedules = new EventEmitter();
 
   username;
@@ -423,7 +426,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
       myFs.id = new Date().valueOf().toString(); // we use timestamp as id
       newFeeSchedules = [... this.feeSchedules, myFs];
     }
-    if (!this.notUpdateDB) {
+    if (!this.updateFeeSchedulesEvent.notUpdateDB) {
       await this.saveNewFeeSchedulesToDbAndAcknowledge(newFeeSchedules, event.acknowledge);
     } else {
       event.acknowledge(null);
@@ -440,7 +443,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
 
   async remove(event: FormSubmit) {
     const newFeeSchedules = this.feeSchedules.filter(fs => fs.id !== this.feeScheduleInEditing.id);
-    if (!this.notUpdateDB) {
+    if (!this.updateFeeSchedulesEvent.notUpdateDB) {
       await this.saveNewFeeSchedulesToDbAndAcknowledge(newFeeSchedules, event.acknowledge);
     } else {
       event.acknowledge(null);

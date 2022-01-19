@@ -1,14 +1,20 @@
 <div class="card mb-2">
   <h3 class="card-title text-center pt-4 pb-2">
     <i class="fas fa-chart-pie"></i> Fee Schedules</h3>
-  <ul class="text-danger text-left" *ngIf="!notUpdateDB;else elseBlock;">
+  <ul class="text-danger text-left" *ngIf="!updateFeeSchedulesEvent.notUpdateDB;else elseBlock;">
     <li>请不要删除老的设置 (DO NOT REMOVE OLD FEE SCHEDULES)</li>
     <li>如果有新的收费标准将替代老的收费标准，那么应该把老的收费标准设置截止日期，添加新的收费标准 (IF A NEW FEE SCHEDULE IS GOING TO REPLACE OLD ONES, THEN SET END
       DATE OF OLD ONES
       AND ADD THE NEW FEE SCHEDULE)</li>
   </ul>
   <ng-template #elseBlock>
-    <ul class="text-danger text-left">
+    <ul class="text-danger text-left" *ngIf="updateFeeSchedulesEvent.event === 'commissions-setup'">
+      <li>
+        <h5>
+          Please set up your own commissions later from the settings tab, if applicable.
+          (如果适用，请稍后从"设置"选项卡设置您自己的佣金。)
+        </h5>
+      </li>
       <li>
         The fee schedules below will be generated for you based on your answers to the above questions. 
         You can make specific edits to the fee schedules here if needed, 
@@ -23,7 +29,7 @@
   </ng-template>
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
-      <label class="checkbox-inline" *ngIf="getExpiredFeeSchedules().length > 0 && hasFullFeePrivilege() && !notUpdateDB"><input
+      <label class="checkbox-inline" *ngIf="getExpiredFeeSchedules().length > 0 && hasFullFeePrivilege() && !updateFeeSchedulesEvent.notUpdateDB"><input
           type="checkbox" [(ngModel)]="showExpired" > Show expired
         ({{getExpiredFeeSchedules().length}})</label>
       <table class="table table-borderless table-striped table-sm">
