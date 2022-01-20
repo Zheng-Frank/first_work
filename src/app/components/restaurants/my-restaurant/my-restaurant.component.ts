@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {Restaurant, TimezoneHelper} from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
@@ -13,6 +13,7 @@ import {Helper} from '../../../classes/helper';
 })
 export class MyRestaurantComponent implements OnInit {
 
+  @Input() teamUsers = [];
   rows = [];
   now = new Date();
   disabledTotal = 0;
@@ -22,7 +23,6 @@ export class MyRestaurantComponent implements OnInit {
 
   currentPublishedTotal;
 
-  isSuperUser = false;
   username;
   usernames = [];
 
@@ -147,12 +147,18 @@ export class MyRestaurantComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
+  isSuperUser() {
+    return ['gary', 'chris', 'mo', 'dixon.adair', 'maceo.cozier'].includes(this._global.user.username);
+  }
+
+  isMarketerManagerWithTeam() {
+    return this._global.user.roles.includes('MARKETER_MANAGER') && this.teamUsers.length > 0;
+  }
 
   async ngOnInit() {
-    this.isSuperUser = ['gary', 'chris', 'mo', 'dixon.adair', 'maceo.cozier'].indexOf(this._global.user.username) >= 0;
     this.username = this._global.user.username;
     this.usernames = [this.username];
-    if (this.isSuperUser) {
+    if (this.isSuperUser() || this.isMarketerManagerWithTeam()) {
       const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
         resource: 'restaurant',
         projection: {
@@ -169,6 +175,9 @@ export class MyRestaurantComponent implements OnInit {
       });
 
       this.usernames = [...userSet];
+      if (!this.isSuperUser()) {
+        this.usernames = this.usernames.filter(x => this.teamUsers.includes(x));
+      }
       this.usernames.sort();
     }
     this.populate();

@@ -1,4 +1,4 @@
-<div *ngIf="isSuperUser">
+<div *ngIf="isSuperUser() || isMarketerManagerWithTeam()">
   <label>Impersonate:</label>
   <select class="form-control mr-4" [(ngModel)]="username" (change)="changeUser()">
     <option *ngFor="let username of usernames">{{username}}</option>
@@ -144,7 +144,7 @@
               {{invoice.toDate | date:'MMM d'}}</a>
           </td>
           <td>
-            {{(invoice.commission >0 ? invoice.commission: invoice.commission + invoice.feesForQmenu || 0) - (invoice.adjustment - invoice.transactionAdjustment) | currency:'USD':'symbol'}}            
+            {{(invoice.commission >0 ? invoice.commission: invoice.commission + invoice.feesForQmenu || 0) - (invoice.adjustment - invoice.transactionAdjustment) | currency:'USD':'symbol'}}
           </td>
         </tr>
       </table>

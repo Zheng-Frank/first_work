@@ -11,27 +11,20 @@ import { User } from "../../classes/user";
   styleUrls: ["./profile.component.scss"]
 })
 export class ProfileComponent implements OnInit {
-  teamRequested = false;
-  relevantLeads = [];
 
-  myTeamUsers = [];
+  teamUsers = [];
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
     if (this._global.isUserInRoles(["ADMIN", "MARKETER_MANAGER"])) {
-      // grab all users and make an assignee list!
-      // get all users
       this._api
         .get(environment.qmenuApiUrl + "generic", {
           resource: "user",
           limit: 1000
-        })
-        .subscribe(
+        }).subscribe(
           result => {
-            const myTeamUsers = result
-              .map(u => new User(u))
-              .filter(u => u.manager === this._global.user.username);
+            this.teamUsers = result.map(u => new User(u)).filter(u => u.manager === this._global.user.username).map(x => x.username);
           },
           error => {
             this._global.publishAlert(
@@ -47,18 +40,5 @@ export class ProfileComponent implements OnInit {
     return this._global.user;
   }
 
-  shouldShowMyMarketers() {
-    return this._global.isUserInRoles(["ADMIN", "MARKETER_MANAGER"]);
-  }
-
-  getMyTeamData() {
-    if (this.teamRequested === false) {
-      this.teamRequested = true;
-      // do api request here!
-      // 1. request all users
-      // 2. find all users under me and then request all leads assigned to those users, including me
-    }
-    return this.myTeamUsers;
-  }
 
 }
