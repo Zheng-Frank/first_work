@@ -124,23 +124,23 @@ export class RestaurantSetupMenuComponent implements OnInit {
   async save() {
     let logContent = [
       {
-        problem: "menu images available on Menus tab of restaurant page",
-        response: "Menu team needs to digitize the restaurant’s menu based on the images uploaded"
+        problem: "Need to create menus based on images on menu images tab",
+        response: "Finish creating menus based on images on menu images tab"
       },
       {
-        problem: "restaurant to send images to qMenu support email or texting number",
-        response: "check support email/SMS for menu images"
+        problem: "Restaurant to send images to qMenu support email or texting number",
+        response: "Check support email/SMS for menu images"
       },
       {
-        problem: `restaurant asked us to copy their menu from ${this.copyFrom}`,
-        response: `get menu from ${this.copyFrom}`
+        problem: `Restaurant asked us to copy their menu from ${this.copyFrom}`,
+        response: `Get menu from ${this.copyFrom}`
       },
       {
-        problem: `restaurant provided us with menu scraping URL ${this.scrapeUrl}`,
-        response: "ensure menu successfully scraped from the URL provided"
+        problem: `Restaurant provided us with menu scraping URL ${this.scrapeUrl}`,
+        response: "Ensure menu successfully scraped from the URL provided"
       },
       {
-        problem: `system already scraped ${this.restaurant.menus.length} menus for this restaurant automatically`,
+        problem: `System already scraped ${this.restaurant.menus.length} menus for this restaurant automatically`,
         response: "Need to confirm with restaurant that at least one of those menus is correct"
       }
     ][this.setupMode];
