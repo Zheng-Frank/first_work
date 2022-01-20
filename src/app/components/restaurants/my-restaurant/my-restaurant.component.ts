@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {Restaurant, TimezoneHelper} from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
@@ -13,7 +13,7 @@ import {Helper} from '../../../classes/helper';
 })
 export class MyRestaurantComponent implements OnInit {
 
-  @Input() teamUsers = [];
+  teamUsers = [];
   rows = [];
   now = new Date();
   disabledTotal = 0;
@@ -155,15 +155,23 @@ export class MyRestaurantComponent implements OnInit {
     return this._global.user.roles.includes('MARKETER_MANAGER') && this.teamUsers.length > 0;
   }
 
+  async getTeamUsers() {
+    const users = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "user", query: {manager: {$eq: this._global.user.username}}, projection: {username: 1}, limit: 1000
+    }).toPromise();
+    this.teamUsers = users.map(x => x.username);
+  }
+
   async ngOnInit() {
     this.username = this._global.user.username;
     this.usernames = [this.username];
+    if (this._global.user.roles.includes('MARKETER_MANAGER')) {
+      await this.getTeamUsers();
+    }
     if (this.isSuperUser() || this.isMarketerManagerWithTeam()) {
       const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
         resource: 'restaurant',
-        projection: {
-          "rateSchedules.agent": 1
-        }
+        projection: {"rateSchedules.agent": 1}
       }, 6000);
       const userSet = new Set();
       restaurants.map(r => {
