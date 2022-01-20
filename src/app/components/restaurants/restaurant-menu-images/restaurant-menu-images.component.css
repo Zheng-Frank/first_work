@@ -1,0 +1,63 @@
+.menu-img-item {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  width: 200px;
+  align-items: center;
+}
+
+.menu-img-item:not(:last-child) {
+  margin-right: 10px;
+}
+
+.menu-img-item img {
+  width: 200px;
+  height: 200px;
+  margin-bottom: 10px;
+}
+
+.menu-img-item .btn-close {
+  position: absolute;
+  font-size: 18px;
+  right: 0;
+  top: 0;
+  padding: 0 6px;
+  cursor: pointer;
+  color: red;
+}
+
+.edit-box {
+  width: 200px;
+}
+
+.save-box {
+  width: 200px;
+}
+
+.add-menu-img-btn {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  width: 200px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid grey;
+  min-height: 200px;
+}
+
+.add-menu-img-btn .add-icon-box {
+  background: black;
+  width: 50px;
+  height: 50px;
+  border-radius: 100%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.view-desc-box {
+  width: 200px;
+  text-align: center;
+}

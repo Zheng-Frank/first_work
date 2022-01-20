@@ -1,0 +1,32 @@
+<div class="row ml-1">
+  <div class="menu-img-item" *ngFor="let image of images; let i = index;">
+    <div class="btn-close" (click)="removeImage(i)">
+      <i class="fa fa-times"></i>
+    </div>
+    <img [src]="image.url" />
+    <div class="pb-1">
+      <div class="view-desc-box">
+        <button class="btn btn-link" (click)="image.viewDesc = !image.viewDesc">View Decription</button>
+      </div>
+      <ng-container *ngIf="image.viewDesc">
+        <div class="edit-box" *ngIf="!image.edit">
+          <strong>{{image.description}}</strong><br/>
+          <button class="btn btn-link" (click)="image.edit = true">edit</button>
+        </div>
+        <div class="save-box" *ngIf="image.edit">
+          <textarea class="form-control" [(ngModel)]="image.description"></textarea>
+          <div class="d-flex justify-content-end mt-1">
+            <button class="btn btn-secondary mr-1" (click)="image.edit = false">Cancel</button>
+            <button class="btn btn-primary" (click)="saveImageDesc()">Ok</button>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+  <div class="add-menu-img-btn">
+    <div class="add-icon-box" (click)="fileInput.click()">
+      <i class="fas fa-plus"></i>
+    </div>
+    <input #fileInput type="file" accept="image/jpeg,jpg,png" (change)="upload($event)" style="display:none;" />
+  </div>
+</div>
