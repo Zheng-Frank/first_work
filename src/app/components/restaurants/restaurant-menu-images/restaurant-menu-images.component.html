@@ -5,27 +5,26 @@
     </div>
     <img [src]="image.url" />
     <div class="pb-1">
-      <div class="view-desc-box">
-        <button class="btn btn-link" (click)="image.viewDesc = !image.viewDesc">View Decription</button>
+      <div class="edit-box" *ngIf="!image.edit">
+        <div class="text-center">{{image.createdAt | adjustedDate: 'MMM d h: mm a':restaurant.googleAddress?.timezone}}</div>
+        <div class="text-center">{{image.createdBy}}</div>
+        <div class="text-start"><strong>{{getShortSDecription(image.description)}}</strong><br /></div>
+        <div class="text-end">
+            <button class="btn btn-link" (click)="image.edit = true">edit</button>
+        </div>
       </div>
-      <ng-container *ngIf="image.viewDesc">
-        <div class="edit-box" *ngIf="!image.edit">
-          <strong>{{image.description}}</strong><br/>
-          <button class="btn btn-link" (click)="image.edit = true">edit</button>
+      <div class="save-box" *ngIf="image.edit">
+        <textarea class="form-control" maxlength="200" [(ngModel)]="image.description"></textarea>
+        <div class="d-flex justify-content-end mt-1">
+          <button class="btn btn-secondary mr-1" (click)="image.edit = false">Cancel</button>
+          <button class="btn btn-primary" (click)="saveImageDesc(image)">Ok</button>
         </div>
-        <div class="save-box" *ngIf="image.edit">
-          <textarea class="form-control" [(ngModel)]="image.description"></textarea>
-          <div class="d-flex justify-content-end mt-1">
-            <button class="btn btn-secondary mr-1" (click)="image.edit = false">Cancel</button>
-            <button class="btn btn-primary" (click)="saveImageDesc()">Ok</button>
-          </div>
-        </div>
-      </ng-container>
+      </div>
     </div>
   </div>
   <div class="add-menu-img-btn">
-    <div class="add-icon-box" (click)="fileInput.click()">
-      <i class="fas fa-plus"></i>
+    <div class="add-icon-box">
+      <i class="fas fa-plus" (click)="fileInput.click()"></i>
     </div>
     <input #fileInput type="file" accept="image/jpeg,jpg,png" (change)="upload($event)" style="display:none;" />
   </div>

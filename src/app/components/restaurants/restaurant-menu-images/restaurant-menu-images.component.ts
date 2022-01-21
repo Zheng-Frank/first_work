@@ -6,12 +6,14 @@ import { HttpClient } from '@angular/common/http';
 import { GlobalService } from 'src/app/services/global.service';
 import { Component, OnInit, Input } from '@angular/core';
 import { ApiService } from 'src/app/services/api.service';
+import { User } from 'src/app/classes/user';
 
 interface menuImage {
   url: string,
+  createdAt: Date,
+  createdBy: string,
   description: string,
-  edit: boolean,
-  viewDesc: boolean
+  edit: boolean
 }
 
 @Component({
@@ -23,14 +25,25 @@ export class RestaurantMenuImagesComponent implements OnInit {
 
   @Input() restaurant;
   images: menuImage[] = [];
+  user: User;
   constructor(private _global: GlobalService, private _prunedPatch: PrunedPatchService, private _api: ApiService, private _http: HttpClient) { }
 
   ngOnInit() {
-    this.images = (this.restaurant.menuImages || []).map(menuImage => ({ ...menuImage, edit: false, viewDesc: false }));
+    this.images = (this.restaurant.menuImages || []).map(menuImage => ({ ...menuImage, edit: false }));
+    this.user = new User(this._global.user);
   }
 
-  async saveImageDesc() {
+  // displaying 50 front words of the description of the image if the length of decription is longer then 50.
+  getShortSDecription(description: string) {
+    return (description || '').length < 40 ? description : description.substring(0, 40) + "...";
+  }
+
+  async saveImageDesc(image: menuImage) {
+    if (!image.description) {
+      return this._global.publishAlert(AlertType.Danger, `Description can't be null!!`);
+    }
     await this.patchMenuImages();
+    image.edit = false;
   }
 
   async upload(e) {
@@ -41,8 +54,9 @@ export class RestaurantMenuImagesComponent implements OnInit {
       this.images.push({
         url,
         description: 'New image',
-        edit: false,
-        viewDesc: false
+        createdAt: new Date(),
+        createdBy: this.user.username,
+        edit: false
       });
       await this.patchMenuImages();
       e.target.value = null;
@@ -50,7 +64,7 @@ export class RestaurantMenuImagesComponent implements OnInit {
   }
 
   async patchMenuImages() {
-    let menuImages = this.images.map(image => ({ url: image.url, description: image.description }));
+    let menuImages = this.images.map(image => ({ url: image.url, description: image.description, createdAt: image.createdAt, createdBy: image.createdBy }));
     try {
       await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: { _id: this.restaurant['_id'] },
@@ -60,7 +74,7 @@ export class RestaurantMenuImagesComponent implements OnInit {
       this.restaurant.menuImages = menuImages;
     } catch (error) {
       // delete new image added in images array if something is wrong
-      this.images = (this.restaurant.menuImages || []).map(menuImage => ({ ...menuImage, edit: false, viewDesc: false }));
+      this.images = (this.restaurant.menuImages || []).map(menuImage => ({ ...menuImage, edit: false }));
       console.log(error);
       this._global.publishAlert(AlertType.Danger, 'Failed!');
     }
