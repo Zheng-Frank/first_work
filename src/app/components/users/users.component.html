@@ -55,7 +55,13 @@
   <tbody>
     <tr *ngFor="let ru of roleUsers">
       <th>{{ru.role}}</th>
-      <td>{{ru.users.join(', ')}}</td>
+      <td>
+        <ng-container *ngFor="let user of ru.users">
+          <span *ngIf="showDisabled || !user.disabled" class="{{user.disabled ? 'disabled' : ''}}">
+            {{user.username}}, 
+          </span>
+        </ng-container>
+      </td>
     </tr>
   </tbody>
 </table>
