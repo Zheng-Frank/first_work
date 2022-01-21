@@ -7,6 +7,7 @@ import { GlobalService } from 'src/app/services/global.service';
 import { Component, OnInit, Input } from '@angular/core';
 import { ApiService } from 'src/app/services/api.service';
 import { User } from 'src/app/classes/user';
+import { MenuImage, Restaurant } from '@qmenu/ui';
 
 interface menuImage {
   url: string,
@@ -23,7 +24,7 @@ interface menuImage {
 })
 export class RestaurantMenuImagesComponent implements OnInit {
 
-  @Input() restaurant;
+  @Input() restaurant: Restaurant;
   images: menuImage[] = [];
   user: User;
   constructor(private _global: GlobalService, private _prunedPatch: PrunedPatchService, private _api: ApiService, private _http: HttpClient) { }
@@ -64,7 +65,7 @@ export class RestaurantMenuImagesComponent implements OnInit {
   }
 
   async patchMenuImages() {
-    let menuImages = this.images.map(image => ({ url: image.url, description: image.description, createdAt: image.createdAt, createdBy: image.createdBy }));
+    let menuImages = this.images.map(image => ({ url: image.url, description: image.description, createdAt: image.createdAt, createdBy: image.createdBy } as MenuImage));
     try {
       await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: { _id: this.restaurant['_id'] },

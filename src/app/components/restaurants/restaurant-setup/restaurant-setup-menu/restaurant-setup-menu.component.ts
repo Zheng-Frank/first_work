@@ -1,10 +1,10 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {Restaurant} from '@qmenu/ui';
-import {GlobalService} from '../../../../services/global.service';
-import {Helper} from '../../../../classes/helper';
-import {ApiService} from '../../../../services/api.service';
-import {HttpClient} from '@angular/common/http';
-import {environment} from '../../../../../environments/environment';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Restaurant, MenuImage } from '@qmenu/ui';
+import { GlobalService } from '../../../../services/global.service';
+import { Helper } from '../../../../classes/helper';
+import { ApiService } from '../../../../services/api.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../../environments/environment';
 import { menuSectionCallScript } from '../restaurant-setup-entry/setup-call-script';
 enum MenuSetupModes {
   UploadImage, SendImage, CopyFromWeb, ScrapeFromUrl, AlreadyExist
@@ -45,6 +45,7 @@ export class RestaurantSetupMenuComponent implements OnInit {
     }
   ];
   images: string[] = [];
+  menuImages: MenuImage[] = [];
   menus = [];
   copyFrom = '';
   scrapeUrl = '';
@@ -55,7 +56,7 @@ export class RestaurantSetupMenuComponent implements OnInit {
   }
 
   // make menuSectionCallScript from exporting becomes inner field of class RestaurantSetupMenuComponent
-  get menuSectionCallScript(){
+  get menuSectionCallScript() {
     return menuSectionCallScript;
   }
 
@@ -72,18 +73,14 @@ export class RestaurantSetupMenuComponent implements OnInit {
     const data: any = await Helper.uploadImage(files, this._api, this._http);
     if (data && data.Location) {
       this.images.push(data.Location);
-      // create menu
-      let menu = {
-        id: new Date().valueOf(),
-        name: "Menu Img " + this.images.length,
-        description: "",
-        restaurant: this.restaurant._id,
-        disabled: true,
-        type: "",
-        mcs: [],
-        backgroundImageUrl: data.Location
+      // create menu image
+      let menuImage: MenuImage = {
+        url: data.Location,
+        description: 'New Image' + this.images.length,
+        createdAt: new Date(),
+        createdBy: this._global.user.username
       };
-      this.menus.push(menu);
+      this.menuImages.push(menuImage);
       e.target.value = null;
     }
   }
@@ -96,14 +93,14 @@ export class RestaurantSetupMenuComponent implements OnInit {
     return !![this.images.length > 0, true, this.copyFrom, this.scrapeUrl, true][this.setupMode];
   }
 
-  async addMenusByImage() {
-    let { menus } = this.restaurant;
-    let newMenus = [...menus, ...this.menus];
+  async addMenuImages() {
+    let { menuImages = [] } = this.restaurant;
+    menuImages = [...menuImages, ...this.menuImages];
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-      old: {_id: this.restaurant['_id']},
-      new: {_id: this.restaurant['_id'], menus: newMenus}
+      old: { _id: this.restaurant['_id'] },
+      new: { _id: this.restaurant['_id'], menuImages: menuImages }
     }]).toPromise();
-    this.restaurant.menus = newMenus;
+    this.restaurant.menuImages = menuImages;
   }
 
   async scrapeMenuByUrl() {
@@ -152,12 +149,12 @@ export class RestaurantSetupMenuComponent implements OnInit {
       type: "menu-setup"
     };
     if (this.setupMode === MenuSetupModes.UploadImage) {
-      await this.addMenusByImage();
+      await this.addMenuImages();
     } else if (this.setupMode === MenuSetupModes.ScrapeFromUrl) {
       await this.scrapeMenuByUrl();
     }
     let { logs = [] } = this.restaurant;
     let newLogs = [...logs, log];
-    this.done.emit({logs: newLogs});
+    this.done.emit({ logs: newLogs });
   }
 }
