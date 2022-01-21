@@ -157,7 +157,20 @@ export class MyRestaurantComponent implements OnInit {
 
   async getTeamUsers() {
     const users = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "user", query: {manager: {$eq: this._global.user.username}}, projection: {username: 1}, limit: 1000
+      resource: "user",
+      aggregate: [
+        {
+          $graphLookup: {
+            from: "user",
+            startWith: "$manager",
+            connectFromField: "manager",
+            connectToField: "username",
+            as: "leaders"
+          }
+        },
+        {$match: {"leaders.username": {$eq: this._global.user.username}}},
+        {$project: {username: 1}}
+      ]
     }).toPromise();
     this.teamUsers = users.map(x => x.username);
   }
