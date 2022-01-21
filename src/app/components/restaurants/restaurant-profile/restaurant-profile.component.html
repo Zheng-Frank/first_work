@@ -841,6 +841,27 @@
                   </div>
                 </th>
               </tr>
+              <tr>
+                <th colspan="2">
+                  <div class="row">
+                    <div class="col-4 pl-5">
+                      {{changeLanguageFlag === 'English' ? 'Service fee taxable if non-cash tx' : '非现金订单服务费计税' }}
+                      <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
+                         (mouseover)="showCorrespondingTranslation('ServiceFeeTaxableIfNonCashTx')"
+                         (mouseout)="translating = ''">
+                        <div *ngIf="translating === 'ServiceFeeTaxableIfNonCashTx'" class="left talk radius">
+                          <p>Service fee taxable if non-cash tx:{{Explanations.EnglishExplanations.ServiceFeeTaxableIfNonCashTx}}</p>
+                          -------------<br>
+                          <p>非现金订单服务费计税:{{Explanations.ChineseExplanations.ServiceFeeTaxableIfNonCashTx}}</p>
+                        </div>
+                      </i>
+                    </div>
+                    <div class="col-7 pl-1" style="font-weight: 600;">
+                      {{!!restaurant.serviceFeeTaxableIfNonCashTx}}
+                    </div>
+                  </div>
+                </th>
+              </tr>
             </ng-container>
           </tbody>
         </table>
@@ -1435,7 +1456,7 @@
               </tbody>
             </table>
             <div class="ml-5">
-              <input type="checkbox" [(ngModel)]="preventOnlineTipIfCash"/><label class="ml-1">Prevent online tipping if cash order</label> 
+              <input type="checkbox" [(ngModel)]="preventOnlineTipIfCash"/><label class="ml-1">Prevent online tipping if cash order</label>
             </div>
           </div>
         </ng-container>
@@ -1649,6 +1670,23 @@
             <div class="pl-1 col-7">
               <input type="checkbox" [checked]="!!preventOrdersDuringNonOpenTime"
                      (change)="preventOrdersDuringNonOpenTime=$event.target.checked">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label class="col-4 col-form-label pt-0 pl-5">
+              {{changeLanguageFlag === 'English' ? 'Service fee taxable if non-cash tx' : '非现金订单服务费计税' }}
+              <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
+                 (mouseover)="showCorrespondingTranslation('ServiceFeeTaxableIfNonCashTx')" (mouseout)="translating = ''">
+                <div *ngIf="translating === 'ServiceFeeTaxableIfNonCashTx'" class="left edit-talk radius">
+                  <p>Service fee taxable if non-cash tx:{{Explanations.EnglishExplanations.ServiceFeeTaxableIfNonCashTx}}</p>
+                  -------------<br>
+                  <p>非现金订单服务费计税:{{Explanations.ChineseExplanations.ServiceFeeTaxableIfNonCashTx}}</p>
+                </div>
+              </i>
+            </label>
+            <div class="pl-1 col-7">
+              <input type="checkbox" [checked]="!!serviceFeeTaxableIfNonCashTx"
+                     (change)="serviceFeeTaxableIfNonCashTx=$event.target.checked">
             </div>
           </div>
         </ng-container>
