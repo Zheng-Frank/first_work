@@ -1,17 +1,13 @@
 <div class="row ml-1">
-  <div class="menu-img-item" *ngFor="let image of images; let i = index;">
+  <div class="menu-img-item mb-3" *ngFor="let image of images; let i = index;">
     <div class="btn-close" (click)="removeImage(i)">
       <i class="fa fa-times"></i>
     </div>
     <img [src]="image.url" />
     <div class="pb-1">
       <div class="edit-box" *ngIf="!image.edit">
-        <div class="text-center">{{image.createdAt | adjustedDate: 'MMM d h: mm a':restaurant.googleAddress?.timezone}}</div>
-        <div class="text-center">{{image.createdBy}}</div>
-        <div class="text-start"><strong>{{getShortSDecription(image.description)}}</strong><br /></div>
-        <div class="text-end">
-            <button class="btn btn-link" (click)="image.edit = true">edit</button>
-        </div>
+        <small class="text-center text-unwrap"><i>{{image.createdAt | adjustedDate: 'MMM d h:mm a':restaurant.googleAddress?.timezone}} - {{image.createdBy}}</i></small>
+        <div class="text-start">{{getShortSDecription(image.description)}}<a class="pl-2 pt-1" (click)="image.edit = true">Edit</a></div>
       </div>
       <div class="save-box" *ngIf="image.edit">
         <textarea class="form-control" maxlength="200" [(ngModel)]="image.description"></textarea>

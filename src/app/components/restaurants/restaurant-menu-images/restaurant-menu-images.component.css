@@ -13,7 +13,6 @@
 .menu-img-item img {
   width: 200px;
   height: 200px;
-  margin-bottom: 10px;
 }
 
 .menu-img-item .btn-close {
@@ -47,7 +46,7 @@
 .add-menu-img-btn .add-icon-box {
     width: 200px;
     height: 200px;
-    border: 1px solid #CC0000;
+    border: 1px solid #DDD;
     position: absolute;
     top: 0;
     display: flex;
