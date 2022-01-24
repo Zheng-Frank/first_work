@@ -9,7 +9,7 @@
         <small class="text-center text-unwrap"><i>{{image.createdAt | adjustedDate: 'MMM d h:mm a':restaurant.googleAddress?.timezone}} - {{image.createdBy}}</i></small>
         <div class="text-start">{{getShortSDecription(image.description)}}<a class="pl-2 pt-1" (click)="image.edit = true">Edit</a></div>
       </div>
-      <div class="save-box" *ngIf="image.edit">
+      <div class="save-box mt-1" *ngIf="image.edit">
         <textarea class="form-control" maxlength="200" [(ngModel)]="image.description"></textarea>
         <div class="d-flex justify-content-end mt-1">
           <button class="btn btn-secondary mr-1" (click)="image.edit = false">Cancel</button>
