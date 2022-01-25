@@ -167,7 +167,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       "qMenuWebsite": "qMenu 网站",
       "PreventOrdersDuringNonOpenTime": "默认情况下，即使在非营业时间，顾客也可以下单预定，如果打开此设置，在非营业时间将会禁止顾客下任何订单。",
       "PreventOnlineTipIfCash": "",
-      "ServiceFeeTaxableIfNonCashTx": ""
+      "ServiceFeeTaxableIfNonCashTx": "对qMenu服务费/佣金随订单小计一同计税。在此餐馆中，部分或所有服务费用是由顾客承担的，当顾客使用信用卡支付时，需要将因这些服务费而产生的税费一同支付给餐馆。"
     },
     EnglishExplanations: {
       "Name": "Name of restaurant",
@@ -213,7 +213,7 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
       "qMenuWebsite": "The URL for this website's restaurant managed by qMenu",
       "PreventOrdersDuringNonOpenTime": "By default, customers can place orders scheduled for a later time, even during non-open hours. If this setting is turned on, however, the customer won't be able to places orders during non-open hours at all.",
       "PreventOnlineTipIfCash": "",
-      "ServiceFeeTaxableIfNonCashTx": ""
+      "ServiceFeeTaxableIfNonCashTx": "Add tax on top of the qMenu service fee/commission as well as the subtotal. For this restaurant, to the extent all or some of the qMenu service fee burden is placed on the customer, when the customer pays by credit card, the restaurant will incur tax on the service fee and needs to be compensated for it by the customer."
     }
   }
 
