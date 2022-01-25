@@ -18,10 +18,11 @@ export class RestaurantDiagnosticsComponent implements OnInit {
   now = new Date();
 
   diagnostics;
-
+  users;
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) { }
 
-  ngOnInit() {
+  async ngOnInit() {
+    this.users = await this._global.getCachedUserList();
   }
 
   async ngOnChanges(changes: SimpleChanges) {
@@ -45,6 +46,21 @@ export class RestaurantDiagnosticsComponent implements OnInit {
     }).toPromise();
     let firstRT = restaurants.map(rt => rt.diagnostics)[0]; // first restaurant's first diagnostics
     this.diagnostics = firstRT ? firstRT[0] : {};
+    // don't show diagnostics about rate schedules, if rt has fee schedules settings
+    if (this.restaurant.feeSchedules) {
+      this.diagnostics.result = (this.diagnostics.result || []).filter(r => r.name !== 'rate-schedules');
+    }
+    // and show add a diagnostic about sales person independently
+    if (this.hasNotSalesAgent(this.restaurant.rateSchedules)) {
+      (this.diagnostics.result || []).push({
+        name: 'sales-agent',
+        errors: [`hasn't sales agent`]
+      });
+    }
+  }
+  // judge rt whether has a suitable salesperson
+  hasNotSalesAgent(rateSchedules) {
+    return !rateSchedules.some(rateSchedule => this.users.some(u => u.username === rateSchedule.agent && !u.disabled));
   }
 
   async diagnose() {
