@@ -54,7 +54,7 @@ export class RestaurantDiagnosticsComponent implements OnInit {
     if (this.hasNotSalesAgent(this.restaurant.rateSchedules)) {
       (this.diagnostics.result || []).push({
         name: 'sales-agent',
-        errors: [`hasn't sales agent`]
+        errors: [`salesperson does not exist`]
       });
     }
   }
