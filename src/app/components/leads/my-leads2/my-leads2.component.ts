@@ -73,8 +73,8 @@ export class MyLeads2Component implements OnInit, OnDestroy {
   publishedFunnels: LeadFunnel[] = [];
 
   myLeads: RawLead[] = [];
-  ongoingTab = { label: 'Ongoing', rows: [], filter: 'All' };
-  succeededTab = { label: 'In qMenu', rows: [], filter: 'All' };
+  ongoingTab = { label: 'Ongoing', rows: [], timeZone: 'All', funnel: 'All', keyword: '' };
+  succeededTab = { label: 'In qMenu', rows: [], timeZone: 'All', funnel: 'All', keyword: '' };
   activeTab = this.ongoingTab;
   tabs = [this.ongoingTab, this.succeededTab];
 
@@ -110,7 +110,7 @@ export class MyLeads2Component implements OnInit, OnDestroy {
       label: "Actions"
     },
   ];
-
+  funnels = [];
   copiedText;
   timer;
   constructor(private _global: GlobalService, private _api: ApiService) {
@@ -369,22 +369,27 @@ export class MyLeads2Component implements OnInit, OnDestroy {
       .toPromise();
 
     this.myLeads = allRawLeads.map(lead => new RawLead(lead));
-
+    let funnels = this.myLeads.map(({campaigns}) => campaigns[0] && campaigns[0].funnel && campaigns[0].funnel.name).filter(x => !!x);
+    this.funnels = ['All', ...new Set(funnels)];
     this.fillTabs();
 
   }
 
+  filterLead({lead: {name, campaigns = []}, timezone}, conditions) {
+    let { timeZone, funnel, keyword } = conditions;
+    return (timeZone === 'All' || timeZone === timezone)
+      && (funnel === 'All' || (campaigns[0] && campaigns[0].funnel && campaigns[0].funnel.name === funnel))
+      && (!keyword || (name && name.toLowerCase().includes(keyword.toLowerCase())));
+  }
+
   fillTabs() {
     this.ongoingTab.rows = this.myLeads.filter(lead => !lead.restaurant).map(lead => ({
-      lead,
-      localTime: this.getTimeZoneTime(lead.state),
-      timezone: this.guessTimezone(lead.state),
-    })).filter(lead => this.activeTab.filter === 'All' ? true : this.activeTab.filter === lead.timezone).sort((r1, r2) => new Date(r1.lead.campaigns[0].scheduledAt || this.now).valueOf() - new Date(r2.lead.campaigns[0].scheduledAt || this.now).valueOf());
+      lead, localTime: this.getTimeZoneTime(lead.state), timezone: this.guessTimezone(lead.state)
+    })).filter(x => this.filterLead(x, this.ongoingTab)).sort((r1, r2) => new Date(r1.lead.campaigns[0].scheduledAt || this.now).valueOf() - new Date(r2.lead.campaigns[0].scheduledAt || this.now).valueOf());
 
     this.succeededTab.rows = this.myLeads.filter(lead => lead.restaurant).map(lead => ({
-      lead,
-      localTime: this.getTimeZoneTime(lead.state)
-    })).filter(lead => this.activeTab.filter === 'All' ? true : this.activeTab.filter === lead.localTime ).sort();
+      lead, localTime: this.getTimeZoneTime(lead.state), timezone: this.guessTimezone(lead.state)
+    })).filter(x => this.filterLead(x, this.succeededTab)).sort();
 
   }
 
