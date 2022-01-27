@@ -9,7 +9,24 @@
       </select>
     </div>
   </div>
-
+  <ng-container *ngIf="isAdmin() || isMarketerManager()">
+    <div class="col-auto">
+      <div class="input-group">
+        <label>View by: </label>
+        <select class="custom-select " [(ngModel)]="viewMode" (change)="changeViewMode()">
+          <option *ngFor="let item of viewModes" [value]="item">{{item}}</option>
+        </select>
+      </div>
+    </div>
+    <div class="col-auto" *ngIf="viewMode === ViewModes.Agent">
+      <div class="input-group">
+        <label>Agent: </label>
+        <select class="custom-select " [(ngModel)]="agent" (change)="query()">
+          <option *ngFor="let item of agents" [value]="item">{{item}}</option>
+        </select>
+      </div>
+    </div>
+  </ng-container>
 </div>
 
 <div class="row ivr-filters mt-2" *ngIf="timeRange === TimeRanges.CustomDate">
@@ -61,7 +78,7 @@
       <td> {{ secondsToHms(item.avgCallDuration) }}</td>
       <td> {{ secondsToHms(item.totalCallTime) }}</td>
       <td> {{ secondsToHms(item.avgCallTimePerDay) }}</td>
-   
+
       <td> {{ item.churnCount }} </td>
 
     </tr>

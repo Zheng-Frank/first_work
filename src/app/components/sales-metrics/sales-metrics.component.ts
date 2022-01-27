@@ -11,6 +11,12 @@ enum TimeRanges {
   Last30Days = 'Last 30 days',
   CustomDate = 'Custom'
 }
+
+enum ViewModes {
+  Overview = 'Overview',
+  Agent = 'Agent'
+}
+
 @Component({
   selector: 'app-sales-metrics',
   templateUrl: './sales-metrics.component.html',
@@ -31,6 +37,8 @@ export class SalesMetricsComponent implements OnInit {
 
   restaurants = [];
   marketers = [];
+  viewMode = ViewModes.Overview
+  agent = '';
 
   agentStatsColumnDescriptors = [{
     label: "Name",
@@ -85,6 +93,23 @@ export class SalesMetricsComponent implements OnInit {
     return Object.values(TimeRanges);
   }
 
+  get ViewModes() {
+    return ViewModes;
+  }
+
+  get viewModes() {
+    return Object.values(ViewModes);
+  }
+
+  get agents() {
+    if (this.isAdmin()) {
+      return Object.keys(this.ivrUsers);
+    } else if (this.isMarketerManager()) {
+      return [...this.marketers];
+    }
+    return [];
+  }
+
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
@@ -136,6 +161,17 @@ export class SalesMetricsComponent implements OnInit {
       await this.query();
     } else {
       this.startDate = this.endDate = undefined;
+    }
+  }
+
+  async changeViewMode() {
+    if (this.viewMode === ViewModes.Overview) {
+      await this.query();
+    } else {
+      if (!this.agent) {
+        this.agent = this.agents[0];
+      }
+      await this.query()
     }
   }
 
@@ -199,13 +235,18 @@ export class SalesMetricsComponent implements OnInit {
       createdAt: { $gte: start, $lt: end },
       Agent: { $exists: true }
     } as any;
-    if (this.isAdmin()) {
-      query['Agent.Username'] = { $in: Object.keys(this.ivrUsers) };
-    } else if (this.isMarketerManager()) {
-      query['Agent.Username'] = { $in: this.marketers }
+    if (this.viewMode === ViewModes.Overview) {
+      if (this.isAdmin()) {
+        query['Agent.Username'] = { $in: Object.keys(this.ivrUsers) };
+      } else if (this.isMarketerManager()) {
+        query['Agent.Username'] = { $in: this.marketers }
+      } else {
+        query['Agent.Username'] = ivrName;
+      }
     } else {
-      query['Agent.Username'] = ivrName;
+      query['Agent.Username'] = this.agent;
     }
+
 
     const rtQuery = {
       createdAt: { $gte: { $date: start }, $lt: { $date: end } },
