@@ -3,10 +3,6 @@
     <h3 class="card-title text-center pt-4 pb-2">
       <i class="far fa fa-car"></i> Delivery Settings
     </h3>
-    <h5 class="text-danger p-3">
-      NOTE: Start and end time refer to the first and last moment at which the restaurant can deliver the food to the customer.
-      <br/>(请注意：开始和结束时间是指餐厅能将外卖送达到顾客手里的第一个时间和最后一个时间。)
-    </h5>
     <ul class="list-group list-group-flush">
 
       <li class="list-group-item">
@@ -27,7 +23,8 @@
 
 
         <div class="row mt-3">
-          <button class="btn btn-link py-0 mr-3" (click)="checkPostmatesAvailability()" [qLoading]="checkingPostmatesAvailability">Check Postmates availability</button>          
+          <button class="btn btn-link py-0 mr-3" (click)="checkPostmatesAvailability()"
+            [qLoading]="checkingPostmatesAvailability">Check Postmates availability</button>
           <div *ngIf="postmatesAvailability && postmatesAvailability.indexOf('Available') >= 0; else notAvailable">
             <i class="fa fa-check fg--green" aria-hidden="true"></i>
             <span>{{postmatesAvailability}}</span>
@@ -86,13 +83,33 @@
               <!--end add bolck-->
               <ng-container *ngIf="!hasDeliveryHours()">
                 <tr *ngIf="restaurant.deliveryFromTime">
-                  <th class="text-left">Start Time:</th>
+                  <th class="text-left">Start Time:
+                    <i class="fa fa-info-circle icon-color" (mouseover)="showExplanation = true"
+                      (mouseout)="showExplanation = false">
+                      <div *ngIf="showExplanation" class="left talk radius">
+                        <p>NOTE: Start and end time refer to the first and last moment at which the restaurant can
+                          deliver the food to the customer.</p>
+                        -------------<br>
+                        <p>请注意：开始和结束时间是指餐厅能将外卖送达到顾客手里的最早时间和最晚时间。</p>
+                      </div>
+                    </i>
+                  </th>
                   <td class="pl-1">
                     {{restaurant.deliveryFromTime | adjustedDate : 'h:mm a' : restaurant.googleAddress.timezone}}
                   </td>
                 </tr>
                 <tr *ngIf="!restaurant.deliveryFromTime">
-                  <th class="text-left">Start Time:</th>
+                  <th class="text-left">Start Time:
+                    <i class="fa fa-info-circle icon-color" (mouseover)="showExplanation = true"
+                      (mouseout)="showExplanation = false">
+                      <div *ngIf="showExplanation" class="left talk radius">
+                        <p>NOTE: Start and end time refer to the first and last moment at which the restaurant can
+                          deliver the food to the customer.</p>
+                        -------------<br>
+                        <p>请注意：开始和结束时间是指餐厅能将外卖送达到顾客手里的最早时间和最晚时间。</p>
+                      </div>
+                    </i>
+                  </th>
                   <td class="pl-1">
                     At business open
                   </td>

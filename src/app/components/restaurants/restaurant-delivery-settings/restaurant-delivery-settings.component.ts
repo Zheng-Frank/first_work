@@ -38,6 +38,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   secondNotifications = true;
   checkingPostmatesAvailability = false;
   now = new Date(); // to tell if a delivery hours is expired
+  showExplanation = false;
 
   isDeliveryHoursExpired(hour) {
     return hour.toTime && this.now > hour.toTime;
