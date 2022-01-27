@@ -103,9 +103,9 @@ export class SalesMetricsComponent implements OnInit {
 
   get agents() {
     if (this.isAdmin()) {
-      return Object.keys(this.ivrUsers);
+      return Object.keys(this.ivrUsers).sort((a, b) => a.localeCompare(b));
     } else if (this.isMarketerManager()) {
-      return [...this.marketers];
+      return [...this.marketers].sort((a, b) => a.localeCompare(b));
     }
     return [];
   }
