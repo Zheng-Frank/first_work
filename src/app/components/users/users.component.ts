@@ -139,9 +139,9 @@ export class UsersComponent implements OnInit {
       label: 'Manager',
       inputType: 'select',
       required: false,
-      items: this.users
+      items: [{object: '', text: '', selected: false}, ...this.users
         .filter(u => u.username !== user.username && !u.disabled)
-        .map(u => ({ object: u.username, text: u.username, selected: false }))
+        .map(u => ({ object: u.username, text: u.username, selected: false }))]
     },
     {
       field: 'roles',
