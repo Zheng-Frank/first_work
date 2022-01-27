@@ -266,6 +266,7 @@ import { RestaurantPosterComponent } from './components/restaurants/restaurant-p
 import { FaxHealthDashboardComponent } from './components/monitoring/fax-health-dashboard/fax-health-dashboard.component';
 import { RestaurantMsgLogsComponent } from './components/restaurants/restaurant-msg-logs/restaurant-msg-logs.component';
 import { RestaurantSetupCommissionsComponent } from './components/restaurants/restaurant-setup/restaurant-setup-commissions/restaurant-setup-commissions.component';
+import { RestaurantMenuImagesComponent } from './components/restaurants/restaurant-menu-images/restaurant-menu-images.component';
 
 
 @NgModule({
@@ -503,6 +504,7 @@ import { RestaurantSetupCommissionsComponent } from './components/restaurants/re
     MonitoringDineInOrdersComponent,
     RestaurantMsgLogsComponent,
     RestaurantSetupCommissionsComponent,
+    RestaurantMenuImagesComponent,
   ],
   imports: [
     BrowserModule,
