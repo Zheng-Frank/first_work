@@ -16,6 +16,7 @@ export class Log {
   adjustmentType: 'COMMISSION' | 'TRANSACTION';
 
   type: string;
+  priorityDisplay?: boolean; // let log display at front of the table if it is true
 
   constructor(log?: any) {
     if (log) {
