@@ -1,10 +1,10 @@
-import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
-import {Restaurant} from '@qmenu/ui';
-import {Log} from '../../../classes/log';
-import {ApiService} from '../../../services/api.service';
-import {environment} from '../../../../environments/environment';
-import {GlobalService} from '../../../services/global.service';
-import {AlertType} from '../../../classes/alert-type';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Restaurant } from '@qmenu/ui';
+import { Log } from '../../../classes/log';
+import { ApiService } from '../../../services/api.service';
+import { environment } from '../../../../environments/environment';
+import { GlobalService } from '../../../services/global.service';
+import { AlertType } from '../../../classes/alert-type';
 import { PrunedPatchService } from 'src/app/services/prunedPatch.service';
 
 @Component({
@@ -32,8 +32,8 @@ export class RestaurantLogsComponent implements OnInit {
     return a && b && (new Date(a.time).getTime() === new Date(b.time).getTime());
   }
 
-  reScan(){
-    if(this.logEditingModal){
+  reScan() {
+    if (this.logEditingModal) {
       this.logEditingModal.hide();
     }
     this.reload.emit();
@@ -104,7 +104,27 @@ export class RestaurantLogsComponent implements OnInit {
   }
 
   getReversedLogs(restaurant) {
-    return (restaurant.logs || []).slice().reverse().map(log => ({
+    // let log which has priorityDisplay field show in front rows of the log table
+    // reverse log to display recently logs
+    let logs = (restaurant.logs || []).slice().reverse();
+    let priorityDisplayLogs = [];
+    // find log which has priorityDisplay 
+    for (let i = 0; i < logs.length; i++) {
+      if (logs[i].priorityDisplay) {
+        priorityDisplayLogs.push({
+          log: JSON.parse(JSON.stringify(logs[i])),
+          index: i
+        });
+      }
+    }
+    // delete logs with old position and priorityDisplay, 
+    // then put priorityDisplayLogs at the front of the array
+    priorityDisplayLogs.forEach(priorityDisplayLog => {
+      logs[priorityDisplayLog.index] = undefined;
+    });
+    priorityDisplayLogs = priorityDisplayLogs.map(priorityDisplayLog => priorityDisplayLog.log);
+    logs = [...priorityDisplayLogs, ...logs.filter(log => !!log)];
+    return logs.map(log => ({
       log: log,
       restaurant: this.restaurant
     }));
@@ -112,7 +132,7 @@ export class RestaurantLogsComponent implements OnInit {
 
   patch(oldRestaurant, updatedRestaurant, acknowledge) {
     this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant',
-      [{old: {_id: oldRestaurant._id, logs: oldRestaurant.logs}, new: {_id: updatedRestaurant._id, logs: updatedRestaurant.logs}}])
+      [{ old: { _id: oldRestaurant._id, logs: oldRestaurant.logs }, new: { _id: updatedRestaurant._id, logs: updatedRestaurant.logs } }])
       .subscribe(
         result => {
           // let's update original, assuming everything successful

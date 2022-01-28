@@ -14,7 +14,10 @@
   <tbody>
     <tr *ngFor="let rl of restaurantLogs; let i = index" class="list-group-item-action {{rl.log.resolved ? '' : 'alert-danger'}}"
       (click)="clickRow(rl)">
-      <td>{{i+1}}</td>
+      <td style="width: 5%;">
+        <i class="fas fa-star text-danger priority-star" *ngIf="rl.log.priorityDisplay"></i>
+        <span class="ml-1">{{i+1}}</span>
+      </td>
       <td>{{rl.log.username}}</td>
       <td class="text-nowrap">{{rl.log.time | date: 'shortDate'}}
         <div class="text-muted"><small>{{rl.log.time | date: 'shortTime'}}</small></div>
