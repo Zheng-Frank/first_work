@@ -22,6 +22,6 @@
     <div class="add-icon-box">
       <i class="fas fa-plus" (click)="fileInput.click()"></i>
     </div>
-    <input #fileInput type="file" accept="image/jpeg,jpg,png" (change)="upload($event)" style="display:none;" />
+    <input #fileInput type="file" accept="image/*" (change)="upload($event)" style="display:none;" />
   </div>
 </div>
