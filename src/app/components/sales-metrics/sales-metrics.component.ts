@@ -316,7 +316,7 @@ export class SalesMetricsComponent implements OnInit {
     })
     this.list = Object.entries(map).map(([key, { totalCalls, totalCallTime, durations, agents }]) => {
       let avgCallDuration = totalCallTime / totalCalls;
-      const agentRts = (this.restaurants || []).filter(rt => rt.rateSchedules.some(sch => agents.includes(sch.agent)));
+      const agentRts = (this.restaurants || []).filter(rt => new Date(rt.createdAt).toLocaleDateString() === key && rt.rateSchedules.some(sch => agents.includes(sch.agent)));
       return {
         date: key,
         totalCalls,
@@ -327,7 +327,7 @@ export class SalesMetricsComponent implements OnInit {
         gmbCount: agentRts.filter(rt => (rt.googleListing || {}).gmbOwner === 'qmenu').length,
         churnCount: agentRts.filter(rt => this.wasRtLostInTimePeriod(rt)).length
       }
-    }).sort((a, b) => new Date(a.date).valueOf() - new Date(b.date).valueOf());
+    }).sort((b, a) => new Date(a.date).valueOf() - new Date(b.date).valueOf());
   }
 
   renderOverView(data, start, end) {
