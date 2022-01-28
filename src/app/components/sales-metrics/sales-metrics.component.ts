@@ -280,7 +280,7 @@ export class SalesMetricsComponent implements OnInit {
 
     let agents = Object.keys(this.userRoleMap);
     data = data.filter(({Agent: {Username}}) => agents.includes(this.ivrUsers[Username] || Username));
-    this.agentsWithCalls = new Set(data.map(x => x.Agent.Username));
+    this.agentsWithCalls = new Set(data.map(({Agent: {Username}}) => this.ivrUsers[Username] || Username));
     if (this.viewMode === ViewModes.Overview) {
       this.renderOverView(data, start, end);
     } else if (this.viewMode === ViewModes.Agent) {
@@ -312,7 +312,7 @@ export class SalesMetricsComponent implements OnInit {
         end: item.DisconnectTimestamp,
         duration: item.Agent.AgentInteractionDuration
       });
-      map[date].agents.push(item.Agent.Username);
+      map[date].agents.push(this.ivrUsers[item.Agent.Username] || item.Agent.Username);
     })
     this.list = Object.entries(map).map(([key, { totalCalls, totalCallTime, durations, agents }]) => {
       let avgCallDuration = totalCallTime / totalCalls;
