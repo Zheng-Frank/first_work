@@ -29,9 +29,8 @@ export class SalesMetricsComponent implements OnInit {
 
   timeRange = TimeRanges.Last24Hours;
   list = [];
-  filteredList = [];
+  agentsWithCalls = new Set();
   totalRecords = 0;
-  filteredTotalRecords = 0;
   ivrUsers = {};
   userRoleMap = {};
 
@@ -39,48 +38,56 @@ export class SalesMetricsComponent implements OnInit {
   marketers = [];
   viewMode = ViewModes.Overview
   agent = '';
-
-  agentStatsColumnDescriptors = [{
-    label: "Name",
-    paths: ['agent'],
-    sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
-  },
-  {
-    label: 'Total Calls',
-    paths: ['totalCalls'],
-    sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
-  },
-  {
-    label: "New RTs Gained",
-    paths: ['rtCount'],
-    sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
-  },
-  {
-    label: "RTs Gained with GMB Owned",
-    paths: ['gmbCount'],
-    sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
-  },
-  {
-    label: "Average Call Duration",
-    paths: ['avgCallDuration'],
-    sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
-  },
-  {
-    label: "Total Call Time",
-    paths: ['totalCallTime'],
-    sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
-  },
-  {
-    label: "Average Call Time per Day",
-    paths: ['avgCallTimePerDay'],
-    sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
-  },
-
-  {
-    label: "Churn",
-    paths: ['churnCount'],
-    sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
-  }]
+  get agentStatsColumnDescriptors() {
+    let columns = [
+      {
+        label: 'Total Calls',
+        paths: ['totalCalls'],
+        sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
+      },
+      {
+        label: 'New RTs Gained',
+        paths: ['rtCount'],
+        sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
+      },
+      {
+        label: 'RTs Gained with GMB Owned',
+        paths: ['gmbCount'],
+        sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
+      },
+      {
+        label: 'Average Call Duration',
+        paths: ['avgCallDuration'],
+        sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
+      },
+      {
+        label: 'Total Call Time',
+        paths: ['totalCallTime'],
+        sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
+      },
+      {
+        label: 'Churn',
+        paths: ['churnCount'],
+        sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
+      }];
+    if (this.viewMode === ViewModes.Agent) {
+      return [{
+        label: "Date",
+        paths: ['date'],
+        sort: (a, b) => new Date(a).valueOf() - new Date(b).valueOf(),
+      }, ...columns]
+    }
+    columns.splice(5, 0, {
+      label: 'Average Call Time per Day',
+      paths: ['avgCallTimePerDay'],
+      sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
+    })
+    return [{
+      label: "Name",
+      paths: ['agent'],
+      sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
+    }, ...columns];
+  }
 
   get now(): string {
     return this.dateStr(new Date());
@@ -105,7 +112,7 @@ export class SalesMetricsComponent implements OnInit {
     if (this.isAdmin()) {
       return Object.keys(this.ivrUsers).sort((a, b) => a.localeCompare(b));
     } else if (this.isMarketerManager()) {
-      return [...this.marketers].sort((a, b) => a.localeCompare(b));
+      return this.marketers.map(x => x).sort((a, b) => a.localeCompare(b));
     }
     return [];
   }
@@ -164,17 +171,6 @@ export class SalesMetricsComponent implements OnInit {
     }
   }
 
-  async changeViewMode() {
-    if (this.viewMode === ViewModes.Overview) {
-      await this.query();
-    } else {
-      if (!this.agent) {
-        this.agent = this.agents[0];
-      }
-      await this.query()
-    }
-  }
-
   calcDates(days) {
     let start = this.startDate, end = this.endDate;
     if (this.timeRange !== TimeRanges.CustomDate) {
@@ -206,7 +202,6 @@ export class SalesMetricsComponent implements OnInit {
   }
 
   async query() {
-
     let ivrName = this._global.user.ivrUsername;
     if (!this.isAdmin() && !this.isMarketerManager() && !ivrName) {
       this.list = [];
@@ -217,6 +212,8 @@ export class SalesMetricsComponent implements OnInit {
     if (!this.startDate || !this.endDate) {
       return;
     }
+    this.list = [];
+    this.totalRecords = 0;
     let start = this.startDate, end = this.endDate;
     if (this.timeRange === TimeRanges.CustomDate) {
       // for custom date, we calc from start 00:00:00.000 to end 23:59:59.999
@@ -233,7 +230,7 @@ export class SalesMetricsComponent implements OnInit {
     let query = {
       Channel: 'VOICE',
       createdAt: { $gte: start, $lt: end },
-      Agent: { $exists: true }
+      Agent: { $ne: null }
     } as any;
     if (this.viewMode === ViewModes.Overview) {
       if (this.isAdmin()) {
@@ -244,9 +241,10 @@ export class SalesMetricsComponent implements OnInit {
         query['Agent.Username'] = ivrName;
       }
     } else {
-      query['Agent.Username'] = this.agent;
+      if (this.agent) {
+        query['Agent.Username'] = this.agent;
+      }
     }
-
 
     const rtQuery = {
       createdAt: { $gte: { $date: start }, $lt: { $date: end } },
@@ -261,6 +259,7 @@ export class SalesMetricsComponent implements OnInit {
         'ConnectedToSystemTimestamp': 1,
         'DisconnectTimestamp': 1,
         'Agent.AgentInteractionDuration': 1,
+        'createdAt': 1
       },
       limit: 100000 // limit to 10w, contains 3~4 months data
     }, 20000);
@@ -279,6 +278,59 @@ export class SalesMetricsComponent implements OnInit {
       limit: 100000
     }).toPromise();
 
+    let agents = Object.keys(this.userRoleMap);
+    data = data.filter(({Agent: {Username}}) => agents.includes(this.ivrUsers[Username] || Username));
+    this.agentsWithCalls = new Set(data.map(x => x.Agent.Username));
+    if (this.viewMode === ViewModes.Overview) {
+      this.renderOverView(data, start, end);
+    } else if (this.viewMode === ViewModes.Agent) {
+      this.renderAgentView(data)
+    }
+  }
+
+  renderAgentView(data) {
+    if (this.agent) {
+      data = data.filter(x => x.Agent.Username === this.agent);
+    }
+    let map = {} as {
+      [key: string]: {
+        totalCalls: number, totalCallTime: number, durations: any[], agents: string[]
+      }
+    };
+    data.forEach(item => {
+      let date = new Date(item.createdAt).toLocaleDateString();
+      map[date] = map[date] || {
+        totalCalls: 0,
+        totalCallTime: 0,
+        durations: [],
+        agents: []
+      }
+      map[date].totalCalls += 1;
+      map[date].totalCallTime += item.Agent.AgentInteractionDuration;
+      map[date].durations.push({
+        start: item.ConnectedToSystemTimestamp,
+        end: item.DisconnectTimestamp,
+        duration: item.Agent.AgentInteractionDuration
+      });
+      map[date].agents.push(item.Agent.Username);
+    })
+    this.list = Object.entries(map).map(([key, { totalCalls, totalCallTime, durations, agents }]) => {
+      let avgCallDuration = totalCallTime / totalCalls;
+      const agentRts = (this.restaurants || []).filter(rt => rt.rateSchedules.some(sch => agents.includes(sch.agent)));
+      return {
+        date: key,
+        totalCalls,
+        totalCallTime,
+        avgCallDuration,
+        durations,
+        rtCount: agentRts.length,
+        gmbCount: agentRts.filter(rt => (rt.googleListing || {}).gmbOwner === 'qmenu').length,
+        churnCount: agentRts.filter(rt => this.wasRtLostInTimePeriod(rt)).length
+      }
+    }).sort((a, b) => new Date(a.date).valueOf() - new Date(b.date).valueOf());
+  }
+
+  renderOverView(data, start, end) {
     let map = {} as {
       [key: string]: {
         totalCalls: number, totalCallTime: number, durations: any[]
@@ -301,7 +353,6 @@ export class SalesMetricsComponent implements OnInit {
         duration: item.Agent.AgentInteractionDuration
       });
     });
-
     this.list = Object.entries(map).map(([key, { totalCalls, totalCallTime, durations }]) => {
       let avgCallDuration = totalCallTime / totalCalls;
       let avgCallTimePerDay = totalCallTime / days;
@@ -319,9 +370,6 @@ export class SalesMetricsComponent implements OnInit {
         churnCount: agentRts.filter(rt => this.wasRtLostInTimePeriod(rt)).length
       }
     }).sort((a, b) => a.agent > b.agent ? 1 : -1);
-
-    this.filter();
-
   }
 
   isAdmin() {
@@ -383,17 +431,11 @@ export class SalesMetricsComponent implements OnInit {
     }).join(':');
   }
 
-  async filter() {
-    this.filteredList = this.list.filter(entry => Object.keys(this.userRoleMap).includes(entry.agent));
-    this.filteredTotalRecords = this.totalRecords;
-  }
-
   newSignUpCount() {
     // only count sign-ups for agents whose stats are currently displayed on the page. otherwise, we may have a mismatch
     // between the total count displayed at the top of the page and the total of the individual agents' numbers
     return (this.restaurants || []).reduce((prev, val) => {
-      const displayedUsers = this.filteredList.map(item => item.agent);
-      if (displayedUsers.includes(val.rateSchedules[0].agent)) {
+      if (this.agentsWithCalls.has(val.rateSchedules[0].agent)) {
         return prev + 1;
       }
       return prev;
@@ -402,8 +444,7 @@ export class SalesMetricsComponent implements OnInit {
 
   churnCount() {
     return (this.restaurants || []).reduce((prev, val) => {
-      const displayedUsers = this.filteredList.map(item => item.agent);
-      if (displayedUsers.includes(val.rateSchedules[0].agent) && this.wasRtLostInTimePeriod(val)) {
+      if (this.agentsWithCalls.has(val.rateSchedules[0].agent) && this.wasRtLostInTimePeriod(val)) {
         return prev + 1;
       }
       return prev;

@@ -13,7 +13,7 @@
     <div class="col-auto">
       <div class="input-group">
         <label>View by: </label>
-        <select class="custom-select " [(ngModel)]="viewMode" (change)="changeViewMode()">
+        <select class="custom-select " [(ngModel)]="viewMode" (change)="query()">
           <option *ngFor="let item of viewModes" [value]="item">{{item}}</option>
         </select>
       </div>
@@ -22,6 +22,7 @@
       <div class="input-group">
         <label>Agent: </label>
         <select class="custom-select " [(ngModel)]="agent" (change)="query()">
+          <option value=""></option>
           <option *ngFor="let item of agents" [value]="item">{{item}}</option>
         </select>
       </div>
@@ -49,11 +50,11 @@
   <table class="table w-50">
     <tr>
       <td class='font-weight-bold'>Agents With One or More Calls:</td>
-      <td>{{filteredList.length}}</td>
+      <td>{{agentsWithCalls.size}}</td>
     </tr>
     <tr>
       <td class='font-weight-bold'>Total Calls Placed:</td>
-      <td>{{filteredTotalRecords}}</td>
+      <td>{{totalRecords}}</td>
     </tr>
     <tr>
       <td class='font-weight-bold'> New Restaurant Sign-Ups: </td>
@@ -69,18 +70,17 @@
 
 <h4 class="text-center my-1"> Individual Totals for {{displayTimeRange()}}</h4>
 <div class="text-left ">
-  <q-table [rows]="filteredList" [tableColumnDescriptors]="agentStatsColumnDescriptors">
+  <q-table [rows]="list" [tableColumnDescriptors]="agentStatsColumnDescriptors">
     <tr *tableRowTemplate="let item">
-      <td> {{ item.agent }}</td>
+      <td *ngIf="viewMode === ViewModes.Overview"> {{ item.agent }}</td>
+      <td *ngIf="viewMode === ViewModes.Agent"> {{ item.date }}</td>
       <td> {{ item.totalCalls }}</td>
       <td> {{ item.rtCount }}</td>
       <td> {{ item.gmbCount }}</td>
       <td> {{ secondsToHms(item.avgCallDuration) }}</td>
       <td> {{ secondsToHms(item.totalCallTime) }}</td>
-      <td> {{ secondsToHms(item.avgCallTimePerDay) }}</td>
-
+      <td *ngIf="viewMode === ViewModes.Overview"> {{ secondsToHms(item.avgCallTimePerDay) }}</td>
       <td> {{ item.churnCount }} </td>
-
     </tr>
   </q-table>
 </div>
