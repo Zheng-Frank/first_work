@@ -2,6 +2,7 @@ import { GlobalService } from 'src/app/services/global.service';
 import { Component, ElementRef, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from 'src/environments/environment';
+import {Helper} from '../../classes/helper';
 
 enum TimeRanges {
   Last24Hours = 'Last 24 hours',
@@ -75,7 +76,7 @@ export class SalesMetricsComponent implements OnInit {
         label: "Date",
         paths: ['date'],
         sort: (a, b) => new Date(a).valueOf() - new Date(b).valueOf(),
-      }, ...columns]
+      }, ...columns].map(col => ({...col}))
     }
     columns.splice(5, 0, {
       label: 'Average Call Time per Day',
@@ -86,7 +87,7 @@ export class SalesMetricsComponent implements OnInit {
       label: "Name",
       paths: ['agent'],
       sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
-    }, ...columns];
+    }, ...columns].map(col => ({...col}));
   }
 
   get now(): string {
@@ -431,6 +432,12 @@ export class SalesMetricsComponent implements OnInit {
     }).join(':');
   }
 
+  avgCallTimePerDayByAgent() {
+    let totalCallTime = this.list.reduce((a, c) => a + c.totalCallTime, 0);
+    let days = Math.floor((new Date(this.endDate).valueOf() - new Date(this.startDate).valueOf()) / (24 * 3600 * 1000));
+    return this.secondsToHms(totalCallTime / days);
+  }
+
   newSignUpCount() {
     // only count sign-ups for agents whose stats are currently displayed on the page. otherwise, we may have a mismatch
     // between the total count displayed at the top of the page and the total of the individual agents' numbers
@@ -488,5 +495,23 @@ export class SalesMetricsComponent implements OnInit {
     // to-do: function to find an agent's actual days worked for the given time period - e.g. user may query for 30 days'
     // worth of data, but a given agent may have worked 20 days out of the 30. In that case, we should use 20 as denominator
     // for average calculations, not 30)
+  }
+
+  downloadCsv() {
+    let fields = this.agentStatsColumnDescriptors.map(({label, paths}) => ({
+      label, paths
+    }));
+
+    let data = this.list.map(({avgCallDuration, totalCallTime, avgCallTimePerDay, ...rest}) => ({
+      ...rest,
+      avgCallDuration: this.secondsToHms(avgCallDuration),
+      totalCallTime: this.secondsToHms(totalCallTime),
+      avgCallTimePerDay: this.secondsToHms(avgCallTimePerDay)
+    }));
+    let filename = 'Sales Stats - Individual Totals for ' + this.displayTimeRange();
+    if (this.viewMode === ViewModes.Agent && this.agent) {
+      filename += ', ' + this.agent;
+    }
+    Helper.downloadCSV(filename, fields, data);
   }
 }

@@ -48,9 +48,13 @@
 <div>
   <h4 class="text-center"> Team Totals for {{displayTimeRange()}}</h4>
   <table class="table w-50">
-    <tr>
+    <tr *ngIf="viewMode === ViewModes.Overview">
       <td class='font-weight-bold'>Agents With One or More Calls:</td>
       <td>{{agentsWithCalls.size}}</td>
+    </tr>
+    <tr *ngIf="viewMode === ViewModes.Agent">
+      <td class='font-weight-bold'>Average Call Time per Day:</td>
+      <td>{{avgCallTimePerDayByAgent()}}</td>
     </tr>
     <tr>
       <td class='font-weight-bold'>Total Calls Placed:</td>
@@ -68,7 +72,10 @@
 </div>
 
 
-<h4 class="text-center my-1"> Individual Totals for {{displayTimeRange()}}</h4>
+<h4 class="text-center my-1">
+  <span>Individual Totals for {{displayTimeRange()}}</span>
+  <button class="btn btn-link btn-download" (click)="downloadCsv()">Download CSV</button>
+</h4>
 <div class="text-left ">
   <q-table [rows]="list" [tableColumnDescriptors]="agentStatsColumnDescriptors">
     <tr *tableRowTemplate="let item">
