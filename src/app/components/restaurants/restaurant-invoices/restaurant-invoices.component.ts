@@ -78,11 +78,9 @@ export class RestaurantInvoicesComponent implements OnInit, OnChanges {
           thirdPartyDeliveryTip: 1,
 
         },
-        sort: {
-          toDate: -1
-        }
       }, 200);
     this.invoices = data.map(i => new Invoice(i));
+    this.invoices = this.invoices.sort((a, b) => b.toDate.valueOf() - a.toDate.valueOf());
   }
 
   ngOnChanges(changes: SimpleChanges) {
