@@ -3,9 +3,20 @@
 <div class="card-group">
     <div class="card">
         <div class="card-body">
+            <h5 class="card-title">Form 1099K Calculator</h5>
+            <p class="card-text">
+                Calculate order and dollar amount totals for all RTs for the previous year. Data will be stored on the
+                form1099k property for each RT object. This script should be run each January.
+            </p>
+            <button class="btn btn-primary" (click)="calculateForm1099k()" [disabled]="false">Execute</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
             <h5 class="card-title">Payment means 'ONE TIME'/'一次' migration</h5>
             <p class="card-text">
-              Update payment means' oneTime field according to if it's memo contains 'ONE TIME'/'一次' (case insensitive)
+                Update payment means' oneTime field according to if it's memo contains 'ONE TIME'/'一次' (case
+                insensitive)
             </p>
             <button class="btn btn-primary" (click)="migratePaymentMeansOneTime()" [disabled]="false">Execute</button>
         </div>
