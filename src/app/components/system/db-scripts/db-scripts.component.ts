@@ -5,7 +5,7 @@ import { GlobalService } from '../../../services/global.service';
 import { AlertType } from '../../../classes/alert-type';
 import { zip } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
-import { Restaurant } from '@qmenu/ui';
+import { Restaurant, Order } from '@qmenu/ui';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { Helper } from 'src/app/classes/helper';
 import { Domain } from 'src/app/classes/domain';
@@ -4029,7 +4029,163 @@ export class DbScriptsComponent implements OnInit {
 
   }
 
+  async calculateForm1099k() {
+    // round - helper function to address floating point math imprecision. 
+    // e.g. sometimes a total may be expressed as '2.27999999999997'. we need to put that in the format '2.28'
+    const round = function (num) {
+      return Math.round((num + Number.EPSILON) * 100) / 100;
+    }
 
+    // tabulateMonthlyData - helper function that takes in a RT's orders for a year and returns the total dollar amount, plus total for each month
+    const tabulateMonthlyData = function (orders) {
+      const monthlyData = {
+        0: 0,
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+        5: 0,
+        6: 0,
+        7: 0,
+        8: 0,
+        9: 0,
+        10: 0,
+        11: 0,
+        total: 0
+      }
+
+      orders.forEach(order => {
+        let month = order.createdAt.getMonth();
+        let roundedOrderTotal = round(order.getTotal());
+        monthlyData[month] += roundedOrderTotal;
+        monthlyData['total'] += roundedOrderTotal;
+      });
+
+      for (let key of Object.keys(monthlyData)) {
+        // due to floating point math imprecision, we need to round every value in the monthlyData object
+        monthlyData[key] = round(monthlyData[key]);
+      }
+      return monthlyData;
+    }
+    // END of helper functions section
+
+    // BEGIN querying restaurants and orders, and tabulating data
+
+    // taxYear is the previous year, expressed in 4 digit form. e.g. in 2022, taxYear should equal 2021
+    const taxYear = new Date().getFullYear() - 1;
+    let restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        "form1099k.year": { $ne: taxYear }
+      },
+      projection: {
+        channels: 1,
+        people: 1,
+        googleAddress: 1,
+        form1099k: 1
+      }
+    }, 5000);
+
+    if (restaurants.length === 0) {
+      this._global.publishAlert(
+        AlertType.Warning,
+        `Form 1099k has already been generated for tax year ${taxYear}`
+      );
+      return;
+    }
+
+    const batchSize = 300; // larger batch sizes cause Mongo query errors
+    const batches = Array(Math.ceil(restaurants.length / batchSize)).fill(0).map((i, index) => restaurants.slice(index * batchSize, (index + 1) * batchSize));
+    const totalBatches = batches.length;
+    let currentBatch = 0;
+
+    const orderQuery = {
+      "paymentObj.method": "QMENU",
+      $expr: {
+        $eq: [{ $year: "$createdAt" }, taxYear]
+      }
+    } as any;
+
+    for (let batch of batches) {
+      currentBatch += 1;
+      const oldNewPairs = [];
+      try {
+        for (let rt of batch) {
+          orderQuery["restaurant"] = {
+            $oid: rt._id
+          }
+
+          let rawOrders = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+            resource: 'order',
+            query: orderQuery,
+            projection: {
+              logs: 0,
+              timeToDeliver: 0,
+              sendNotificationOnReady: 0,
+              runtime: 0,
+              address: 0,
+              courierName: 0,
+              customerPreviousOrderStatus: 0,
+              restauranceNotie: 0,
+              customerNotice: 0,
+              customerObj: 0,
+              delivery: 0
+            }
+          }, 5000);
+
+          let orders = rawOrders.map(o => new Order(o));
+
+          const monthlyDataAndTotal = tabulateMonthlyData(orders);
+          let rt1099KData = {
+            year: taxYear
+          } as any;
+
+          // for tax year 2021 and before: requirement is >= 200 orders and >= 20,000 dollars
+          // for tax year 2022 and after: requirement is >=1 orders and >= 600 dollars
+          if (orders.length >= 1 && monthlyDataAndTotal.total >= 600) {
+            rt1099KData.required = true;
+            rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
+          } else {
+            rt1099KData.required = false;
+          }
+
+          if (rt1099KData.required === true) {
+            console.log(rt1099KData);
+          }
+
+          let existing1099kRecords = rt.form1099k || [];
+          let new1099kRecords = [...existing1099kRecords, rt1099KData];
+
+          oldNewPairs.push({
+            old: { _id: rt._id, form1099k: existing1099kRecords },
+            new: { _id: rt._id, form1099k: new1099kRecords }
+          });
+        }
+
+        if (oldNewPairs.length > 0) {
+          try {
+            await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', oldNewPairs).toPromise();
+            this._global.publishAlert(
+              AlertType.Success,
+              `Updated Form 1099k records for ${oldNewPairs.length} restaurants (Batch ${currentBatch} of ${totalBatches})`
+            );
+          } catch (err) {
+            this._global.publishAlert(
+              AlertType.Danger,
+              `Failed to update db records. See console for more info.`
+            );
+            console.error(err);
+          }
+        }
+      } catch (err) {
+        this._global.publishAlert(
+          AlertType.Danger,
+          `Failed to retrieve db records. See console for more info.`
+        );
+        console.error(err);
+      }
+    }
+  }
 }
 
 
