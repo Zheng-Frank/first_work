@@ -23,8 +23,14 @@ export class Form1099KComponent implements OnInit {
   constructor(private _api: ApiService, private sanitizer: DomSanitizer) { }
 
   async ngOnInit() {
-    await this.populateOrdersForYear(2020);
-    await this.calculateRestaurantTransactionsForYear(2020);
+    // const years = [2020, 2021];
+
+    // for (let year of years) {
+    //   await this.populateOrdersForYear(year);
+    //   await this.calculateRestaurantTransactionsForYear(year);
+    // }
+    await this.getFormFields();
+
   }
 
   async populateOrdersForYear(year) {
@@ -62,6 +68,7 @@ export class Form1099KComponent implements OnInit {
       }
     }, 250);
 
+    console.log(orders);
     this.orders = orders.map(order => {
       order.payment = order.paymentObj;
       order.id = order._id;
@@ -85,8 +92,9 @@ export class Form1099KComponent implements OnInit {
     }
     restaurantTotals.sumOfTransactions = this.round(restaurantTotals.sumOfTransactions);
 
+
     // Make sure the values on the line below are actually 200 and 20000, respectively.
-    if (restaurantTotals.orderCount >= 200 && restaurantTotals.sumOfTransactions >= 20000) {
+    if (restaurantTotals.orderCount >= 1 && restaurantTotals.sumOfTransactions >= 1) {
       const restaurantAddress = this.restaurant.googleAddress;
       const form1099KData = {
         name: this.restaurant.name,
@@ -228,4 +236,40 @@ export class Form1099KComponent implements OnInit {
     return Math.round((num + Number.EPSILON) * 100) / 100;
   }
 
+  async getFormFields() {
+    let formTemplateUrl = "../../../../assets/form1099k/form1099k.pdf";
+    const formBytes = await fetch(formTemplateUrl).then((res) => res.arrayBuffer());
+    const pdfDoc = await PDFDocument.load(formBytes);
+    const form = pdfDoc.getForm();
+
+    const fields = await form.getFields();
+
+    let allFields = '';
+    fields.forEach(field => {
+
+      allFields += field.getName() + '\n';
+    })
+
+
+
+    console.log(allFields);
+  }
 }
+
+
+/* 
+restaurant: {
+name: '', 
+payeeName: 'John Doe',
+TIN: '123',
+1099k: [
+  {
+  year: 2020, 
+  
+ }, 
+
+]
+}
+
+
+*/

@@ -1,0 +1,57 @@
+<h2 class="text-center">IRS Form 1099K Dashboard</h2>
+<div class="text-center">RTs with Form 1099K: /TODO/ </div>
+
+<div class="form-inline my-2 ">
+
+    <!-- Search Textbox -->
+   
+        <label class="mx-2"> Search:</label>
+        <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control ml-2"
+            placeholder="RT name or ID, RT owner name, email, etc." [(ngModel)]="searchFilter">
+
+
+    <!-- Tax Year Dropdown -->
+
+        <label class="mx-2"> Select Tax Year:</label>
+        <select class="form-control" [(ngModel)]="taxYear" (change)="filterForms()">
+            <option *ngFor="let entry of taxYearOptions"> {{entry}} </option>
+        </select>
+
+    <!-- Missing Payee or TIN Attributes -->
+    
+        <label class="mx-2"> Missing Payee or TIN?:</label>
+        <select class="form-control" [(ngModel)]="missingAttributeFilter" (change)="filterForms()">
+            <option *ngFor="let entry of missingAttributeOptions">{{entry}}</option>
+        </select>
+    
+    <!-- Missing RT Owner Email -->
+    
+        <label class="mx-2"> Missing Email?:</label>
+        <select class="form-control" [(ngModel)]="ownerEmailStatus" (change)="filterForms()">
+            <option *ngFor="let entry of ownerEmailOptions">{{entry}}</option>
+        </select>
+    
+
+</div>
+
+<div *ngFor="let gmbAccount of filteredGmbAccounts; let i = index" class="w-100 mb-2">
+    <h4 *ngIf="gmbAccount.getAccountScore(timeConstant) > 1; else elseBlock" class="text-danger">Row: {{i + 1}}, Score:
+        {{gmbAccount.getAccountScore(timeConstant).toFixed(2)}}</h4>
+    <ng-template #elseBlock>
+
+        <h4>Row: {{i + 1}}, Score: {{gmbAccount.getAccountScore(timeConstant).toFixed(2)}}</h4>
+    </ng-template>
+
+    <app-gmb-card2 [disabled]="isProcessing(gmbAccount)" [gmbAccount]="gmbAccount" (edit)="edit($event)"
+        (scanRequests)="scanRequests($event)" (scanBizList)="scanBizList($event)" (login)="login($event)">
+    </app-gmb-card2>
+</div>
+
+<!--the editing modal-->
+<q-modal #gmbEditingModal>
+    <h4 class="text-center">{{gmbInEditing && gmbInEditing._id ? 'Update' : 'Add New'}}</h4>
+    <hr>
+    <app-gmb-account-editor [gmbAccount]="gmbInEditing" (remove)="remove($event)" (submit)="done($event)"
+        (cancel)="cancel()"></app-gmb-account-editor>
+    <div class="text-danger">{{apiError}}</div>
+</q-modal>
