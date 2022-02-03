@@ -44,6 +44,7 @@ export class InvoicesAnualComponent implements OnInit {
     ccProcessingFee: 0,
     commissionScheme: [],
     commission: 0,
+    feesForQmenu: 0,
     surcharge: 0,
     stripeFee: 0,
     adjustment: 0,
@@ -172,6 +173,7 @@ export class InvoicesAnualComponent implements OnInit {
         ccProcessingFee: 0,
         commissionScheme: [],
         commission: 0,
+        feesForQmenu: 0,
         surcharge: 0,
         stripeFee: 0,
         adjustment: 0,
@@ -284,6 +286,7 @@ export class InvoicesAnualComponent implements OnInit {
 
       this.statements[index].commissionScheme = countingInvoices.map(invoice => invoice.orders.reduce((acc, order) => [order.rate, order.fixed], 0)).reduce((acc, orderScheme) => [orderScheme], 0);
       this.statements[index].commission = countingInvoices.reduce((commissionAcc, invoice) => commissionAcc + invoice.commission, 0);
+      this.statements[index].feesForQmenu = countingInvoices.reduce((acc, invoice) => acc + invoice.feesForQmenu, 0);
 
       this.statements[index].surcharge = countingInvoices.reduce((surchargeAcc, invoice) => surchargeAcc + invoice.surcharge, 0);
       this.statements[index].adjustment = countingInvoices.reduce((adjustmentAcc, invoice) => adjustmentAcc + invoice.adjustment, 0);
