@@ -33,6 +33,7 @@ export class SalesMetricsComponent implements OnInit {
   agentsWithCalls = new Set();
   totalRecords = 0;
   ivrUsers = {};
+  user2Ivr = {};
   userRoleMap = {};
 
   restaurants = [];
@@ -111,7 +112,7 @@ export class SalesMetricsComponent implements OnInit {
 
   get agents() {
     if (this.isAdmin()) {
-      return Object.keys(this.ivrUsers).sort((a, b) => a.localeCompare(b));
+      return Object.keys(this.user2Ivr).sort((a: string, b: string) => a.localeCompare(b));
     } else if (this.isMarketerManager()) {
       return this.marketers.map(x => x).sort((a, b) => a.localeCompare(b));
     }
@@ -237,13 +238,13 @@ export class SalesMetricsComponent implements OnInit {
       if (this.isAdmin()) {
         query['Agent.Username'] = { $in: Object.keys(this.ivrUsers) };
       } else if (this.isMarketerManager()) {
-        query['Agent.Username'] = { $in: this.marketers }
+        query['Agent.Username'] = { $in: this.marketers.map(x => this.user2Ivr[x] || x) }
       } else {
         query['Agent.Username'] = ivrName;
       }
     } else {
       if (this.agent) {
-        query['Agent.Username'] = this.agent;
+        query['Agent.Username'] = this.user2Ivr[this.agent] || this.agent;
       }
     }
 
@@ -291,7 +292,7 @@ export class SalesMetricsComponent implements OnInit {
 
   renderAgentView(data) {
     if (this.agent) {
-      data = data.filter(x => x.Agent.Username === this.agent);
+      data = data.filter(x => x.Agent.Username === this.user2Ivr[this.agent]);
     }
     let map = {} as {
       [key: string]: {
@@ -393,9 +394,10 @@ export class SalesMetricsComponent implements OnInit {
     }).toPromise();
     users.forEach(({ username, ivrUsername, roles }) => {
       this.ivrUsers[ivrUsername] = username;
+      this.user2Ivr[username] = ivrUsername;
       this.userRoleMap[username] = roles;
       if (roles.includes('MARKETER') || roles.includes('MARKETER_INTERNAL')) {
-        this.marketers.push(ivrUsername)
+        this.marketers.push(username)
       }
     });
   }
