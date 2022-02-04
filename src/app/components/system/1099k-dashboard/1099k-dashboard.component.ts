@@ -110,6 +110,18 @@ export class Dashboard1099KComponent implements OnInit {
     if (this.showMissingEmail) {
       this.filteredRows = this.filteredRows.filter(row => !row.email);
     }
+
+    // search will match RT name, RT id, payee name, or email address
+    if (this.searchFilter && this.searchFilter.trim().length > 0) {
+      this.filteredRows = this.filteredRows.filter(row => {
+        let lowerCaseSearchFilter = this.searchFilter.toLowerCase();
+        const nameMatch = (row.name || "").toLowerCase().includes(lowerCaseSearchFilter);
+        const idMatch = (row.id.toString() || "").toLowerCase().includes(lowerCaseSearchFilter);
+        const payeeMatch = (row.payeeName || "").toLowerCase().includes(lowerCaseSearchFilter);
+        const emailMatch = (row.email || []).some(entry => entry.toLowerCase().includes(lowerCaseSearchFilter));
+        return nameMatch || idMatch || payeeMatch || emailMatch;
+      });
+    }
   }
 
   async submitTIN(event, rowIndex) {
@@ -138,11 +150,11 @@ export class Dashboard1099KComponent implements OnInit {
     /* we only allow user to submit email if one does not already exist. 
     to avoid possible errors, will not allow users to edit existing channels from this component*/
     const newChannel = {
-      value: event.newValue,
       type: 'Email',
+      value: event.newValue,
       notifications: ['Invoice']
     }
-    this.filteredRows[rowIndex].email = newChannel.value;
+    this.filteredRows[rowIndex].email = [newChannel.value]; // angular template expects an array of emails for this property
 
     const oldChannels = this.filteredRows[rowIndex].channels;
     const newChannels = [...oldChannels, newChannel];

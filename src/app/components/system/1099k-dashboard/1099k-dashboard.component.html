@@ -25,13 +25,6 @@
         <label class="mx-2"> Show Missing Email </label>
         <input class="form-check-input" type="checkbox" [(ngModel)]="showMissingEmail" (change)="filterRows()">
 
-        <!-- Missing RT Owner Email -->
-        <label class="mx-2"> Missing Email?:</label>
-        <select class="form-control" [(ngModel)]="ownerEmailStatus" (change)="filterRows()">
-            <option *ngFor="let entry of ownerEmailOptions">{{entry}}</option>
-        </select>
-
-        <button class="btn btn-primary mx-2" (click)="get1099KData()">Search</button>
     </div>
 </div>
 
