@@ -14,6 +14,8 @@ import * as FileSaver from 'file-saver';
   styleUrls: ["./1099k-dashboard.component.scss"]
 })
 export class Dashboard1099KComponent implements OnInit {
+  rows = [];
+  filteredRows = [];
   taxYearOptions = [
     'All',
     // '2022', // taxYear 2022 will need to be enabled beginning in 2023
@@ -21,21 +23,12 @@ export class Dashboard1099KComponent implements OnInit {
     '2020',
   ];
 
-  missingAttributeOptions = [
-    'Missing Neither',
-    'Missing TIN',
-    'Missing Payee',
-    'Missing Both'
-  ];
-
-  ownerEmailOptions = [
-    'Email Present',
-    'Email Missing'
-  ];
-
   taxYear = 'All';
-  missingAttributeFilter = 'Missing Neither';
-  ownerEmailStatus = 'Email Present'
+
+  showMissingPayee = false;
+  showMissingTIN = false;
+  showMissingEmail = false;
+
   searchFilter;
 
   system: any;
@@ -44,7 +37,7 @@ export class Dashboard1099KComponent implements OnInit {
 
   async ngOnInit() {
     await this.get1099KData();
-
+    this.filterRows();
   }
 
   isAdmin() {
@@ -53,7 +46,7 @@ export class Dashboard1099KComponent implements OnInit {
   }
 
   debounce(value) {
-    this.filterForms();
+    this.filterRows();
   }
 
   async get1099KData() {
@@ -63,41 +56,110 @@ export class Dashboard1099KComponent implements OnInit {
         "form1099k.required": true
       },
       projection: {
+        name: 1,
         form1099k: 1,
         channels: 1,
         googleAddress: 1,
-        people: 1
+        people: 1,
+        tin: 1,
+        payeeName: 1
       }
     }, 5000);
 
-    console.log(restaurants);
+    this.rows = restaurants.map(rt => this.turnRtObjectIntoRow(rt));
+
   }
 
-  filterForms() {
-    /* filter criteria:
-    taxYear, missingAttributeFilter, ownerEmailStatus,  */
-    console.log('filterForms()')
-    console.log(this.taxYear);
+  turnRtObjectIntoRow(rt) {
+    const rtTIN = rt.tin || null;
+    const payeeName = rt.payeeName || null;
+    const email = (rt.channels || []).filter(ch => ch.type === 'Email' && (ch.notifications || []).includes('Invoice')).map(ch => ch.value); // RT *must* have an invoice email channel
+    return {
+      id: rt._id,
+      name: rt.name,
+      email,
+      form1099k: rt.form1099k,
+      payeeName,
+      rtTIN,
+      channels: rt.channels || []
+    }
   }
 
+  filterRows() {
+    /* pass through several layers of filtering based on each possible criteria: 
+    taxYear, showingMissingPayee, showMissingTIN, and showMissingEmail */
+    this.filteredRows = this.rows;
 
-  async getRestaurantLocations() {
+    // taxYear
+    if (this.taxYear !== 'All') {
+      const year = parseInt(this.taxYear);
+      this.filteredRows = this.filteredRows.filter(row => row.form1099k.findIndex(form => form.year === year) >= 0);
+    }
 
-    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      projection: {
-        name: 1,
-        "googleAddress.formatted_address": 1,
-        "googleAddress.lat": 1,
-        "googleAddress.lng": 1,
-        "googleAddress.administrative_area_level_1": 1
-      },
-      limit: 700000
-    }).toPromise();
-    console.log(restaurants);
-    FileSaver.saveAs(new Blob([JSON.stringify(restaurants)], { type: "text" }), 'data.txt');
+    // showMissingPayee
+    if (this.showMissingPayee) {
+      this.filteredRows = this.filteredRows.filter(row => !row.payeeName);
+    }
+
+    // showingMissingTIN
+    if (this.showMissingTIN) {
+      this.filteredRows = this.filteredRows.filter(row => !row.rtTIN);
+    }
+
+    // showingMissingEmail
+    if (this.showMissingEmail) {
+      this.filteredRows = this.filteredRows.filter(row => !row.email);
+    }
   }
 
+  async submitTIN(event, rowIndex) {
+    this.filteredRows[rowIndex].rtTIN = event.newValue;
 
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+      {
+        old: { _id: this.filteredRows[rowIndex].id },
+        new: { _id: this.filteredRows[rowIndex].id, tin: event.newValue }
+      }
+    ]).toPromise();
+  }
 
+  async submitPayee(event, rowIndex) {
+    this.filteredRows[rowIndex].payeeName = event.newValue;
+
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+      {
+        old: { _id: this.filteredRows[rowIndex].id },
+        new: { _id: this.filteredRows[rowIndex].id, payeeName: event.newValue }
+      }
+    ]).toPromise();
+  }
+
+  async submitEmail(event, rowIndex) {
+    /* we only allow user to submit email if one does not already exist. 
+    to avoid possible errors, will not allow users to edit existing channels from this component*/
+    const newChannel = {
+      value: event.newValue,
+      type: 'Email',
+      notifications: ['Invoice']
+    }
+    this.filteredRows[rowIndex].email = newChannel.value;
+
+    const oldChannels = this.filteredRows[rowIndex].channels;
+    const newChannels = [...oldChannels, newChannel];
+
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+      {
+        old: { _id: this.filteredRows[rowIndex].id },
+        new: { _id: this.filteredRows[rowIndex].id, channels: newChannels }
+      }
+    ]).toPromise();
+
+  }
+  async renderQMenuForm(row, form) {
+
+  }
+
+  async renderRestaurantForm(row, form) {
+
+  }
 }
