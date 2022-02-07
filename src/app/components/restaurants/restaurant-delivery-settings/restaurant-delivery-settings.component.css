@@ -109,8 +109,8 @@ input:checked + .slider:before {
 }
 
 #delivery-map {
-  width: 200px;
-  height: 180px;
+  width: 240px;
+  height: 220px;
 }
 
 ::ng-deep .qmenu-tooltip .tooltip-inner {
