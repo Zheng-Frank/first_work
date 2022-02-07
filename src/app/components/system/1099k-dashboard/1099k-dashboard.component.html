@@ -68,13 +68,22 @@
                 </div>
             </span>
             <span class="py-2 text-right">
-                <div *ngFor="let form of (row.form1099k  || [])">
-                    {{form.year}} Form:
-                    <button class="btn btn-link" (click)="renderQMenuForm(row, form)"> for qMenu <i
-                            class="fa fa-download" aria-hidden="true"></i></button>
-                    <button class="btn btn-link" (click)="renderRTForm(row, form)"> for Restaurant <i
-                            class="fa fa-download" aria-hidden="true"></i></button>
+                <div *ngIf="allAttributesPresent(row); else missingAttributesBlock">
+                    <div *ngFor="let form of (row.form1099k  || [])">
+                        {{form.year}} Form:
+                        <!-- qMenu form generation temporarily disabled -->
+                        <!-- <button class="btn btn-link" (click)="renderQMenuPDFForm(row, form)"> for qMenu <i
+                                class="fa fa-download" aria-hidden="true"></i></button> -->
+                        <button class="btn btn-link" (click)="renderRestaurantPDFForm(row, form)"> for Restaurant <i
+                                class="fa fa-download" aria-hidden="true"></i></button>
+                    </div>
                 </div>
+
+                <ng-template #missingAttributesBlock>
+                    <div>
+                        Fill in all missing attributes to enable file download.
+                    </div>
+                </ng-template>
             </span>
         </div>
     </div>
