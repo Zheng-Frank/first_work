@@ -1,10 +1,13 @@
-import { Component, OnInit, Input } from '@angular/core';
+import {Component, OnInit, Input} from '@angular/core';
 import { Restaurant, Hour, TimezoneHelper } from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { PrunedPatchService } from "../../../services/prunedPatch.service";
 import { AlertType } from "../../../classes/alert-type";
+
+declare var google: any;
+declare var $: any;
 
 @Component({
   selector: 'app-restaurant-delivery-settings',
@@ -13,7 +16,7 @@ import { AlertType } from "../../../classes/alert-type";
 })
 export class RestaurantDeliverySettingsComponent implements OnInit {
   @Input() restaurant: Restaurant;
-  editing: boolean = false;
+  editing = false;
   clickedAddHour = false;
 
   deliverySettingsInEditing = [];
@@ -39,6 +42,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   checkingPostmatesAvailability = false;
   now = new Date(); // to tell if a delivery hours is expired
   showExplanation = false;
+  map = null;
 
   isDeliveryHoursExpired(hour) {
     return hour.toTime && this.now > hour.toTime;
@@ -130,6 +134,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
       { value: 180, text: '180 minutes before closing' },
       { value: 240, text: '240 minutes before closing' },
     ];
+    this.asyncOperation();
   }
 
   toggleEditing() {
@@ -159,6 +164,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
 
     this.deliveryEndMinutesBeforeClosing = this.restaurant.deliveryEndMinutesBeforeClosing;
     this.selectedCourier = this.restaurant.courier ? this.couriers.filter(c => c._id === this.restaurant.courier._id)[0] : this.couriers[0];
+    this.asyncOperation();
   }
 
   deliveryAndNotQMenuCollect(c) {
@@ -291,6 +297,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
 
     this.editing = false;
     this.deliverySettingsInEditing = [];
+    this.asyncOperation();
   }
 
   toggleTaxOnDelivery() {
@@ -331,5 +338,36 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     this.deliveryHours = this.deliveryHours.filter(h => h !== hour);
   }
 
+  deliveryAreaTip() {
+    return `Enter the latitude/longitude coordinates of the shape that defines the delivery area for this restaurant. Follow the instructions in this document: <a target="_blank" href="https://docs.google.com/document/d/1FLJhzS1cRoeoZKdDfKVNzZvxT4-PfESWP8ZMC6XzmBY/edit?usp=sharing">https://docs.google.com/document/d/1FLJhzS1cRoeoZKdDfKVNzZvxT4-PfESWP8ZMC6XzmBY/edit?usp=sharing</a>`
+  }
+
+  asyncOperation() {
+    setTimeout(() => {
+      this.renderMap();
+      $("[data-toggle='tooltip']").tooltip({
+        html: true, delay: {show: 100, hide: 1000}, template: '<div class="tooltip qmenu-tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>'
+      })
+    }, 0)
+  }
+
+  renderMap() {
+    if (this.editing) {
+      this.map = null;
+    } else {
+      if (this.restaurant.deliveryArea) {
+        if (!this.map) {
+          let { lat, lng } = this.restaurant.googleAddress;
+          let el = document.getElementById('delivery-map') as HTMLDivElement;
+          this.map = new google.maps.Map(el, {zoom: 11, center: {lat, lng}});
+        }
+        this.map.data.addGeoJson(JSON.parse(this.restaurant.deliveryArea));
+      } else {
+        if (this.map) {
+          this.map = null;
+        }
+      }
+    }
+  }
 }
 
