@@ -120,7 +120,10 @@ export class RestaurantTranslationsComponent implements OnInit {
 
       // build a dict, which may contain EN, ZH, ES, etc
       const dict = {};
-      restaurants.map(rt => (rt.translations || []).map(t => {
+      restaurants.forEach(rt => (rt.translations || []).forEach(t => {
+        if (!t.EN) {
+          return;
+        }
         dict[t.EN.toLowerCase()] = dict[t.EN.toLowerCase()] || t;
         Object.assign(dict[t.EN.toLowerCase()], t);
       }));
@@ -133,8 +136,9 @@ export class RestaurantTranslationsComponent implements OnInit {
           });
         }
       });
-      this.save();
+      await this.save();
     } catch (error) {
+      console.log('auto translate error...', error)
       alert('ERROR: please tell your manager about the error');
     }
   }
