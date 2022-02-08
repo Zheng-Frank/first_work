@@ -265,7 +265,8 @@ export class InvoicesAnualComponent implements OnInit {
       + this.swipeInPerson.deliveryCharge + this.keyIn.deliveryCharge;
     // Compute
     this.statements.map((statementAcc, index) => {
-      let countingInvoices = this.filterCountInvoices(statementAcc.year);
+      let countingInvoices = this.invoices.filter(i => i.fromDate.getFullYear() === statementAcc.year && !i.isCanceled);
+      let balanceInvoices = this.filterBalanceInvoices(countingInvoices);
       // --- Assume all invoices during the year have the same restaurant, picks first invoice's rt info
       this.statements[index].restaurant.name = this.invoices[0].restaurant.name;
       this.statements[index].restaurant.address.apt = this.invoices[0].restaurant.address.apt || '';
@@ -277,7 +278,7 @@ export class InvoicesAnualComponent implements OnInit {
       this.statements[index].delivery = countingInvoices.reduce((deliveryAcc, invoice) => deliveryAcc + invoice.deliveryCharge, 0);
       this.statements[index].tip = countingInvoices.reduce((tipAcc, invoice) => tipAcc + invoice.tip, 0);
       this.statements[index].total = countingInvoices.reduce((totalAcc, invoice) => totalAcc + invoice.total, 0);
-      this.statements[index].balance = countingInvoices.reduce((balanceAcc, invoice) => balanceAcc + invoice.balance, 0);
+      this.statements[index].balance = balanceInvoices.reduce((balanceAcc, invoice) => balanceAcc + invoice.balance, 0);
 
       this.statements[index].restaurantCollected = countingInvoices.reduce((restaurantCollectedAcc, invoice) => restaurantCollectedAcc + invoice.cashCollected + invoice.restaurantCcCollected, 0);
       this.statements[index].qmenuCcCollected = countingInvoices.reduce((qmenuCcCollectedAcc, invoice) => qmenuCcCollectedAcc + invoice.qMenuCcCollected, 0);
@@ -316,7 +317,7 @@ export class InvoicesAnualComponent implements OnInit {
     window.print();
   }
 
-  filterCountInvoices(year) {
+  filterBalanceInvoices(invoices) {
     let dict = {}, rolled = new Set();
     this.invoices.forEach(invoice => {
       dict[invoice._id] = invoice;
@@ -332,7 +333,7 @@ export class InvoicesAnualComponent implements OnInit {
         }
       }
     })
-    return this.invoices.filter(i => i.fromDate.getFullYear() === year && !i.isCanceled && !rolled.has(i._id))
+    return invoices.filter(i => !rolled.has(i._id))
   }
 
   getCssClass(invoice: Invoice) {
