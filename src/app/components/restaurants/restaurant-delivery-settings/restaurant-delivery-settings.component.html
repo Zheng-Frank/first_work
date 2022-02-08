@@ -8,11 +8,11 @@
       <li class="list-group-item">
         <!-- <div class="text-right py-2">
           <span>{{postmatesAvailability}} </span>
-  
+
             <div *ngIf="postmatesAvailability == 'Not available'">
               <i class="fa fa-times text-danger" aria-hidden="true"></i>
             </div>
-  
+
           <div *ngIf="postmatesAvailability && postmatesAvailability.indexOf('Available') >= 0">
             <i class="fa fa-check fg--green" aria-hidden="true"></i>
           </div>
@@ -149,14 +149,25 @@
               </tr>
             </tbody>
           </table>
-          <div class="form-group row" *ngIf="restaurant.deliveryArea">
-            <label class="col-4 col-form-label pt-0">Delivery Area</label>
-            <div class="col-8 text-left">
-              <div class="form-group">
-                <textarea class="form-control" rows="5" [(ngModel)]="restaurant.deliveryArea" disabled></textarea>
+          <ng-container *ngIf="restaurant.deliveryArea">
+            <div class="form-group">
+              <label style="font-size: small">
+                  Delivery Area
+                  <i class="fa fa-info-circle icon-color" data-toggle="tooltip" data-placement="top" [title]="deliveryAreaTip()"></i>
+                </label>
+            </div>
+            <div class="form-group row" >
+              <div class="col-5 col-form-label pt-0">
+                <div id="delivery-map"></div>
+              </div>
+              <div class="col-7 text-left">
+                <div class="form-group">
+                  <textarea class="form-control" rows="9" [(ngModel)]="restaurant.deliveryArea" disabled></textarea>
+                </div>
               </div>
             </div>
-          </div>
+          </ng-container>
+
 
           <app-restaurant-delivery-closed-hours [restaurant]="restaurant" *ngIf="!restaurant.courier">
           </app-restaurant-delivery-closed-hours>
@@ -299,7 +310,7 @@
           </table>
 
           <div class="form-group row" *ngIf="selectedCourier?.name === 'Self delivery'">
-            <label class="col-4 col-form-label pt-0">Delivery Area</label>
+            <div class="col-4 col-form-label pt-0"><label>Delivery Area</label></div>
             <div class="col-8 text-left">
               <div *qIf="editing" class="form-group">
                 <textarea class="form-control" rows="5" [(ngModel)]="deliveryArea"></textarea>

@@ -15,7 +15,7 @@
 
     </div>
   </ng-container>  -->
- 
+
 
 
   <div *ngFor='let statement of statements' class="mt-4">
@@ -152,6 +152,12 @@
               </td>
               <td class="text-right">{{statement.commission | currency:'USD':'symbol' }}</td>
             </tr>
+            <tr>
+              <td>
+                <b>Customer Paid Fees to qMenu</b>
+              </td>
+              <td class="text-right">{{statement.feesForQmenu | currency:'USD':'symbol' }}</td>
+            </tr>
 
             <tr *ngIf="statement.adjustment !== 0">
               <th>
@@ -272,7 +278,7 @@
             <td class="text-right">{{invoice.restaurantCcCollected + invoice.cashCollected | currency:'USD':'symbol'}}
             </td>
             <td class="text-right">{{invoice.qMenuCcCollected | currency:'USD':'symbol'}}</td>
-            <td class="text-right">{{invoice.commission | currency:'USD':'symbol'}}</td>
+            <td class="text-right">{{(invoice.commission + invoice.feesForQmenu) | currency:'USD':'symbol'}}</td>
             <td class="text-right">{{invoice.balance | currency:'USD':'symbol'}}</td>
             <!--<td class="text-right">{{order.total | currency:'USD':'symbol'}}</td>-->
           </tr>
@@ -283,15 +289,15 @@
             <th class="text-right">{{statement.total | currency:'USD':'symbol'}}</th>
             <th class="text-right">{{statement.restaurantCollected | currency:'USD':'symbol'}}</th>
             <th class="text-right">{{statement.qmenuCcCollected | currency:'USD':'symbol'}}</th>
-            <th class="text-right">{{statement.commission | currency:'USD':'symbol'}}</th>
+            <th class="text-right">{{(statement.commission + statement.feesForQmenu) | currency:'USD':'symbol'}}</th>
             <th class="text-right">{{statement.balance | currency:'USD':'symbol'}}</th>
-            
+
           </tr>
-    
+
         </tbody>
       </td>
 
-     
+
 
 
     </div>

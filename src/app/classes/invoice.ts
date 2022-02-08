@@ -1,11 +1,12 @@
 import { InvoicePayment } from "./invoice-payment";
 
 export class Invoice {
+  _id: string;
   id: string;
   fromDate: Date;
   toDate: Date;
   restaurant: any;      // a light weight restaurant obj containing necessary fields
-  orders: any[];        // {id, time, order#, customer, type (Delivery/Dine/Pickup), subtotal, tax, tip, deliveryCharge, total, 
+  orders: any[];        // {id, time, order#, customer, type (Delivery/Dine/Pickup), subtotal, tax, tip, deliveryCharge, total,
   //  lastStatus, paymentType, payee}
   adjustments: any[];  // {name, amount}
   logs: any[];         // {time, user, ip, action}, action in [CREATED, SENT, PAID]

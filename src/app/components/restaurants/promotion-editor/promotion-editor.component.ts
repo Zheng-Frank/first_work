@@ -11,6 +11,7 @@ export class PromotionEditorComponent implements OnChanges {
   @Input() promotion: Promotion;
   @Input() isNew = false;
   @Input() menus = [];
+  @Input() existingCodes = [];
 
   @Output() onDone = new EventEmitter();
   @Output() onCancel = new EventEmitter();
@@ -132,7 +133,7 @@ export class PromotionEditorComponent implements OnChanges {
 
   isPromotionValid() {
 
-    if(this.hasExpiry && !this.expiry){
+    if (this.hasExpiry && !this.expiry) {
       return false;
     }
 
@@ -141,6 +142,14 @@ export class PromotionEditorComponent implements OnChanges {
     }
 
     if (!this.promotion.orderMinimum) {
+      return false;
+    }
+
+    if (!this.promotion.public && !this.promotion.code) {
+      return false
+    }
+
+    if (this.promotion.code && this.existingCodes.includes(this.promotion.code)) {
       return false;
     }
 
