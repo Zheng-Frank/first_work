@@ -19,6 +19,9 @@ export class Dashboard1099KComponent implements OnInit {
     '2020',
   ];
 
+  bulkFileOperation;
+  bulkOperationYear;
+
   taxYear = 'All';
 
   showMissingPayee = false;
@@ -364,5 +367,24 @@ export class Dashboard1099KComponent implements OnInit {
     link.click();
   }
 
+  executeBulkFileOperation() {
+    if (this.bulkFileOperation === 'qmenu') {
+      this.bulkQMenuDownload(this.bulkOperationYear);
+    } else if (this.bulkFileOperation === 'restaurant') {
+      this.bulkSendFilesToRTs(this.bulkOperationYear);
+    }
+  }
+
+  isMissingBulkFileAttributes() {
+    return !this.bulkFileOperation || !this.bulkOperationYear;
+  }
+
+  async bulkQMenuDownload(year) {
+    console.log(`bulk qmenu download ${year}`);
+  }
+
+  async bulkSendFilesToRTs(year) {
+    console.log(`bulk pdf send ${year}`);
+  }
 }
 
