@@ -1,7 +1,7 @@
 <div class="promo" *ngIf="promotion">
   <h4>{{promotion.name}}</h4>
   <hr>
-  <div><strong>Code: </strong>{{promotion.code}}</div>
+  <div *ngIf="promotion.code"><strong>Code: </strong>{{promotion.code}}</div>
 
   <div *ngIf="hideEditButton; else viewerMode">
     <div *ngIf="promotionType === '$ Discount'"><strong> Amount: </strong>{{promotion.amount | currency:'USD':'symbol'}}
@@ -39,7 +39,7 @@
       <div *ngFor="let freeItem of promotion.freeItemList">{{freeItem.mi?.name || freeItem.mc?.name || freeItem.menu?.name}} </div>
     </div>
     <div *ngIf="promotion.freeItemName"><strong>Generic free item</strong></div>
-    <div [ngClass]="{'text-danger': expired()}"><strong>Expires:</strong> {{promotion.expiry | date :
+    <div *ngIf="promotion.expiry" [ngClass]="{'text-danger': expired()}"><strong>Expires:</strong> {{promotion.expiry | date :
       'mediumDate':
       'America / New York'}}</div>
     <div *ngIf="promotion.source" [ngClass]="{'text-danger': expired()}">(Scraped from {{promotion.source}})</div>
