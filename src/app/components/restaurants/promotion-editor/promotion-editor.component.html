@@ -14,6 +14,9 @@
   <div *qIf="!promotion.public && !promotion.code" class="text-danger font-weight-bold">
     Code is required for non-public promotion
   </div>
+  <div *qIf="promotion.code && existingCodes.includes(promotion.code)" class="text-danger font-weight-bold">
+    Code must be unique
+  </div>
   <br>
   <label class="mt-1"><u>Promotion Type</u></label>
 

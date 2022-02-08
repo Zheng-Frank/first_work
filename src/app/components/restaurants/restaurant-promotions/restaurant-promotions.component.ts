@@ -32,6 +32,10 @@ export class RestaurantPromotionsComponent implements OnInit {
   ngOnInit() {
   }
 
+  existingCodes() {
+    return this.restaurant.promotions.filter(p => !this.promotionInEditing || p.id !== this.promotionInEditing.id).map(p => p.code).filter(x => !!x);
+  }
+
   toggleEditing() {
     this.editing = !this.editing;
     this.promotionsInEditing = (this.restaurant.promotions || []).map(promo => new Promotion(promo));

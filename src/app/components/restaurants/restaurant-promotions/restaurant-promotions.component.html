@@ -17,6 +17,6 @@
 </div>
 <q-modal #promotionModal>
   <app-promotion-editor #promotionEditor [menus]="restaurant.menus" [promotion]="promotionInEditing" (onDone)="onDone($event)"
-    (onCancel)="onCancel($event)" (onDelete)="onDelete($event)"></app-promotion-editor>
+    (onCancel)="onCancel($event)" [existingCodes]="existingCodes()" (onDelete)="onDelete($event)"></app-promotion-editor>
 </q-modal>
 <!--displaying-->
