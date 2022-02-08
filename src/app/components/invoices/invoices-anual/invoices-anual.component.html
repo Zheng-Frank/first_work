@@ -197,17 +197,22 @@
             </ng-container>
 
 
-            <tr *ngIf="statement.balance >= 0">
-              <th>
-                <h4>Pay qMenu</h4>
-              </th>
-              <th class="text-right">{{statement.balance | currency:'USD':'symbol' }}</th>
-            </tr>
-
+            <ng-container *ngIf="statement.balance >= 0">
+              <tr>
+                <th>Total Owed to qMenu</th>
+                <th class="text-right">{{statement.balance | currency:'USD':'symbol' }}</th>
+              </tr>
+              <tr>
+                <th>Already paid to qMenu</th>
+                <th class="text-right">{{statement.alreadyPaidToQmenu | currency:'USD':'symbol' }}</th>
+              </tr>
+              <tr>
+                <th><h4>Pay qMenu remaining balance</h4></th>
+                <th class="text-right">{{(statement.balance - statement.alreadyPaidToQmenu) | currency:'USD':'symbol' }}</th>
+              </tr>
+            </ng-container>
             <tr *ngIf="statement.balance < 0 ">
-              <th>
-                <h4>Pay Restaurant</h4>
-              </th>
+              <th><h4>Pay Restaurant</h4></th>
               <th class="text-right">{{-statement.balance | currency:'USD':'symbol' }}</th>
             </tr>
 

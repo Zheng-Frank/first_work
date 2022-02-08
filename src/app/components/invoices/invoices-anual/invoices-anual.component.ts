@@ -39,6 +39,7 @@ export class InvoicesAnualComponent implements OnInit {
     tip: 0,
     total: 0,
     balance: 0,
+    alreadyPaidToQmenu: 0,
     restaurantCollected: 0,
     qmenuCcCollected: 0,
     ccProcessingFee: 0,
@@ -168,6 +169,7 @@ export class InvoicesAnualComponent implements OnInit {
         tip: 0,
         total: 0,
         balance: 0,
+        alreadyPaidToQmenu: 0,
         restaurantCollected: 0,
         qmenuCcCollected: 0,
         ccProcessingFee: 0,
@@ -266,7 +268,7 @@ export class InvoicesAnualComponent implements OnInit {
     // Compute
     this.statements.map((statementAcc, index) => {
       let countingInvoices = this.invoices.filter(i => i.fromDate.getFullYear() === statementAcc.year && !i.isCanceled);
-      let balanceInvoices = this.filterBalanceInvoices(countingInvoices);
+      let balanceInvoices = this.filterBalanceInvoices(countingInvoices), paidInvoices = balanceInvoices.filter(i => i.isPaymentCompleted);
       // --- Assume all invoices during the year have the same restaurant, picks first invoice's rt info
       this.statements[index].restaurant.name = this.invoices[0].restaurant.name;
       this.statements[index].restaurant.address.apt = this.invoices[0].restaurant.address.apt || '';
@@ -279,6 +281,7 @@ export class InvoicesAnualComponent implements OnInit {
       this.statements[index].tip = countingInvoices.reduce((tipAcc, invoice) => tipAcc + invoice.tip, 0);
       this.statements[index].total = countingInvoices.reduce((totalAcc, invoice) => totalAcc + invoice.total, 0);
       this.statements[index].balance = balanceInvoices.reduce((balanceAcc, invoice) => balanceAcc + invoice.balance, 0);
+      this.statements[index].alreadyPaidToQmenu = paidInvoices.reduce((acc, cur) => acc + cur.balance, 0);
 
       this.statements[index].restaurantCollected = countingInvoices.reduce((restaurantCollectedAcc, invoice) => restaurantCollectedAcc + invoice.cashCollected + invoice.restaurantCcCollected, 0);
       this.statements[index].qmenuCcCollected = countingInvoices.reduce((qmenuCcCollectedAcc, invoice) => qmenuCcCollectedAcc + invoice.qMenuCcCollected, 0);
