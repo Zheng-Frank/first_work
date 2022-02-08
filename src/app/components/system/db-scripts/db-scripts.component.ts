@@ -4030,8 +4030,15 @@ export class DbScriptsComponent implements OnInit {
   }
 
   async calculateForm1099k() {
-    // round - helper function to address floating point math imprecision. 
-    // e.g. sometimes a total may be expressed as '2.27999999999997'. we need to put that in the format '2.28'
+    /* mongIdToDate - takes in the MongoDB _id and returns the encoded timestamp information as a date object
+     (this functionality exists as a method of ObjectID, but this helper function acceps a string format) */
+    const mongoIdToDate = function (id) {
+      const timestamp = id.substring(0, 8);
+      return new Date(parseInt(timestamp, 16) * 1000);
+    }
+
+    /* round - helper function to address floating point math imprecision. 
+      e.g. sometimes a total may be expressed as '2.27999999999997'. we need to put that in the format '2.28' */
     const round = function (num) {
       return Math.round((num + Number.EPSILON) * 100) / 100;
     }
@@ -4055,8 +4062,8 @@ export class DbScriptsComponent implements OnInit {
       }
 
       orders.forEach(order => {
-        let month = order.createdAt.getMonth();
-        let roundedOrderTotal = round(order.getTotal());
+        let month = new Date(mongoIdToDate(order._id)).getMonth();
+        let roundedOrderTotal = round(order.computed.total);
         monthlyData[month] += roundedOrderTotal;
         monthlyData['total'] += roundedOrderTotal;
       });
@@ -4094,7 +4101,7 @@ export class DbScriptsComponent implements OnInit {
       return;
     }
 
-    const batchSize = 300; // larger batch sizes cause Mongo query errors
+    const batchSize = 10; // larger batch sizes cause Mongo query errors
     const batches = Array(Math.ceil(restaurants.length / batchSize)).fill(0).map((i, index) => restaurants.slice(index * batchSize, (index + 1) * batchSize));
     const totalBatches = batches.length;
     let currentBatch = 0;
@@ -4115,39 +4122,30 @@ export class DbScriptsComponent implements OnInit {
             $oid: rt._id
           }
 
-          let rawOrders = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+          let orders = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
             resource: 'order',
             query: orderQuery,
             projection: {
-              logs: 0,
-              timeToDeliver: 0,
-              sendNotificationOnReady: 0,
-              runtime: 0,
-              address: 0,
-              courierName: 0,
-              customerPreviousOrderStatus: 0,
-              restauranceNotie: 0,
-              customerNotice: 0,
-              customerObj: 0,
-              delivery: 0
+              "computed.total": 1,
             }
-          }, 5000);
+          }, 2500);
 
-          let orders = rawOrders.map(o => new Order(o));
-
-          const monthlyDataAndTotal = tabulateMonthlyData(orders);
           let rt1099KData = {
-            year: taxYear
+            year: taxYear,
+            required: false,
+            createdAt: new Date()
           } as any;
+
+          if (orders.length >= 200) {
+            const monthlyDataAndTotal = tabulateMonthlyData(orders);
+            if (monthlyDataAndTotal.total >= 20000) {
+              rt1099KData.required = true
+              rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
+            }
+          }
 
           // for tax year 2021 and before: requirement is >= 200 orders and >= 20,000 dollars
           // for tax year 2022 and after: requirement is >=1 orders and >= 600 dollars
-          if (orders.length >= 1 && monthlyDataAndTotal.total >= 600) {
-            rt1099KData.required = true;
-            rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
-          } else {
-            rt1099KData.required = false;
-          }
 
           if (rt1099KData.required === true) {
             console.log(rt1099KData);
@@ -4182,7 +4180,7 @@ export class DbScriptsComponent implements OnInit {
           AlertType.Danger,
           `Failed to retrieve db records. See console for more info.`
         );
-        console.error(err);
+        throw err;
       }
     }
   }
