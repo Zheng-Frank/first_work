@@ -24,7 +24,7 @@
     </label>
   </div>
   <select *ngIf="templates[templateType]" (change)="changeTpl($event)" class="form-control">
-    <option *ngIf="!template.title" hidden></option>
+    <option *ngIf="!template?.title" hidden></option>
     <option *ngFor="let item of templates[templateType]" [value]="item.title" [selected]="item.title === template.title">
       {{item.title}}
     </option>
@@ -33,7 +33,7 @@
     No message template found, please contact to developer team if you need add new message templates.
   </div>
 </div>
-<div class="mt-3" *ngFor="let field of template.inputs">
+<div class="mt-3" *ngFor="let field of template?.inputs">
     <label>{{field.label}}: </label>
     <input class="form-control" type="{{field.type || 'text'}}" [(ngModel)]="field.value">
 </div>
