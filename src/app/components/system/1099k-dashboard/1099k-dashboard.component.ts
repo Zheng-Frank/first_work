@@ -276,97 +276,78 @@ export class Dashboard1099KComponent implements OnInit {
 
   async renderQMenuPDFForm(row, form1099KData) {
     let formTemplateUrl = "../../../../assets/form1099k/form1099k_qmenu.pdf";
-
-    console.log(form1099KData);
     const formBytes = await fetch(formTemplateUrl).then((res) => res.arrayBuffer());
     const pdfDoc = await PDFDocument.load(formBytes);
     const form = pdfDoc.getForm();
-
-    form.getFields().forEach(field => {
-
-
-        console.log(field.getName())
-      
-
-    });
 
     const qMenuAddress = `
     qMenu, Inc.
     107 Technology Pkwy NW, Ste. 211
     Peachtree Corners, GA 30092`;
 
-    // Calendar Year (fill in last two digits of tax year)
-    form.getTextField(`topmostSubform[0].CopyA[0].CopyAHeader[0].CalendarYear[0].f1_1[0]`).setText(form1099KData.year.toString().slice(-2));
+    // Calendar Year Blank (fill in last two digits of tax year)
+    form.getTextField(`topmostSubform[0].CopyB[0].CopyBHeader[0].CalendarYear[0].f2_1[0]`).setText(form1099KData.year.toString().slice(-2));
     // Filer checkbox
-    // form.getCheckBox(`topmostSubform[0].CopyA[0].LeftCol[0].FILERCheckbox_ReadOrder[0].c2_3[0]`).check();
+    form.getCheckBox(`topmostSubform[0].CopyB[0].LeftCol[0].FILERCheckbox_ReadOrder[0].c2_3[0]`).check();
 
     // Transaction reporting checkbox:
-    form.getCheckBox(`topmostSubform[0].CopyA[0].LeftCol[0].c1_4[0]`).check();
+    form.getCheckBox(`topmostSubform[0].CopyB[0].LeftCol[0].c2_5[0]`).check();
+    // Payee's name:
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_2[0]`).setText(qMenuAddress);
+    // Payee's Name:
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_3[0]`).setText(row.payeeName);
+    // Street Address:
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_4[0]`).setText(row.streetAddress);
+    // City, State, and ZIP Code:
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_5[0]`).setText(row.cityStateZip);
+    // PSE's Name and Telephone Number:
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_6[0]`).setText('');
+    // Account Number (leave blank)
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_7[0]`).setText('');
 
-    // form.getTextField("topmostSubform[0].CopyA[0].RghtCol[0].f1_22[0]").setText('this is a test');
-    // form.getTextField("topmostSubform[0].CopyA[0].RghtCol[0].f1_24[0]").setText('this is a test2');
-    // form.getTextField("topmostSubform[0].CopyA[0].RghtCol[0].f1_26[0]").setText('this is a test3');
-    // form.getTextField("topmostSubform[0].CopyA[0].RghtCol[0].f1_31[0]").setText('this is a test4');
-    // // Payee's name:
-    // form.getTextField(`topmostSubform[0].CopyA[0].LeftCol[0].f2_2[0]`).setText(qMenuAddress);
-    // // Payee's Name:
-    // form.getTextField(`topmostSubform[0].CopyA[0].LeftCol[0].f2_3[0]`).setText(row.payeeName);
-    // // Street Address:
-    // form.getTextField(`topmostSubform[0].CopyA[0].LeftCol[0].f2_4[0]`).setText(row.streetAddress);
-    // // City, State, and ZIP Code:
-    // form.getTextField(`topmostSubform[0].CopyA[0].LeftCol[0].f2_5[0]`).setText(row.cityStateZip);
-    // // PSE's Name and Telephone Number:
-    // form.getTextField(`topmostSubform[0].CopyA[0].LeftCol[0].f2_6[0]`).setText('');
-    // // Account Number (leave blank)
-    // form.getTextField(`topmostSubform[0].CopyA[0].LeftCol[0].f2_7[0]`).setText('');
+    // Filer's TIN
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_8[0]`).setText('81-4208444');
+    // Payee's TIN    
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_9[0]`).setText(row.rtTIN)
+    // Box 1b card not present transactions
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box1b_ReadOrder[0].f2_11[0]`).setText(form1099KData.total.toFixed(2));
+    // Box 2 - Merchant category code (Always 5812 for restaurants)
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_12[0]`).setText('5812');
+    // Box 3 - Number of payment transactions
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_13[0]`).setText(form1099KData.transactions.toString());
+    // Box 4 - Federal income tax withheld
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_14[0]`).setText('');
+    // Box 5a - January income
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5a_ReadOrder[0].f2_15[0]`).setText(form1099KData[0].toFixed(2));
+    // Box 5b - February income
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_16[0]`).setText(form1099KData[1].toFixed(2));
+    // Box 5c - March income
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5c_ReadOrder[0].f2_17[0]`).setText(form1099KData[2].toFixed(2))
+    // Box 5d - April income
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_18[0]`).setText(form1099KData[3].toFixed(2))
+    // Box 5e - May income
 
-    // // Filer's TIN
-    // form.getTextField(`topmostSubform[0].CopyA[0].RightCol[0].f2_8[0]`).setText('81-4208444');
-    // // Payee's TIN    
-    // form.getTextField(`topmostSubform[0].CopyA[0].RightCol[0].f2_9[0]`).setText(row.rtTIN)
-    // // Box 1b card not present transactions
-    // form.getTextField(`topmostSubform[0].CopyA[0].RightCol[0].Box1b_ReadOrder[0].f2_11[0]`).setText(form1099KData.total.toFixed(2));
-    // // Box 2 - Merchant category code (Always 5812 for restaurants)
-    // form.getTextField(`topmostSubform[0].CopyA[0].RightCol[0].f2_12[0]`).setText('5812');
-    // // Box 3 - Number of payment transactions
-    // form.getTextField(`topmostSubform[0].CopyA[0].RightCol[0].f2_13[0]`).setText(form1099KData.transactions.toString());
-    // // Box 4 - Federal income tax withheld
-    // form.getTextField(`topmostSubform[0].CopyA[0].RightCol[0].f2_14[0]`).setText('');
-    // // Box 5a - January income
-    // form.getTextField(`topmostSubform[0].CopyA[0].RightCol[0].Box5a_ReadOrder[0].f2_15[0]`).setText(form1099KData[0].toFixed(2));
-    // // Box 5b - February income
-    // form.getTextField(`topmostSubform[0].CopyA[0].RightCol[0].f2_16[0]`).setText(form1099KData[1].toFixed(2));
-    // // Box 5c - March income
-    // form.getTextField(`topmostSubform[0].CopyA[0].RightCol[0].Box5c_ReadOrder[0].f2_17[0]`).setText(form1099KData[2].toFixed(2))
-    // // Box 5d - April income
-    // form.getTextField(`topmostSubform[0].CopyA[0].RightCol[0].f2_18[0]`).setText(form1099KData[3].toFixed(2))
-    // // Box 5e - May income
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5e_ReadOrder[0].f2_19[0]`).setText(form1099KData[4].toFixed(2));
+    // Box 5f - June income
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_20[0]`).setText(form1099KData[5].toFixed(2));
+    // Box 5g - July income
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5g_ReadOrder[0].f2_21[0]`).setText(form1099KData[6].toFixed(2));
+    // Box 5h - August income
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_22[0]`).setText(form1099KData[7].toFixed(2));
+    // Box 5i - September income
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5i_ReadOrder[0].f2_23[0]`).setText(form1099KData[8].toFixed(2));
+    // Box 5j - October income
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_24[0]`).setText(form1099KData[9].toFixed(2));
+    // Box 5k - November income
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5k_ReadOrder[0].f2_25[0]`).setText(form1099KData[10].toFixed(2));
+    // Box 5l - December income
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_26[0]`).setText(form1099KData[11].toFixed(2));
+    // Box 6 - State
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box6_ReadOrder[0].f2_27[0]`).setText('');
+    // Box 7 - State ID
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box7_ReadOrder[0].f2_29[0]`).setText('');
 
-    // form.getTextField(`topmostSubform[0].CopyA[0].RightCol[0].Box5e_ReadOrder[0].f2_19[0]`).setText(form1099KData[4].toFixed(2));
-    // // Box 5f - June income
-    // form.getTextField(`topmostSubform[0].CopyA[0].RightCol[0].f2_20[0]`).setText(form1099KData[5].toFixed(2));
-    // // Box 5g - July income
-    // form.getTextField(`topmostSubform[0].CopyA[0].RightCol[0].Box5g_ReadOrder[0].f2_21[0]`).setText(form1099KData[6].toFixed(2));
-    // // Box 5h - August income
-    // form.getTextField(`topmostSubform[0].CopyA[0].RightCol[0].f2_22[0]`).setText(form1099KData[7].toFixed(2));
-    // // Box 5i - September income
-    // form.getTextField(`topmostSubform[0].CopyA[0].RightCol[0].Box5i_ReadOrder[0].f2_23[0]`).setText(form1099KData[8].toFixed(2));
-    // // Box 5j - October income
-    // form.getTextField(`topmostSubform[0].CopyA[0].RightCol[0].f2_24[0]`).setText(form1099KData[9].toFixed(2));
-    // // Box 5k - November income
-    // form.getTextField(`topmostSubform[0].CopyA[0].RightCol[0].Box5k_ReadOrder[0].f2_25[0]`).setText(form1099KData[10].toFixed(2));
-    // // Box 5l - December income
-    // form.getTextField(`topmostSubform[0].CopyA[0].RightCol[0].f2_26[0]`).setText(form1099KData[11].toFixed(2));
-    // // Box 6 - State
-    // form.getTextField(`topmostSubform[0].CopyA[0].RightCol[0].Box6_ReadOrder[0].f2_27[0]`).setText('');
-    // // Box 7 - State ID
-    // form.getTextField(`topmostSubform[0].CopyA[0].RightCol[0].Box7_ReadOrder[0].f2_29[0]`).setText('');
-
-
-    // // console.log('breakpoint 1');
-    // console.log(form);
-    // form.updateFieldAppearances();
-
+    form.updateFieldAppearances();
 
     const pdfBytes = await pdfDoc.save();
 
@@ -376,7 +357,6 @@ export class Dashboard1099KComponent implements OnInit {
     link.href = window.URL.createObjectURL(blob);
     link.download = `f1099k_${form1099KData.year}_${row.name}.pdf`;
     link.click();
-
   }
 
 }
