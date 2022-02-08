@@ -70,8 +70,9 @@ export class Dashboard1099KComponent implements OnInit {
     const rtTIN = rt.tin || null;
     const payeeName = rt.payeeName || null;
     const email = (rt.channels || []).filter(ch => ch.type === 'Email' && (ch.notifications || []).includes('Invoice')).map(ch => ch.value); // RT *must* have an invoice email channel
-    const streetAddress = `${rt.googleAddress.street_number} ${rt.googleAddress.route}`;
-    const cityStateZip = `${rt.googleAddress.locality}, ${rt.googleAddress.administrative_area_level_1} ${rt.googleAddress.postal_code}`
+    const ga = rt.googleAddress;
+    const streetAddress = `${ga.street_number} ${ga.route}`;
+    const cityStateZip = `${ga.locality}, ${ga.administrative_area_level_1} ${ga.postal_code}`
     return {
       id: rt._id,
       name: rt.name,
@@ -95,12 +96,16 @@ export class Dashboard1099KComponent implements OnInit {
   filterRows() {
     /* pass through several layers of filtering based on each possible criteria: 
     taxYear, showingMissingPayee, showMissingTIN, and showMissingEmail */
-    this.filteredRows = this.rows;
+    this.filteredRows = JSON.parse(JSON.stringify(this.rows));
 
     // taxYear
     if (this.taxYear !== 'All') {
       const year = parseInt(this.taxYear);
-      this.filteredRows = this.filteredRows.filter(row => row.form1099k.findIndex(form => form.year === year) >= 0);
+      this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).findIndex(form => form.year === year) >= 0);
+      this.filteredRows.map(row => {
+        row.form1099k = (row.form1099k || []).filter(form => form.year === year);
+        return row;
+      })
     }
 
     // showMissingPayee
