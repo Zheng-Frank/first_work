@@ -144,6 +144,10 @@ export class PromotionEditorComponent implements OnChanges {
       return false;
     }
 
+    if (!this.promotion.public && !this.promotion.code) {
+      return false
+    }
+
     if (!this.validatePromotionNumbers()) {
       return false;
     }

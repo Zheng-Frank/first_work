@@ -11,6 +11,9 @@
   <div class="{{promotion.code ? '' : 'has-danger'}}">
     <input type="text" class="form-control" [(ngModel)]="promotion.code" placeholder="eg. spring5">
   </div>
+  <div *qIf="!promotion.public && !promotion.code" class="text-danger font-weight-bold">
+    Code is required for non-public promotion
+  </div>
   <br>
   <label class="mt-1"><u>Promotion Type</u></label>
 
@@ -79,8 +82,10 @@
   <div>
 
     <label class="mt-1"><u> Minimum Order ($) </u></label><br>
-
-    <input type="number" class="form-control" [(ngModel)]="promotion.orderMinimum" placeholder="eg. 50">
+    <div><input type="number" class="form-control" [(ngModel)]="promotion.orderMinimum" placeholder="eg. 50"></div>
+    <div *qIf="!promotion.orderMinimum" class="text-danger font-weight-bold">
+      Minimum order is required
+    </div>
   </div>
 
 
