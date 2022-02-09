@@ -268,6 +268,7 @@ import { RestaurantMsgLogsComponent } from './components/restaurants/restaurant-
 import { RestaurantSetupCommissionsComponent } from './components/restaurants/restaurant-setup/restaurant-setup-commissions/restaurant-setup-commissions.component';
 import { RestaurantMenuImagesComponent } from './components/restaurants/restaurant-menu-images/restaurant-menu-images.component';
 import { QmBmSstDashboardComponent } from './components/monitoring/qm-bm-sst-dashboard/qm-bm-sst-dashboard.component';
+import { Dashboard1099KComponent } from './components/system/1099k-dashboard/1099k-dashboard.component';
 
 
 @NgModule({
@@ -507,6 +508,7 @@ import { QmBmSstDashboardComponent } from './components/monitoring/qm-bm-sst-das
     RestaurantSetupCommissionsComponent,
     RestaurantMenuImagesComponent,
     QmBmSstDashboardComponent,
+    Dashboard1099KComponent
   ],
   imports: [
     BrowserModule,

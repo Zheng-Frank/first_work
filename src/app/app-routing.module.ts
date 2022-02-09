@@ -90,7 +90,8 @@ import { ExcessSmsNotificationsRtsComponent } from './components/monitoring/exce
 import { RtsByProviderComponent } from './components/monitoring/rts-by-provider/rts-by-provider.component';
 import { FaxHealthDashboardComponent } from './components/monitoring/fax-health-dashboard/fax-health-dashboard.component';
 import { MonitoringDineInOrdersComponent } from './components/monitoring/monitoring-dine-in-orders/monitoring-dine-in-orders.component';
-import {QmBmSstDashboardComponent} from "./components/monitoring/qm-bm-sst-dashboard/qm-bm-sst-dashboard.component";
+import {QmBmSstDashboardComponent} from "./components/monitoring/qm-bm-sst-dashboard/qm-bm-sst-dashboard.component"
+import { Dashboard1099KComponent } from './components/system/1099k-dashboard/1099k-dashboard.component';
 
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'DEVELOPER'] } },
@@ -192,6 +193,7 @@ const routes: Routes = [
   { path: 'fax-health', component: FaxHealthDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR_MANAGER', 'CSR'] } },
   { path: 'dine-in-orders', component: MonitoringDineInOrdersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'qm-bm-sst', component: QmBmSstDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+  { path: '1099k-dashboard', component: Dashboard1099KComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: '**', redirectTo: '/home' }
 
 ];
