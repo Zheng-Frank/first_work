@@ -181,12 +181,12 @@ export class QmBmSstDashboardComponent implements OnInit {
       this.filteredRows = this.filteredRows.filter(row => row.name !== row.bname);
     }
 
-    if (this.filters.searchText && this.filters.searchText.length > 2) {
+    if (this.filters.searchText && this.filters.searchText.trim().length > 2) {
       this.filteredRows = this.filteredRows
         .filter(data =>
-          (data.name.toLocaleLowerCase().startsWith(this.filters.searchText.toLocaleLowerCase()) || data.bname.toLocaleLowerCase().startsWith(this.filters.searchText.toLocaleLowerCase())) ||
-          (data.address && data.address.toLocaleLowerCase().includes(this.filters.searchText.toLocaleLowerCase()) || data.baddress && data.baddress.toLocaleLowerCase().includes(this.filters.searchText.toLocaleLowerCase())) ||
-          (( data.channels && data.channels.some(phone => phone.value.includes(this.filters.searchText.replace(/\-/g, '')))) || (data.bchannels && data.bchannels.some(phone => phone.value.includes(this.filters.searchText.replace(/\-/g, '')))))
+          (data.name.toLocaleLowerCase().startsWith(this.filters.searchText.trim().toLocaleLowerCase()) || data.bname.toLocaleLowerCase().startsWith(this.filters.searchText.trim().toLocaleLowerCase())) ||
+          (data.address && data.address.toLocaleLowerCase().includes(this.filters.searchText.trim().toLocaleLowerCase()) || data.baddress && data.baddress.toLocaleLowerCase().includes(this.filters.searchText.trim().toLocaleLowerCase())) ||
+          (( data.channels && data.channels.some(phone => phone.value.includes(this.filters.searchText.trim().replace(/\-/g, '')))) || (data.bchannels && data.bchannels.some(phone => phone.value.includes(this.filters.searchText.trim().replace(/\-/g, '')))))
         );
     }
 

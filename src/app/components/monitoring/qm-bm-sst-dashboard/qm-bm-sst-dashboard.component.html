@@ -15,9 +15,9 @@
         <div class="ml-1 d-flex align-items-center">
 
           <select class="form-control mr-2" [(ngModel)]="filters.owner" (change)="filter()" name="activeIn">
-            <option [ngValue]="'BelongingQmAndBm'" selected>Belonging to QM and BM</option>
-            <option [ngValue]="'BelongingQM'">Belonging to QM</option>
-            <option [ngValue]="'BelongingBM'">Belonging to BM</option>
+            <option [ngValue]="'BelongingQmAndBm'" selected>QM and BM</option>
+            <option [ngValue]="'BelongingQM'">QM Only</option>
+            <option [ngValue]="'BelongingBM'">BM Only</option>
           </select>
 
           <select class="form-control mr-2" [(ngModel)]="filters.activeIn" (change)="filter()" name="activeIn">
