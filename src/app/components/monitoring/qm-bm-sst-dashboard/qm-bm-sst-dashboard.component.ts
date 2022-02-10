@@ -1,7 +1,47 @@
 import { Component, OnInit } from '@angular/core';
 import {ApiService} from "../../../services/api.service";
 import {environment} from "../../../../environments/environment";
-import {expressionChangedAfterItHasBeenCheckedError} from "@angular/core/src/view/errors";
+
+declare var $: any;
+
+enum PlatformOptions {
+  BmOnly = 'BM Only',
+  QmOnly = 'QM Only',
+  Both = 'Both'
+}
+
+enum StatusOptions {
+  EitherUp = 'Active in at least Q or B',
+  BothUp = 'Active both',
+  QmUp = 'Active QM',
+  BmUp = 'Active BM',
+  BmUpQmDown = 'Active BM / Inactive QM',
+  QmUpBmDown = 'Active QM / Inactive BM',
+  BothDown = 'Inactive both',
+  QmDown = 'Inactive QM',
+  BmDown = 'Inactive BM'
+}
+
+enum TierOptions {
+  Tier1Either = 'Tier 1 (B or Q)',
+  Tier2Either = 'Tier 2 (B or Q)',
+  Tier3Either = 'Tier 3 (B or Q)',
+  Tier1Both = 'Tier 1 (Both)',
+  Tier2Both = 'Tier 2 (Both)',
+  Tier3Both = 'Tier 3 (Both)',
+  Unknown = 'Unknown'
+}
+
+enum PlaceIdOptions {
+  Has = 'Has place_id',
+  Missing = 'Missing place_id'
+}
+
+enum RTsNameOptions {
+  Same = 'Q/B Same name',
+  Diff = 'Q/B Diff name'
+}
+
 
 @Component({
   selector: 'app-qm-bm-sst-dashboard',
@@ -10,38 +50,46 @@ import {expressionChangedAfterItHasBeenCheckedError} from "@angular/core/src/vie
 })
 export class QmBmSstDashboardComponent implements OnInit {
 
-  // stats = {
-  //   qmTotal: 0,
-  //   bmTotal: 0,
-  //   qmMatchingBm: 0,
-  //   qmNotMatchingBm: 0
-  // };
-
   filteredRows = [];
 
   filters = {
-    searchText: '',
-    owner: 'BelongingQmAndBm',
-    activeIn: 'ActiveInQMorBm',
-    hasPlaceId: true,
-    sameName: true
+    keyword: '',
+    platform: '',
+    status: '',
+    hasPlaceId: '',
+    sameName: '',
+    tier: ''
   }
 
-  qmRestaurants = [];
-  bmRestaurants = [];
-  cachedData = [];
+  qmRTs = [];
+  bmRTs = [];
+  unionRTs = [];
+  qmRTsPlaceDict = {};
+  bmRTsPlaceDict = {};
+  showBmPricing = true;
 
   constructor(private _api: ApiService) { }
 
-  ngOnInit() {
-    this.preload();
+  async ngOnInit() {
+    $("[data-toggle='tooltip']").tooltip();
+    await this.preload();
+  }
+
+  dropdowns(key) {
+    return Object.values({
+      platform: PlatformOptions,
+      status: StatusOptions,
+      tier: TierOptions,
+      place_id: PlaceIdOptions,
+      name: RTsNameOptions
+    }[key])
   }
 
   async preload() {
     try {
 
       // --- qMenu restaurants
-      this.qmRestaurants = (await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      this.qmRTs = (await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
         resource: "restaurant",
         aggregate: [
           {
@@ -51,6 +99,7 @@ export class QmBmSstDashboardComponent implements OnInit {
               disabled: 1,
               website: "$web.qmenuWebsite",
               name: 1,
+              createdAt: "$createdAt",
               owner: "$googleListing.gmbOwner",
               channels: {
                 $filter: {
@@ -62,27 +111,28 @@ export class QmBmSstDashboardComponent implements OnInit {
             }
           }
         ],
-      }, 1000));
-
+      }, 20000));
+      this.qmRTs.forEach(rt => {
+        if (rt.place_id) {
+          this.qmRTsPlaceDict[rt.place_id] = rt;
+        }
+      })
       // --- BeyondMenu restaurants
-      this.bmRestaurants = (await this._api.post(environment.gmbNgrok + 'get-bm-restaurant').toPromise()).map(item => {
-        // --- phone
-        const phones = [];
+      let bmRTs = await this._api.post(environment.gmbNgrok + 'get-bm-restaurant').toPromise();
+      this.bmRTsPlaceDict = {};
+      this.bmRTs = bmRTs.map(item => {
+        // --- phone and cellphone
+        const channels = [];
         [1, 2, 3, 4].map(num => {
           if (item[`Phone${num}`]) {
-            phones.push({ value: item[`Phone${num}`]});
+            channels.push({ value: item[`Phone${num}`]});
           }
-        });
-
-        // --- cellphone
-        const cphones = [];
-        [1, 2, 3, 4].map(num => {
           if (item[`CellPhone${num}`]) {
-            cphones.push({ value: item[`CellPhone${num}`]});
+            channels.push({ value: item[`CellPhone${num}`]});
           }
         });
-
-        return {
+        let place_id = item.GooglePlaceID;
+        let data = {
           _bid: item.BusinessEntityID,
           bplace_id: item.GooglePlaceID,
           baddress: `${item.Address}, ${item.City || ''}, ${item.State || ''} ${item.ZipCode || ''}`.trim(),
@@ -91,19 +141,19 @@ export class QmBmSstDashboardComponent implements OnInit {
           bname: item.BusinessName,
           bowner: 'beyondmenu',
           bhasGmb: item.IsBmGmbControl,
-          bchannels: [...phones, ...cphones]
+          bchannels: channels,
+          createdAt: item.createdAt
         }
+
+        if (place_id) {
+          this.bmRTsPlaceDict[place_id] = data;
+        }
+        return data;
       });
-
-      this.cachedData = this.qmRestaurants
-        .filter(qmRt => this.bmRestaurants.some(bmRt => (bmRt.bplace_id || 'rubbish') === qmRt.place_id))
-        .map(qmRt => {
-          return {
-            ...qmRt,
-            ...this.bmRestaurants.find(bmRt => (bmRt.bplace_id || 'rubbish') === qmRt.place_id)
-          }
-        });
-
+      let bmOnly = this.bmRTs.filter(({bplace_id}) => !bplace_id || !this.qmRTsPlaceDict[bplace_id]);
+      console.log('qm: ', this.qmRTs.length, 'bm: ', this.bmRTs.length, 'bm only: ', bmOnly.length)
+      this.unionRTs = [...this.qmRTs, ...bmOnly].map(x => ({...x, ...(this.bmRTsPlaceDict[x.place_id]) || {}}));
+      console.log('union...', this.unionRTs.length)
       this.filter();
     } catch (error) {
       console.error(error);
@@ -111,106 +161,109 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   filter() {
-    // console.log(this.filters);
-
-    switch (this.filters.owner) {
-      case 'BelongingQmAndBm':
-        this.filteredRows = this.cachedData;
+    let { platform, status, tier, hasPlaceId, sameName, keyword } = this.filters;
+    let list = this.unionRTs;
+    switch (platform) {
+      case PlatformOptions.Both:
+        list = list.filter(({_id, _bid}) => _id &&  _bid);
         break;
-
-      case 'BelongingQM':
-        this.filteredRows = this.cachedData.filter(data => data.owner === 'qmenu' /* && !data.bhasGmb && data.bowner !== 'beyondmenu' */);
+      case PlatformOptions.BmOnly:
+        list = this.bmRTs.filter(({bplace_id}) => !this.qmRTsPlaceDict[bplace_id])
         break;
-
-      case 'BelongingBM':
-        this.filteredRows = this.cachedData.filter(data => data.bowner === 'beyondmenu' /* && data.bhasGmb */)
+      case PlatformOptions.QmOnly:
+        list = this.qmRTs.filter(({place_id}) => !this.bmRTsPlaceDict[place_id])
         break;
     }
 
-    // ---
-    switch (this.filters.activeIn) {
-      case 'ActiveInQMorBm':
-        this.filteredRows = this.filteredRows.filter(row => !row.disabled || !row.bdisabled);
+    switch (status) {
+      case StatusOptions.EitherUp:
+        list = list.filter(row => !row.disabled || !row.bdisabled);
         break;
-
-      case 'ActiveInQMandBm':
-        this.filteredRows = this.filteredRows.filter(row => !row.disabled && !row.bdisabled);
+      case StatusOptions.BothUp:
+        list = list.filter(row => !row.disabled && !row.bdisabled);
         break;
-
-      case 'ActiveInQM':
-        this.filteredRows = this.filteredRows.filter(row => !row.disabled);
+      case StatusOptions.QmUp:
+        list = list.filter(row => !row.disabled);
         break;
-
-      case 'ActiveInBM':
-        this.filteredRows = this.filteredRows.filter(row => !row.bdisabled);
+      case StatusOptions.BmUp:
+        list = list.filter(row => !row.bdisabled);
         break;
-
-      case 'ActiveInBMnotQM':
-        this.filteredRows = this.filteredRows.filter(row => !row.bdisabled && row.disabled);
+      case StatusOptions.BmUpQmDown:
+        list = list.filter(row => !row.bdisabled && row.disabled);
         break;
-
-      case 'ActiveInQMnotBM':
-        this.filteredRows = this.filteredRows.filter(row => !row.disabled && row.bdisabled);
+      case StatusOptions.QmUpBmDown:
+        list = list.filter(row => !row.disabled && row.bdisabled);
         break;
-
-      case 'InactiveInQMandBM':
-        this.filteredRows = this.filteredRows.filter(row => row.bdisabled && row.disabled);
+      case StatusOptions.BothDown:
+        list = list.filter(row => row.bdisabled && row.disabled);
         break;
-
-      case 'InactiveInQM':
-        this.filteredRows = this.filteredRows.filter(row => row.disabled);
+      case StatusOptions.QmDown:
+        list = list.filter(row => row.disabled);
         break;
-
-      case 'InactiveInBM':
-        this.filteredRows = this.filteredRows.filter(row => row.bdisabled);
+      case StatusOptions.BmDown:
+        list = list.filter(row => row.bdisabled);
         break;
-
     }
 
-    // ---
-    if (this.filters.hasPlaceId) {
-      this.filteredRows = this.filteredRows.filter(row => row.place_id || row.bplace_id);
-    } else {
-      this.filteredRows = this.filteredRows.filter(row => !row.place_id || !row.bplace_id);
+    switch (hasPlaceId) {
+      case PlaceIdOptions.Has:
+        // todo: logic tobe confirmed
+        list = list.filter(({place_id, bplace_id}) => place_id || bplace_id)
+        break;
+      case PlaceIdOptions.Missing:
+        list = list.filter(({place_id, bplace_id}) => !place_id && !bplace_id)
+        break;
     }
 
-    // ---
-    if (this.filters.sameName) {
-      this.filteredRows = this.filteredRows.filter(row => row.name === row.bname);
-    } else {
-      this.filteredRows = this.filteredRows.filter(row => row.name !== row.bname);
+    switch (sameName) {
+      case RTsNameOptions.Same:
+        list = list.filter(({name, bname}) => name === bname);
+        break;
+      case RTsNameOptions.Diff:
+        list = list.filter(({name, bname}) => name !== bname);
+        break;
     }
 
-    if (this.filters.searchText && this.filters.searchText.trim().length > 2) {
-      this.filteredRows = this.filteredRows
-        .filter(data =>
-          (data.name.toLocaleLowerCase().startsWith(this.filters.searchText.trim().toLocaleLowerCase()) || data.bname.toLocaleLowerCase().startsWith(this.filters.searchText.trim().toLocaleLowerCase())) ||
-          (data.address && data.address.toLocaleLowerCase().includes(this.filters.searchText.trim().toLocaleLowerCase()) || data.baddress && data.baddress.toLocaleLowerCase().includes(this.filters.searchText.trim().toLocaleLowerCase())) ||
-          (( data.channels && data.channels.some(phone => phone.value.includes(this.filters.searchText.trim().replace(/\-/g, '')))) || (data.bchannels && data.bchannels.some(phone => phone.value.includes(this.filters.searchText.trim().replace(/\-/g, '')))))
-        );
+    switch (tier) {
+      case TierOptions.Tier1Either:
+        break;
+      case TierOptions.Tier2Either:
+        break;
+      case TierOptions.Tier3Either:
+        break;
+      case TierOptions.Tier1Both:
+        break;
+      case TierOptions.Tier2Both:
+        break;
+      case TierOptions.Tier3Both:
+        break;
+      case TierOptions.Unknown:
+        break;
     }
 
-
-
-
-
-    // console.log('filteredRows', this.filteredRows);
+    if (keyword && keyword.trim()) {
+      const kwMatch = str => str && str.toLowerCase().includes(keyword.toLowerCase())
+      let digits = keyword.replace(/\D/g, '');
+      list = list.filter(({name, bname, address, baddress, channels, bchannels}) => {
+        return kwMatch(name) || kwMatch(bname) || kwMatch(address) || kwMatch(baddress)
+        || (channels || []).some(p => p.value.includes(digits)) || (bchannels || []).some(p => p.value.includes(digits))
+      })
+    }
+    this.filteredRows = list;
   }
 
   clearFilter() {
     this.filters = {
-      searchText: '',
-      owner: 'BelongingQmAndBm',
-      activeIn: 'ActiveInQMorBm',
-      hasPlaceId: true,
-      sameName: true
+      keyword: '',
+      status: undefined,
+      platform: undefined,
+      hasPlaceId: undefined,
+      sameName: undefined,
+      tier: undefined
     }
 
     this.filter();
   }
 
-  onFilterSelected(filter) {
-    console.log(filter);
-  }
 }
 

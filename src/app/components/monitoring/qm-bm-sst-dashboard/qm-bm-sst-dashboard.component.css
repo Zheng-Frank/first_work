@@ -1,0 +1,26 @@
+.dot {
+  width: 15px;
+  height: 15px;
+  border-radius: 15px;
+  display: inline-block;
+}
+
+.dot-placeholder {
+  width: 15px;
+}
+
+.qm-icon {
+  display: inline-block;
+  width: 25px;
+  height: 25px;
+  background: url("/assets/images/qmenu-light.png");
+  background-size: contain;
+}
+
+.bm-icon {
+  display: inline-block;
+  width: 25px;
+  height: 25px;
+  background: url("/assets/images/beyondmenu.png");
+  background-size: contain;
+}

@@ -8,73 +8,104 @@
     <div class="row">
       <div class="col-md-3 d-flex align-items-center">
         <label for="qmSearchText" class="m-0 p-0">Search </label>
-        <input type="text" class="ml-3 form-control" placeholder="Search by RT name, address or phone" id="qmSearchText" [(ngModel)]="filters.searchText" (ngModelChange)="filter()">
+        <input type="text" class="ml-3 form-control" [qDebounce]="500" (debounce)="filter()" placeholder="Search by RT name, address or phone" id="qmSearchText" [(ngModel)]="filters.keyword">
+        <i class="fa fa-info-circle ml-1" data-toggle="tooltip" title="You can search for a restaurant by name, address, or phone number." data-placement="top"></i>
       </div>
 
       <div class="col-md-9">
-        <div class="ml-1 d-flex align-items-center">
-
-          <select class="form-control mr-2" [(ngModel)]="filters.owner" (change)="filter()" name="activeIn">
-            <option [ngValue]="'BelongingQmAndBm'" selected>QM and BM</option>
-            <option [ngValue]="'BelongingQM'">QM Only</option>
-            <option [ngValue]="'BelongingBM'">BM Only</option>
+        <div class="d-flex align-items-center">
+          <span class="mr-2">Filters: </span>
+          <select class="form-control custom-select mr-2" [(ngModel)]="filters.platform" (change)="filter()" name="activeIn">
+            <option [ngValue]="''">Platform?</option>
+            <option *ngFor="let opt of dropdowns('platform')" [ngValue]="opt">{{opt}}</option>
           </select>
 
-          <select class="form-control mr-2" [(ngModel)]="filters.activeIn" (change)="filter()" name="activeIn">
-            <option [ngValue]="'ActiveInQMorBm'" selected>Active in QM or BM</option>
-            <option [ngValue]="'ActiveInQMandBm'">Active in QM and BM</option>
-            <option [ngValue]="'ActiveInQM'">Active in QM</option>
-            <option [ngValue]="'ActiveInBM'">Active in BM</option>
-            <option [ngValue]="'ActiveInBMnotQM'">Active in BM but not in QM</option>
-            <option [ngValue]="'ActiveInQMnotBM'">Active in QM but not in BM</option>
-            <option [ngValue]="'InactiveInQMandBM'">Inactive in QM and BM</option>
-            <option [ngValue]="'InactiveInQM'">Inactive in QM</option>
-            <option [ngValue]="'InactiveInBM'">Inactive in BM</option>
+          <select class="form-control custom-select mr-2" [(ngModel)]="filters.status" (change)="filter()" name="activeIn">
+            <option [ngValue]="''">Active?</option>
+            <option *ngFor="let opt of dropdowns('status')" [ngValue]="opt">{{opt}}</option>
           </select>
 
-          <select class="form-control mr-2" [(ngModel)]="filters.hasPlaceId" (change)="filter()" name="hasPlaceId">
-            <option [ngValue]="true" selected>Has Place ID</option>
-            <option [ngValue]="false">Missing Place ID</option>
+          <select class="form-control custom-select mr-2" [(ngModel)]="filters.hasPlaceId" (change)="filter()" name="hasPlaceId">
+            <option [ngValue]="''">Has place_id?</option>
+            <option *ngFor="let opt of dropdowns('place_id')" [ngValue]="opt">{{opt}}</option>
           </select>
 
-          <select class="form-control" [(ngModel)]="filters.sameName" (change)="filter()" name="sameName">
-            <option [ngValue]="true">Same name in QM and BM</option>
-            <option [ngValue]="false">Different name in QM and BM</option>
+          <select class="form-control custom-select mr-2" [(ngModel)]="filters.sameName" (change)="filter()" name="sameName">
+            <option [ngValue]="''">RT Name?</option>
+            <option *ngFor="let opt of dropdowns('name')" [ngValue]="opt">{{opt}}</option>
           </select>
 
+          <select class="form-control custom-select" [(ngModel)]="filters.tier" (change)="filter()" name="tier">
+            <option [ngValue]="''">Tier?</option>
+            <option *ngFor="let opt of dropdowns('tier')" [ngValue]="opt">{{opt}}</option>
+          </select>
+          <i class="fa fa-info-circle ml-1" data-toggle="tooltip" data-placement="top" title="Restaurants that are tier 1 in either the BM or QM platform indicated with green dot, tier 2 in either platform with yellow dot, and tier 3 in both platforms with red dot."></i>
         </div>
       </div>
     </div>
     <div class="row d-flex justify-content-end">
+      <button class="btn btn-link text-info" (click)="showBmPricing = !showBmPricing">{{showBmPricing ? 'Hide' : 'Show'}} BM Pricing</button>
       <button class="btn btn-link" (click)="clearFilter()">Reset Filters</button>
     </div>
   </div>
 
-  <!--  <div>qm total: {{stats.qmTotal}}</div>-->
-  <!--  <div>bm total: {{stats.bmTotal}}</div>-->
+  <div class="mt-3">
+    <div>Hide Summary <i class="fa fa-arrow-circle-up"></i></div>
+    <table class="table table-sm">
+      <thead><tr><th></th><th>Total</th><th>Tier 1</th><th>Tier 2</th><th>Tier 3</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>OVERALL RTs</td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+          <td>RTs on both platforms</td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+          <td>Qmenu-only RTs</td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+          <td>BeyondMenu-only RTs</td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+          <td>All BeyondMenu RTs</td><td></td><td></td><td></td><td></td>
+        </tr><tr>
+          <td>All Qmenu RTs</td><td></td><td></td><td></td><td></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
   <table class="table table-sm my-5">
-    <tr>
-      <th>#</th>
-      <th></th>
-    </tr>
     <tr *ngFor="let row of filteredRows; let i = index">
       <td>{{i + 1}}</td>
       <td>
-        <div class="d-flex justify-content-between">
-          <div class="d-flex flex-column">
-            <div>
-              <span *ngIf="row._id">(Q) {{row.name}} </span>
-              <span *ngIf="row._bid">(B) {{row.bname}}</span>
+        <div class="d-flex align-items-center">
+          <span class="dot bg-primary mr-3"></span>
+          <ng-container *ngIf="row._id">
+            <span class="qm-icon mr-1"></span>
+            <a class="mr-2" [routerLink]="'/restaurants/' + row._id" *ngIf="row.name !== row.bname">{{row.name}}</a>
+          </ng-container>
+          <ng-container *ngIf="row._bid">
+            <span class="bm-icon mr-1"></span>
+            <a [routerLink]="'/restaurants/' + row._id" *ngIf="row.name === row.bname">{{row.name}}</a>
+            <span *ngIf="row.name !== row.bname">{{row.bname}}</span>
+          </ng-container>
+        </div>
+        <div class="d-flex">
+          <span class="dot-placeholder mr-3"></span>
+          <div>
+            <div>palce_id: {{row.place_id || row.bplace_id || 'N/A'}}</div>
+            <div *ngIf="row._id">
+              QM: Tier 2, ID: {{row._id}},
+              <ng-container *ngIf="row.createdAt">created: {{row.createdAt | dateTz: "yyyy-MM-dd": "America/New_York"}}</ng-container>,
+              domain: <a *ngIf="row.website" [href]="row.website">{{row.website}}</a>
             </div>
-            <span>place_id: {{row.place_id || row.bplace_id}}</span>
-          </div>
-          <div class="d-flex align-items-center justify-content-end">
-            <img *ngIf="row._id" src="./assets/images/qmenu.png" style="height: 28px; width: 28px"/>
-            <img *ngIf="row._bid" src="./assets/images/beyondmenu.png" style="height: 28px; width: 28px"/>
+            <ng-container *ngIf="row._bid">
+              <div>BM: Tier 1, ID: {{row._bid}}, <ng-container *ngIf="row.createdAt">created: {{row.createdAt | dateTz: "YYYY-MM-DD": "America/New_York"}}</ng-container>, domain: <a [href]="row.bwebsite">{{row.bwebsite}}</a></div>
+              <div *ngIf="showBmPricing">BM Pricing: </div>
+            </ng-container>
           </div>
         </div>
-
       </td>
     </tr>
   </table>
