@@ -178,10 +178,10 @@ export class BulkMessagingComponent implements OnInit {
             await this._api.post(environment.qmenuApiUrl + 'events/add-jobs', [{
               "name": "send-fax",
               "params": {
-                "from": "8555582558",
+                "from": "4704356926",
                 "to": rtFax.value,
                 "mediaUrl": this.faxMsgContents,
-                "providerName": "twilio",
+                "providerName": "telnyx",
                 "trigger": {
                   "id": this._global.user._id,
                   "name": this._global.user.username,
