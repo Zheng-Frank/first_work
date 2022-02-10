@@ -59,7 +59,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
                 "request.voHistory": { $slice: 2 },
                 "notification_status": 1,
             }
-        }, 10000);
+        }, 5000);
 
         this.tasks = dbTasks.map(t => new Task(t));
         this.tasks.sort((t1, t2) => t1.scheduledAt.valueOf() - t2.scheduledAt.valueOf());
