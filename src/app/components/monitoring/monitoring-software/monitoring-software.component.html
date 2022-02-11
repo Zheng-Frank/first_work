@@ -1,0 +1,58 @@
+<h3>Running Software</h3>
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>App</th>
+      <th>Browser</th>
+      <th>Shell</th>
+      <th>User</th>
+      <th>Last Run</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let r of runtimes; let i = index;">
+      <td>{{i + 1}}</td>
+      <td>
+        {{r.software.name}}
+        <div class="text-muted">{{r.software.version}}</div>
+      </td>
+      <td>
+        {{r.browser.parsedResult.browser.name}}
+        <div class="text-muted">{{r.browser.parsedResult.os.name}}</div>
+      </td>
+      <td>
+        {{r.shell.name}}
+        <div class="text-muted">{{r.shell.version}} {{r.shell.platform}}</div>
+      </td>
+      <td>
+        <div *ngIf="r.user.customer">
+          customer
+          <div class="text-muted">
+            {{r.user.customer.firstName}} {{r.user.customer.lastName}}
+          </div>
+        </div>
+        <div *ngIf="r.user.user">
+          internal
+          <div class="text-muted">
+            {{r.user.user.username}}
+          </div>
+        </div>
+        <div *ngIf="r.user.restaurant">
+          restaurant
+          <div class="text-muted">
+            {{r.user.restaurant.name}}
+          </div>
+        </div>
+      </td>
+      <td>
+        {{r.createdAt | ago : now}}
+        <div class="text-muted">
+          {{r.count}} X
+        </div>
+      </td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
