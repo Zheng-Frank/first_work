@@ -68,7 +68,7 @@
           {{row.id}}
         </b>
         <span class="mx-1">
-          ({{getBizContacts(row.channels)}})
+          ({{getBizContacts(row.channels)}} || 'None')
         </span>
         <span class="mx-1">
           - {{now| adjustedDate: 'h:mm a':row.timezone}},
