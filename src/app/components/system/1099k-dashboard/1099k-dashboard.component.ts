@@ -2,8 +2,26 @@ import { Component, OnInit } from "@angular/core";
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
-import { AlertType } from "../../../classes/alert-type";
 import { PDFDocument } from "pdf-lib";
+
+enum missPayeeOptionTypes {
+  All = 'Missing Payee?',
+  Missing_Payee = 'Missing Payee',
+  Has_Payee = 'Has Payee'
+}
+
+enum missTINOptionTypes {
+  All = 'Missing TIN?',
+  Missing_TIN = 'Missing TIN',
+  Has_TIN = 'Has TIN'
+}
+
+enum missingEmailOptionTypes {
+  All = 'Missing Email?',
+  Missing_Email = 'Missing Email',
+  Has_Email = 'Has Email'
+}
+
 @Component({
   selector: "app-1099k-dashboard",
   templateUrl: "./1099k-dashboard.component.html",
@@ -18,6 +36,12 @@ export class Dashboard1099KComponent implements OnInit {
     '2021',
     '2020',
   ];
+  missPayeeOptions = [missPayeeOptionTypes.All, missPayeeOptionTypes.Missing_Payee, missPayeeOptionTypes.Has_Payee];
+  missPayeeOption = missPayeeOptionTypes.All;
+  missTINOptions = [missTINOptionTypes.All, missTINOptionTypes.Missing_TIN, missTINOptionTypes.Has_TIN];
+  missTINOption = missTINOptionTypes.All;
+  missingEmailOptions = [missingEmailOptionTypes.All, missingEmailOptionTypes.Missing_Email, missingEmailOptionTypes.Has_Email];
+  missingEmailOption = missingEmailOptionTypes.All;
 
   bulkFileOperation;
   bulkOperationYear;
@@ -110,17 +134,23 @@ export class Dashboard1099KComponent implements OnInit {
         return row;
       })
     }
-
-    if (this.showMissingPayee) {
+    // missing payee
+    if (this.missPayeeOption === missPayeeOptionTypes.Missing_Payee) {
       this.filteredRows = this.filteredRows.filter(row => !row.payeeName);
+    } else if (this.missPayeeOption === missPayeeOptionTypes.Has_Payee) {
+      this.filteredRows = this.filteredRows.filter(row => row.payeeName);
     }
-
-    if (this.showMissingTIN) {
+    // missing TIN (TIN is a company unique ID number)
+    if (this.missTINOption === missTINOptionTypes.Missing_TIN) {
       this.filteredRows = this.filteredRows.filter(row => !row.rtTIN);
+    } else if (this.missTINOption === missTINOptionTypes.Has_TIN) {
+      this.filteredRows = this.filteredRows.filter(row => row.rtTIN);
     }
-
-    if (this.showMissingEmail) {
+    // missing email
+    if (this.missingEmailOption === missingEmailOptionTypes.Missing_Email) {
       this.filteredRows = this.filteredRows.filter(row => (row.email || []).length === 0);
+    } else if (this.missingEmailOption === missingEmailOptionTypes.Has_Email)  {
+      this.filteredRows = this.filteredRows.filter(row => (row.email || []).length !== 0);
     }
 
     // search will match RT name, RT id, payee name, or email address
