@@ -4,6 +4,58 @@
     <h2 class="col-12 text-center"> Qmenu / BeyondMenu - Single Source of Truth ({{filteredRows.length}}) </h2>
   </div>
 
+  <div class="mt-3">
+    <div>
+      <a class="btn btn-link" (click)="showSummary = !showSummary">{{showSummary ? 'Hide': 'Show'}} Summary <i class="fa fa-angle-up"></i></a>
+    </div>
+    <table class="table table-sm" *ngIf="showSummary">
+      <thead><tr><th></th><th>Total</th><th>Tier 1</th><th>Tier 2</th><th>Tier 3</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>OVERALL RTs</td>
+          <td>{{summary.overall.length}}</td>
+          <td>{{countByTier(summary.overall, 1)}}</td>
+          <td>{{countByTier(summary.overall, 2)}}</td>
+          <td>{{countByTier(summary.overall, 3)}}</td>
+        </tr>
+        <tr>
+          <td>RTs on both platforms</td>
+          <td>{{summary.both.length}}</td>
+          <td>{{countByTier(summary.both, 1)}}</td>
+          <td>{{countByTier(summary.both, 2)}}</td>
+          <td>{{countByTier(summary.both, 3)}}</td>
+        </tr>
+        <tr>
+          <td>Qmenu-only RTs</td>
+          <td>{{summary.qmOnly.length}}</td>
+          <td>{{countByTier(summary.qmOnly, 1)}}</td>
+          <td>{{countByTier(summary.qmOnly, 2)}}</td>
+          <td>{{countByTier(summary.qmOnly, 3)}}</td>
+        </tr>
+        <tr>
+          <td>BeyondMenu-only RTs</td>
+          <td>{{summary.bmOnly.length}}</td>
+          <td>{{countByTier(summary.bmOnly, 1)}}</td>
+          <td>{{countByTier(summary.bmOnly, 2)}}</td>
+          <td>{{countByTier(summary.bmOnly, 3)}}</td>
+        </tr>
+        <tr>
+          <td>All BeyondMenu RTs</td>
+          <td>{{summary.bmAll.length}}</td>
+          <td>{{countByTier(summary.bmAll, 1)}}</td>
+          <td>{{countByTier(summary.bmAll, 2)}}</td>
+          <td>{{countByTier(summary.bmAll, 3)}}</td>
+        </tr><tr>
+          <td>All Qmenu RTs</td>
+          <td>{{summary.qmAll.length}}</td>
+          <td>{{countByTier(summary.qmAll, 1)}}</td>
+          <td>{{countByTier(summary.qmAll, 2)}}</td>
+          <td>{{countByTier(summary.qmAll, 3)}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
   <div class="my-5">
     <div class="row">
       <div class="col-md-3 d-flex align-items-center">
@@ -49,65 +101,64 @@
     </div>
   </div>
 
-  <div class="mt-3">
-    <div>Hide Summary <i class="fa fa-arrow-circle-up"></i></div>
-    <table class="table table-sm">
-      <thead><tr><th></th><th>Total</th><th>Tier 1</th><th>Tier 2</th><th>Tier 3</th></tr></thead>
-      <tbody>
-        <tr>
-          <td>OVERALL RTs</td><td></td><td></td><td></td><td></td>
-        </tr>
-        <tr>
-          <td>RTs on both platforms</td><td></td><td></td><td></td><td></td>
-        </tr>
-        <tr>
-          <td>Qmenu-only RTs</td><td></td><td></td><td></td><td></td>
-        </tr>
-        <tr>
-          <td>BeyondMenu-only RTs</td><td></td><td></td><td></td><td></td>
-        </tr>
-        <tr>
-          <td>All BeyondMenu RTs</td><td></td><td></td><td></td><td></td>
-        </tr><tr>
-          <td>All Qmenu RTs</td><td></td><td></td><td></td><td></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
   <table class="table table-sm my-5">
-    <tr *ngFor="let row of filteredRows; let i = index">
-      <td>{{i + 1}}</td>
-      <td>
-        <div class="d-flex align-items-center">
-          <span class="dot bg-primary mr-3"></span>
-          <ng-container *ngIf="row._id">
-            <span class="qm-icon mr-1"></span>
-            <a class="mr-2" [routerLink]="'/restaurants/' + row._id" *ngIf="row.name !== row.bname">{{row.name}}</a>
-          </ng-container>
-          <ng-container *ngIf="row._bid">
-            <span class="bm-icon mr-1"></span>
-            <a [routerLink]="'/restaurants/' + row._id" *ngIf="row.name === row.bname">{{row.name}}</a>
-            <span *ngIf="row.name !== row.bname">{{row.bname}}</span>
-          </ng-container>
-        </div>
-        <div class="d-flex">
-          <span class="dot-placeholder mr-3"></span>
-          <div>
-            <div>palce_id: {{row.place_id || row.bplace_id || 'N/A'}}</div>
-            <div *ngIf="row._id">
-              QM: Tier 2, ID: {{row._id}},
-              <ng-container *ngIf="row.createdAt">created: {{row.createdAt | dateTz: "yyyy-MM-dd": "America/New_York"}}</ng-container>,
-              domain: <a *ngIf="row.website" [href]="row.website">{{row.website}}</a>
-            </div>
+    <thead>
+      <tr>
+        <th [colSpan]="2">
+          <div class="float-right">
+            <q-pager [numberOfRows]="filteredRows.length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
+          </div>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let row of filteredRows.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize); let i = index">
+        <td>{{i + 1}}</td>
+        <td>
+          <div class="d-flex align-items-center">
+            <span class="dot {{getTierColor(row.tier, row.btier)}} mr-3"></span>
+            <ng-container *ngIf="row._id">
+              <span class="qm-icon mr-1"></span>
+              <a class="mr-2" [routerLink]="'/restaurants/' + row._id" *ngIf="row.name !== row.bname">{{row.name}}</a>
+            </ng-container>
             <ng-container *ngIf="row._bid">
-              <div>BM: Tier 1, ID: {{row._bid}}, <ng-container *ngIf="row.createdAt">created: {{row.createdAt | dateTz: "YYYY-MM-DD": "America/New_York"}}</ng-container>, domain: <a [href]="row.bwebsite">{{row.bwebsite}}</a></div>
-              <div *ngIf="showBmPricing">BM Pricing: </div>
+              <span class="bm-icon mr-1"></span>
+              <a [routerLink]="'/restaurants/' + row._id" *ngIf="row.name === row.bname">{{row.name}}</a>
+              <span *ngIf="row.name !== row.bname">{{row.bname}}</span>
             </ng-container>
           </div>
-        </div>
-      </td>
-    </tr>
+          <div class="d-flex">
+            <span class="dot-placeholder mr-3"></span>
+            <div>
+              <div>palce_id: {{row.place_id || row.bplace_id || 'N/A'}}</div>
+              <div *ngIf="row._id">
+                QM: Tier {{row.tier || 'N/A'}}, ID: {{row._id}},
+                <ng-container *ngIf="row.createdAt">created: {{row.createdAt | dateTz: "yyyy-MM-dd": "America/New_York"}}</ng-container>,
+                domain: <a *ngIf="row.website" [href]="row.website">{{row.website}}</a>
+                <div>ADDR: {{row.address}}</div>
+                <div>Channel: {{phones(row.channels)}}</div>
+              </div>
+
+              <ng-container *ngIf="row._bid">
+                <div>BM: Tier {{row.btier || 'N/A'}}, ID: {{row._bid}}, <ng-container *ngIf="row.createdAt">created: {{row.createdAt | dateTz: "YYYY-MM-DD": "America/New_York"}}</ng-container>, domain: <a [href]="row.bwebsite">{{row.bwebsite}}</a></div>
+                <div *ngIf="showBmPricing">BM Pricing: {{row.bpricing}}</div>
+                <div>ADDR: {{row.baddress}}</div>
+                <div>Channel: {{phones(row.bchannels)}}</div>
+              </ng-container>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <th [colSpan]="2">
+          <div class="float-right">
+            <q-pager [numberOfRows]="filteredRows.length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
+          </div>
+        </th>
+      </tr>
+    </tfoot>
   </table>
 </div>
 

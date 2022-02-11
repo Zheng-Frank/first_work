@@ -61,18 +61,50 @@ export class QmBmSstDashboardComponent implements OnInit {
     tier: ''
   }
 
+  summary = {
+    overall: [],
+    both: [],
+    qmOnly: [],
+    bmOnly: [],
+    bmAll: [],
+    qmAll: []
+  }
+
+  pageIndex = 0;
+  pageSize = 200;
+
   qmRTs = [];
   bmRTs = [];
   unionRTs = [];
   qmRTsPlaceDict = {};
   bmRTsPlaceDict = {};
   showBmPricing = true;
+  showSummary = false;
 
   constructor(private _api: ApiService) { }
 
   async ngOnInit() {
     $("[data-toggle='tooltip']").tooltip();
     await this.preload();
+  }
+
+  countByTier(list, tier) {
+    return list.filter(rt => this.getEiterTier(rt) === tier).length
+  }
+
+  calcSummary() {
+    let bmOnly = this.bmRTs.filter(({bplace_id}) => !bplace_id || !this.qmRTsPlaceDict[bplace_id]);
+    this.unionRTs = [...this.qmRTs, ...bmOnly].map(x => ({...x, ...(this.bmRTsPlaceDict[x.place_id]) || {}}));
+    this.summary.overall = this.unionRTs;
+    this.summary.both = this.unionRTs.filter(({_id, _bid}) => _id && _bid);
+    this.summary.qmOnly = this.qmRTs.filter(({place_id}) => !this.bmRTsPlaceDict[place_id])
+    this.summary.bmOnly = this.bmRTs.filter(({bplace_id}) => !this.qmRTsPlaceDict[bplace_id])
+    this.summary.qmAll = this.qmRTs
+    this.summary.bmAll = this.bmRTs
+  }
+
+  paginate(index) {
+    this.pageIndex = index;
   }
 
   dropdowns(key) {
@@ -99,6 +131,7 @@ export class QmBmSstDashboardComponent implements OnInit {
               disabled: 1,
               website: "$web.qmenuWebsite",
               name: 1,
+              score: "$score",
               createdAt: "$createdAt",
               owner: "$googleListing.gmbOwner",
               channels: {
@@ -111,11 +144,12 @@ export class QmBmSstDashboardComponent implements OnInit {
             }
           }
         ],
-      }, 20000));
+      }, 10000));
       this.qmRTs.forEach(rt => {
         if (rt.place_id) {
           this.qmRTsPlaceDict[rt.place_id] = rt;
         }
+        rt.tier = this.getTier(rt.score)
       })
       // --- BeyondMenu restaurants
       let bmRTs = await this._api.post(environment.gmbNgrok + 'get-bm-restaurant').toPromise();
@@ -132,6 +166,12 @@ export class QmBmSstDashboardComponent implements OnInit {
           }
         });
         let place_id = item.GooglePlaceID;
+        let {TierDec2021, TierNov2021, TierOct2021} = item;
+        let pricing = [
+          "OrderFixedFeePerOrder", "CreditCardFixedFeePerOrder", "OrderMonthlyFee", "CreditCardFeePercentage",
+          "AmexFeePercentage", "FaxUnitPrice", "PhoneUnitPrice", "OrderCommissionPercentage", "OrderCommissionMaximum",
+          "ReservationCommissionAmount", "ReservationCommissionMaximum"
+        ].filter(k => !!item[k]).map(k => `${k}: ${item[k]}`).join(', ')
         let data = {
           _bid: item.BusinessEntityID,
           bplace_id: item.GooglePlaceID,
@@ -142,7 +182,9 @@ export class QmBmSstDashboardComponent implements OnInit {
           bowner: 'beyondmenu',
           bhasGmb: item.IsBmGmbControl,
           bchannels: channels,
-          createdAt: item.createdAt
+          createdAt: item.createdAt,
+          btier: Math.floor((TierDec2021 + TierNov2021 + TierOct2021) / 3),
+          bpricing: pricing
         }
 
         if (place_id) {
@@ -150,14 +192,32 @@ export class QmBmSstDashboardComponent implements OnInit {
         }
         return data;
       });
-      let bmOnly = this.bmRTs.filter(({bplace_id}) => !bplace_id || !this.qmRTsPlaceDict[bplace_id]);
-      console.log('qm: ', this.qmRTs.length, 'bm: ', this.bmRTs.length, 'bm only: ', bmOnly.length)
-      this.unionRTs = [...this.qmRTs, ...bmOnly].map(x => ({...x, ...(this.bmRTsPlaceDict[x.place_id]) || {}}));
-      console.log('union...', this.unionRTs.length)
+      this.calcSummary();
       this.filter();
     } catch (error) {
       console.error(error);
     }
+  }
+
+  getTier(score) {
+    if (!score) {
+      return 0;
+    } else if (score >= 0 && score < 3) {
+      return 3;
+    } else if (score >= 3 && score < 6) {
+      return 2;
+    } else {
+      return 1;
+    }
+  }
+
+  getTierColor(tier = 0, btier = 0) {
+    return ['', "bg-success", "bg-warning", "bg-danger"][Math.min(tier, btier) || Math.max(tier, btier)]
+  }
+
+  getEiterTier(rt) {
+    let qt = rt.tier || 0, bt = rt.btier || 0;
+    return (Math.min(qt, bt) || Math.max(qt, bt))
   }
 
   filter() {
@@ -207,7 +267,6 @@ export class QmBmSstDashboardComponent implements OnInit {
 
     switch (hasPlaceId) {
       case PlaceIdOptions.Has:
-        // todo: logic tobe confirmed
         list = list.filter(({place_id, bplace_id}) => place_id || bplace_id)
         break;
       case PlaceIdOptions.Missing:
@@ -226,18 +285,25 @@ export class QmBmSstDashboardComponent implements OnInit {
 
     switch (tier) {
       case TierOptions.Tier1Either:
+        list = list.filter(rt => rt.tier === 1 || rt.btier === 1)
         break;
       case TierOptions.Tier2Either:
+        list = list.filter(rt => this.getEiterTier(rt) === 2)
         break;
       case TierOptions.Tier3Either:
+        list = list.filter(rt => this.getEiterTier(rt) === 3)
         break;
       case TierOptions.Tier1Both:
+        list = list.filter(rt => rt.tier === 1 && rt.btier === 1)
         break;
       case TierOptions.Tier2Both:
+        list = list.filter(rt => rt.tier === 2 && rt.btier === 2)
         break;
       case TierOptions.Tier3Both:
+        list = list.filter(rt => rt.tier === 3 && rt.btier === 3)
         break;
       case TierOptions.Unknown:
+        list = list.filter(rt => !rt.tier && !rt.btier)
         break;
     }
 
@@ -246,20 +312,24 @@ export class QmBmSstDashboardComponent implements OnInit {
       let digits = keyword.replace(/\D/g, '');
       list = list.filter(({name, bname, address, baddress, channels, bchannels}) => {
         return kwMatch(name) || kwMatch(bname) || kwMatch(address) || kwMatch(baddress)
-        || (channels || []).some(p => p.value.includes(digits)) || (bchannels || []).some(p => p.value.includes(digits))
+        || (digits && ((channels || []).some(p => p.value.includes(digits)) || (bchannels || []).some(p => p.value.includes(digits))))
       })
     }
-    this.filteredRows = list;
+    this.filteredRows = list
+  }
+
+  phones(channels) {
+    return (channels || []).map(c => c.value).join(', ')
   }
 
   clearFilter() {
     this.filters = {
       keyword: '',
-      status: undefined,
-      platform: undefined,
-      hasPlaceId: undefined,
-      sameName: undefined,
-      tier: undefined
+      status: '',
+      platform: '',
+      hasPlaceId: '',
+      sameName: '',
+      tier: ''
     }
 
     this.filter();
