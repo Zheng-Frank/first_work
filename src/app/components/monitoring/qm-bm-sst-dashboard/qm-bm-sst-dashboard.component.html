@@ -135,15 +135,11 @@
                 QM: Tier {{row.tier || 'N/A'}}, ID: {{row._id}},
                 <ng-container *ngIf="row.createdAt">created: {{row.createdAt | dateTz: "yyyy-MM-dd": "America/New_York"}}</ng-container>,
                 domain: <a *ngIf="row.website" [href]="row.website">{{row.website}}</a>
-                <div>ADDR: {{row.address}}</div>
-                <div>Channel: {{phones(row.channels)}}</div>
               </div>
 
               <ng-container *ngIf="row._bid">
                 <div>BM: Tier {{row.btier || 'N/A'}}, ID: {{row._bid}}, <ng-container *ngIf="row.createdAt">created: {{row.createdAt | dateTz: "YYYY-MM-DD": "America/New_York"}}</ng-container>, domain: <a [href]="row.bwebsite">{{row.bwebsite}}</a></div>
                 <div *ngIf="showBmPricing">BM Pricing: {{row.bpricing}}</div>
-                <div>ADDR: {{row.baddress}}</div>
-                <div>Channel: {{phones(row.bchannels)}}</div>
               </ng-container>
             </div>
           </div>
