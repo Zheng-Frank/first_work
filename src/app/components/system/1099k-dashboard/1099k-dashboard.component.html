@@ -14,6 +14,11 @@
       <option *ngFor="let entry of taxYearOptions"> {{entry}} </option>
     </select>
 
+    <!-- RT open or not -->
+    <select class="form-control mx-2" [(ngModel)]="openOption" (change)="filterRows()">
+      <option *ngFor="let option of openOptions"> {{option}} </option>
+    </select>
+
     <!-- Missing Payee/TIN/Email Attributes -->
     <select class="form-control mx-2" [(ngModel)]="missPayeeOption" (change)="filterRows()">
       <option *ngFor="let option of missPayeeOptions"> {{option}} </option>
@@ -58,6 +63,20 @@
       <h5 class="card-title">
         <a href="/#/restaurants/{{row.id.toString()}}">{{row.name}}</a>
       </h5>
+      <div class="d-flex">
+        <b>
+          {{row.id}}
+        </b>
+        <span class="mx-1">
+          ({{getBizContacts(row.channels)}})
+        </span>
+        <span class="mx-1">
+          - {{now| adjustedDate: 'h:mm a':row.timezone}},
+        </span>
+        <span class="mx-1 {{row.openOrNot? 'text-success': 'text-danger'}}">
+          {{row.openOrNot?'Open':'Closed'}}
+        </span>
+      </div>
       <div class="card-text d-flex justify-content-between">
         <span class="py2 text-left">
           <div>

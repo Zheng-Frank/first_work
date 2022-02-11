@@ -1,8 +1,15 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, OnDestroy } from "@angular/core";
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { PDFDocument } from "pdf-lib";
+import { TimezoneHelper, Hour } from "@qmenu/ui";
+
+enum openRTOptionTypes {
+  All = 'Open now?',
+  Open = 'Open',
+  Not_Open = 'Not Open'
+}
 
 enum missPayeeOptionTypes {
   All = 'Missing Payee?',
@@ -27,7 +34,7 @@ enum missingEmailOptionTypes {
   templateUrl: "./1099k-dashboard.component.html",
   styleUrls: ["./1099k-dashboard.component.scss"]
 })
-export class Dashboard1099KComponent implements OnInit {
+export class Dashboard1099KComponent implements OnInit, OnDestroy {
   rows = [];
   filteredRows = [];
   taxYearOptions = [
@@ -36,6 +43,8 @@ export class Dashboard1099KComponent implements OnInit {
     '2021',
     '2020',
   ];
+  openOptions = [openRTOptionTypes.All, openRTOptionTypes.Open, openRTOptionTypes.Not_Open];
+  openOption = openRTOptionTypes.All;
   missPayeeOptions = [missPayeeOptionTypes.All, missPayeeOptionTypes.Missing_Payee, missPayeeOptionTypes.Has_Payee];
   missPayeeOption = missPayeeOptionTypes.All;
   missTINOptions = [missTINOptionTypes.All, missTINOptionTypes.Missing_TIN, missTINOptionTypes.Has_TIN];
@@ -48,19 +57,29 @@ export class Dashboard1099KComponent implements OnInit {
 
   taxYear = 'All';
 
-  showMissingPayee = false;
-  showMissingTIN = false;
-  showMissingEmail = false;
-
   searchFilter;
 
   system: any;
-
+  now: Date = new Date();
+  timer;
+  refreshDataInterval = 1 * 60 * 1000;
+  restaurants = [];
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
+    // refresh the page every hour
+    this.timer = setInterval(() => {
+      this.now = new Date();
+      this.rows = this.restaurants.map(rt => this.turnRtObjectIntoRow(rt));
+    }, this.refreshDataInterval);
     await this.get1099KData();
     this.filterRows();
+  }
+
+  ngOnDestroy() {
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
   }
 
   async rescan() {
@@ -78,12 +97,14 @@ export class Dashboard1099KComponent implements OnInit {
   }
 
   async get1099KData() {
-    let restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    this.restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
         "form1099k.required": true
       },
       projection: {
+        "closedHours": 1,
+        "menus.hours": 1,
         name: 1,
         form1099k: 1,
         channels: 1,
@@ -93,9 +114,8 @@ export class Dashboard1099KComponent implements OnInit {
         payeeName: 1
       }
     }, 5000);
-
-    this.rows = restaurants.map(rt => this.turnRtObjectIntoRow(rt));
-
+    this.now = new Date();
+    this.rows = this.restaurants.map(rt => this.turnRtObjectIntoRow(rt));
   }
 
   turnRtObjectIntoRow(rt) {
@@ -105,6 +125,14 @@ export class Dashboard1099KComponent implements OnInit {
     const ga = rt.googleAddress;
     const streetAddress = `${ga.street_number} ${ga.route}`;
     const cityStateZip = `${ga.locality}, ${ga.administrative_area_level_1} ${ga.postal_code}`
+    const timezone = ga.timezone || 'America/New_York';
+    const menus = rt.menus;
+    (menus || []).forEach(menu => {
+      menu.hours = (menu.hours || []).map(hour => new Hour(hour));
+    });
+    const closedHours = rt.closedHours;
+    const openOrNot = this.isRTOpened(menus, closedHours, timezone);
+
     return {
       id: rt._id,
       name: rt.name,
@@ -114,8 +142,38 @@ export class Dashboard1099KComponent implements OnInit {
       form1099k: rt.form1099k,
       payeeName,
       rtTIN,
-      channels: rt.channels || []
+      channels: rt.channels || [],
+      timezone,
+      openOrNot
     }
+  }
+
+  isRTOpened(menus, closedHours, timezone) {
+    // judge whether open
+    // 1. by menu hours
+    let flag = false;
+    for (let i = 0; i < (menus || []).length; i++) {
+      const menu = (menus || [])[i];
+      if ((menu.hours || []).some(hour => hour.isOpenAtTime(this.now, timezone))) {
+        flag = true;
+        break;
+      }
+    }
+    // 2. by restaurant closed hours
+    closedHours = (closedHours || []).filter(hour => !(hour.toTime && this.now > hour.toTime));
+
+    if (closedHours.some(hour => {
+      let nowTime = TimezoneHelper.getTimezoneDateFromBrowserDate(this.now, timezone);
+      return nowTime >= hour.fromTime && nowTime <= hour.toTime;
+    })) {
+      flag = false;
+    }
+    return flag;
+  }
+
+  // filter the biz of restaurant's contacts to show on rt portal
+  getBizContacts(channels) {
+    return (channels || []).filter(channel => channel.type === 'Phone' && (channel.notifications || []).includes('Business')).map(c => c.value).join(', ');
   }
 
   allAttributesPresent(row) {
@@ -138,6 +196,12 @@ export class Dashboard1099KComponent implements OnInit {
         row.form1099k = (row.form1099k || []).filter(form => form.year === year);
         return row;
       })
+    }
+    // rt open or not
+    if (this.openOption === openRTOptionTypes.Open) {
+      this.filteredRows = this.filteredRows.filter(row => row.openOrNot);
+    } else if (this.openOption === openRTOptionTypes.Not_Open) {
+      this.filteredRows = this.filteredRows.filter(row => !row.openOrNot);
     }
     // missing payee
     if (this.missPayeeOption === missPayeeOptionTypes.Missing_Payee) {
