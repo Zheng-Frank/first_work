@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
 import {ApiService} from "../../../services/api.service";
 import {environment} from "../../../../environments/environment";
+import {PagerComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
 
 declare var $: any;
 
@@ -50,6 +51,8 @@ enum RTsNameOptions {
 })
 export class QmBmSstDashboardComponent implements OnInit {
 
+  @ViewChild('myPager1') myPager1: PagerComponent;
+  @ViewChild('myPager2') myPager2: PagerComponent;
   filteredRows = [];
 
   filters = {
@@ -105,6 +108,8 @@ export class QmBmSstDashboardComponent implements OnInit {
 
   paginate(index) {
     this.pageIndex = index;
+    this.myPager1.currentPageNumber = index;
+    this.myPager2.currentPageNumber = index;
   }
 
   dropdowns(key) {
@@ -316,6 +321,11 @@ export class QmBmSstDashboardComponent implements OnInit {
       })
     }
     this.filteredRows = list
+    this.paginate(0)
+  }
+
+  paged() {
+    return this.filteredRows.slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize)
   }
 
   phones(channels) {
