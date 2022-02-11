@@ -242,31 +242,31 @@ export class QmBmSstDashboardComponent implements OnInit {
 
     switch (status) {
       case StatusOptions.EitherUp:
-        list = list.filter(row => !row.disabled || !row.bdisabled);
+        list = list.filter(row => (row._id && !row.disabled) || (row._bid && !row.bdisabled));
         break;
       case StatusOptions.BothUp:
-        list = list.filter(row => !row.disabled && !row.bdisabled);
+        list = list.filter(row => row._id && !row.disabled && row._bid && !row.bdisabled);
         break;
       case StatusOptions.QmUp:
-        list = list.filter(row => !row.disabled);
+        list = list.filter(row => row._id && !row.disabled);
         break;
       case StatusOptions.BmUp:
-        list = list.filter(row => !row.bdisabled);
+        list = list.filter(row => row._bid && !row.bdisabled);
         break;
       case StatusOptions.BmUpQmDown:
-        list = list.filter(row => !row.bdisabled && row.disabled);
+        list = list.filter(row => row._id && row._bid && !row.bdisabled && row.disabled);
         break;
       case StatusOptions.QmUpBmDown:
-        list = list.filter(row => !row.disabled && row.bdisabled);
+        list = list.filter(row => row._id && row._bid && !row.disabled && row.bdisabled);
         break;
       case StatusOptions.BothDown:
-        list = list.filter(row => row.bdisabled && row.disabled);
+        list = list.filter(row => row._id && row.bdisabled && row._bid && row.disabled);
         break;
       case StatusOptions.QmDown:
-        list = list.filter(row => row.disabled);
+        list = list.filter(row => row._id && row.disabled);
         break;
       case StatusOptions.BmDown:
-        list = list.filter(row => row.bdisabled);
+        list = list.filter(row => row._bid && row.bdisabled);
         break;
     }
 
@@ -284,7 +284,7 @@ export class QmBmSstDashboardComponent implements OnInit {
         list = list.filter(({name, bname}) => name === bname);
         break;
       case RTsNameOptions.Diff:
-        list = list.filter(({name, bname}) => name !== bname);
+        list = list.filter(({name, bname}) => name && bname && name !== bname);
         break;
     }
 
