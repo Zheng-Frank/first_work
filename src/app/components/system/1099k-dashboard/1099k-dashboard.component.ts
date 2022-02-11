@@ -63,6 +63,11 @@ export class Dashboard1099KComponent implements OnInit {
     this.filterRows();
   }
 
+  async rescan() {
+    await this.get1099KData();
+    this.filterRows();
+  }
+
   isAdmin() {
     let roles = this._global.user.roles || [];
     return roles.includes('ADMIN');
@@ -149,7 +154,7 @@ export class Dashboard1099KComponent implements OnInit {
     // missing email
     if (this.missingEmailOption === missingEmailOptionTypes.Missing_Email) {
       this.filteredRows = this.filteredRows.filter(row => (row.email || []).length === 0);
-    } else if (this.missingEmailOption === missingEmailOptionTypes.Has_Email)  {
+    } else if (this.missingEmailOption === missingEmailOptionTypes.Has_Email) {
       this.filteredRows = this.filteredRows.filter(row => (row.email || []).length !== 0);
     }
 
