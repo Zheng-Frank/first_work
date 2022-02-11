@@ -10,7 +10,7 @@ import { environment } from 'src/environments/environment';
 })
 export class MonitoringDashboardComponent implements OnInit {
 
-  monitoredItem = 'Biz Clients';//'Dashboard Items';
+  monitoredItem = 'Dashboard Items';
   items = [];
   dashboardItems = [];
   constructor(private _api: ApiService, private _global: GlobalService) {
@@ -19,7 +19,7 @@ export class MonitoringDashboardComponent implements OnInit {
 
   ngOnInit() {
     const roleMap = {
-      "Biz Clients": ["ADMIN", "CSR"],
+      "Software": ["ADMIN", "CSR"],
       "Dashboard Items": ["ADMIN", "MENU_EDITOR", "CSR", 'CSR_MANAGER', "ACCOUNTANT"],
       "Diagnostics": ["ADMIN", "CSR", 'CSR_MANAGER', "ACCOUNTANT"],
       "Cloud Printers": ["ADMIN", "MENU_EDITOR", "CSR", 'CSR_MANAGER', "ACCOUNTANT"],
