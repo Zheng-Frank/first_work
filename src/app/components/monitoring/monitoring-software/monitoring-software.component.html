@@ -23,23 +23,23 @@
         <div class="text-muted">{{r.browser.parsedResult.os.name}}</div>
       </td>
       <td>
-        {{r.shell.name}}
-        <div class="text-muted">{{r.shell.version}} {{r.shell.platform}}</div>
+        {{r.shell?.name}}
+        <div class="text-muted">{{r.shell?.version}} {{r.shell?.platform}}</div>
       </td>
       <td>
-        <div *ngIf="r.user.customer">
+        <div *ngIf="r.user?.customer">
           customer
           <div class="text-muted">
             {{r.user.customer.firstName}} {{r.user.customer.lastName}}
           </div>
         </div>
-        <div *ngIf="r.user.user">
+        <div *ngIf="r.user?.user">
           internal
           <div class="text-muted">
             {{r.user.user.username}}
           </div>
         </div>
-        <div *ngIf="r.user.restaurant">
+        <div *ngIf="r.user?.restaurant">
           restaurant
           <div class="text-muted">
             {{r.user.restaurant.name}}
