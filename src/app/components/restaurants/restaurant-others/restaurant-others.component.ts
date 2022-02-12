@@ -20,14 +20,14 @@ export class RestaurantOthersComponent implements OnInit {
       "GMB Posts": ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER'],
       "Web Template": ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', "MARKETER"],
       "Yelp": ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
-      "API Logs": ['ADMIN'],
+      "API Logs": ['ADMIN', 'annie'], // NOTE: temporarily solution for special user permission config
       "SEO Tracking": ['ADMIN', 'CSR', 'CSR_MANAGER'],
       "Stats": ['ADMIN', 'CSR', 'CSR_MANAGER'],
       "Poster": ['ADMIN', 'CSR', 'CSR_MANAGER', 'MARKETER'],
       'Sent Msgs': ['ADMIN'],
       'Menu Images': ['ADMIN', 'CSR']
     }
-    this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
+    this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0 || this._global.user.username === r));
   }
 
   ngOnInit() {
