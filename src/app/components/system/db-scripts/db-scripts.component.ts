@@ -4143,8 +4143,7 @@ export class DbScriptsComponent implements OnInit {
               resource: 'order',
               query: orderQuery,
               projection: {
-                "computed.total": 1,
-                "createdAt": 1
+                "computed.total": 1
               },
               limit: 100000000000000000
             }).toPromise();
