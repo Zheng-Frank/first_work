@@ -43,7 +43,7 @@ export class Form1099KComponent implements OnInit {
 
   sendPDFFormToRT() {
     this.template.value = this.email;
-    if(!this.template.value){
+    if (!this.template.value) {
       return this._global.publishAlert(AlertType.Danger, 'Please select an valid email!');
     }
     const jobs = [{
@@ -65,6 +65,26 @@ export class Form1099KComponent implements OnInit {
       .subscribe(
         () => {
           this._global.publishAlert(AlertType.Success, 'Email message sent success');
+          // update send flag to know whether has sent email to rt
+          let new1099kRecords = JSON.parse(JSON.stringify(this.restaurant.form1099k));
+          new1099kRecords.forEach(record => {
+            if(record.year === this.template.year){
+              record.sent = true;
+            }
+          });
+          this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+            {
+              old: { _id: this.restaurant._id, form1099k: this.restaurant.form1099k },
+              new: { _id: this.restaurant._id, form1099k: new1099kRecords }
+            }
+          ]).toPromise();
+          this._global.publishAlert(
+            AlertType.Success,
+            `Updated Form 1099k records success!`
+          );
+          this.restaurant.form1099k = new1099kRecords;
+          this.populateFormLinks();
+          this.sendEmailModal.hide();
         },
         error => {
           console.log(error);
@@ -82,7 +102,8 @@ export class Form1099KComponent implements OnInit {
     this.template = {
       value: this.email,
       subject: `1099-K Form for ${year}`,
-      html: this.fillMessageTemplate(form1099kEmailTemplate, dataset)
+      html: this.fillMessageTemplate(form1099kEmailTemplate, dataset),
+      year: year
     }
     this.sendEmailModal.show();
   }

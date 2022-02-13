@@ -35,8 +35,7 @@
     </div>
   </div>
   <!-- end with Payee/TIN/Email Attributes -->
-  <p><br> Please be patient. A restaurant may have thousands of
-    transactions to retrieve and process, which can take some time. </p>
+  <p><br> Please be patient. Downloading maybe take some time. </p>
   <!-- start with 1099k form list -->
   <ul>
     <ng-container *ngFor="let linkEntry of formLinks">
@@ -50,6 +49,9 @@
               <i class="fa fa-download"></i></button>
             <button class="btn btn-primary" (click)="openSendEmailModal(linkEntry[1])"
               [disabled]="emails.length === 0">Send</button>
+            <span *ngIf="linkEntry[0].sent" class="text-success">
+              (Sent)
+            </span>
           </ng-container>
           <ng-template #missingAttributesBlock>
             <div class="text-danger">
