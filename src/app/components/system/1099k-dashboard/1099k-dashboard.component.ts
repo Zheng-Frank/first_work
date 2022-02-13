@@ -373,7 +373,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
 
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
-    link.download = `f1099k_${form1099KData.year}_${row.name}.pdf`;
+    link.download = `f1099k_${form1099KData.year}_${row.name}_for${target === 'qmenu' ? '_qmenu':'_restaurant'}.pdf`;
     link.click();
   }
 

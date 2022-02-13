@@ -1,23 +1,91 @@
-<div *ngIf="!restaurant">
-  No restaurant data.
-</div>
-
-<div *ngIf="restaurant">
+<div>
   <h2>View IRS Form 1099-K for {{restaurant.name}}</h2>
-  <p>Note: A Form 1099-K will be generated for a restaurant for each year that it is needed, in January of the following year. Qmenu must have collected at least $20,000 and processed at least 200 transactions for a restaurant in a given year for a Form 1099-K to be required for that year. <br><br> Please be patient. A restaurant may have thousands of transactions to retrieve and process, which can take some time. </p>
-  <ul class="container">
+  <button class="btn btn-link"
+    (click)="showExplanation = !showExplanation">{{!showExplanation ? 'Show Explanation' : 'Hide Explanation'}}</button>
+  <p *ngIf="showExplanation">
+    Two copies of Form 1099-K will be generated for a restaurant for each year that the form is needed, in January of
+    the following year. We must provide the restaurant with one copy for them to submit to the IRS, as well as submit
+    another copy to the IRS on their behalf. For tax years 2020 and 2021, Qmenu must have collected at least $20,000 and
+    processed at least 200 transactions for a restaurant to necessitate Form 1099-K for that year. For tax year 2022
+    onward, Qmenu must have collected $600 or more for a restaurant to necessitate a Form 1099-K.
+  </p>
+  <hr>
+  <!-- start with Payee/TIN/Email Attributes -->
+  <div class="row ml-2">
+    <div>
+      <b>TIN: </b>
+      <b class="text-danger" *ngIf="!restaurant.tin">Attribute Missing</b>
+      <q-edit-label [value]="restaurant.tin" (edit)="onEdit($event, 'rtTIN')">
+      </q-edit-label>
+    </div>
+    <div class="mx-2">
+      <b>Payee: </b>
+      <b class="text-danger" *ngIf="!restaurant.payeeName">Attribute Missing</b>
+      <q-edit-label [value]="restaurant.payeeName" (edit)="onEdit($event, 'payeeName')">
+      </q-edit-label>
+    </div>
+    <div class="mx-2">
+      <b>Email: </b>
+      <span *ngIf="emails.length > 0; else elseBlockEmail">{{emails.join(', ')}} </span>
+      <ng-template #elseBlockEmail>
+        <b class="text-danger">Attribute Missing</b>
+        <q-edit-label [emptyHint]="'(click to add)'" [value]="" [type]="'text'" (edit)="onEdit($event, 'Email')">
+        </q-edit-label>
+      </ng-template>
+    </div>
+  </div>
+  <!-- end with Payee/TIN/Email Attributes -->
+  <p><br> Please be patient. A restaurant may have thousands of
+    transactions to retrieve and process, which can take some time. </p>
+  <!-- start with 1099k form list -->
+  <ul>
     <ng-container *ngFor="let linkEntry of formLinks">
       <li *ngIf="linkEntry[0]; else elseBlock">
-        <a [href]="sanitizeLink(linkEntry[0].href)" [download]="linkEntry[0].download">{{linkEntry[1]}} - Click to
-          download this year's form
-        </a>
+        <ng-container *ngIf="linkEntry[0].required; else requiredBlock">
+          <ng-container *ngIf="allAttributesPresent(); else missingAttributesBlock">
+            {{linkEntry[1]}} - Click to download this year's form
+            <button class="btn btn-link" (click)="renderPDFForm('qmenu',linkEntry[1])"> for qMenu
+              <i class="fa fa-download"></i></button>
+            <button class="btn btn-link" (click)="renderPDFForm('restaurant',linkEntry[1])"> for Restaurant
+              <i class="fa fa-download"></i></button>
+            <button class="btn btn-primary" (click)="openSendEmailModal(linkEntry[1])"
+              [disabled]="emails.length === 0">Send</button>
+          </ng-container>
+          <ng-template #missingAttributesBlock>
+            <div class="text-danger">
+              Fill in all missing attributes to enable file download.
+            </div>
+          </ng-template>
+        </ng-container>
+        <ng-template #requiredBlock>
+          {{linkEntry[1]}} - No Form Required for this year
+        </ng-template>
       </li>
       <ng-template #elseBlock>
         <li>
-          {{linkEntry[1]}} - No Form Required for this year
+          <button class="btn btn-link" (click)="calculateForm1099k(linkEntry[1])">Calculate 1099K</button>
         </li>
       </ng-template>
     </ng-container>
   </ul>
-
+  <!-- end with 1099k form list -->
+  <!-- start with send email modal -->
+  <q-modal #sendEmailModal [size]="'lg'">
+    <button type="button" class="close" (click)="sendEmailModal.hide()">
+      <span>×</span>
+    </button>
+    <h4 class="text-center">Send PDF Form</h4>
+    <hr>
+    <select class="form-control" [(ngModel)]="email">
+      <option *ngFor="let e of emails"> {{e}} </option>
+    </select>
+    <div *ngIf="template">
+      <div class="msg-content mt-2" [innerHTML]="sanitized(template.html)"></div>
+    </div>
+    <div class="d-flex justify-content-end p-4">
+      <button class="btn btn-secondary mr-2" (click)="sendEmailModal.hide()">Cancel</button>
+      <button class="btn btn-primary" (click)="sendPDFFormToRT()">Send</button>
+    </div>
+  </q-modal>
+  <!-- end with send email modal -->
 </div>
