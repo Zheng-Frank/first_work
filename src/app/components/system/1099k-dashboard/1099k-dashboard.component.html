@@ -10,7 +10,7 @@
 
     <!-- Tax Year Dropdown -->
     <label class="mx-2"> Select Tax Year:</label>
-    <select class="form-control" [(ngModel)]="taxYear" (change)="filterRows()">
+    <select class="form-control mr-2" [(ngModel)]="taxYear" (change)="filterRows()">
       <option *ngFor="let entry of taxYearOptions"> {{entry}} </option>
     </select>
 
@@ -35,14 +35,14 @@
     <button class="btn btn-primary recan-btn" (click)="rescan()"><i class="fas fa-sync"></i> Rescan</button>
   </div>
   <hr>
-  <div class="form-inline mx-5">
+  <div class="form-inline mx-5 pl-1">
     <select class="form-control" [(ngModel)]="executionOption">
       <option *ngFor="let execution of executionOptions"> {{execution}} </option>
     </select>
     <select class="form-control mx-2" [(ngModel)]="executionYear">
       <option *ngFor="let year of executionYears"> {{year}} </option>
     </select>
-    <button class="btn btn-primary recan-btn" (click)="execute()"><i class="fas fa-sync"></i> Execuse</button>
+    <button class="btn btn-primary mx-2" (click)="execute()"><i class="fas fa-sync"></i> Execuse</button>
   </div>
 
   <!-- <div class="form-inline mt-2" style="width: 100%;">
