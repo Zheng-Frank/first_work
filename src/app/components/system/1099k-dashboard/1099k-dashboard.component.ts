@@ -29,6 +29,11 @@ enum missingEmailOptionTypes {
   Has_Email = 'Has Email'
 }
 
+enum executionOptionTypes {
+  Download = 'Download forms for Qmenu use',
+  Send = 'Send forms to all restaurants'
+}
+
 @Component({
   selector: "app-1099k-dashboard",
   templateUrl: "./1099k-dashboard.component.html",
@@ -43,6 +48,11 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     '2021',
     '2020',
   ];
+  executionYears = [
+    '2021',
+    '2020',
+  ];
+  executionYear = '2021';
   openOptions = [openRTOptionTypes.All, openRTOptionTypes.Open, openRTOptionTypes.Not_Open];
   openOption = openRTOptionTypes.All;
   missPayeeOptions = [missPayeeOptionTypes.All, missPayeeOptionTypes.Missing_Payee, missPayeeOptionTypes.Has_Payee];
@@ -51,7 +61,8 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   missTINOption = missTINOptionTypes.All;
   missingEmailOptions = [missingEmailOptionTypes.All, missingEmailOptionTypes.Missing_Email, missingEmailOptionTypes.Has_Email];
   missingEmailOption = missingEmailOptionTypes.All;
-
+  executionOptions = [executionOptionTypes.Download, executionOptionTypes.Send];
+  executionOption = executionOptionTypes.Download;
   bulkFileOperation;
   bulkOperationYear;
 
@@ -74,6 +85,14 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     }, this.refreshDataInterval);
     await this.get1099KData();
     this.filterRows();
+  }
+
+  excute() {
+    if (this.executionOption === executionOptionTypes.Download) {
+
+    } else {
+
+    }
   }
 
   ngOnDestroy() {
@@ -373,7 +392,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
 
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
-    link.download = `f1099k_${form1099KData.year}_${row.name}_for${target === 'qmenu' ? '_qmenu':'_restaurant'}.pdf`;
+    link.download = `f1099k_${form1099KData.year}_${row.name}_for${target === 'qmenu' ? '_qmenu' : '_restaurant'}.pdf`;
     link.click();
   }
 

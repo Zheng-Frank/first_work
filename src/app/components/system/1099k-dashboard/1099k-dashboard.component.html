@@ -34,9 +34,15 @@
 
     <button class="btn btn-primary recan-btn" (click)="rescan()"><i class="fas fa-sync"></i> Rescan</button>
   </div>
-
-  <div>
-
+  <hr>
+  <div class="form-inline mx-5">
+    <select class="form-control" [(ngModel)]="executionOption">
+      <option *ngFor="let execution of executionOptions"> {{execution}} </option>
+    </select>
+    <select class="form-control mx-2" [(ngModel)]="executionYear">
+      <option *ngFor="let year of executionYears"> {{year}} </option>
+    </select>
+    <button class="btn btn-primary recan-btn" (click)="execute()"><i class="fas fa-sync"></i> Execuse</button>
   </div>
 
   <!-- <div class="form-inline mt-2" style="width: 100%;">
