@@ -54,11 +54,13 @@ export class SalesMetricsComponent implements OnInit {
       },
       {
         label: 'RTs Gained with GMB Owned',
+        csvLabel: 'RTs w/GMB',
         paths: ['gmbCount'],
         sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
       },
       {
         label: 'Average Call Duration',
+        csvLabel: 'Avg call length',
         paths: ['avgCallDuration'],
         sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
       },
@@ -81,6 +83,7 @@ export class SalesMetricsComponent implements OnInit {
     }
     columns.splice(5, 0, {
       label: 'Average Call Time per Day',
+      csvLabel: 'Avg call time/day',
       paths: ['avgCallTimePerDay'],
       sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
     })
@@ -500,15 +503,24 @@ export class SalesMetricsComponent implements OnInit {
   }
 
   downloadCsv() {
-    let fields = this.agentStatsColumnDescriptors.map(({label, paths}) => ({
-      label, paths
+    let fields = this.agentStatsColumnDescriptors.map(({label, csvLabel, paths}) => ({
+       label: csvLabel || label, paths
     }));
+    fields.push({label: 'Lang', paths: ['lang']});
+    let languages = this._global.user.languages;
+    let lang = '';
+    if (languages && languages.length) {
+      lang = languages.length > 1 ? 'Both' : {'EN': 'English', 'CH': 'Chinese'}[languages[0]]
+    }
+
+    const toHours = seconds => Math.round((Number(seconds) / 3600) * 1000000) / 1000000
 
     let data = this.list.map(({avgCallDuration, totalCallTime, avgCallTimePerDay, ...rest}) => ({
       ...rest,
-      avgCallDuration: this.secondsToHms(avgCallDuration),
-      totalCallTime: this.secondsToHms(totalCallTime),
-      avgCallTimePerDay: this.secondsToHms(avgCallTimePerDay)
+      avgCallDuration: toHours(avgCallDuration),
+      totalCallTime: toHours(totalCallTime),
+      avgCallTimePerDay: toHours(avgCallTimePerDay),
+      lang
     }));
     let filename = 'Sales Stats - Individual Totals for ' + this.displayTimeRange();
     if (this.viewMode === ViewModes.Agent && this.agent) {
