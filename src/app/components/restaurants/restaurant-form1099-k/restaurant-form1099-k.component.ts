@@ -181,7 +181,7 @@ export class Form1099KComponent implements OnInit {
         } // less than and greater than
       }, {
         createdAt: {
-          $lte: { $date: utct }
+          $lt: { $date: utct }
         }
       }]
       let tempOrders = await this._api.get(environment.qmenuApiUrl + 'generic', {
