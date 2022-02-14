@@ -151,10 +151,9 @@
           </table>
           <ng-container *ngIf="!restaurant.courier && restaurant.deliveryArea">
             <div class="form-group">
-              <label style="font-size: small">
-                  Delivery Area<i class="ml-2 fa fa-angle-{{showAreaTip ? 'down': 'up'}} icon-color" (click)="showAreaTip = !showAreaTip"></i>
-                </label>
-              <div class="small" *ngIf="showAreaTip">Enter the latitude/longitude coordinates of the shape that defines the delivery area for this restaurant. Follow the instructions in this document: <a target="_blank" href="https://docs.google.com/document/d/1FLJhzS1cRoeoZKdDfKVNzZvxT4-PfESWP8ZMC6XzmBY/edit?usp=sharing">https://docs.google.com/document/d/1FLJhzS1cRoeoZKdDfKVNzZvxT4-PfESWP8ZMC6XzmBY/edit?usp=sharing</a></div>
+              <div><label style="font-size: small">Delivery Area</label></div>
+              <div class="row"><a class="btn btn-link" (click)="showAreaTip = !showAreaTip">{{showAreaTip ? 'Hide': 'Show'}} more</a></div>
+              <div *ngIf="showAreaTip">Enter the latitude/longitude coordinates of the shape that defines the delivery area for this restaurant. Follow the instructions in this document: <a target="_blank" href="https://docs.google.com/document/d/1FLJhzS1cRoeoZKdDfKVNzZvxT4-PfESWP8ZMC6XzmBY/edit?usp=sharing">https://docs.google.com/document/d/1FLJhzS1cRoeoZKdDfKVNzZvxT4-PfESWP8ZMC6XzmBY/edit?usp=sharing</a></div>
             </div>
             <div class="form-group row" >
               <div class="col-5 col-form-label pt-0">

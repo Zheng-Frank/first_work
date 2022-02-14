@@ -236,7 +236,11 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     newR.allowedCities = this.allowedCities.split(',').map(each => each.trim()).filter(each => each);
     newR.allowedZipCodes = this.allowedZipCodes.split(',').map(each => each.trim()).filter(each => each);
     newR.deliveryHours = this.deliveryHours;
-    newR.deliveryArea = this.deliveryArea ? this.deliveryArea.trim() : undefined;
+    if (this.deliveryArea) {
+      newR.deliveryArea = JSON.stringify(this.fillGeoJson(this.deliveryArea), null, 4);
+    } else {
+      newR.deliveryArea = undefined;
+    }
     newR.taxOnDelivery = this.taxOnDelivery;
     newR.muteFirstNotifications = !this.firstNotifications;
     newR.muteSecondNotifications = !this.secondNotifications;
@@ -376,6 +380,33 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     }
   }
 
+  fillGeoJson(str) {
+    let featureCollection = {
+      "type": "FeatureCollection",
+      "name": "Qmenu RT Delivery Bounds Example",
+      "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+      "features": [
+        {
+          "type": "Feature", "properties": { "Name": "Polygon", "description": null },
+          "geometry": { "type": "Polygon", "coordinates": [] }
+        }
+      ]
+    }
+    // check if only coordinates
+    let coordinates = JSON.parse(str);
+    if (!(coordinates instanceof Array)) {
+      featureCollection = coordinates;
+      coordinates = featureCollection.features[0].geometry.coordinates[0];
+    }
+    // check if self-closing
+    let first = coordinates[0], last = coordinates[coordinates.length - 1];
+    if (last[0] !== first[0] || last[1] !== first[1]) {
+      coordinates.push(first)
+    }
+    featureCollection.features[0].geometry.coordinates.push(coordinates)
+    return featureCollection;
+  }
+
   renderMap() {
     if (this.editing) {
       this.map = null;
@@ -386,30 +417,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
           let el = document.getElementById('delivery-map') as HTMLDivElement;
           this.map = new google.maps.Map(el, {zoom: 11, center: {lat, lng}});
         }
-        let featureCollection = {
-          "type": "FeatureCollection",
-          "name": "Qmenu RT Delivery Bounds Example",
-          "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
-          "features": [
-            {
-              "type": "Feature", "properties": { "Name": "Polygon", "description": null },
-              "geometry": { "type": "Polygon", "coordinates": [] }
-            }
-          ]
-        }
-        // check if only coordinates
-        let coordinates = JSON.parse(this.restaurant.deliveryArea);
-        if (!(coordinates instanceof Array)) {
-          featureCollection = coordinates;
-          coordinates = featureCollection.features[0].geometry.coordinates[0];
-        }
-        // check if self-closing
-        let first = coordinates[0], last = coordinates[coordinates.length - 1];
-        if (last[0] !== first[0] || last[1] !== first[1]) {
-          coordinates.push(first)
-        }
-        featureCollection.features[0].geometry.coordinates.push(coordinates)
-        this.map.data.addGeoJson(featureCollection);
+        this.map.data.addGeoJson(this.fillGeoJson(this.restaurant.deliveryArea));
       } else {
         if (this.map) {
           this.map = null;
