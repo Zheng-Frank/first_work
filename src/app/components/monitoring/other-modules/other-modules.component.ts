@@ -18,7 +18,7 @@ export class OtherModulesComponent implements OnInit {
       { name: 'Email Problems', route: 'email-problems', authRoles: ['CSR', 'CSR_MANAGER'] },
       { name: 'Restaurants Promotion', route: 'restaurants-promotion', authRoles: ['CSR', 'CSR_MANAGER'] },
       { name: 'Weird Data', route: 'weird-data', authRoles: ['CSR', 'CSR_MANAGER'] },
-      { name: 'Clean Insisted Link Restaurants', route: 'clean-insisted-link-rts', authRoles: ['CSR', 'CSR_MANAGER'] },
+      { name: 'Clean Insisted Link RTs', route: 'clean-insisted-link-rts', authRoles: ['CSR', 'CSR_MANAGER'] },
       { name: 'Excess SMS Notifications', route: 'excess-sms-notifications-rts', authRoles: ['CSR', 'CSR_MANAGER'] },
       { name: 'Clean Menus', route: 'clean-menus', authRoles: ['CSR', 'CSR_MANAGER'] },
       { name: 'Postmates Orders', route: 'postmates-orders', authRoles: ['CSR', 'CSR_MANAGER'] },
