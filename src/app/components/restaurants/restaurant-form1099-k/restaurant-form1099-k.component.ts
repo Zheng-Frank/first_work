@@ -56,7 +56,7 @@ export class Form1099KComponent implements OnInit {
           'id': this._global.user._id,
           'name': this._global.user.username,
           'source': 'CSR',
-          'module': 'Send Message'
+          'module': '1099K Form'
         }
       }
     }];
