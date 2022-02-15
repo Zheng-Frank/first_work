@@ -101,7 +101,7 @@
     </div>
     <div class="d-flex justify-content-end p-4">
       <button class="btn btn-secondary mr-2" (click)="sendEmailModal.hide()">Cancel</button>
-      <button class="btn btn-primary" (click)="sendPDFFormToRT()">Send</button>
+      <button class="btn btn-primary" (click)="sendPDFFormToRT()" [qLoading]="sendLoading">Send</button>
     </div>
   </q-modal>
   <!-- end with send email modal -->

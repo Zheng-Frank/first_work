@@ -35,18 +35,19 @@
   </div>
   <hr>
   <div class="form-inline mx-5 pl-1">
-    <label class="mx-2">Bulk File Operations</label>
+    <label class="mx-2">Bulk Action Tool</label>
     <select class="form-control" [(ngModel)]="bulkFileOperation">
       <option value="" disabled selectedtml> Choose an option... </option>
       <option *ngFor="let option of bulkFileOperations"> {{option}} </option>
     </select>
+    <label class="mx-2">for the year</label>
     <select class="form-control mx-2" [(ngModel)]="bulkOperationYear">
       <option value="" disabled selectedtml> Choose an option... </option>
       <option *ngFor="let year of bulkOperationYears"> {{year}} </option>
     </select>
     <button class="btn btn-primary mx-2" (click)="executeBulkFileOperation()"
       [disabled]="isMissingBulkFileAttributes()" [qLoading]="sendLoading">Execute</button>
-    {{ bulkFileOperation === '' ? '' : bulkFileOperation === bulkFileOperationTypes.Download? 'Bulk download functionality coming soon!' : 'Bulk send functionality coming soon!'}}
+    {{ bulkFileOperation === '' ? '' : bulkFileOperation === bulkFileOperationTypes.Download? 'Bulk download functionality coming soon!' : ''}}
   </div>
 </div>
 
