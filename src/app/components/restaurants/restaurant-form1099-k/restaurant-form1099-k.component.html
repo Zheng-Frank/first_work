@@ -42,13 +42,12 @@
       <li *ngIf="linkEntry[0]; else elseBlock">
         <ng-container *ngIf="linkEntry[0].required; else requiredBlock">
           <ng-container *ngIf="allAttributesPresent(); else missingAttributesBlock">
-            {{linkEntry[1]}} - Click to download this year's form
-            <button class="btn btn-link" (click)="renderPDFForm('qmenu',linkEntry[1])"> for qMenu
-              <i class="fa fa-download"></i></button>
-            <button class="btn btn-link" (click)="renderPDFForm('restaurant',linkEntry[1])"> for Restaurant
-              <i class="fa fa-download"></i></button>
-            <button class="btn btn-primary" (click)="openSendEmailModal(linkEntry[1])"
-              [disabled]="emails.length === 0">Send</button>
+            {{linkEntry[1]}} -
+            <a class="btn-link" (click)="renderPDFForm('qmenu',linkEntry[1])"> for qMenu
+              <i class="fa fa-download"></i></a>
+            <a class="btn-link ml-2" (click)="renderPDFForm('restaurant',linkEntry[1])"> for Restaurant
+              <i class="fa fa-download"></i></a>
+            <a class="btn-link ml-2" (click)="openSendEmailModal(linkEntry[1])">Send</a>
             <span *ngIf="linkEntry[0].sent" class="text-success">
               (Sent)
             </span>
@@ -71,17 +70,33 @@
     </ng-container>
   </ul>
   <!-- end with 1099k form list -->
-  <!-- start with send email modal -->
+  <!-- start with send emails modal -->
   <q-modal #sendEmailModal [size]="'lg'">
     <button type="button" class="close" (click)="sendEmailModal.hide()">
       <span>×</span>
     </button>
     <h4 class="text-center">Send PDF Form</h4>
     <hr>
-    <select class="form-control" [(ngModel)]="email">
-      <option *ngFor="let e of emails"> {{e}} </option>
-    </select>
+    <!-- start with email channels -->
+    <div *ngIf="allEmails.length > 0">
+      <div *ngFor="let email of allEmails">
+        <input type="checkbox" (change)="selectTarget($event, email)" [value]="email.value"
+          [checked]="targets.includes(email)">
+        <i class="fas fa-envelope-square"></i>
+        {{email.value}}
+        <ng-container *ngIf="email.notifications?.length">({{email.notifications?.join("/")}})</ng-container>
+      </div>
+    </div>
+    <div *ngIf="allEmails.length <= 0">
+      No message target found, please add the contact you need to the RT's contacts.
+    </div>
+    <!-- end with email channels -->
+    <!-- template has some input varible to fill in -->
     <div *ngIf="template">
+      <div class="mt-2" *ngFor="let field of template.inputs">
+        <label>{{field.label}}<span class="text-danger">*</span></label>
+        <input class="form-control" type="{{field.type || 'text'}}" [(ngModel)]="field.value">
+      </div>
       <div class="msg-content mt-2" [innerHTML]="sanitized(template.html)"></div>
     </div>
     <div class="d-flex justify-content-end p-4">

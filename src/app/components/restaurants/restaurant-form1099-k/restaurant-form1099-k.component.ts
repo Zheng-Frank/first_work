@@ -1,3 +1,4 @@
+import { HttpClient } from '@angular/common/http';
 import { DomSanitizer } from '@angular/platform-browser';
 import { AlertType } from 'src/app/classes/alert-type';
 import { GlobalService } from './../../../services/global.service';
@@ -23,14 +24,35 @@ export class Form1099KComponent implements OnInit {
   formLinks = [];
   showExplanation = false;
   emails = [];
-  email = '';
+  allEmails = [];
+  targets = [];
   template;
   noFormLinksData = false;
-  constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer, private _http: HttpClient) { }
 
   async ngOnInit() {
+
     this.populateFormLinks();
     this.populateEmails();
+  }
+
+  prunedRestaurantRequriedData() {
+    const rtTIN = this.restaurant.tin || null;
+    const payeeName = this.restaurant.payeeName || null;
+    const email = (this.restaurant.channels || []).filter(ch => ch.type === 'Email' && (ch.notifications || []).includes('Invoice')).map(ch => ch.value); // RT *must* have an invoice email channel
+    const ga = this.restaurant.googleAddress;
+    const streetAddress = `${ga.street_number} ${ga.route}`;
+    const cityStateZip = `${ga.locality}, ${ga.administrative_area_level_1} ${ga.postal_code}`
+    return {
+      _id: this.restaurant._id,
+      name: this.restaurant.name,
+      email,
+      streetAddress,
+      cityStateZip,
+      form1099k: this.restaurant.form1099k,
+      payeeName,
+      rtTIN,
+    };
   }
 
   fillMessageTemplate(template, dataset, regex = /\{\{([A-Z_]+)}}/g) {
@@ -41,56 +63,113 @@ export class Form1099KComponent implements OnInit {
     return this.sanitizer.bypassSecurityTrustHtml(origin);
   }
 
-  sendPDFFormToRT() {
-    this.template.value = this.email;
-    if (!this.template.value) {
-      return this._global.publishAlert(AlertType.Danger, 'Please select an valid email!');
-    }
-    const jobs = [{
-      'name': 'send-email',
-      'params': {
-        'to': this.template.value,
-        'subject': this.template.subject,
-        'html': this.template.html,
-        'trigger': {
-          'id': this._global.user._id,
-          'name': this._global.user.username,
-          'source': 'CSR',
-          'module': '1099K Form'
-        }
-      }
-    }];
+  async uploadPDF(year) {
+    let mediaUrl;
+    let rt = this.prunedRestaurantRequriedData();
+    let yearForm1099kData = (rt.form1099k || []).find(form => form.year === year);
+    const blob = await this.generatePDF("restaurant", rt, yearForm1099kData);
+    const currentFile = new File([blob] as BlobPart[], `${yearForm1099kData.year}_Form_1099K_${rt._id}_forRT.pdf`);
+    const apiPath = `utils/qmenu-uploads-s3-signed-url?file=${encodeURIComponent(currentFile.name)}`;
 
-    this._api.post(environment.qmenuApiUrl + 'events/add-jobs', jobs)
-      .subscribe(
-        () => {
-          this._global.publishAlert(AlertType.Success, 'Email message sent success');
-          // update send flag to know whether has sent email to rt
-          let new1099kRecords = JSON.parse(JSON.stringify(this.restaurant.form1099k));
-          new1099kRecords.forEach(record => {
-            if(record.year === this.template.year){
-              record.sent = true;
+    // Get presigned url
+    const response = await this._api.get(environment.appApiUrl + apiPath).toPromise();
+    const presignedUrl = response['url'];
+    const fileLocation = presignedUrl.slice(0, presignedUrl.indexOf('?'));
+
+    await this._http.put(presignedUrl, currentFile).toPromise();
+    // if it's already PDF, then we can directly send it to fax service.
+    // otherwise we need to get a PDF version of the uploaded file (fileLocation) from our renderer service
+    // please upload an image or text or html file for the following test
+    if (fileLocation.toLowerCase().endsWith('pdf')) {
+      mediaUrl = fileLocation;
+    } else {
+      mediaUrl = `${environment.utilsApiUrl}render-url?url=${encodeURIComponent(fileLocation)}&format=pdf`;
+    }
+    return mediaUrl;
+  }
+
+  async sendPDFFormToRT() {
+    try {
+      if (this.targets.length === 0) {
+        return this._global.publishAlert(AlertType.Danger, 'Please select an valid email!');
+      }
+      // fill inputs
+      let { inputs, html } = this.template;
+      if (inputs.some(field => !field.value)) {
+        return this._global.publishAlert(AlertType.Danger, `Please fill in necessary field!`);
+      }
+      if (inputs) {
+        inputs.forEach(field => {
+          if (html) {
+            html = field.apply(html, field.value);
+          }
+        });
+      }
+      let mediaUrl = await this.uploadPDF(this.template.year);
+
+      html = this.fillMessageTemplate(html, {
+        'AWS_FORM_1099K_LINK_HERE': mediaUrl
+      }, /%%(AWS_FORM_1099K_LINK_HERE)%%/g);
+
+      const jobs = this.targets.map(target => {
+        return {
+          'name': 'send-email',
+          'params': {
+            'to': target.value,
+            'subject': this.template.subject,
+            'html': html,
+            'trigger': {
+              'id': this._global.user._id,
+              'name': this._global.user.username,
+              'source': 'CSR',
+              'module': '1099K Form'
             }
-          });
-          this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
-            {
-              old: { _id: this.restaurant._id, form1099k: this.restaurant.form1099k },
-              new: { _id: this.restaurant._id, form1099k: new1099kRecords }
-            }
-          ]).toPromise();
-          this._global.publishAlert(
-            AlertType.Success,
-            `Updated Form 1099k records success!`
-          );
-          this.restaurant.form1099k = new1099kRecords;
-          this.populateFormLinks();
-          this.sendEmailModal.hide();
-        },
-        error => {
-          console.log(error);
-          this._global.publishAlert(AlertType.Danger, 'Email message sent failed!');
+          }
         }
-      );
+      });
+
+      this._api.post(environment.qmenuApiUrl + 'events/add-jobs', jobs)
+        .subscribe(
+          () => {
+            this._global.publishAlert(AlertType.Success, 'Email message sent success');
+            // update send flag to know whether has sent email to rt
+            let new1099kRecords = JSON.parse(JSON.stringify(this.restaurant.form1099k));
+            new1099kRecords.forEach(record => {
+              if (record.year === this.template.year) {
+                record.sent = true;
+              }
+            });
+            this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+              {
+                old: { _id: this.restaurant._id },
+                new: { _id: this.restaurant._id, form1099k: new1099kRecords }
+              }
+            ]).toPromise();
+            this._global.publishAlert(
+              AlertType.Success,
+              `Updated Form 1099k records success!`
+            );
+            this.restaurant.form1099k = new1099kRecords;
+            this.populateFormLinks();
+            this.sendEmailModal.hide();
+          },
+          error => {
+            console.log(error);
+            this._global.publishAlert(AlertType.Danger, 'Email message sent failed!');
+          }
+        );
+    } catch (error) {
+      this.sendEmailModal.hide();
+      console.log("File uploading fail due to network error, please refresh the page and retry again!");
+    }
+  }
+
+  selectTarget(e, target) {
+    if (e.target.checked) {
+      this.targets.push(target);
+    } else {
+      this.targets = this.targets.filter(x => x !== target);
+    }
   }
 
   openSendEmailModal(year) {
@@ -98,12 +177,24 @@ export class Form1099KComponent implements OnInit {
       'LAST_YEAR': year,
       'RT_NAME': this.restaurant.name
     }
-    this.email = '';
+    this.targets = [];
+    this.allEmails = (this.restaurant.channels || []).filter(ch => ch.type === 'Email');
+    // if invoice emails, set them to target by default
+    this.allEmails.forEach(email => {
+      if ((email.notifications || []).includes('Invoice')) {
+        this.targets.push(email);
+      }
+    });
     this.template = {
-      value: this.email,
       subject: `1099-K Form for ${year}`,
       html: this.fillMessageTemplate(form1099kEmailTemplate, dataset),
-      year: year
+      year: year,
+      inputs: [
+        {
+          label: "Restaurant Name",
+          value: this.restaurant.name,
+          apply: (tpl, value) => this.fillMessageTemplate(tpl, { "RT_NAME": value }, /%%(RT_NAME)%%/g)
+        }]
     }
     this.sendEmailModal.show();
   }
@@ -119,6 +210,7 @@ export class Form1099KComponent implements OnInit {
         this.formLinks.push([null, year]);
       }
     }
+    this.formLinks.sort((a, b) => b[1] - a[1]);
   }
 
   populateEmails() {
@@ -272,25 +364,7 @@ export class Form1099KComponent implements OnInit {
     this.populateFormLinks();
   }
 
-  // download PDF according to target
-  async renderPDFForm(target, year) {
-    const rtTIN = this.restaurant.tin || null;
-    const payeeName = this.restaurant.payeeName || null;
-    const email = (this.restaurant.channels || []).filter(ch => ch.type === 'Email' && (ch.notifications || []).includes('Invoice')).map(ch => ch.value); // RT *must* have an invoice email channel
-    const ga = this.restaurant.googleAddress;
-    const streetAddress = `${ga.street_number} ${ga.route}`;
-    const cityStateZip = `${ga.locality}, ${ga.administrative_area_level_1} ${ga.postal_code}`
-    let rt = {
-      name: this.restaurant.name,
-      email,
-      streetAddress,
-      cityStateZip,
-      form1099k: this.restaurant.form1099k,
-      payeeName,
-      rtTIN,
-    }
-    let yearForm1099kData = (rt.form1099k || []).find(form => form.year === year);
-
+  async generatePDF(target, rt, yearForm1099kData) {
     let formTemplateUrl;
     if (target === 'qmenu') {
       formTemplateUrl = "../../../../assets/form1099k/form1099k_qmenu.pdf";
@@ -381,10 +455,19 @@ export class Form1099KComponent implements OnInit {
     }
 
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    return blob;
+  }
 
+  // download PDF according to target
+  async renderPDFForm(target, year) {
+    let rt = this.prunedRestaurantRequriedData();
+    let yearForm1099kData = (rt.form1099k || []).find(form => form.year === year);
+    const blob = await this.generatePDF(target, rt, yearForm1099kData);
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
-    link.download = `f1099k_${yearForm1099kData.year}_${rt.name}_for${target === 'qmenu' ? '_qmenu' : '_restaurant'}.pdf`;
+    // 2021_Form_1099K_58ba1a8d9b4e441100d8cdc1_forRT.pdf
+    // 2021_Form_1099K_58ba1a8d9b4e441100d8cdc1_forQM.pdf
+    link.download = `${yearForm1099kData.year}_Form_1099K_${rt._id}_for${target === 'qmenu' ? 'QM' : 'RT'}.pdf`
     link.click();
   }
 

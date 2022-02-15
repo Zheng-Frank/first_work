@@ -61,11 +61,14 @@ const form1099kEmailTemplate = `
 		<div class="qmenu-tpl-body">
 			<div class="article">
 				<p>Subject : <span class="underline">  1099-K Form for  {{LAST_YEAR}}</span></p>
-				<p>Dear : <span class="underline">  {{RT_NAME}}  </span></p>
+				<p>Dear %%RT_NAME%%,</p>
 				<p>
 					You have received this 1099-K Form for tax year {{LAST_YEAR}} (attached) because qMenu has collected and disbursed credit card payments 
 					for your restaurant during {{LAST_YEAR}} that meet the transaction amount threshold requiring the submission of this form.
 					You can visit this website for more information: www.irs.gov/Form1099K.
+				</p>
+				<p>
+					Form link: %%AWS_FORM_1099K_LINK_HERE%%
 				</p>
 				<p>
 					qMenu recommends that all restaurant owners verify the Payee Name, Payee TIN and Address listed on the form.

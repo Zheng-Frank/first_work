@@ -1,5 +1,4 @@
-<h2 class="text-center">IRS Form 1099K Dashboard</h2>
-<div class="text-center">RTs with Form 1099K: "{{filteredRows.length}}"</div>
+<h2 class="text-center">IRS Form 1099K Dashboard ({{filteredRows.length}})</h2>
 
 <div class="my-2">
   <div class="form-inline mx-5">
@@ -42,7 +41,8 @@
     <select class="form-control mx-2" [(ngModel)]="executionYear">
       <option *ngFor="let year of executionYears"> {{year}} </option>
     </select>
-    <button class="btn btn-primary mx-2" (click)="execute()"><i class="fas fa-sync"></i> Execute</button>
+    <button class="btn btn-primary mx-2" (click)="execute()">Execute</button>
+    {{executionOption === executionOptionTypes.Download? 'Bulk download functionality coming soon!' : 'Bulk send functionality coming soon!'}}
   </div>
 
   <!-- <div class="form-inline mt-2" style="width: 100%;">
@@ -115,11 +115,12 @@
           <div *ngIf="allAttributesPresent(row); else missingAttributesBlock">
             <div *ngFor="let form of (row.form1099k  || [])">
               <ng-container *ngIf="form.required;else requiredBlock">
-                {{form.year}} Form:
-                <button class="btn btn-link" (click)="renderPDFForm(row, form, 'qmenu')"> for qMenu <i
-                    class="fa fa-download"></i></button>
-                <button class="btn btn-link" (click)="renderPDFForm(row, form, 'restaurant')"> for
-                  Restaurant <i class="fa fa-download"></i></button>
+                {{form.year}} - 
+                <a class="btn-link" (click)="renderPDFForm(row, form, 'qmenu')"> for qMenu <i
+                    class="fa fa-download"></i></a>
+                <a class="btn-link ml-2" (click)="renderPDFForm(row, form, 'restaurant')"> for
+                  Restaurant <i class="fa fa-download"></i></a>
+                <a class="btn-link ml-2">Send</a>
               </ng-container>
               <ng-template #requiredBlock>
                 <div class="text-left">

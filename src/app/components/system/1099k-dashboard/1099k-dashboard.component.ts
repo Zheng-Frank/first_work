@@ -95,6 +95,10 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     }
   }
 
+  get executionOptionTypes(){
+    return executionOptionTypes;
+  }
+
   ngOnDestroy() {
     if (this.timer) {
       clearInterval(this.timer);
