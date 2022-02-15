@@ -55,22 +55,22 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     '2020',
   ];
   taxYear = 'All';
-  
+
   openOptions = [openRTOptionTypes.All, openRTOptionTypes.Open, openRTOptionTypes.Not_Open];
   openOption = openRTOptionTypes.All;
-  
+
   missPayeeOptions = [missPayeeOptionTypes.All, missPayeeOptionTypes.Missing_Payee, missPayeeOptionTypes.Has_Payee];
   missPayeeOption = missPayeeOptionTypes.All;
-  
+
   missTINOptions = [missTINOptionTypes.All, missTINOptionTypes.Missing_TIN, missTINOptionTypes.Has_TIN];
   missTINOption = missTINOptionTypes.All;
-  
+
   missingEmailOptions = [missingEmailOptionTypes.All, missingEmailOptionTypes.Missing_Email, missingEmailOptionTypes.Has_Email];
   missingEmailOption = missingEmailOptionTypes.All;
-  
+
   bulkFileOperations = [bulkFileOperationTypes.Download, bulkFileOperationTypes.Send];
   bulkFileOperation = '';
-  
+
   bulkOperationYears = [
     '2021',
     '2020',
@@ -90,6 +90,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   template;
   currRow;
   currForm;
+  sendLoading = false;
   constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer, private _http: HttpClient) { }
 
   async ngOnInit() {
@@ -97,6 +98,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     this.timer = setInterval(() => {
       this.now = new Date();
       this.rows = this.restaurants.map(rt => this.turnRtObjectIntoRow(rt));
+      this.filterRows();
     }, this.refreshDataInterval);
     await this.get1099KData();
     this.filterRows();
@@ -120,9 +122,112 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   }
 
   async bulkSendFilesToRTs(year) {
-
     // https://stackoverflow.com/questions/11098285/sending-email-with-attachment-using-amazon-ses
     // documentation regarding Amazon SES Raw Email (AWS email service that allows attachments)
+    // 1. filter row whose form1099k sent flag is false and has all necessary attributes
+    this.sendLoading = true;
+    let notSendRows = this.rows.filter(row => (row.form1099k || []).some(form => form.year === +year && !form.sent) && this.allAttributesPresent(row));
+    let templates = [];
+
+    notSendRows.forEach(row => {
+      let yearForm1099kData = (row.form1099k || []).find(form => form.year === +year);
+      let dataset = {
+        'LAST_YEAR': yearForm1099kData.year,
+        'RT_NAME': row.name
+      }
+      templates.push({
+        row: row,
+        form: yearForm1099kData,
+        subject: `1099-K Form for ${yearForm1099kData.year}`,
+        html: this.fillMessageTemplate(form1099kEmailTemplate, dataset),
+        inputs: [
+          {
+            label: "Restaurant Name",
+            value: row.name,
+            apply: (tpl, value) => this.fillMessageTemplate(tpl, { "RT_NAME": value }, /%%(RT_NAME)%%/g)
+          }]
+      });
+    });
+    for (let i = 0; i < templates.length; i++) {
+      let template = templates[i];
+      this.currRow = template.row;
+      this.currForm = template.form;
+      // fill in rt name
+      let { inputs, html } = template;
+      inputs.forEach(field => {
+        templates[i].html = field.apply(html, field.value);
+      });
+      // upload pdf
+      try {
+        let mediaUrl = await this.uploadPDF();
+        templates[i].html = this.fillMessageTemplate(templates[i].html, {
+          'AWS_FORM_1099K_LINK_HERE': mediaUrl
+        }, /%%(AWS_FORM_1099K_LINK_HERE)%%/g);
+      } catch (error) {
+        templates[i]['error'] = 'File Upload Error'
+      }
+    }
+
+    let jobs = [];
+    let canSendEmailTemplates = templates.filter(template => template.error !== 'File Upload Error');
+    canSendEmailTemplates.forEach(template => {
+      template.row.email.forEach(email => {
+        jobs.push({
+          'name': 'send-email',
+          'params': {
+            'to': email,
+            'subject': template.subject,
+            'html': template.html,
+            'trigger': {
+              'id': this._global.user._id,
+              'name': this._global.user.username,
+              'source': 'CSR',
+              'module': '1099K Form'
+            }
+          }
+        });
+      })
+    });
+
+    this._api.post(environment.qmenuApiUrl + 'events/add-jobs', jobs)
+      .subscribe(
+        () => {
+          this._global.publishAlert(AlertType.Success, `${canSendEmailTemplates.length} Email message sent success with ${notSendRows.length} should send!`);
+          // update send flag to know whether has sent email to rt
+          let oldNewPairs = [];
+          canSendEmailTemplates.forEach(template => {
+            let new1099kRecords = JSON.parse(JSON.stringify(template.row.form1099k));
+            new1099kRecords.forEach(record => {
+              if (record.year === template.form.year) {
+                record.sent = true;
+              }
+            });
+            oldNewPairs.push({
+              old: { _id: template.row.id },
+              new: { _id: template.row.id, form1099k: new1099kRecords }
+            });
+          });
+
+          this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', oldNewPairs)
+            .toPromise();
+          // update form 1099k of local row datas
+          oldNewPairs.forEach(oldNewPair => {
+            this.restaurants.forEach(rt => {
+              if (rt._id === oldNewPair.new._id) {
+                rt.form1099k = oldNewPair.new.form1099k;
+              }
+            });
+          });
+          this.rows = this.restaurants.map(rt => this.turnRtObjectIntoRow(rt));
+          this.filterRows();
+          this.sendLoading = false;
+        },
+        error => {
+          console.log(error);
+          this.sendLoading = false;
+          this._global.publishAlert(AlertType.Danger, 'Email message sent failed!');
+        }
+      );
   }
 
   sanitized(origin) {
@@ -166,6 +271,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       if (inputs.some(field => !field.value)) {
         return this._global.publishAlert(AlertType.Danger, `Please fill in necessary field!`);
       }
+      this.sendLoading = true;
       if (inputs) {
         inputs.forEach(field => {
           if (html) {
@@ -217,27 +323,25 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
             this.restaurants.forEach(rt => {
               if (rt._id === this.currRow.id) {
                 rt.form1099k = new1099kRecords;
-                console.log(rt._id);
-                console.log(rt.form1099k);
-                console.log("update 1099k form of this row");
               }
             });
-            console.log(JSON.stringify(this.restaurants.find(rt=>rt._id === "607f65cc7be8086f2975b0f5")));
-            
-            console.log(JSON.stringify(this.rows.find(row=>row.id === "607f65cc7be8086f2975b0f5")));
             this.rows = this.restaurants.map(rt => this.turnRtObjectIntoRow(rt));
-            console.log(JSON.stringify(this.rows.find(row=>row.id === "607f65cc7be8086f2975b0f5")));
+            this.filterRows();
+            this.sendLoading = false;
             this.sendEmailModal.hide();
           },
           error => {
             console.log(error);
+            this.sendLoading = false;
             this._global.publishAlert(AlertType.Danger, 'Email message sent failed!');
           }
         );
     } catch (error) {
+      this.sendLoading = false;
       this.sendEmailModal.hide();
-      console.log("File uploading fail due to network error, please refresh the page and retry again!");
+      this._global.publishAlert(AlertType.Danger, "File uploading fail due to network error, please refresh the page and retry again!");
     }
+    // console.log(JSON.stringify(this.rows.find(row => row.id === "607f65cc7be8086f2975b0f5")));
   }
 
   selectTarget(e, target) {
@@ -577,6 +681,6 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     link.click();
   }
 
- 
+
 }
 

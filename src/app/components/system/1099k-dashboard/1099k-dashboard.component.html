@@ -45,7 +45,7 @@
       <option *ngFor="let year of bulkOperationYears"> {{year}} </option>
     </select>
     <button class="btn btn-primary mx-2" (click)="executeBulkFileOperation()"
-      [disabled]="isMissingBulkFileAttributes()">Execute</button>
+      [disabled]="isMissingBulkFileAttributes()" [qLoading]="sendLoading">Execute</button>
     {{ bulkFileOperation === '' ? '' : bulkFileOperation === bulkFileOperationTypes.Download? 'Bulk download functionality coming soon!' : 'Bulk send functionality coming soon!'}}
   </div>
 </div>
@@ -71,8 +71,8 @@
           {{row.openOrNot?'Open':'Closed'}}
         </span>
       </div>
-      <div class="card-text d-flex">
-        <span class="py2 text-left">
+      <div class="card-text row">
+        <span class="col-9">
           <div>
             <b>TIN: </b>
             <b class="text-danger" *ngIf="!row.rtTIN">Attribute Missing</b>
@@ -95,7 +95,7 @@
             </ng-template>
           </div>
         </span>
-        <span class="py-2 download-box">
+        <span class="col-3">
           <div *ngFor="let form of (row.form1099k  || [])">
             <ng-container *ngIf="form.required;else requiredBlock">
               {{form.year}} -
@@ -156,7 +156,7 @@
     </div>
     <div class="d-flex justify-content-end p-4">
       <button class="btn btn-secondary mr-2" (click)="sendEmailModal.hide()">Cancel</button>
-      <button class="btn btn-primary" (click)="sendPDFFormToRT()">Send</button>
+      <button class="btn btn-primary" (click)="sendPDFFormToRT()" [qLoading]="sendLoading">Send</button>
     </div>
   </q-modal>
   <!-- end with send email modal -->

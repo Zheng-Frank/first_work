@@ -27,6 +27,7 @@ export class Form1099KComponent implements OnInit {
   allEmails = [];
   targets = [];
   template;
+  sendLoading = false;
   constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer, private _http: HttpClient) { }
 
   async ngOnInit() {
@@ -96,6 +97,7 @@ export class Form1099KComponent implements OnInit {
       if (inputs.some(field => !field.value)) {
         return this._global.publishAlert(AlertType.Danger, `Please fill in necessary field!`);
       }
+      this.sendLoading = true;
       if (inputs) {
         inputs.forEach(field => {
           if (html) {
@@ -145,14 +147,17 @@ export class Form1099KComponent implements OnInit {
             ]).toPromise();
             this.restaurant.form1099k = new1099kRecords;
             this.populateFormLinks();
+            this.sendLoading = false;
             this.sendEmailModal.hide();
           },
           error => {
             console.log(error);
+            this.sendLoading = false;
             this._global.publishAlert(AlertType.Danger, 'Email message sent failed!');
           }
         );
     } catch (error) {
+      this.sendLoading = false;
       this.sendEmailModal.hide();
       console.log("File uploading fail due to network error, please refresh the page and retry again!");
     }
