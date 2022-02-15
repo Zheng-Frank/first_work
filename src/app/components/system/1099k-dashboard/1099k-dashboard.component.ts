@@ -192,7 +192,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     this._api.post(environment.qmenuApiUrl + 'events/add-jobs', jobs)
       .subscribe(
         () => {
-          this._global.publishAlert(AlertType.Success, `${canSendEmailTemplates.length} Email message sent success with ${notSendRows.length} should send!`);
+          this._global.publishAlert(AlertType.Success, `${canSendEmailTemplates.length} restaurants sent email message success with ${notSendRows.length} should send!`);
           // update send flag to know whether has sent email to rt
           let oldNewPairs = [];
           canSendEmailTemplates.forEach(template => {
@@ -341,7 +341,6 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       this.sendEmailModal.hide();
       this._global.publishAlert(AlertType.Danger, "File uploading fail due to network error, please refresh the page and retry again!");
     }
-    // console.log(JSON.stringify(this.rows.find(row => row.id === "607f65cc7be8086f2975b0f5")));
   }
 
   selectTarget(e, target) {
