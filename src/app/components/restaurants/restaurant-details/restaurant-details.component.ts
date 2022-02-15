@@ -507,10 +507,18 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     if (this.restaurant.gmbOwnerHistory && this.restaurant.gmbOwnerHistory.length > 0) {
       this.restaurant.gmbOwnerHistory.sort((a, b) => new Date(b.time).valueOf() - new Date(a.time).valueOf());
       return this.restaurant.gmbOwnerHistory[0].gmbOwner === 'qmenu';
-    } else {
-      return false;
     }
+    return false;
   }
+
+  hasQMWebsiteOnPresent() {
+    if (this.restaurant.web) {
+      let { qmenuWebsite, bizManagedWebsite } = this.restaurant.web
+      return qmenuWebsite && bizManagedWebsite && qmenuWebsite === bizManagedWebsite;
+    }
+    return false;
+  }
+
   // show count of invoices of invoices tab
   async getInvoicesCountOfRT() {
     const [count] = await this._api

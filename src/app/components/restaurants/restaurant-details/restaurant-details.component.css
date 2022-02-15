@@ -44,3 +44,19 @@ h1 {
     color: white !important;
     text-decoration: underline;
 }
+
+.dot-lg {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 12px;
+  line-height: 6px;
+  text-align: center;
+}
+
+.dot-sm {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 4px;
+}
