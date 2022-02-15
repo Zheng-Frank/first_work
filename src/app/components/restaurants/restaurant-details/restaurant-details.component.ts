@@ -204,6 +204,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   invoicesCount = 0;
   openDate;
   earliestInvoiceDueDate;
+  hasGMBWebsite = false;
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
     const tabVisibilityRolesMap = {
@@ -511,12 +512,42 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  hasQMWebsiteOnPresent() {
-    if (this.restaurant.web) {
-      let { qmenuWebsite, bizManagedWebsite } = this.restaurant.web
-      return qmenuWebsite && bizManagedWebsite && qmenuWebsite === bizManagedWebsite;
+  async computeGMBWebsite() {
+    const bizs = (await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      query: {
+        $or: [
+          { qmenuId: this.restaurant.id || this.restaurant['_id'] },
+          { place_id: (this.restaurant.googleListing || {}).place_id || "junk place id" },
+        ]
+      },
+      projection: {cid: 1},
+      limit: 10
+    }).toPromise());
+
+    let main = bizs.find(x => this.restaurant.googleListing && x.cid === this.restaurant.googleListing.cid) || bizs[0];
+    if (main) {
+      const accounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbAccount',
+        aggregate: [
+          { $match: { "locations.cid": main.cid } },
+          {
+            $project: {
+              locations: {
+                $filter: {
+                  input: "$locations",
+                  as: "location",
+                  cond: { "$eq": ["$$location.cid", main.cid] }
+                },
+              }
+            }
+          },
+        ]
+      }).toPromise();
+      this.hasGMBWebsite = accounts.some(acc => (acc.locations || []).some(loc => loc.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].includes(loc.role)))
+    } else {
+      this.hasGMBWebsite = false;
     }
-    return false;
   }
 
   // show count of invoices of invoices tab
@@ -742,6 +773,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
             this.getInvoicesCountOfRT();
           }
           this.getDelinquentDates();
+          this.computeGMBWebsite()
         },
         error => {
           this.apiRequesting = false;

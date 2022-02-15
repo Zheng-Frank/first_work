@@ -46,12 +46,20 @@ h1 {
 }
 
 .dot-lg {
-  display: inline-block;
+  display: inline-flex;
   width: 12px;
   height: 12px;
   border-radius: 12px;
-  line-height: 6px;
-  text-align: center;
+  align-items: center;
+  justify-content: center;
+}
+
+.dot-green {
+  background: springgreen;
+}
+
+.dot-red {
+  background: red;
 }
 
 .dot-sm {
