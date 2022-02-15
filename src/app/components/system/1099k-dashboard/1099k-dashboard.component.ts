@@ -1,10 +1,14 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { DomSanitizer } from '@angular/platform-browser';
+import { HttpClient } from '@angular/common/http';
+import { AlertType } from 'src/app/classes/alert-type';
+import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { PDFDocument } from "pdf-lib";
 import { TimezoneHelper, Hour } from "@qmenu/ui";
-
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { form1099kEmailTemplate } from '../../restaurants/restaurant-form1099-k/html-email-templates';
 enum openRTOptionTypes {
   All = 'Open now?',
   Open = 'Open',
@@ -29,7 +33,7 @@ enum missingEmailOptionTypes {
   Has_Email = 'Has Email'
 }
 
-enum executionOptionTypes {
+enum bulkFileOperationTypes {
   Download = 'Download forms for Qmenu use',
   Send = 'Send forms to all restaurants'
 }
@@ -40,6 +44,8 @@ enum executionOptionTypes {
   styleUrls: ["./1099k-dashboard.component.scss"]
 })
 export class Dashboard1099KComponent implements OnInit, OnDestroy {
+  @ViewChild('sendEmailModal') sendEmailModal: ModalComponent;
+
   rows = [];
   filteredRows = [];
   taxYearOptions = [
@@ -48,25 +54,28 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     '2021',
     '2020',
   ];
-  executionYears = [
+  taxYear = 'All';
+  
+  openOptions = [openRTOptionTypes.All, openRTOptionTypes.Open, openRTOptionTypes.Not_Open];
+  openOption = openRTOptionTypes.All;
+  
+  missPayeeOptions = [missPayeeOptionTypes.All, missPayeeOptionTypes.Missing_Payee, missPayeeOptionTypes.Has_Payee];
+  missPayeeOption = missPayeeOptionTypes.All;
+  
+  missTINOptions = [missTINOptionTypes.All, missTINOptionTypes.Missing_TIN, missTINOptionTypes.Has_TIN];
+  missTINOption = missTINOptionTypes.All;
+  
+  missingEmailOptions = [missingEmailOptionTypes.All, missingEmailOptionTypes.Missing_Email, missingEmailOptionTypes.Has_Email];
+  missingEmailOption = missingEmailOptionTypes.All;
+  
+  bulkFileOperations = [bulkFileOperationTypes.Download, bulkFileOperationTypes.Send];
+  bulkFileOperation = '';
+  
+  bulkOperationYears = [
     '2021',
     '2020',
   ];
-  executionYear = '2021';
-  openOptions = [openRTOptionTypes.All, openRTOptionTypes.Open, openRTOptionTypes.Not_Open];
-  openOption = openRTOptionTypes.All;
-  missPayeeOptions = [missPayeeOptionTypes.All, missPayeeOptionTypes.Missing_Payee, missPayeeOptionTypes.Has_Payee];
-  missPayeeOption = missPayeeOptionTypes.All;
-  missTINOptions = [missTINOptionTypes.All, missTINOptionTypes.Missing_TIN, missTINOptionTypes.Has_TIN];
-  missTINOption = missTINOptionTypes.All;
-  missingEmailOptions = [missingEmailOptionTypes.All, missingEmailOptionTypes.Missing_Email, missingEmailOptionTypes.Has_Email];
-  missingEmailOption = missingEmailOptionTypes.All;
-  executionOptions = [executionOptionTypes.Download, executionOptionTypes.Send];
-  executionOption = executionOptionTypes.Download;
-  bulkFileOperation;
-  bulkOperationYear;
-
-  taxYear = 'All';
+  bulkOperationYear = '';
 
   searchFilter;
 
@@ -75,7 +84,13 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   timer;
   refreshDataInterval = 1 * 60 * 1000;
   restaurants = [];
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+  // send pdf emails
+  allEmails = [];
+  targets = [];
+  template;
+  currRow;
+  currForm;
+  constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer, private _http: HttpClient) { }
 
   async ngOnInit() {
     // refresh the page every hour
@@ -87,16 +102,183 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     this.filterRows();
   }
 
-  excute() {
-    if (this.executionOption === executionOptionTypes.Download) {
-
+  executeBulkFileOperation() {
+    if (this.bulkFileOperation === bulkFileOperationTypes.Download) {
+      this.bulkQMenuDownload(this.bulkOperationYear);
     } else {
-
+      this.bulkSendFilesToRTs(this.bulkOperationYear);
     }
   }
 
-  get executionOptionTypes(){
-    return executionOptionTypes;
+  isMissingBulkFileAttributes() {
+    return !this.bulkFileOperation || !this.bulkOperationYear;
+  }
+
+  async bulkQMenuDownload(year) {
+    console.log(`bulk qmenu download ${year}`);
+
+  }
+
+  async bulkSendFilesToRTs(year) {
+
+    // https://stackoverflow.com/questions/11098285/sending-email-with-attachment-using-amazon-ses
+    // documentation regarding Amazon SES Raw Email (AWS email service that allows attachments)
+  }
+
+  sanitized(origin) {
+    return this.sanitizer.bypassSecurityTrustHtml(origin);
+  }
+
+  fillMessageTemplate(template, dataset, regex = /\{\{([A-Z_]+)}}/g) {
+    return template.replace(regex, (_, p1) => dataset[p1]);
+  }
+
+  async uploadPDF() {
+    let mediaUrl;
+    const blob = await this.generatePDF("restaurant", this.currRow, this.currForm);
+    const currentFile = new File([blob] as BlobPart[], `${this.currForm.year}_Form_1099K_${this.currRow.id}_forRT.pdf`);
+    const apiPath = `utils/qmenu-uploads-s3-signed-url?file=${encodeURIComponent(currentFile.name)}`;
+
+    // Get presigned url
+    const response = await this._api.get(environment.appApiUrl + apiPath).toPromise();
+    const presignedUrl = response['url'];
+    const fileLocation = presignedUrl.slice(0, presignedUrl.indexOf('?'));
+
+    await this._http.put(presignedUrl, currentFile).toPromise();
+    // if it's already PDF, then we can directly send it to fax service.
+    // otherwise we need to get a PDF version of the uploaded file (fileLocation) from our renderer service
+    // please upload an image or text or html file for the following test
+    if (fileLocation.toLowerCase().endsWith('pdf')) {
+      mediaUrl = fileLocation;
+    } else {
+      mediaUrl = `${environment.utilsApiUrl}render-url?url=${encodeURIComponent(fileLocation)}&format=pdf`;
+    }
+    return mediaUrl;
+  }
+
+  async sendPDFFormToRT() {
+    try {
+      if (this.targets.length === 0) {
+        return this._global.publishAlert(AlertType.Danger, 'Please select an valid email!');
+      }
+      // fill inputs
+      let { inputs, html } = this.template;
+      if (inputs.some(field => !field.value)) {
+        return this._global.publishAlert(AlertType.Danger, `Please fill in necessary field!`);
+      }
+      if (inputs) {
+        inputs.forEach(field => {
+          if (html) {
+            html = field.apply(html, field.value);
+          }
+        });
+      }
+      let mediaUrl = await this.uploadPDF();
+
+      html = this.fillMessageTemplate(html, {
+        'AWS_FORM_1099K_LINK_HERE': mediaUrl
+      }, /%%(AWS_FORM_1099K_LINK_HERE)%%/g);
+
+      const jobs = this.targets.map(target => {
+        return {
+          'name': 'send-email',
+          'params': {
+            'to': target.value,
+            'subject': this.template.subject,
+            'html': html,
+            'trigger': {
+              'id': this._global.user._id,
+              'name': this._global.user.username,
+              'source': 'CSR',
+              'module': '1099K Form'
+            }
+          }
+        }
+      });
+
+      this._api.post(environment.qmenuApiUrl + 'events/add-jobs', jobs)
+        .subscribe(
+          () => {
+            this._global.publishAlert(AlertType.Success, 'Email message sent success');
+            // update send flag to know whether has sent email to rt
+            let new1099kRecords = JSON.parse(JSON.stringify(this.currRow.form1099k));
+            new1099kRecords.forEach(record => {
+              if (record.year === this.template.year) {
+                record.sent = true;
+              }
+            });
+            this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+              {
+                old: { _id: this.currRow.id },
+                new: { _id: this.currRow.id, form1099k: new1099kRecords }
+              }
+            ]).toPromise();
+            // update form 1099k of local row datas
+            this.restaurants.forEach(rt => {
+              if (rt._id === this.currRow.id) {
+                rt.form1099k = new1099kRecords;
+                console.log(rt._id);
+                console.log(rt.form1099k);
+                console.log("update 1099k form of this row");
+              }
+            });
+            console.log(JSON.stringify(this.restaurants.find(rt=>rt._id === "607f65cc7be8086f2975b0f5")));
+            
+            console.log(JSON.stringify(this.rows.find(row=>row.id === "607f65cc7be8086f2975b0f5")));
+            this.rows = this.restaurants.map(rt => this.turnRtObjectIntoRow(rt));
+            console.log(JSON.stringify(this.rows.find(row=>row.id === "607f65cc7be8086f2975b0f5")));
+            this.sendEmailModal.hide();
+          },
+          error => {
+            console.log(error);
+            this._global.publishAlert(AlertType.Danger, 'Email message sent failed!');
+          }
+        );
+    } catch (error) {
+      this.sendEmailModal.hide();
+      console.log("File uploading fail due to network error, please refresh the page and retry again!");
+    }
+  }
+
+  selectTarget(e, target) {
+    if (e.target.checked) {
+      this.targets.push(target);
+    } else {
+      this.targets = this.targets.filter(x => x !== target);
+    }
+  }
+
+  openSendEmailModal(row, form) {
+    this.currRow = row;
+    this.currForm = form;
+    let dataset = {
+      'LAST_YEAR': this.currForm.year,
+      'RT_NAME': this.currRow.name
+    }
+    this.targets = [];
+    this.allEmails = (this.currRow.channels || []).filter(ch => ch.type === 'Email');
+    // if invoice emails, set them to target by default
+    this.allEmails.forEach(email => {
+      if ((email.notifications || []).includes('Invoice')) {
+        this.targets.push(email);
+      }
+    });
+    this.template = {
+      subject: `1099-K Form for ${this.currForm.year}`,
+      html: this.fillMessageTemplate(form1099kEmailTemplate, dataset),
+      year: this.currForm.year,
+      inputs: [
+        {
+          label: "Restaurant Name",
+          value: row.name,
+          apply: (tpl, value) => this.fillMessageTemplate(tpl, { "RT_NAME": value }, /%%(RT_NAME)%%/g)
+        }]
+    }
+    this.sendEmailModal.show();
+  }
+
+  get bulkFileOperationTypes() {
+    return bulkFileOperationTypes;
   }
 
   ngOnDestroy() {
@@ -258,51 +440,40 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     }
   }
 
-  async submitTIN(event, rowIndex) {
-    this.filteredRows[rowIndex].rtTIN = event.newValue;
-
-    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
-      {
-        old: { _id: this.filteredRows[rowIndex].id },
-        new: { _id: this.filteredRows[rowIndex].id, tin: event.newValue }
-      }
-    ]).toPromise();
-  }
-
-  async submitPayee(event, rowIndex) {
-    this.filteredRows[rowIndex].payeeName = event.newValue;
-
-    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
-      {
-        old: { _id: this.filteredRows[rowIndex].id },
-        new: { _id: this.filteredRows[rowIndex].id, payeeName: event.newValue }
-      }
-    ]).toPromise();
-  }
-
-  async submitEmail(event, rowIndex) {
-    /* we only allow user to submit email if one does not already exist. 
-    to avoid possible confusion, will not allow users to edit existing channels from this component*/
-    const newChannel = {
-      type: 'Email',
-      value: event.newValue,
-      notifications: ['Invoice']
+  async onEdit(event, rowIndex, field) {
+    let newObj = { _id: this.filteredRows[rowIndex].id };
+    if (field === 'rtTIN') {
+      this.filteredRows[rowIndex].rtTIN = newObj['tin'] = event.newValue;
     }
-    this.filteredRows[rowIndex].email = [newChannel.value];
+    if (field === 'payeeName') {
+      this.filteredRows[rowIndex].payeeName = newObj['payeeName'] = event.newValue;
+    }
+    if (field === 'Email') {
+      /* we only allow user to submit email if one does not already exist. 
+      to avoid possible confusion, will not allow users to edit existing channels from this component*/
+      /* we only allow user to submit email if one does not already exist. 
+   to avoid possible confusion, will not allow users to edit existing channels from this component*/
+      const newChannel = {
+        type: 'Email',
+        value: event.newValue,
+        notifications: ['Invoice']
+      }
+      this.filteredRows[rowIndex].email = [newChannel.value];
 
-    const oldChannels = this.filteredRows[rowIndex].channels;
-    const newChannels = [...oldChannels, newChannel];
+      const oldChannels = this.filteredRows[rowIndex].channels;
+      const newChannels = [...oldChannels, newChannel];
+      this.filteredRows[rowIndex].channels = newObj['channels'] = newChannels;
+    }
 
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
       {
         old: { _id: this.filteredRows[rowIndex].id },
-        new: { _id: this.filteredRows[rowIndex].id, channels: newChannels }
+        new: newObj
       }
     ]).toPromise();
-
   }
 
-  async renderPDFForm(row, form1099KData, target) {
+  async generatePDF(target, row, form1099KData) {
     let formTemplateUrl;
     if (target === 'qmenu') {
       formTemplateUrl = "../../../../assets/form1099k/form1099k_qmenu.pdf";
@@ -393,34 +564,19 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     }
 
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    return blob;
+  }
 
+  async renderPDFForm(row, form1099KData, target) {
+    const blob = await this.generatePDF(target, row, form1099KData);
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
-    link.download = `f1099k_${form1099KData.year}_${row.name}_for${target === 'qmenu' ? '_qmenu' : '_restaurant'}.pdf`;
+    // 2021_Form_1099K_58ba1a8d9b4e441100d8cdc1_forRT.pdf
+    // 2021_Form_1099K_58ba1a8d9b4e441100d8cdc1_forQM.pdf
+    link.download = `${form1099KData.year}_Form_1099K_${row.id}_for${target === 'qmenu' ? 'QM' : 'RT'}.pdf`
     link.click();
   }
 
-  executeBulkFileOperation() {
-    if (this.bulkFileOperation === 'qmenu') {
-      this.bulkQMenuDownload(this.bulkOperationYear);
-    } else if (this.bulkFileOperation === 'restaurant') {
-      this.bulkSendFilesToRTs(this.bulkOperationYear);
-    }
-  }
-
-  isMissingBulkFileAttributes() {
-    return !this.bulkFileOperation || !this.bulkOperationYear;
-  }
-
-  async bulkQMenuDownload(year) {
-    console.log(`bulk qmenu download ${year}`);
-
-  }
-
-  async bulkSendFilesToRTs(year) {
-
-    // https://stackoverflow.com/questions/11098285/sending-email-with-attachment-using-amazon-ses
-    // documentation regarding Amazon SES Raw Email (AWS email service that allows attachments)
-  }
+ 
 }
 

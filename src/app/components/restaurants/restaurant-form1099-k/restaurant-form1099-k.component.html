@@ -41,8 +41,8 @@
     <ng-container *ngFor="let linkEntry of formLinks">
       <li *ngIf="linkEntry[0]; else elseBlock">
         <ng-container *ngIf="linkEntry[0].required; else requiredBlock">
+          {{linkEntry[1]}} - 
           <ng-container *ngIf="allAttributesPresent(); else missingAttributesBlock">
-            {{linkEntry[1]}} -
             <a class="btn-link" (click)="renderPDFForm('qmenu',linkEntry[1])"> for qMenu
               <i class="fa fa-download"></i></a>
             <a class="btn-link ml-2" (click)="renderPDFForm('restaurant',linkEntry[1])"> for Restaurant

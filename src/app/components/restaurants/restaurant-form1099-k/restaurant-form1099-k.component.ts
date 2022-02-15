@@ -27,11 +27,9 @@ export class Form1099KComponent implements OnInit {
   allEmails = [];
   targets = [];
   template;
-  noFormLinksData = false;
   constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer, private _http: HttpClient) { }
 
   async ngOnInit() {
-
     this.populateFormLinks();
     this.populateEmails();
   }
@@ -145,10 +143,6 @@ export class Form1099KComponent implements OnInit {
                 new: { _id: this.restaurant._id, form1099k: new1099kRecords }
               }
             ]).toPromise();
-            this._global.publishAlert(
-              AlertType.Success,
-              `Updated Form 1099k records success!`
-            );
             this.restaurant.form1099k = new1099kRecords;
             this.populateFormLinks();
             this.sendEmailModal.hide();
