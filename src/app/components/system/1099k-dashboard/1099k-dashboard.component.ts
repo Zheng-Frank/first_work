@@ -543,7 +543,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     // sent email or not in the year
     if (this.sentEmailOption === sentEmailOptionTypes.Form_Sent) {
       this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && form.sent));
-    } else if (this.missingEmailOption === missingEmailOptionTypes.Has_Email) {
+    } else if (this.sentEmailOption === sentEmailOptionTypes.Form_Not_Sent) {
       this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && !form.sent));
     }
 
