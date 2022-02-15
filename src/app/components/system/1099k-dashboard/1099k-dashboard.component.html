@@ -30,7 +30,17 @@
     <select class="form-control mx-2" [(ngModel)]="missingEmailOption" (change)="filterRows()">
       <option *ngFor="let option of missingEmailOptions"> {{option}} </option>
     </select>
-
+    <!-- sent or not -->
+    <select class="form-control mx-2" [(ngModel)]="sentEmailOption" (change)="filterRows()">
+      <option *ngFor="let option of sentEmailOptions"> {{option}} </option>
+    </select>
+    <i class="fa fa-info-circle icon-color" (mouseover)="showExplanation = true" (mouseout)="showExplanation = false">
+      <div *ngIf="showExplanation" class="left talk radius">
+        <p>Filter by whether the form for the currently-selected tax year has been sent to the restaurant yet.</p>
+        -------------<br>
+        <p>根据当前所选纳税年度的表格是否已发送到餐厅进行筛选。</p>
+      </div>
+    </i>
     <button class="btn btn-primary recan-btn" (click)="rescan()"><i class="fas fa-sync"></i> Rescan</button>
   </div>
   <hr>
@@ -45,8 +55,8 @@
       <option value="" disabled selectedtml> Choose an option... </option>
       <option *ngFor="let year of bulkOperationYears"> {{year}} </option>
     </select>
-    <button class="btn btn-primary mx-2" (click)="executeBulkFileOperation()"
-      [disabled]="isMissingBulkFileAttributes()" [qLoading]="sendLoading">Execute</button>
+    <button class="btn btn-primary mx-2" (click)="executeBulkFileOperation()" [disabled]="isMissingBulkFileAttributes()"
+      [qLoading]="sendLoading">Execute</button>
     {{ bulkFileOperation === '' ? '' : bulkFileOperation === bulkFileOperationTypes.Download? 'Bulk download functionality coming soon!' : ''}}
   </div>
 </div>

@@ -38,6 +38,12 @@ enum bulkFileOperationTypes {
   Send = 'Send forms to all restaurants'
 }
 
+enum sentEmailOptionTypes {
+  All = 'Form Sent?',
+  Form_Sent = 'Form Sent',
+  Form_Not_Sent = 'Form Not Sent'
+}
+
 @Component({
   selector: "app-1099k-dashboard",
   templateUrl: "./1099k-dashboard.component.html",
@@ -68,6 +74,9 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   missingEmailOptions = [missingEmailOptionTypes.All, missingEmailOptionTypes.Missing_Email, missingEmailOptionTypes.Has_Email];
   missingEmailOption = missingEmailOptionTypes.All;
 
+  sentEmailOptions = [sentEmailOptionTypes.All, sentEmailOptionTypes.Form_Sent, sentEmailOptionTypes.Form_Not_Sent];
+  sentEmailOption = sentEmailOptionTypes.All;
+
   bulkFileOperations = [bulkFileOperationTypes.Download, bulkFileOperationTypes.Send];
   bulkFileOperation = '';
 
@@ -91,6 +100,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   currRow;
   currForm;
   sendLoading = false;
+  showExplanation = false;
   constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer, private _http: HttpClient) { }
 
   async ngOnInit() {
@@ -528,6 +538,13 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       this.filteredRows = this.filteredRows.filter(row => (row.email || []).length === 0);
     } else if (this.missingEmailOption === missingEmailOptionTypes.Has_Email) {
       this.filteredRows = this.filteredRows.filter(row => (row.email || []).length !== 0);
+    }
+
+    // sent email or not in the year
+    if (this.sentEmailOption === sentEmailOptionTypes.Form_Sent) {
+      this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && form.sent));
+    } else if (this.missingEmailOption === missingEmailOptionTypes.Has_Email) {
+      this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && !form.sent));
     }
 
     // search will match RT name, RT id, payee name, or email address
