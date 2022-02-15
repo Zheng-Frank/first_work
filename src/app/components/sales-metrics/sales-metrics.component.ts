@@ -35,7 +35,7 @@ export class SalesMetricsComponent implements OnInit {
   ivrUsers = {};
   user2Ivr = {};
   userRoleMap = {};
-
+  languages = {};
   restaurants = [];
   marketers = [];
   viewMode = ViewModes.Overview
@@ -392,10 +392,13 @@ export class SalesMetricsComponent implements OnInit {
         ivrUsername: { $exists: true },
         roles: { $in: ['MARKETER', 'MARKETER_INTERNAL', 'MARKETER_EXTERNAL'] }
       },
-      projection: { username: 1, ivrUsername: 1, roles: 1 },
+      projection: { username: 1, ivrUsername: 1, roles: 1, languages: 1 },
       limit: 1000
     }).toPromise();
-    users.forEach(({ username, ivrUsername, roles }) => {
+    users.forEach(({ username, ivrUsername, roles, languages }) => {
+      if (languages && languages.length) {
+        this.languages[username] = languages.length > 1 ? 'Both' : {'EN': 'English', 'CH': 'Chinese'}[languages[0]]
+      }
       this.ivrUsers[ivrUsername] = username;
       this.user2Ivr[username] = ivrUsername;
       this.userRoleMap[username] = roles;
@@ -506,22 +509,21 @@ export class SalesMetricsComponent implements OnInit {
     let fields = this.agentStatsColumnDescriptors.map(({label, csvLabel, paths}) => ({
        label: csvLabel || label, paths
     }));
-    fields.push({label: 'Lang', paths: ['lang']});
-    let languages = this._global.user.languages;
-    let lang = '';
-    if (languages && languages.length) {
-      lang = languages.length > 1 ? 'Both' : {'EN': 'English', 'CH': 'Chinese'}[languages[0]]
+    if (this.viewMode === ViewModes.Overview) {
+      fields.push({label: 'Lang', paths: ['lang']});
     }
 
     const toHours = seconds => Math.round((Number(seconds) / 3600) * 1000000) / 1000000
-
-    let data = this.list.map(({avgCallDuration, totalCallTime, avgCallTimePerDay, ...rest}) => ({
-      ...rest,
-      avgCallDuration: toHours(avgCallDuration),
-      totalCallTime: toHours(totalCallTime),
-      avgCallTimePerDay: toHours(avgCallTimePerDay),
-      lang
-    }));
+    let data = this.list.map(({avgCallDuration, totalCallTime, avgCallTimePerDay, agent, ...rest}) => {
+      return {
+        agent,
+        ...rest,
+        avgCallDuration: toHours(avgCallDuration),
+        totalCallTime: toHours(totalCallTime),
+        avgCallTimePerDay: toHours(avgCallTimePerDay),
+        lang: this.languages[agent]
+      }
+    });
     let filename = 'Sales Stats - Individual Totals for ' + this.displayTimeRange();
     if (this.viewMode === ViewModes.Agent && this.agent) {
       filename += ', ' + this.agent;
