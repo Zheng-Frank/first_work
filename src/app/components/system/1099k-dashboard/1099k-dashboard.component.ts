@@ -216,7 +216,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     // documentation regarding Amazon SES Raw Email (AWS email service that allows attachments)
     // 1. filter row whose form1099k sent flag is false and has all necessary attributes
     this.sendLoading = true;
-    let notSendRows = this.rows.filter(row => (row.form1099k || []).some(form => form.year === +year && !form.sent) && this.allAttributesPresent(row));
+    let notSendRows = this.rows.filter(row => (row.form1099k || []).some(form => form.year === +year && !form.sent && form.required) && this.allAttributesPresent(row));
     let templates = [];
 
     notSendRows.forEach(row => {
@@ -238,6 +238,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
           }]
       });
     });
+    
     for (let i = 0; i < templates.length; i++) {
       let template = templates[i];
       this.currRow = template.row;
@@ -254,6 +255,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
           'AWS_FORM_1099K_LINK_HERE': mediaUrl
         }, /%%(AWS_FORM_1099K_LINK_HERE)%%/g);
       } catch (error) {
+        console.log(error);
         templates[i]['error'] = 'File Upload Error'
       }
     }
