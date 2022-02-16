@@ -199,7 +199,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     pickupTimeEstimate: 'Time Estimate for Pickup',
     deliveryTimeEstimate: 'Time Estimate for Delivery',
     deliverySettings: 'Delivery Settings',
-    preferredLanguage: 'Preferred Language'
+    preferredLanguage: 'Preferred Language',
+    "online-service-agreement": "Service agreement not sent"
   };
   invoicesCount = 0;
   openDate;
@@ -581,10 +582,13 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   }
 
   isMissingError(error) {
-    return ['should NOT have fewer than 1 items',
+    return [
+      'should NOT have fewer than 1 items',
       'should have required property',
       'it is missing',
-      'should NOT be shorter than 1 characters'].some(errMsg => error.indexOf(errMsg) >= 0);
+      'should NOT be shorter than 1 characters',
+      'Service agreement not sent'
+    ].some(errMsg => error.indexOf(errMsg) >= 0);
   }
 
   // filter the biz of restaurant's contacts to show on rt portal
