@@ -5,6 +5,7 @@ import {environment} from 'src/environments/environment';
 import {Helper} from '../../classes/helper';
 import {AlertType} from '../../classes/alert-type';
 
+
 enum TimeRanges {
   Last24Hours = 'Last 24 hours',
   Last48Hours = 'Last 48 hours',
@@ -18,6 +19,8 @@ enum ViewModes {
   Overview = 'Overview',
   Agent = 'Agent'
 }
+
+declare var $: any;
 
 @Component({
   selector: 'app-sales-metrics',
@@ -41,6 +44,8 @@ export class SalesMetricsComponent implements OnInit {
   marketers = [];
   viewMode = ViewModes.Overview
   agent = '';
+  showDisabledUsers = false;
+
   get agentStatsColumnDescriptors() {
     let columns = [
       {
@@ -407,8 +412,16 @@ export class SalesMetricsComponent implements OnInit {
     });
   }
 
+  dataset() {
+    if (this.viewMode === ViewModes.Overview && !this.showDisabledUsers) {
+      return this.list.filter(({agent}) => !this.users[agent].disabled)
+    }
+    return this.list;
+  }
+
 
   async ngOnInit() {
+    $("[data-toggle='tooltip']").tooltip();
     await this.getUsers();
     await this.changeDate();
   }
@@ -522,7 +535,19 @@ export class SalesMetricsComponent implements OnInit {
       ]);
     }
 
-    let workDays = 0, start = new Date(this.startDate), end = new Date(this.endDate);
+    let workDays = 0, start = this.startDate, end = this.endDate;
+    if (this.timeRange === TimeRanges.CustomDate) {
+      // for custom date, we calc from start 00:00:00.000 to end 23:59:59.999
+      end = new Date(end);
+      end.setDate(end.getDate() + 1);
+    } else {
+      // for last* range, we calc from (start date + cur time) to now
+      let time = "T" + new Date().toISOString().split("T")[1];
+      start += time;
+      end += time;
+    }
+    start = new Date(start);
+    end = new Date(end);
     while (start.valueOf() < end.valueOf()) {
       if ([1, 2, 3, 4, 5].includes(start.getDay())) {
         workDays++
@@ -532,21 +557,29 @@ export class SalesMetricsComponent implements OnInit {
 
     const toHours = seconds => Math.round((Number(seconds) / 3600) * 1000000) / 1000000
     let data = this.list.map(({totalCalls, avgCallDuration, totalCallTime, avgCallTimePerDay, agent, ...rest}) => {
-      let { languages, disabled} = this.users[agent];
-      let lang;
-      if (languages && languages.length) {
-         lang = languages.length > 1 ? 'Both' : {'EN': 'English', 'CH': 'Chinese'}[languages[0]];
-      }
 
-      return {
+      let item = {
         agent, totalCalls, ...rest,
         avgCallDuration: toHours(avgCallDuration),
         totalCallTime: toHours(totalCallTime),
         avgCallTimePerDay: toHours(avgCallTimePerDay),
-        lang, status: disabled ? 'Disabled' : 'Active', workDays,
-        avgCallTimePerWorkDay: toHours(totalCallTime / workDays),
-        numCallsPerWorkDay: totalCalls / workDays
       }
+
+      if (this.viewMode === ViewModes.Overview) {
+        let { languages, disabled} = this.users[agent];
+        let lang;
+        if (languages && languages.length) {
+          lang = languages.length > 1 ? 'Both' : {'EN': 'English', 'CH': 'Chinese'}[languages[0]];
+        }
+
+        return {
+          ...item,
+          lang, status: disabled ? 'Disabled' : 'Active', workDays,
+          avgCallTimePerWorkDay: toHours(totalCallTime / workDays),
+          numCallsPerWorkDay: totalCalls / workDays
+        }
+      }
+      return item;
     });
     let filename = 'Sales Stats - Individual Totals for ' + this.displayTimeRange();
     if (this.viewMode === ViewModes.Agent && this.agent) {
