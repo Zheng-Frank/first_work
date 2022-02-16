@@ -67,7 +67,7 @@ export class Form1099KComponent implements OnInit {
     let rt = this.prunedRestaurantRequriedData();
     let yearForm1099kData = (rt.form1099k || []).find(form => form.year === year);
     const blob = await this.generatePDF("restaurant", rt, yearForm1099kData);
-    const currentFile = new File([blob] as BlobPart[], `${yearForm1099kData.year}_Form_1099K_${rt._id}_forRT.pdf`);
+    const currentFile = new File([blob], `${yearForm1099kData.year}_Form_1099K_${rt._id}_forRT.pdf`);
     const apiPath = `utils/qmenu-uploads-s3-signed-url?file=${encodeURIComponent(currentFile.name)}`;
 
     // Get presigned url

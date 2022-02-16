@@ -101,6 +101,11 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   currForm;
   sendLoading = false;
   showExplanation = false;
+  showExtraTools = false;
+  calcRTFilter;
+  fromDate; //time picker to calculate transactions.
+  toDate;
+  transactionText = '';
   constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer, private _http: HttpClient) { }
 
   async ngOnInit() {
@@ -112,6 +117,81 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     }, this.refreshDataInterval);
     await this.get1099KData();
     this.filterRows();
+  }
+
+  handleShowExtraTools() {
+    this.showExtraTools = !this.showExtraTools;
+    if (!this.showExtraTools) {
+      this.toDate = '';
+      this.fromDate = '';
+      this.calcRTFilter = '';
+      this.transactionText = '';
+    }
+  }
+
+  async calcTransactionByTime() {
+    if (!this.fromDate || !this.toDate) {
+      return this._global.publishAlert(AlertType.Danger, "please input a correct from time date format!");
+    }
+
+    if (new Date(this.fromDate).valueOf() - new Date(this.toDate).valueOf() > 0) {
+      return this._global.publishAlert(AlertType.Danger, "please input a correct date format,from time is less than or equals to time!");
+    }
+    this.transactionText = '';
+    const [restaurant] = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        _id: {
+          $oid: this.calcRTFilter
+        }
+      },
+      projection: {
+        "googleAddress.timezone": 1
+      },
+      limit: 1
+    }).toPromise();
+
+    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.fromDate + " 00:00:00.000"), restaurant.googleAddress.timezone || 'America/New_York');
+    const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.toDate + " 23:59:59.999"), restaurant.googleAddress.timezone || 'America/New_York');
+
+    const query = {
+      restaurant: {
+        $oid: this.calcRTFilter
+      },
+      $and: [{
+        createdAt: {
+          $gte: { $date: utcf }
+        } // less than and greater than
+      }, {
+        createdAt: {
+          $lte: { $date: utct }
+        }
+      }],
+      "paymentObj.method": "QMENU"
+    } as any;
+    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: query,
+      projection: {
+        "computed.total": 1
+      },
+      limit: 100000000000000000
+    }).toPromise();
+    /* round - helper function to address floating point math imprecision. 
+     e.g. sometimes a total may be expressed as '2.27999999999997'. we need to put that in the format '2.28' */
+    const round = function (num) {
+      return Math.round((num + Number.EPSILON) * 100) / 100;
+    }
+    let timeRangeData = {
+      transactionNum: 0,
+      total: 0
+    }
+    orders.forEach(order => {
+      let roundedOrderTotal = round(order.computed.total);
+      timeRangeData.total += roundedOrderTotal;
+      timeRangeData.transactionNum++;
+    });
+    this.transactionText = `${timeRangeData.transactionNum} transactions totaling \$${round(timeRangeData.total)}`
   }
 
   executeBulkFileOperation() {
@@ -251,7 +331,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   async uploadPDF() {
     let mediaUrl;
     const blob = await this.generatePDF("restaurant", this.currRow, this.currForm);
-    const currentFile = new File([blob] as BlobPart[], `${this.currForm.year}_Form_1099K_${this.currRow.id}_forRT.pdf`);
+    const currentFile = new File([blob], `${this.currForm.year}_Form_1099K_${this.currRow.id}_forRT.pdf`);
     const apiPath = `utils/qmenu-uploads-s3-signed-url?file=${encodeURIComponent(currentFile.name)}`;
 
     // Get presigned url
