@@ -1,8 +1,9 @@
-import { GlobalService } from 'src/app/services/global.service';
-import { Component, ElementRef, OnInit, QueryList, ViewChildren } from '@angular/core';
-import { ApiService } from 'src/app/services/api.service';
-import { environment } from 'src/environments/environment';
+import {GlobalService} from 'src/app/services/global.service';
+import {Component, OnInit} from '@angular/core';
+import {ApiService} from 'src/app/services/api.service';
+import {environment} from 'src/environments/environment';
 import {Helper} from '../../classes/helper';
+import {AlertType} from '../../classes/alert-type';
 
 enum TimeRanges {
   Last24Hours = 'Last 24 hours',
@@ -35,7 +36,7 @@ export class SalesMetricsComponent implements OnInit {
   ivrUsers = {};
   user2Ivr = {};
   userRoleMap = {};
-  languages = {};
+  users = {};
   restaurants = [];
   marketers = [];
   viewMode = ViewModes.Overview
@@ -392,13 +393,11 @@ export class SalesMetricsComponent implements OnInit {
         ivrUsername: { $exists: true },
         roles: { $in: ['MARKETER', 'MARKETER_INTERNAL', 'MARKETER_EXTERNAL'] }
       },
-      projection: { username: 1, ivrUsername: 1, roles: 1, languages: 1 },
+      projection: { username: 1, ivrUsername: 1, roles: 1, languages: 1, disabled: 1 },
       limit: 1000
     }).toPromise();
-    users.forEach(({ username, ivrUsername, roles, languages }) => {
-      if (languages && languages.length) {
-        this.languages[username] = languages.length > 1 ? 'Both' : {'EN': 'English', 'CH': 'Chinese'}[languages[0]]
-      }
+    users.forEach(({ username, ivrUsername, roles, languages, disabled }) => {
+      this.users[username] = {languages, disabled}
       this.ivrUsers[ivrUsername] = username;
       this.user2Ivr[username] = ivrUsername;
       this.userRoleMap[username] = roles;
@@ -506,22 +505,47 @@ export class SalesMetricsComponent implements OnInit {
   }
 
   downloadCsv() {
+    if (!this.startDate || !this.endDate) {
+      this._global.publishAlert(AlertType.Warning, "Please select dates and query first!")
+      return;
+    }
     let fields = this.agentStatsColumnDescriptors.map(({label, csvLabel, paths}) => ({
        label: csvLabel || label, paths
     }));
     if (this.viewMode === ViewModes.Overview) {
-      fields.push({label: 'Lang', paths: ['lang']});
+      fields = fields.concat([
+        {label: 'Lang', paths: ['lang']},
+        {label: 'Status', paths: ['status']},
+        {label: 'Num work days', paths: ['workDays']},
+        {label: 'Avg call time / work day', paths: ['avgCallTimePerWorkDay']},
+        {label: 'Num calls / work day', paths: ['numCallsPerWorkDay']},
+      ]);
+    }
+
+    let workDays = 0, start = new Date(this.startDate), end = new Date(this.endDate);
+    while (start.valueOf() < end.valueOf()) {
+      if ([1, 2, 3, 4, 5].includes(start.getDay())) {
+        workDays++
+      }
+      start.setDate(start.getDate() + 1);
     }
 
     const toHours = seconds => Math.round((Number(seconds) / 3600) * 1000000) / 1000000
-    let data = this.list.map(({avgCallDuration, totalCallTime, avgCallTimePerDay, agent, ...rest}) => {
+    let data = this.list.map(({totalCalls, avgCallDuration, totalCallTime, avgCallTimePerDay, agent, ...rest}) => {
+      let { languages, disabled} = this.users[agent];
+      let lang;
+      if (languages && languages.length) {
+         lang = languages.length > 1 ? 'Both' : {'EN': 'English', 'CH': 'Chinese'}[languages[0]];
+      }
+
       return {
-        agent,
-        ...rest,
+        agent, totalCalls, ...rest,
         avgCallDuration: toHours(avgCallDuration),
         totalCallTime: toHours(totalCallTime),
         avgCallTimePerDay: toHours(avgCallTimePerDay),
-        lang: this.languages[agent]
+        lang, status: disabled ? 'Disabled' : 'Active', workDays,
+        avgCallTimePerWorkDay: toHours(totalCallTime / workDays),
+        numCallsPerWorkDay: totalCalls / workDays
       }
     });
     let filename = 'Sales Stats - Individual Totals for ' + this.displayTimeRange();
