@@ -530,7 +530,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     });
     const closedHours = rt.closedHours;
     const openOrNot = this.isRTOpened(menus, closedHours, timezone);
-
+    rt.form1099k.sort((a,b)=>b.year - a.year);
     return {
       id: rt._id,
       name: rt.name,
