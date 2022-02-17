@@ -6,13 +6,13 @@ import { GlobalService } from 'src/app/services/global.service';
 import { ApiService } from 'src/app/services/api.service';
 import { Component, OnInit, ViewChild } from '@angular/core';
 
-enum viewTypes {
+enum ViewTypes {
   All = 'All',
   Overdue = 'Followup overdue',
   NotOverdue = 'Followup not overdue'
 }
 
-enum ruleTypes {
+enum RuleTypes {
   Six_Months = '6 months',
   Three_Months = '3 months'
 }
@@ -39,10 +39,19 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
-      label: "Timezone (as Offset to EST)"
+      label: 'Score',
+      paths: ['score'],
+      sort: (a, b) => a - b
     },
     {
-      label: "Last Follow up"
+      label: "Timezone (as Offset to EST)",
+      paths: ['googleAddress', 'timezone'],
+      sort: (a, b) => Number(this.getTimeOffsetByTimezone(a)) - Number(this.getTimeOffsetByTimezone(b))
+    },
+    {
+      label: "Last Follow up",
+      paths: ['lastFollowUp'],
+      sort: (a, b) => new Date(a || 0).valueOf() - new Date(b || 0).valueOf()
     },
     {
       label: "Logs",
@@ -52,10 +61,10 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
   logInEditing: Log = new Log({ type: this.vipFollowUpLogType, time: new Date() });
   activeRestaurant;
   // filter conditions
-  viewModes = [viewTypes.All, viewTypes.Overdue, viewTypes.NotOverdue];
-  viewMode = viewTypes.All;
-  rules = [ruleTypes.Six_Months, ruleTypes.Three_Months];
-  rule = ruleTypes.Six_Months;
+  viewModes = [ViewTypes.All, ViewTypes.Overdue, ViewTypes.NotOverdue];
+  viewMode = ViewTypes.All;
+  rules = [RuleTypes.Six_Months, RuleTypes.Three_Months];
+  rule = RuleTypes.Six_Months;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -63,16 +72,20 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
     this.loadVIPRestaurants();
   }
 
+  get viewTypes() {
+    return ViewTypes
+  }
+
   filterFollowUp() {
     switch (this.viewMode) {
-      case viewTypes.All:
+      case ViewTypes.All:
         // all includes: overdue, or not overdue in six month rules, three month, or haven't lastFollowup
         this.filterVipRTs = this.vipRTs;
         break;
-      case viewTypes.Overdue:
+      case ViewTypes.Overdue:
         this.filterVipRTs = this.vipRTs.filter(vipRT => this.followUpOverdue(vipRT) || !vipRT.lastFollowUp);
         break;
-      case viewTypes.NotOverdue:
+      case ViewTypes.NotOverdue:
         this.filterVipRTs = this.vipRTs.filter(vipRT => vipRT.lastFollowUp && !this.followUpOverdue(vipRT));
         break;
 
@@ -83,11 +96,11 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
 
   followUpOverdue(rt) {
     // six months
-    if (this.rule === ruleTypes.Six_Months) {
+    if (this.rule === RuleTypes.Six_Months) {
       return rt.lastFollowUp && rt.lastFollowUp.valueOf() <= (this.now.valueOf() - 6 * 30 * 24 * 3600 * 1000);
     }
-    // three months 
-    if (this.rule === ruleTypes.Three_Months) {
+    // three months
+    if (this.rule === RuleTypes.Three_Months) {
       return rt.lastFollowUp && rt.lastFollowUp.valueOf() <= (this.now.valueOf() - 3 * 30 * 24 * 3600 * 1000);
     }
   }
@@ -95,20 +108,20 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
   getOverdueDays(rt, isOverDue) {
     if (isOverDue) { // need to calculate delta with 180 or 90 days
       // six months
-      if (this.rule === ruleTypes.Six_Months) {
+      if (this.rule === RuleTypes.Six_Months) {
         return Math.round((this.now.valueOf() - 6 * 30 * 24 * 3600 * 1000 - rt.lastFollowUp.valueOf()) / (24 * 3600 * 1000));
       }
-      // three months 
-      if (this.rule === ruleTypes.Three_Months) {
+      // three months
+      if (this.rule === RuleTypes.Three_Months) {
         return Math.round((this.now.valueOf() - 3 * 30 * 24 * 3600 * 1000 - rt.lastFollowUp.valueOf()) / (24 * 3600 * 1000));
       }
     } else {
       // six months
-      if (this.rule === ruleTypes.Six_Months) {
+      if (this.rule === RuleTypes.Six_Months) {
         return Math.round((this.now.valueOf() - rt.lastFollowUp.valueOf()) / (24 * 3600 * 1000));
       }
-      // three months 
-      if (this.rule === ruleTypes.Three_Months) {
+      // three months
+      if (this.rule === RuleTypes.Three_Months) {
         return Math.round((this.now.valueOf() - rt.lastFollowUp.valueOf()) / (24 * 3600 * 1000));
       }
     }
@@ -133,9 +146,9 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
   }
 
   /**
-   * VIP RTs: 
+   * VIP RTs:
     1. enabled,
-    2. have invoice, 
+    2. have invoice,
     3. invoice:
     - Average invoice for the RT is $150+ per month overall
     - Average invoice for the RT is $150+ per month over last 3 months
@@ -227,6 +240,7 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
           $project: {
             _id: 1,
             name: 1,
+            score: 1,
             'googleAddress.timezone': 1,
             logs: {
               $filter: {

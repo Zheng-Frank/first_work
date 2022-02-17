@@ -14,11 +14,13 @@
         </select>
         <!-- end with view filter -->
         <!-- start with rule filter -->
-        <label class="text-center ml-4">Rule: Followup every</label>
-        <select [(ngModel)]="rule" class="form-control ml-1" style="min-width:220px;max-width:220px;"
-          (change)="filterFollowUp()">
-          <option *ngFor="let r of rules" [value]="r">{{r}}</option>
-        </select>
+        <ng-container *ngIf="viewMode !== viewTypes.All">
+          <label class="text-center ml-4">Rule: Followup every</label>
+          <select [(ngModel)]="rule" class="form-control ml-1" style="min-width:220px;max-width:220px;"
+                  (change)="filterFollowUp()">
+            <option *ngFor="let r of rules" [value]="r">{{r}}</option>
+          </select>
+        </ng-container>
         <!-- end with rule filter -->
       </div>
       <div class="col-4 text-right form-group">
@@ -35,6 +37,7 @@
           <a routerLink="/restaurants/{{r['_id']}}">{{r.name}} </a><br>
           <span>{{r._id}}</span>
         </td>
+        <td>{{r.score}}</td>
         <td>
           <ng-container *ngIf="r?.googleAddress && r?.googleAddress?.timezone;else elseBlock;">
             {{getTimezoneCity(r.googleAddress.timezone)}}
