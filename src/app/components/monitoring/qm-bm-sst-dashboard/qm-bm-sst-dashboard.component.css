@@ -24,3 +24,11 @@
   background: url("/assets/images/beyondmenu.png");
   background-size: contain;
 }
+
+.td-icons {
+  vertical-align: bottom;
+}
+
+.td-icons i {
+  color: rgb(61, 125, 234);
+}

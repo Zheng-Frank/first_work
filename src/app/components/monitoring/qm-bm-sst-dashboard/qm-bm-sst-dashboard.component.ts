@@ -43,6 +43,25 @@ enum RTsNameOptions {
   Diff = 'Q/B Diff name'
 }
 
+enum GMBStatusOptions {
+  BmOwned = 'BM Owned',
+  QmOwned = 'QM Owned',
+  BmOrQmOwned = 'BM or QM Owned',
+  NeitherOwned = 'Neither BM/QM Owned'
+}
+
+enum PostmatesOptions {
+  HasInQm = 'Has Postmates in QM',
+  NoInQm = 'No Postmates in QM',
+  Available = 'Postmates available',
+  Unavailable = 'Postamtes unavailable'
+}
+
+enum PricingOptions {
+  BmHigher = 'BM Pricing Higher',
+  QmHigher = 'QM Pricing Higer',
+  BmEqQm = 'QM=BM Pricing'
+}
 
 @Component({
   selector: 'app-qm-bm-sst-dashboard',
@@ -58,10 +77,13 @@ export class QmBmSstDashboardComponent implements OnInit {
   filters = {
     keyword: '',
     platform: '',
-    status: '',
+    status: StatusOptions.EitherUp.toString(),
     hasPlaceId: '',
     sameName: '',
-    tier: ''
+    tier: '',
+    gmbStatus: '',
+    postmates: '',
+    pricing: ''
   }
 
   summary = {
@@ -75,35 +97,37 @@ export class QmBmSstDashboardComponent implements OnInit {
 
   pageIndex = 0;
   pageSize = 200;
-
+  viabilities = [];
   qmRTs = [];
   bmRTs = [];
   unionRTs = [];
   qmRTsPlaceDict = {};
   bmRTsPlaceDict = {};
-  showBmPricing = true;
+  showPricing = true;
+  showPhones = true;
+  showOtherContacts = true;
   showSummary = false;
 
   constructor(private _api: ApiService) { }
 
   async ngOnInit() {
     $("[data-toggle='tooltip']").tooltip();
+    await this.getViabilities();
     await this.preload();
   }
 
   countByTier(list, tier) {
-    return list.filter(rt => this.getEiterTier(rt) === tier).length
+    let num = list.filter(rt => this.getEiterTier(rt) === tier).length;
+    return `${num} (${(num / list.length) * 100}%)`
   }
 
   calcSummary() {
-    let bmOnly = this.bmRTs.filter(({bplace_id}) => !bplace_id || !this.qmRTsPlaceDict[bplace_id]);
-    this.unionRTs = [...this.qmRTs, ...bmOnly].map(x => ({...x, ...(this.bmRTsPlaceDict[x.place_id]) || {}}));
-    this.summary.overall = this.unionRTs;
-    this.summary.both = this.unionRTs.filter(({_id, _bid}) => _id && _bid);
-    this.summary.qmOnly = this.qmRTs.filter(({place_id}) => !this.bmRTsPlaceDict[place_id])
-    this.summary.bmOnly = this.bmRTs.filter(({bplace_id}) => !this.qmRTsPlaceDict[bplace_id])
-    this.summary.qmAll = this.qmRTs
-    this.summary.bmAll = this.bmRTs
+    this.summary.overall = this.filteredRows;
+    this.summary.both = this.filteredRows.filter(({_id, _bid}) => _id && _bid);
+    this.summary.qmOnly = this.filteredRows.filter(({_id, place_id}) => _id && !this.bmRTsPlaceDict[place_id])
+    this.summary.bmOnly = this.filteredRows.filter(({_bid, bplace_id}) => _bid && !this.qmRTsPlaceDict[bplace_id])
+    this.summary.qmAll = this.filteredRows.filter(({_id}) => !!_id)
+    this.summary.bmAll = this.filteredRows.filter(({_bid}) => !!_bid)
   }
 
   paginate(index) {
@@ -118,7 +142,10 @@ export class QmBmSstDashboardComponent implements OnInit {
       status: StatusOptions,
       tier: TierOptions,
       place_id: PlaceIdOptions,
-      name: RTsNameOptions
+      name: RTsNameOptions,
+      gmb: GMBStatusOptions,
+      postmates: PostmatesOptions,
+      pricing: PricingOptions
     }[key])
   }
 
@@ -134,8 +161,13 @@ export class QmBmSstDashboardComponent implements OnInit {
               place_id: "$googleListing.place_id",
               address: "$googleAddress.formatted_address",
               disabled: 1,
+              'gmbOwnerHistory.time': 1,
+              'gmbOwnerHistory.gmbOwner': 1,
               website: "$web.qmenuWebsite",
               name: 1,
+              courier: '$courier.name',
+              lat: '$googleAddress.lat',
+              lng: '$googleAddress.lng',
               score: "$score",
               createdAt: "$createdAt",
               owner: "$googleListing.gmbOwner",
@@ -149,12 +181,20 @@ export class QmBmSstDashboardComponent implements OnInit {
             }
           }
         ],
-      }, 10000));
+      }, 5000));
       this.qmRTs.forEach(rt => {
         if (rt.place_id) {
           this.qmRTsPlaceDict[rt.place_id] = rt;
         }
         rt.tier = this.getTier(rt.score)
+
+        if (rt.gmbOwnerHistory && rt.gmbOwnerHistory.length > 0) {
+          rt.gmbOwnerHistory.sort((a, b) => new Date(b.time).valueOf() - new Date(a.time).valueOf());
+          rt.hasGmb = rt.gmbOwnerHistory[0].gmbOwner === 'qmenu';
+        } else {
+          rt.hasGmb = false
+        }
+        rt.postmatesAvailable = this.postmatesAvailable(rt)
       })
       // --- BeyondMenu restaurants
       let bmRTs = await this._api.post(environment.gmbNgrok + 'get-bm-restaurant').toPromise();
@@ -197,11 +237,55 @@ export class QmBmSstDashboardComponent implements OnInit {
         }
         return data;
       });
-      this.calcSummary();
+      let bmOnly = this.bmRTs.filter(({bplace_id}) => !bplace_id || !this.qmRTsPlaceDict[bplace_id]);
+      this.unionRTs = [...this.qmRTs, ...bmOnly].map(x => ({...x, ...(this.bmRTsPlaceDict[x.place_id]) || {}}));
       this.filter();
     } catch (error) {
       console.error(error);
     }
+  }
+
+  async getViabilities() {
+    this.viabilities = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "viability-lookup",
+      query: {},
+      projection: {
+        'Branch Name': 1,
+        'Addresses': 1,
+        Latitude: 1,
+        Longitude: 1,
+        Viability: 1
+      },
+      limit: 20000
+    }).toPromise();
+  }
+
+  getDistance(lat1, lng1, lat2, lng2) {
+    let radLat1 = lat1 * Math.PI / 180.0;
+    let radLat2 = lat2 * Math.PI / 180.0;
+    let a = radLat1 - radLat2;
+    let b = lng1 * Math.PI / 180.0 - lng2 * Math.PI / 180.0;
+    let s = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a / 2), 2) +
+      Math.cos(radLat1) * Math.cos(radLat2) * Math.pow(Math.sin(b / 2), 2)));
+    s = s * 6378.137; // EARTH_RADIUS;
+    s = Math.round(s * 10000) / 10000;
+    // The distance to call return is in miles.
+    s = s * 0.62137; // 1 kilometre is 0.62137 mile.
+    return s;
+  }
+
+  postmatesAvailable({lat, lng}) {
+    let distances = [];
+    this.viabilities.forEach(item => {
+      if (item.Latitude && item.Longitude) {
+        const distance = this.getDistance(lat, lng, item.Latitude, item.Longitude)
+        distances.push(distance);
+      } else {
+        distances.push(Number.MAX_VALUE);
+      }
+    });
+    let minDistance = Math.min(...distances), index = distances.indexOf(minDistance);
+    return minDistance < 0.5 && (['V1', 'V2', 'V3', 'V4'].includes(this.viabilities[index].Viability));
   }
 
   getTier(score) {
@@ -226,7 +310,7 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   filter() {
-    let { platform, status, tier, hasPlaceId, sameName, keyword } = this.filters;
+    let { platform, status, tier, hasPlaceId, sameName, gmbStatus, pricing, postmates, keyword } = this.filters;
     let list = this.unionRTs;
     switch (platform) {
       case PlatformOptions.Both:
@@ -312,6 +396,45 @@ export class QmBmSstDashboardComponent implements OnInit {
         break;
     }
 
+    switch (gmbStatus) {
+      case GMBStatusOptions.QmOwned:
+        list = list.filter(rt => rt.hasGmb && !rt.bhasGmb)
+        break;
+      case GMBStatusOptions.BmOwned:
+        list = list.filter(rt => !rt.hasGmb && rt.bhasGmb)
+        break;
+      case GMBStatusOptions.BmOrQmOwned:
+        list = list.filter(rt => rt.hasGmb || rt.bhasGmb)
+        break;
+      case GMBStatusOptions.NeitherOwned:
+        list = list.filter(rt => !rt.hasGmb && !rt.bhasGmb)
+        break;
+    }
+
+    switch (postmates) {
+      case PostmatesOptions.HasInQm:
+        list = list.filter(rt => rt.courier && rt.courier.name === 'Postmates');
+        break;
+      case PostmatesOptions.NoInQm:
+        list = list.filter(rt => !rt.courier || rt.courier.name !== 'Postmates');
+        break;
+      case PostmatesOptions.Available:
+        list = list.filter(rt => rt.postmatesAvailable) // only calc qm RTs for now
+        break;
+      case PostmatesOptions.Unavailable:
+        list = list.filter(rt => rt._id && !rt.postmatesAvailable) // only calc qm RTs for now
+        break;
+    }
+
+    switch (pricing) {
+      case PricingOptions.BmHigher:
+        break;
+      case PricingOptions.QmHigher:
+        break;
+      case PricingOptions.BmEqQm:
+        break;
+    }
+
     if (keyword && keyword.trim()) {
       const kwMatch = str => str && str.toLowerCase().includes(keyword.toLowerCase())
       let digits = keyword.replace(/\D/g, '');
@@ -321,6 +444,7 @@ export class QmBmSstDashboardComponent implements OnInit {
       })
     }
     this.filteredRows = list
+    this.calcSummary()
     this.paginate(0)
   }
 
@@ -339,7 +463,10 @@ export class QmBmSstDashboardComponent implements OnInit {
       platform: '',
       hasPlaceId: '',
       sameName: '',
-      tier: ''
+      tier: '',
+      gmbStatus: '',
+      postmates: '',
+      pricing: ''
     }
 
     this.filter();
