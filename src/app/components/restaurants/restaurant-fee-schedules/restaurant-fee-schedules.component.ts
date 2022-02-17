@@ -73,7 +73,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
 
   customNameDescriptor = {
     field: 'customName',
-    label: "Custome Name(自定义名称)",
+    label: "Custom Name (自定义名称)",
     required: true,
     inputType: 'text',
     validate: value => !FeeNames.includes(value)
