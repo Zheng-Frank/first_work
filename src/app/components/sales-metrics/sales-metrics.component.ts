@@ -1,8 +1,10 @@
-import { GlobalService } from 'src/app/services/global.service';
-import { Component, ElementRef, OnInit, QueryList, ViewChildren } from '@angular/core';
-import { ApiService } from 'src/app/services/api.service';
-import { environment } from 'src/environments/environment';
+import {GlobalService} from 'src/app/services/global.service';
+import {Component, OnInit} from '@angular/core';
+import {ApiService} from 'src/app/services/api.service';
+import {environment} from 'src/environments/environment';
 import {Helper} from '../../classes/helper';
+import {AlertType} from '../../classes/alert-type';
+
 
 enum TimeRanges {
   Last24Hours = 'Last 24 hours',
@@ -17,6 +19,8 @@ enum ViewModes {
   Overview = 'Overview',
   Agent = 'Agent'
 }
+
+declare var $: any;
 
 @Component({
   selector: 'app-sales-metrics',
@@ -35,11 +39,13 @@ export class SalesMetricsComponent implements OnInit {
   ivrUsers = {};
   user2Ivr = {};
   userRoleMap = {};
-
+  users = {};
   restaurants = [];
   marketers = [];
   viewMode = ViewModes.Overview
   agent = '';
+  showDisabledUsers = false;
+
   get agentStatsColumnDescriptors() {
     let columns = [
       {
@@ -54,11 +60,13 @@ export class SalesMetricsComponent implements OnInit {
       },
       {
         label: 'RTs Gained with GMB Owned',
+        csvLabel: 'RTs w/GMB',
         paths: ['gmbCount'],
         sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
       },
       {
         label: 'Average Call Duration',
+        csvLabel: 'Avg call length',
         paths: ['avgCallDuration'],
         sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
       },
@@ -81,6 +89,7 @@ export class SalesMetricsComponent implements OnInit {
     }
     columns.splice(5, 0, {
       label: 'Average Call Time per Day',
+      csvLabel: 'Avg call time/day',
       paths: ['avgCallTimePerDay'],
       sort: (a, b) => a > b ? 1 : (a < b ? -1 : 0),
     })
@@ -389,10 +398,11 @@ export class SalesMetricsComponent implements OnInit {
         ivrUsername: { $exists: true },
         roles: { $in: ['MARKETER', 'MARKETER_INTERNAL', 'MARKETER_EXTERNAL'] }
       },
-      projection: { username: 1, ivrUsername: 1, roles: 1 },
+      projection: { username: 1, ivrUsername: 1, roles: 1, languages: 1, disabled: 1 },
       limit: 1000
     }).toPromise();
-    users.forEach(({ username, ivrUsername, roles }) => {
+    users.forEach(({ username, ivrUsername, roles, languages, disabled }) => {
+      this.users[username] = {languages, disabled}
       this.ivrUsers[ivrUsername] = username;
       this.user2Ivr[username] = ivrUsername;
       this.userRoleMap[username] = roles;
@@ -402,8 +412,16 @@ export class SalesMetricsComponent implements OnInit {
     });
   }
 
+  dataset() {
+    if (this.viewMode === ViewModes.Overview && !this.showDisabledUsers) {
+      return this.list.filter(({agent}) => !this.users[agent].disabled)
+    }
+    return this.list;
+  }
+
 
   async ngOnInit() {
+    $("[data-toggle='tooltip']").tooltip();
     await this.getUsers();
     await this.changeDate();
   }
@@ -500,16 +518,69 @@ export class SalesMetricsComponent implements OnInit {
   }
 
   downloadCsv() {
-    let fields = this.agentStatsColumnDescriptors.map(({label, paths}) => ({
-      label, paths
+    if (!this.startDate || !this.endDate) {
+      this._global.publishAlert(AlertType.Warning, "Please select dates and query first!")
+      return;
+    }
+    let fields = this.agentStatsColumnDescriptors.map(({label, csvLabel, paths}) => ({
+       label: csvLabel || label, paths
     }));
+    if (this.viewMode === ViewModes.Overview) {
+      fields = fields.concat([
+        {label: 'Lang', paths: ['lang']},
+        {label: 'Status', paths: ['status']},
+        {label: 'Num work days', paths: ['workDays']},
+        {label: 'Avg call time / work day', paths: ['avgCallTimePerWorkDay']},
+        {label: 'Num calls / work day', paths: ['numCallsPerWorkDay']},
+      ]);
+    }
 
-    let data = this.list.map(({avgCallDuration, totalCallTime, avgCallTimePerDay, ...rest}) => ({
-      ...rest,
-      avgCallDuration: this.secondsToHms(avgCallDuration),
-      totalCallTime: this.secondsToHms(totalCallTime),
-      avgCallTimePerDay: this.secondsToHms(avgCallTimePerDay)
-    }));
+    let workDays = 0, start = this.startDate, end = this.endDate;
+    if (this.timeRange === TimeRanges.CustomDate) {
+      // for custom date, we calc from start 00:00:00.000 to end 23:59:59.999
+      end = new Date(end);
+      end.setDate(end.getDate() + 1);
+    } else {
+      // for last* range, we calc from (start date + cur time) to now
+      let time = "T" + new Date().toISOString().split("T")[1];
+      start += time;
+      end += time;
+    }
+    start = new Date(start);
+    end = new Date(end);
+    while (start.valueOf() < end.valueOf()) {
+      if ([1, 2, 3, 4, 5].includes(start.getDay())) {
+        workDays++
+      }
+      start.setDate(start.getDate() + 1);
+    }
+
+    const toHours = seconds => Math.round((Number(seconds) / 3600) * 1000000) / 1000000
+    let data = this.list.map(({totalCalls, avgCallDuration, totalCallTime, avgCallTimePerDay, agent, ...rest}) => {
+
+      let item = {
+        agent, totalCalls, ...rest,
+        avgCallDuration: toHours(avgCallDuration),
+        totalCallTime: toHours(totalCallTime),
+        avgCallTimePerDay: toHours(avgCallTimePerDay),
+      }
+
+      if (this.viewMode === ViewModes.Overview) {
+        let { languages, disabled} = this.users[agent];
+        let lang;
+        if (languages && languages.length) {
+          lang = languages.length > 1 ? 'Both' : {'EN': 'English', 'CH': 'Chinese'}[languages[0]];
+        }
+
+        return {
+          ...item,
+          lang, status: disabled ? 'Disabled' : 'Active', workDays,
+          avgCallTimePerWorkDay: toHours(totalCallTime / workDays),
+          numCallsPerWorkDay: totalCalls / workDays
+        }
+      }
+      return item;
+    });
     let filename = 'Sales Stats - Individual Totals for ' + this.displayTimeRange();
     if (this.viewMode === ViewModes.Agent && this.agent) {
       filename += ', ' + this.agent;
