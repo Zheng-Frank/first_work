@@ -170,13 +170,13 @@
                 <div *ngIf="showPricing">BM Pricing: {{row.bpricing}}</div>
               </ng-container>
             </div>
-            <div *ngIf="showPhones">Phone: {{groupChannels(row, 'Phone')}}</div>
             <div>Address: {{row.address}} (QM) {{row.baddress}} (BM)</div>
+            <div *ngIf="showPhones">Phone: {{groupChannels(row, 'Phone')}}</div>
             <div *ngIf="showOtherContacts">Emails: {{groupChannels(row, 'Email')}} / Fax: {{groupChannels(row, 'Fax')}}</div>
           </td>
           <td class="td-icon-top">
-            <img class="pm-green" *ngIf="row.courier === 'postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
-            <img class="pm-grey" *ngIf="row.courier != 'postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
+            <img class="pm-green" *ngIf="row.courier === 'Postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
+            <img class="pm-grey" *ngIf="row.courier != 'Postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
           </td>
         </tr>
         <tr>

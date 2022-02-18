@@ -103,9 +103,9 @@ export class QmBmSstDashboardComponent implements OnInit {
   unionRTs = [];
   qmRTsPlaceDict = {};
   bmRTsPlaceDict = {};
-  showPricing = true;
-  showPhones = true;
-  showOtherContacts = true;
+  showPricing = false;
+  showPhones = false;
+  showOtherContacts = false;
   showSummary = false;
 
   constructor(private _api: ApiService) { }
@@ -453,7 +453,17 @@ export class QmBmSstDashboardComponent implements OnInit {
     let shared = whole.filter(p => qmWhole.includes(p) && bmWhole.includes(p));
     let qmOnly = qmWhole.filter(p => !shared.includes(p));
     let bmOnly = bmWhole.filter(p => !shared.includes(p));
-    return [shared.join(', ') + ' (Both)', qmOnly.join(', ') + ' (QM)', bmOnly.join(', ') + ' (BM)'].join(', ');
+    let contents = [];
+    if (shared.length > 0) {
+      contents.push(shared.join(', ') + ' (Both)');
+    }
+    if (qmOnly.length > 0) {
+      contents.push(qmOnly.join(', ') + ' (QM)');
+    }
+    if (bmOnly.length > 0) {
+      contents.push(bmOnly.join(', ') + ' (BM)')
+    }
+    return contents.join(', ');
   }
 
   clearFilter() {
