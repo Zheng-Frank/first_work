@@ -403,7 +403,9 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     if (last[0] !== first[0] || last[1] !== first[1]) {
       coordinates.push(first)
     }
-    featureCollection.features[0].geometry.coordinates.push(coordinates)
+    if (!featureCollection.features[0].geometry.coordinates.length) {
+      featureCollection.features[0].geometry.coordinates.push(coordinates);
+    }
     return featureCollection;
   }
 
