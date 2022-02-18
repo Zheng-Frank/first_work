@@ -845,19 +845,19 @@
                 <th colspan="2">
                   <div class="row">
                     <div class="col-4 pl-5">
-                      {{changeLanguageFlag === 'English' ? 'Service fee taxable if non-cash transaction' : '非现金订单服务费计税' }}
+                      {{changeLanguageFlag === 'English' ? 'Service fee taxable' : '服务费计税' }}
                       <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
-                         (mouseover)="showCorrespondingTranslation('ServiceFeeTaxableIfNonCashTx')"
+                         (mouseover)="showCorrespondingTranslation('CustomerPaidFeesTaxable')"
                          (mouseout)="translating = ''">
-                        <div *ngIf="translating === 'ServiceFeeTaxableIfNonCashTx'" class="left talk radius">
-                          <p>Service fee taxable if non-cash tx:{{Explanations.EnglishExplanations.ServiceFeeTaxableIfNonCashTx}}</p>
+                        <div *ngIf="translating === 'CustomerPaidFeesTaxable'" class="left talk radius">
+                          <p>Service fee taxable:{{Explanations.EnglishExplanations.CustomerPaidFeesTaxable}}</p>
                           -------------<br>
-                          <p>非现金订单服务费计税:{{Explanations.ChineseExplanations.ServiceFeeTaxableIfNonCashTx}}</p>
+                          <p>服务费计税:{{Explanations.ChineseExplanations.CustomerPaidFeesTaxable}}</p>
                         </div>
                       </i>
                     </div>
                     <div class="col-7 pl-1" style="font-weight: 600;">
-                      {{!!restaurant.serviceFeeTaxableIfNonCashTx}}
+                      {{!!restaurant.customerPaidFeesTaxable}}
                     </div>
                   </div>
                 </th>
@@ -1674,19 +1674,19 @@
           </div>
           <div class="form-group row">
             <label class="col-4 col-form-label pt-0 pl-5">
-              {{changeLanguageFlag === 'English' ? 'Service fee taxable if non-cash transaction' : '非现金订单服务费计税' }}
+              {{changeLanguageFlag === 'English' ? 'Service fee taxable' : '服务费计税' }}
               <i *ngIf="showExplanationsIcon" class="fa fa-info-circle"
-                 (mouseover)="showCorrespondingTranslation('ServiceFeeTaxableIfNonCashTx')" (mouseout)="translating = ''">
-                <div *ngIf="translating === 'ServiceFeeTaxableIfNonCashTx'" class="left edit-talk radius">
-                  <p>Service fee taxable if non-cash tx:{{Explanations.EnglishExplanations.ServiceFeeTaxableIfNonCashTx}}</p>
+                 (mouseover)="showCorrespondingTranslation('CustomerPaidFeesTaxable')" (mouseout)="translating = ''">
+                <div *ngIf="translating === 'CustomerPaidFeesTaxable'" class="left edit-talk radius">
+                  <p>Service fee taxable:{{Explanations.EnglishExplanations.CustomerPaidFeesTaxable}}</p>
                   -------------<br>
-                  <p>非现金订单服务费计税:{{Explanations.ChineseExplanations.ServiceFeeTaxableIfNonCashTx}}</p>
+                  <p>服务费计税:{{Explanations.ChineseExplanations.CustomerPaidFeesTaxable}}</p>
                 </div>
               </i>
             </label>
             <div class="pl-1 col-7">
-              <input type="checkbox" [checked]="!!serviceFeeTaxableIfNonCashTx"
-                     (change)="serviceFeeTaxableIfNonCashTx=$event.target.checked">
+              <input type="checkbox" [checked]="!!customerPaidFeesTaxable"
+                     (change)="customerPaidFeesTaxable=$event.target.checked">
             </div>
           </div>
         </ng-container>
