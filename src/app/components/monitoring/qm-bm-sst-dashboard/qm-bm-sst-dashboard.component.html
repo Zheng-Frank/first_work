@@ -74,6 +74,9 @@
         <button class="btn btn-link text-info" (click)="showOtherContacts = !showOtherContacts">{{showOtherContacts ? 'Hide' : 'Show'}} other contacts</button>
       </div>
       <div class="col-auto mb-3">
+        <button class="btn btn-link text-info" (click)="showPostmatesStatus = !showPostmatesStatus">{{showPostmatesStatus ? 'Hide' : 'Show'}} Postmates status</button>
+      </div>
+      <div class="col-auto mb-3">
         <button class="btn btn-link" (click)="clearFilter()">Reset Filters</button>
       </div>
     </div>
@@ -170,13 +173,15 @@
                 <div *ngIf="showPricing">BM Pricing: {{row.bpricing}}</div>
               </ng-container>
             </div>
-            <div>Address: {{row.address}} (QM) {{row.baddress}} (BM)</div>
+            <div>Address: <span class="mr-1" *ngIf="row.address">{{row.address}} (QM)</span>/<span class="ml-1" *ngIf="row.baddress">{{row.baddress}} (BM)</span></div>
             <div *ngIf="showPhones">Phone: {{groupChannels(row, 'Phone')}}</div>
             <div *ngIf="showOtherContacts">Emails: {{groupChannels(row, 'Email')}} / Fax: {{groupChannels(row, 'Fax')}}</div>
           </td>
           <td class="td-icon-top">
-            <img class="pm-green" *ngIf="row.courier === 'Postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
-            <img class="pm-grey" *ngIf="row.courier != 'Postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
+            <ng-container *ngIf="showPostmatesStatus">
+              <img class="pm-green" *ngIf="row.courier === 'Postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
+              <img class="pm-grey" *ngIf="row.courier != 'Postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
+            </ng-container>
           </td>
         </tr>
         <tr>

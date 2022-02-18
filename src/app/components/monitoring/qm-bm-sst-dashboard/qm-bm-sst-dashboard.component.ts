@@ -107,6 +107,7 @@ export class QmBmSstDashboardComponent implements OnInit {
   showPhones = false;
   showOtherContacts = false;
   showSummary = false;
+  showPostmatesStatus = false;
 
   constructor(private _api: ApiService) { }
 
@@ -285,9 +286,9 @@ export class QmBmSstDashboardComponent implements OnInit {
   getTier(score) {
     if (!score) {
       return 0;
-    } else if (score >= 0 && score < 3) {
+    } else if (score >= 0 && score <= 4) {
       return 3;
-    } else if (score >= 3 && score < 6) {
+    } else if (score > 4 && score <= 40) {
       return 2;
     } else {
       return 1;
