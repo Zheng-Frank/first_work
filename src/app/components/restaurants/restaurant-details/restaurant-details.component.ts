@@ -176,8 +176,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     preventOrdersDuringNonOpenTime: 1,
     menuImages: 1,
     preventOnlineTipIfCash: 1,
-    tin: 1,  // 1099k tab needs it 
-    payeeName: 1, // 1099k tab needs it 
+    tin: 1,  // 1099k tab needs it
+    payeeName: 1, // 1099k tab needs it
     form1099k: 1
   };
 
@@ -208,6 +208,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   openDate;
   earliestInvoiceDueDate;
   hasGMBWebsite = false;
+  hasGMBOwner = false;
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
     const tabVisibilityRolesMap = {
@@ -506,16 +507,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.activeTab = this._global.storeGet('restaurantDetailsTab') || 'Settings';
   }
-  // show checkmark or x on gmb tab to indicate the restaurant has gmb or not
-  hasGMBAtPresent() {
-    if (this.restaurant.gmbOwnerHistory && this.restaurant.gmbOwnerHistory.length > 0) {
-      this.restaurant.gmbOwnerHistory.sort((a, b) => new Date(b.time).valueOf() - new Date(a.time).valueOf());
-      return this.restaurant.gmbOwnerHistory[0].gmbOwner === 'qmenu';
-    }
-    return false;
-  }
 
-  async computeGMBWebsite() {
+  async computeGMBStatus() {
     const bizs = (await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
       query: {
@@ -524,12 +517,13 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           { place_id: (this.restaurant.googleListing || {}).place_id || "junk place id" },
         ]
       },
-      projection: {cid: 1},
+      projection: {cid: 1, gmbWebsite: 1},
       limit: 10
     }).toPromise());
 
     let main = bizs.find(x => this.restaurant.googleListing && x.cid === this.restaurant.googleListing.cid) || bizs[0];
     if (main) {
+      this.hasGMBWebsite = (this.restaurant.web && this.restaurant.web.qmenuWebsite && main.gmbWebsite === this.restaurant.web.qmenuWebsite)
       const accounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbAccount',
         aggregate: [
@@ -547,8 +541,9 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           },
         ]
       }).toPromise();
-      this.hasGMBWebsite = accounts.some(acc => (acc.locations || []).some(loc => loc.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].includes(loc.role)))
+      this.hasGMBOwner = accounts.some(acc => (acc.locations || []).some(loc => loc.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].includes(loc.role)))
     } else {
+      this.hasGMBOwner = false;
       this.hasGMBWebsite = false;
     }
   }
@@ -779,7 +774,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
             this.getInvoicesCountOfRT();
           }
           this.getDelinquentDates();
-          this.computeGMBWebsite()
+          this.computeGMBStatus()
         },
         error => {
           this.apiRequesting = false;
