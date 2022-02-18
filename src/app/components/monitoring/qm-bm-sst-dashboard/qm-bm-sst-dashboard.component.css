@@ -1,12 +1,13 @@
+.td-dot {
+  width: 16px;
+  text-align: right;
+}
+
 .dot {
   width: 15px;
   height: 15px;
   border-radius: 15px;
   display: inline-block;
-}
-
-.dot-placeholder {
-  width: 15px;
 }
 
 .qm-icon {
@@ -25,10 +26,31 @@
   background-size: contain;
 }
 
-.td-icons {
+.td-icon-top {
+  text-align: right;
+  vertical-align: top;
+}
+
+.td-icon-bottom {
+  text-align: right;
+  border-top: none;
   vertical-align: bottom;
 }
 
-.td-icons i {
+.td-icon-bottom i.fa-google {
   color: rgb(61, 125, 234);
+  font-size: 25px;
+}
+
+.td-icon-top img {
+  width: 30px;
+  height: 30px;
+}
+
+.td-icon-top img.pm-grey {
+  filter: opacity(0.6);
+}
+
+.td-icon-top img.pm-green {
+  filter: opacity(0.6) drop-shadow(0 0 0 #00ff78);
 }

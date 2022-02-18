@@ -3,6 +3,8 @@ import {ApiService} from "../../../services/api.service";
 import {environment} from "../../../../environments/environment";
 import {PagerComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
 
+const BMRTS = require('/Users/moicen/Downloads/bm.json');
+
 declare var $: any;
 
 enum PlatformOptions {
@@ -118,7 +120,7 @@ export class QmBmSstDashboardComponent implements OnInit {
 
   countByTier(list, tier) {
     let num = list.filter(rt => this.getEiterTier(rt) === tier).length;
-    return `${num} (${(num / list.length) * 100}%)`
+    return `${num} (${num ? (Math.round((num / list.length) * 10000) / 100) : 0}%)`
   }
 
   calcSummary() {
@@ -171,13 +173,7 @@ export class QmBmSstDashboardComponent implements OnInit {
               score: "$score",
               createdAt: "$createdAt",
               owner: "$googleListing.gmbOwner",
-              channels: {
-                $filter: {
-                  input: "$channels",
-                  as: "channel",
-                  cond: { $eq: ["$$channel.type", "Phone"] }
-                }
-              },
+              channels: 1,
             }
           }
         ],
@@ -204,10 +200,10 @@ export class QmBmSstDashboardComponent implements OnInit {
         const channels = [];
         [1, 2, 3, 4].map(num => {
           if (item[`Phone${num}`]) {
-            channels.push({ value: item[`Phone${num}`]});
+            channels.push({ type: 'Phone', value: item[`Phone${num}`]});
           }
           if (item[`CellPhone${num}`]) {
-            channels.push({ value: item[`CellPhone${num}`]});
+            channels.push({ type: 'Phone', value: item[`CellPhone${num}`]});
           }
         });
         let place_id = item.GooglePlaceID;
@@ -413,10 +409,10 @@ export class QmBmSstDashboardComponent implements OnInit {
 
     switch (postmates) {
       case PostmatesOptions.HasInQm:
-        list = list.filter(rt => rt.courier && rt.courier.name === 'Postmates');
+        list = list.filter(rt => rt._id && rt.courier === 'Postmates');
         break;
       case PostmatesOptions.NoInQm:
-        list = list.filter(rt => !rt.courier || rt.courier.name !== 'Postmates');
+        list = list.filter(rt => !rt._id || rt.courier !== 'Postmates');
         break;
       case PostmatesOptions.Available:
         list = list.filter(rt => rt.postmatesAvailable) // only calc qm RTs for now
@@ -437,10 +433,10 @@ export class QmBmSstDashboardComponent implements OnInit {
 
     if (keyword && keyword.trim()) {
       const kwMatch = str => str && str.toLowerCase().includes(keyword.toLowerCase())
-      let digits = keyword.replace(/\D/g, '');
+      let digits = keyword.replace(/[^a-zA-Z0-9]/g, '');
       list = list.filter(({name, bname, address, baddress, channels, bchannels}) => {
         return kwMatch(name) || kwMatch(bname) || kwMatch(address) || kwMatch(baddress)
-        || (digits && ((channels || []).some(p => p.value.includes(digits)) || (bchannels || []).some(p => p.value.includes(digits))))
+        || (digits && ((channels || []).some(p => p.type === 'Phone' && p.value.includes(digits)) || (bchannels || []).some(p => p.value.includes(digits))))
       })
     }
     this.filteredRows = list
@@ -452,8 +448,14 @@ export class QmBmSstDashboardComponent implements OnInit {
     return this.filteredRows.slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize)
   }
 
-  phones(channels) {
-    return (channels || []).map(c => c.value).join(', ')
+  groupChannels({channels, bchannels}, type) {
+    let qmWhole = (channels || []).filter(c => c.type === type).map(c => c.value);
+    let bmWhole = (bchannels || []).filter(c => c.type === type).map(c => c.value);
+    let whole = Array.from(new Set([...qmWhole, ...bmWhole]))
+    let shared = whole.filter(p => qmWhole.includes(p) && bmWhole.includes(p));
+    let qmOnly = qmWhole.filter(p => !shared.includes(p));
+    let bmOnly = bmWhole.filter(p => !shared.includes(p));
+    return [shared.join(', ') + ' (Both)', qmOnly.join(', ') + ' (QM)', bmOnly.join(', ') + ' (BM)'].join(', ');
   }
 
   clearFilter() {
