@@ -308,15 +308,22 @@
             </tbody>
           </table>
 
-          <div class="form-group row" *ngIf="selectedCourier?.name === 'Self delivery'">
-            <div class="col-4 col-form-label pt-0"><label>Delivery Area</label></div>
-            <div class="col-8 text-left">
-              <div *qIf="editing" class="form-group">
-                <textarea class="form-control" rows="5" [(ngModel)]="deliveryArea"></textarea>
-                <div *ngIf="!deliveryAreaValid()" class="text-danger">Format invalid. Please enter a self-closing array longitude/latitude coordinates of the delivery area or a valid geojson shape</div>
+          <ng-container *ngIf="selectedCourier?.name === 'Self delivery'">
+            <div class="form-group">
+              <div><label style="font-size: small">Delivery Area</label></div>
+              <div class="row"><a class="btn btn-link" (click)="showAreaTip = !showAreaTip">{{showAreaTip ? 'Hide': 'Show'}} more</a></div>
+              <div *ngIf="showAreaTip">Enter the latitude/longitude coordinates of the shape that defines the delivery area for this restaurant. Follow the instructions in this document: <a target="_blank" href="https://docs.google.com/document/d/1FLJhzS1cRoeoZKdDfKVNzZvxT4-PfESWP8ZMC6XzmBY/edit?usp=sharing">https://docs.google.com/document/d/1FLJhzS1cRoeoZKdDfKVNzZvxT4-PfESWP8ZMC6XzmBY/edit?usp=sharing</a></div>
+            </div>
+            <div class="form-group row">
+              <div class="col-4"></div>
+              <div class="col-8 text-left">
+                <div *qIf="editing" class="form-group">
+                  <textarea class="form-control" rows="5" [(ngModel)]="deliveryArea"></textarea>
+                  <div *ngIf="!deliveryAreaValid()" class="text-danger">Format invalid. Please enter a self-closing array longitude/latitude coordinates of the delivery area or a valid geojson shape</div>
+                </div>
               </div>
             </div>
-          </div>
+          </ng-container>
         </div>
       </li>
 
