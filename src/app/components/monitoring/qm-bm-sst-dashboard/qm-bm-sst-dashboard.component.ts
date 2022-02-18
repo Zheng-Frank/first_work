@@ -3,8 +3,6 @@ import {ApiService} from "../../../services/api.service";
 import {environment} from "../../../../environments/environment";
 import {PagerComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
 
-const BMRTS = require('/Users/moicen/Downloads/bm.json');
-
 declare var $: any;
 
 enum PlatformOptions {
