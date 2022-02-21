@@ -200,7 +200,7 @@ export class Form1099KComponent implements OnInit {
 
   populateFormLinks() {
     this.formLinks = [];
-    const years = [2020, 2021];
+    const years = [2020, 2021, 2022];
     for (let year of years) {
       let yearForm1099kData = (this.restaurant.form1099k || []).find(form => form.year === year);
       if (yearForm1099kData) {
@@ -339,14 +339,24 @@ export class Form1099KComponent implements OnInit {
       required: false,
       createdAt: new Date()
     } as any;
-
-    if (orders.length >= 200) {
-      const monthlyDataAndTotal = this.tabulateMonthlyData(orders);
-      if (monthlyDataAndTotal.total >= 20000) {
-        rt1099KData.required = true
-        rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
+    if (year < 2022) {
+      if (orders.length >= 200) {
+        const monthlyDataAndTotal = this.tabulateMonthlyData(orders);
+        if (monthlyDataAndTotal.total >= 20000) {
+          rt1099KData.required = true
+          rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
+        }
+      }
+    } else if (year === 2022) {
+      if (orders.length >= 1) {
+        const monthlyDataAndTotal = this.tabulateMonthlyData(orders);
+        if (monthlyDataAndTotal.total >= 600) {
+          rt1099KData.required = true
+          rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
+        }
       }
     }
+
     let existing1099kRecords = this.restaurant.form1099k || [];
     let new1099kRecords = [...existing1099kRecords, rt1099KData];
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [

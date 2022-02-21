@@ -164,19 +164,22 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
         } // less than and greater than
       }, {
         createdAt: {
-          $lte: { $date: utct }
+          $lt: { $date: utct }
         }
       }],
       "paymentObj.method": "QMENU"
     } as any;
+    
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: query,
       projection: {
-        "computed.total": 1
+        "computed.total": 1,
+        createdAt: 1
       },
       limit: 100000000000000000
     }).toPromise();
+    
     /* round - helper function to address floating point math imprecision. 
      e.g. sometimes a total may be expressed as '2.27999999999997'. we need to put that in the format '2.28' */
     const round = function (num) {
@@ -238,7 +241,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
           }]
       });
     });
-    
+
     for (let i = 0; i < templates.length; i++) {
       let template = templates[i];
       this.currRow = template.row;
@@ -532,7 +535,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     });
     const closedHours = rt.closedHours;
     const openOrNot = this.isRTOpened(menus, closedHours, timezone);
-    rt.form1099k.sort((a,b)=>b.year - a.year);
+    rt.form1099k.sort((a, b) => b.year - a.year);
     return {
       id: rt._id,
       name: rt.name,

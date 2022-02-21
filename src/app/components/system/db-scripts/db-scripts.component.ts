@@ -4156,17 +4156,25 @@ export class DbScriptsComponent implements OnInit {
             required: false,
             createdAt: new Date()
           } as any;
-
-          if (orders.length >= 200) {
-            const monthlyDataAndTotal = tabulateMonthlyData(orders);
-            if (monthlyDataAndTotal.total >= 20000) {
-              rt1099KData.required = true
-              rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
-            }
-          }
-
           // for tax year 2021 and before: requirement is >= 200 orders and >= 20,000 dollars
           // for tax year 2022 and after: requirement is >=1 orders and >= 600 dollars
+          if (taxYear < 2022) {
+            if (orders.length >= 200) {
+              const monthlyDataAndTotal = tabulateMonthlyData(orders);
+              if (monthlyDataAndTotal.total >= 20000) {
+                rt1099KData.required = true
+                rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
+              }
+            }
+          } else if (taxYear === 2022) {
+            if (orders.length >= 1) {
+              const monthlyDataAndTotal = tabulateMonthlyData(orders);
+              if (monthlyDataAndTotal.total >= 600) {
+                rt1099KData.required = true
+                rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
+              }
+            }
+          }
 
           if (rt1099KData.required === true) {
             console.log(rt1099KData);
