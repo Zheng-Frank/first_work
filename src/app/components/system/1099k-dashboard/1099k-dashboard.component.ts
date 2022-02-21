@@ -56,6 +56,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   filteredRows = [];
   taxYearOptions = [
     'All',
+    '2022',
     // '2022', // taxYear 2022 will need to be enabled beginning in 2023
     '2021',
     '2020',
@@ -81,6 +82,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   bulkFileOperation = '';
 
   bulkOperationYears = [
+    '2022',
     '2021',
     '2020',
   ];
