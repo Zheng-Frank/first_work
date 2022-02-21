@@ -523,7 +523,9 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
     let main = bizs.find(x => this.restaurant.googleListing && x.cid === this.restaurant.googleListing.cid) || bizs[0];
     if (main) {
-      this.hasGMBWebsite = (this.restaurant.web && this.restaurant.web.qmenuWebsite && main.gmbWebsite === this.restaurant.web.qmenuWebsite)
+      let gmbWebsite = (main.gmbWebsite || '').replace(/\/+$/, '')
+      let qmWebsite = (this.restaurant.web && this.restaurant.web.qmenuWebsite || '').replace(/\/+$/, '');
+      this.hasGMBWebsite = gmbWebsite && gmbWebsite === qmWebsite;
       const accounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbAccount',
         aggregate: [
