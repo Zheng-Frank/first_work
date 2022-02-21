@@ -174,8 +174,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       resource: "order",
       query: query,
       projection: {
-        "computed.total": 1,
-        createdAt: 1
+        "computed.total": 1
       },
       limit: 100000000000000000
     }).toPromise();
