@@ -300,6 +300,12 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
         this.payeeDescriptor.items = [this.payeeRestaurant, this.payeeQmenu];
         // only possible charge basis:
         this.chargeBasisDescriptor.items = [this.chargeBasisSubtotal, this.chargeBasisPreTotal];
+        if (this.feeScheduleInEditing.name === 'credit card fee') {
+          this.chargeBasisDescriptor.items = [this.chargeBasisPreTotal];
+          if (this.feeScheduleInEditing.chargeBasis && this.feeScheduleInEditing.chargeBasis !== ChargeBasis.OrderPreTotal) {
+            this.feeScheduleInEditing.chargeBasis = undefined;
+          }
+        }
         break;
       case 'RESTAURANT':
         this.feeScheduleInEditing.payee = this.payeeQmenu.object;
