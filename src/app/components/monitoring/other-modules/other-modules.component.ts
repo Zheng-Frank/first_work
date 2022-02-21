@@ -18,11 +18,12 @@ export class OtherModulesComponent implements OnInit {
       { name: 'Email Problems', route: 'email-problems', authRoles: ['CSR', 'CSR_MANAGER'] },
       { name: 'Restaurants Promotion', route: 'restaurants-promotion', authRoles: ['CSR', 'CSR_MANAGER'] },
       { name: 'Weird Data', route: 'weird-data', authRoles: ['CSR', 'CSR_MANAGER'] },
-      { name: 'Clean Insisted Link Restaurants', route: 'clean-insisted-link-rts', authRoles: ['CSR', 'CSR_MANAGER'] },
+      { name: 'Clean Insisted Link RTs', route: 'clean-insisted-link-rts', authRoles: ['CSR', 'CSR_MANAGER'] },
       { name: 'Excess SMS Notifications', route: 'excess-sms-notifications-rts', authRoles: ['CSR', 'CSR_MANAGER'] },
       { name: 'Clean Menus', route: 'clean-menus', authRoles: ['CSR', 'CSR_MANAGER'] },
       { name: 'Postmates Orders', route: 'postmates-orders', authRoles: ['CSR', 'CSR_MANAGER'] },
       { name: 'Dine-In Orders', route: 'dine-in-orders', authRoles: ['CSR', 'CSR_MANAGER'] },
+      { name: 'Form 1099K Dashboard', route: '1099k-dashboard', authRoles: ['CSR', 'CSR_MANAGER'] }
     ],
     Developers: [
       { name: 'Json Schemas', route: 'schemas', authRoles: ['DEVELOPER'] },
@@ -56,7 +57,7 @@ export class OtherModulesComponent implements OnInit {
 
   visibleModules(m) {
     let roles = this._global.user.roles || [];
-    return  roles.includes('ADMIN') || m.authRoles.some(r => roles.includes(r));
+    return roles.includes('ADMIN') || m.authRoles.some(r => roles.includes(r));
   }
 
 }

@@ -19,6 +19,7 @@ export class MonitoringDashboardComponent implements OnInit {
 
   ngOnInit() {
     const roleMap = {
+      "Software": ["ADMIN", "CSR"],
       "Dashboard Items": ["ADMIN", "MENU_EDITOR", "CSR", 'CSR_MANAGER', "ACCOUNTANT"],
       "Diagnostics": ["ADMIN", "CSR", 'CSR_MANAGER', "ACCOUNTANT"],
       "Cloud Printers": ["ADMIN", "MENU_EDITOR", "CSR", 'CSR_MANAGER', "ACCOUNTANT"],

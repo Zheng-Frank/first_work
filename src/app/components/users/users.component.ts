@@ -104,10 +104,11 @@ export class UsersComponent implements OnInit {
     const roleMap = {};
     this.users.map(u => (u.roles || []).map(r => {
       roleMap[r] = roleMap[r] || [];
-      roleMap[r].push(u.username);
+      roleMap[r].push({ username: u.username, disabled: u.disabled });
     }));
 
     this.roleUsers = Object.keys(roleMap).map(role => ({ role: role, users: roleMap[role] }));
+    
     if (!this.isAdmin()) {
       this.roleUsers = this.roleUsers.filter(x => !['ADMIN', 'CSR_MANAGER'].includes(x.role));
     }
@@ -138,9 +139,9 @@ export class UsersComponent implements OnInit {
       label: 'Manager',
       inputType: 'select',
       required: false,
-      items: this.users
+      items: [{object: '', text: '', selected: false}, ...this.users
         .filter(u => u.username !== user.username && !u.disabled)
-        .map(u => ({ object: u.username, text: u.username, selected: false }))
+        .map(u => ({ object: u.username, text: u.username, selected: false }))]
     },
     {
       field: 'roles',
@@ -151,7 +152,7 @@ export class UsersComponent implements OnInit {
       maxSelection: 100,
       items: this.existingRoleItems.map(x => {
         let disabled = !this.isAdmin() && (x.text === 'ADMIN' || x.text.endsWith('_MANAGER'));
-        return {...x, disabled};
+        return { ...x, disabled };
       })
     },
     {
@@ -198,7 +199,7 @@ export class UsersComponent implements OnInit {
 
   formSubmit(event) {
 
-    if(this.userInEditing.notes && this.userInEditing.notes.length > 1000){
+    if (this.userInEditing.notes && this.userInEditing.notes.length > 1000) {
       event.acknowledge(null);
       return this._global.publishAlert(AlertType.Danger, 'Notes limit 1000 characters!');
     }
@@ -242,7 +243,7 @@ export class UsersComponent implements OnInit {
 
     } else {
       // return error message if user exists
-      if(this.users.some(u => u.username === this.userInEditing.username)){
+      if (this.users.some(u => u.username === this.userInEditing.username)) {
         event.acknowledge(null);
         return this._global.publishAlert(AlertType.Danger, 'User exists!');
       }

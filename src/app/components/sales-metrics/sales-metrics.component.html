@@ -9,7 +9,25 @@
       </select>
     </div>
   </div>
-
+  <ng-container *ngIf="isAdmin() || isMarketerManager()">
+    <div class="col-auto">
+      <div class="input-group">
+        <label>View by: </label>
+        <select class="custom-select " [(ngModel)]="viewMode" (change)="query()">
+          <option *ngFor="let item of viewModes" [value]="item">{{item}}</option>
+        </select>
+      </div>
+    </div>
+    <div class="col-auto" *ngIf="viewMode === ViewModes.Agent">
+      <div class="input-group">
+        <label>Agent: </label>
+        <select class="custom-select " [(ngModel)]="agent" (change)="query()">
+          <option value=""></option>
+          <option *ngFor="let item of agents" [value]="item">{{item}}</option>
+        </select>
+      </div>
+    </div>
+  </ng-container>
 </div>
 
 <div class="row ivr-filters mt-2" *ngIf="timeRange === TimeRanges.CustomDate">
@@ -30,13 +48,17 @@
 <div>
   <h4 class="text-center"> Team Totals for {{displayTimeRange()}}</h4>
   <table class="table w-50">
-    <tr>
+    <tr *ngIf="viewMode === ViewModes.Overview">
       <td class='font-weight-bold'>Agents With One or More Calls:</td>
-      <td>{{filteredList.length}}</td>
+      <td>{{agentsWithCalls.size}}</td>
+    </tr>
+    <tr *ngIf="viewMode === ViewModes.Agent">
+      <td class='font-weight-bold'>Average Call Time per Day:</td>
+      <td>{{avgCallTimePerDayByAgent()}}</td>
     </tr>
     <tr>
       <td class='font-weight-bold'>Total Calls Placed:</td>
-      <td>{{filteredTotalRecords}}</td>
+      <td>{{totalRecords}}</td>
     </tr>
     <tr>
       <td class='font-weight-bold'> New Restaurant Sign-Ups: </td>
@@ -50,20 +72,31 @@
 </div>
 
 
-<h4 class="text-center my-1"> Individual Totals for {{displayTimeRange()}}</h4>
+<div class="my-1 d-flex justify-content-between align-items-center">
+  <span>
+    <ng-container *ngIf="viewMode === ViewModes.Overview">
+      <input [(ngModel)]="showDisabledUsers" type="checkbox">
+      Show Disabled Users
+    </ng-container>
+  </span>
+  <h4>Individual Totals for {{displayTimeRange()}}</h4>
+  <span class="d-inline-flex align-items-center">
+    <i class="fa fa-info-circle" data-toggle="tooltip" data-placment="top" title="Downloaded CSV will also have columns: Language, Status, Num work days, Avg call time / work day, Num calls / work day"></i>
+    <a class="ml-1 btn-link btn-download" (click)="downloadCsv()">Download CSV</a>
+  </span>
+</div>
 <div class="text-left ">
-  <q-table [rows]="filteredList" [tableColumnDescriptors]="agentStatsColumnDescriptors">
+  <q-table [rows]="dataset()" [tableColumnDescriptors]="agentStatsColumnDescriptors">
     <tr *tableRowTemplate="let item">
-      <td> {{ item.agent }}</td>
+      <td *ngIf="viewMode === ViewModes.Overview"> {{ item.agent }}</td>
+      <td *ngIf="viewMode === ViewModes.Agent"> {{ item.date }}</td>
       <td> {{ item.totalCalls }}</td>
       <td> {{ item.rtCount }}</td>
       <td> {{ item.gmbCount }}</td>
       <td> {{ secondsToHms(item.avgCallDuration) }}</td>
       <td> {{ secondsToHms(item.totalCallTime) }}</td>
-      <td> {{ secondsToHms(item.avgCallTimePerDay) }}</td>
-   
+      <td *ngIf="viewMode === ViewModes.Overview"> {{ secondsToHms(item.avgCallTimePerDay) }}</td>
       <td> {{ item.churnCount }} </td>
-
     </tr>
   </q-table>
 </div>

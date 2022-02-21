@@ -1,3 +1,7 @@
 .wrap {
     white-space: pre-wrap
 }
+
+.priority-star {
+    font-size: 1.25rem;
+}

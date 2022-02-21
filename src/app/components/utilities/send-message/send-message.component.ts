@@ -142,7 +142,7 @@ export class SendMessageComponent {
   }
 
   hasEmail() {
-    return (this.templateType === 'Custom' || this.template.emailContent) && this.targets.some(t => t.type === 'Email');
+    return this.template && (this.templateType === 'Custom' || this.template.emailContent) && this.targets.some(t => t.type === 'Email');
   }
 
   isPhoneValid() {
@@ -150,7 +150,7 @@ export class SendMessageComponent {
   }
 
   hasSMS() {
-    return (this.templateType === 'Custom' || this.template.smsContent) && (this.targets.some(t => t.type === 'SMS') || this.useCustomTarget);
+    return this.template && (this.templateType === 'Custom' || this.template.smsContent) && (this.targets.some(t => t.type === 'SMS') || this.useCustomTarget);
   }
 
   selectTarget(e, target) {

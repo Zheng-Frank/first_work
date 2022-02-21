@@ -35,9 +35,15 @@
       <ul class="nav nav-tabs card-header-tabs">
         <li class="nav-item" *ngFor="let tab of tabs">
           <a *ngIf="tab === 'Settings' || tab === 'GMB' || tab === 'Logs' "
-            class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
-            style="cursor: pointer;">{{tab}} <ng-container *ngIf="tab === 'Logs'">({{restaurant?.logs?.length || 0}})
-            </ng-container></a>
+            class="nav-link d-flex align-items-center {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)" style="cursor: pointer;">
+            {{tab}}
+            <ng-container *ngIf="tab === 'Logs'">({{restaurant?.logs?.length || 0}})</ng-container>
+            <ng-container *ngIf="tab === 'GMB'">
+              <span class="ml-1 {{hasGMBAtPresent() ? 'dot-green' : 'dot-red'}} dot-lg">
+                <span class="{{hasGMBWebsite ? 'dot-green': 'dot-red'}} dot-sm"></span>
+              </span>
+            </ng-container>
+          </a>
         </li>
       </ul>
     </div>
@@ -96,18 +102,15 @@
           <a *ngIf="tab === 'Coupons'" class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
             style="cursor: pointer;">{{tab}} ({{restaurant?.promotions?.length || 0}})</a>
           <a *ngIf="tab != 'Menus' && tab != 'Menu Options' && tab != 'Coupons' "
-            class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
+            class="nav-link d-flex align-items-center {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
             style="cursor: pointer;">{{tab}}
             <ng-container *ngIf="tab === 'Logs'">({{restaurant?.logs?.length || 0}})
             </ng-container>
             <ng-container *ngIf="tab === 'Invoices'">({{invoicesCount || 0}})
             </ng-container>
             <ng-container *ngIf="tab === 'GMB'">
-              <span *ngIf="hasGMBAtPresent()" class="text-sucess">
-                &#10004;
-              </span>
-              <span *ngIf="!hasGMBAtPresent()" class="text-danger">
-                &#10008;
+              <span class="ml-1 {{hasGMBAtPresent() ? 'dot-green' : 'dot-red'}} dot-lg">
+                <span class="{{hasGMBWebsite ? 'dot-green': 'dot-red'}} dot-sm"></span>
               </span>
             </ng-container>
           </a>

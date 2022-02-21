@@ -1,10 +1,13 @@
-import { Component, OnInit, Input } from '@angular/core';
+import {Component, OnInit, Input} from '@angular/core';
 import { Restaurant, Hour, TimezoneHelper } from '@qmenu/ui';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { PrunedPatchService } from "../../../services/prunedPatch.service";
 import { AlertType } from "../../../classes/alert-type";
+
+declare var google: any;
+declare var $: any;
 
 @Component({
   selector: 'app-restaurant-delivery-settings',
@@ -13,7 +16,7 @@ import { AlertType } from "../../../classes/alert-type";
 })
 export class RestaurantDeliverySettingsComponent implements OnInit {
   @Input() restaurant: Restaurant;
-  editing: boolean = false;
+  editing = false;
   clickedAddHour = false;
 
   deliverySettingsInEditing = [];
@@ -38,6 +41,9 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
   secondNotifications = true;
   checkingPostmatesAvailability = false;
   now = new Date(); // to tell if a delivery hours is expired
+  showExplanation = false;
+  map = null;
+  showAreaTip = false;
 
   isDeliveryHoursExpired(hour) {
     return hour.toTime && this.now > hour.toTime;
@@ -129,6 +135,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
       { value: 180, text: '180 minutes before closing' },
       { value: 240, text: '240 minutes before closing' },
     ];
+    this.asyncOperation();
   }
 
   toggleEditing() {
@@ -158,6 +165,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
 
     this.deliveryEndMinutesBeforeClosing = this.restaurant.deliveryEndMinutesBeforeClosing;
     this.selectedCourier = this.restaurant.courier ? this.couriers.filter(c => c._id === this.restaurant.courier._id)[0] : this.couriers[0];
+    this.asyncOperation();
   }
 
   deliveryAndNotQMenuCollect(c) {
@@ -228,7 +236,11 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     newR.allowedCities = this.allowedCities.split(',').map(each => each.trim()).filter(each => each);
     newR.allowedZipCodes = this.allowedZipCodes.split(',').map(each => each.trim()).filter(each => each);
     newR.deliveryHours = this.deliveryHours;
-    newR.deliveryArea = this.deliveryArea;
+    if (this.deliveryArea) {
+      newR.deliveryArea = JSON.stringify(this.fillGeoJson(this.deliveryArea), null, 4);
+    } else {
+      newR.deliveryArea = undefined;
+    }
     newR.taxOnDelivery = this.taxOnDelivery;
     newR.muteFirstNotifications = !this.firstNotifications;
     newR.muteSecondNotifications = !this.secondNotifications;
@@ -290,6 +302,7 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
 
     this.editing = false;
     this.deliverySettingsInEditing = [];
+    this.asyncOperation();
   }
 
   toggleTaxOnDelivery() {
@@ -330,5 +343,87 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
     this.deliveryHours = this.deliveryHours.filter(h => h !== hour);
   }
 
+  asyncOperation() {
+    setTimeout(() => {
+      this.renderMap();
+      $("[data-toggle='tooltip']").tooltip({
+        html: true, delay: {show: 100, hide: 1000}, template: '<div class="tooltip qmenu-tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>'
+      })
+    }, 0)
+  }
+
+  deliveryAreaValid() {
+    try {
+      if (!this.deliveryArea) {
+        return true;
+      }
+      let data = JSON.parse(this.deliveryArea);
+      if (!data || (typeof data !== 'object')) {
+        return false;
+      }
+      const coordinatesValid = coordinates => {
+        return coordinates && coordinates.length && coordinates.every(coor => {
+          let [lat, lng] = coor;
+          return coor.length === 2 && typeof lat === 'number' && typeof lng === 'number' && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+        });
+      }
+      if (data instanceof Array) {
+        return coordinatesValid(data);
+      } else {
+        let { type, features} = data;
+        return type === 'FeatureCollection' && features.some(feature => {
+          return feature.type === 'Feature' && feature.geometry.type === 'Polygon' && feature.geometry.coordinates.length === 1 && coordinatesValid(feature.geometry.coordinates[0])
+        });
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+
+  fillGeoJson(str) {
+    let featureCollection = {
+      "type": "FeatureCollection",
+      "name": "Qmenu RT Delivery Bounds Example",
+      "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+      "features": [
+        {
+          "type": "Feature", "properties": { "Name": "Polygon", "description": null },
+          "geometry": { "type": "Polygon", "coordinates": [] }
+        }
+      ]
+    }
+    // check if only coordinates
+    let coordinates = JSON.parse(str);
+    if (!(coordinates instanceof Array)) {
+      featureCollection = coordinates;
+      coordinates = featureCollection.features[0].geometry.coordinates[0];
+    }
+    // check if self-closing
+    let first = coordinates[0], last = coordinates[coordinates.length - 1];
+    if (last[0] !== first[0] || last[1] !== first[1]) {
+      coordinates.push(first)
+    }
+    featureCollection.features[0].geometry.coordinates.push(coordinates)
+    return featureCollection;
+  }
+
+  renderMap() {
+    if (this.editing) {
+      this.map = null;
+    } else {
+      if (this.restaurant.deliveryArea) {
+        if (!this.map) {
+          let { lat, lng } = this.restaurant.googleAddress;
+          let el = document.getElementById('delivery-map') as HTMLDivElement;
+          this.map = new google.maps.Map(el, {zoom: 11, center: {lat, lng}});
+        }
+        this.map.data.addGeoJson(this.fillGeoJson(this.restaurant.deliveryArea));
+      } else {
+        if (this.map) {
+          this.map = null;
+        }
+      }
+    }
+  }
 }
 

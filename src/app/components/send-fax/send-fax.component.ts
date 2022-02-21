@@ -56,7 +56,7 @@ export class SendFaxComponent implements OnInit {
         params: {
           to: faxNumber,
           mediaUrl: faxHtmlMediaUrl,
-          providerName: "twilio",
+          providerName: "telnyx",
           trigger: {
             "id": this._global.user._id,
             "name": this._global.user.username,
@@ -91,7 +91,7 @@ export class SendFaxComponent implements OnInit {
         params: {
           to: faxNumber,
           mediaUrl,
-          providerName: "twilio",
+          providerName: "telnyx",
           trigger: {
             "id": this._global.user._id,
             "name": this._global.user.username,

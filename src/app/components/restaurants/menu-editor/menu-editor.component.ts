@@ -10,7 +10,7 @@ import { HttpClient } from '@angular/common/http';
   styleUrls: ['./menu-editor.component.css']
 })
 export class MenuEditorComponent implements OnInit {
-  
+
   menu: Menu;
   @Input() timezone = 'America/New_York';
   @Output() onDelete = new EventEmitter();
@@ -18,7 +18,7 @@ export class MenuEditorComponent implements OnInit {
   @Output() onCancel = new EventEmitter();
   @Input() enableDelete = true;
   @Input() restaurant: Restaurant;
-  
+
   viewMenuLink = ''; // it's text of href of <a></a> link to go to corresponding menu of custom PWA
   clickedAddHour = false;
   clickedDelete = false;
@@ -68,6 +68,10 @@ export class MenuEditorComponent implements OnInit {
     }
     const nonselfMenus = this.restaurant.menus.filter(each => each.id !== this.menu.id);
     return this.menu.name && !nonselfMenus.some(each => each.name === this.menu.name);
+  }
+
+  nameDuplicated() {
+    return this.menu.name && this.restaurant.menus.some(m => m.id !== this.menu.id && m.name === this.menu.name);
   }
 
   createArrayOfMenuNames() {

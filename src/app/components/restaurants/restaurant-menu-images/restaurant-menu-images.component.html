@@ -1,0 +1,27 @@
+<div class="row ml-1">
+  <div class="menu-img-item mb-3" *ngFor="let image of images; let i = index;">
+    <div class="btn-close" (click)="removeImage(i)">
+      <i class="fa fa-times"></i>
+    </div>
+    <img [src]="image.url" />
+    <div class="pb-1">
+      <div class="edit-box" *ngIf="!image.edit">
+        <small class="text-center text-unwrap"><i>{{image.createdAt | adjustedDate: 'MMM d h:mm a':restaurant.googleAddress?.timezone}} - {{image.createdBy}}</i></small>
+        <div class="text-start">{{getShortSDecription(image.description)}}<a class="pl-2 pt-1" (click)="image.edit = true">Edit</a></div>
+      </div>
+      <div class="save-box mt-1" *ngIf="image.edit">
+        <textarea class="form-control" maxlength="200" [(ngModel)]="image.description"></textarea>
+        <div class="d-flex justify-content-end mt-1">
+          <button class="btn btn-secondary mr-1" (click)="image.edit = false">Cancel</button>
+          <button class="btn btn-primary" (click)="saveImageDesc(image)">Ok</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="add-menu-img-btn">
+    <div class="add-icon-box">
+      <i class="fas fa-plus" (click)="fileInput.click()"></i>
+    </div>
+    <input #fileInput type="file" accept="image/*" (change)="upload($event)" style="display:none;" />
+  </div>
+</div>

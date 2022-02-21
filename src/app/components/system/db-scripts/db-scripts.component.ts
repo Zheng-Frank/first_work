@@ -1,16 +1,17 @@
-import {Component, OnInit} from '@angular/core';
-import {ApiService} from '../../../services/api.service';
-import {environment} from '../../../../environments/environment';
-import {GlobalService} from '../../../services/global.service';
-import {AlertType} from '../../../classes/alert-type';
-import {zip} from 'rxjs';
-import {mergeMap} from 'rxjs/operators';
-import {Restaurant} from '@qmenu/ui';
-import {Gmb3Service} from 'src/app/services/gmb3.service';
-import {Helper} from 'src/app/classes/helper';
-import {Domain} from 'src/app/classes/domain';
+import { TimezoneHelper } from '@qmenu/ui';
+import { Component, OnInit } from '@angular/core';
+import { ApiService } from '../../../services/api.service';
+import { environment } from '../../../../environments/environment';
+import { GlobalService } from '../../../services/global.service';
+import { AlertType } from '../../../classes/alert-type';
+import { zip } from 'rxjs';
+import { mergeMap } from 'rxjs/operators';
+import { Restaurant, Order } from '@qmenu/ui';
+import { Gmb3Service } from 'src/app/services/gmb3.service';
+import { Helper } from 'src/app/classes/helper';
+import { Domain } from 'src/app/classes/domain';
 import * as FileSaver from 'file-saver';
-import {Transaction} from 'src/app/classes/transaction';
+import { Transaction } from 'src/app/classes/transaction';
 
 @Component({
   selector: 'app-db-scripts',
@@ -29,26 +30,26 @@ export class DbScriptsComponent implements OnInit {
   async migratePaymentMeansOneTime() {
     const rts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {'paymentMeans.details.memo': {$regex: 'one time|一次', $options: 'i'}},
-      projection: {_id: 1, paymentMeans: 1},
+      query: { 'paymentMeans.details.memo': { $regex: 'one time|一次', $options: 'i' } },
+      projection: { _id: 1, paymentMeans: 1 },
       limit: 20000
     }).toPromise();
     console.log('rts with paymentMeans has one time memo field...', rts.map(rt => rt._id));
     const onetimeMemo = memo => memo && ['one time', '一次'].some(x => memo.toLowerCase().includes(x));
-    const patchList = rts.filter(x => x.paymentMeans.some(({details: {memo, onetime}}) => !onetime && onetimeMemo(memo) ))
-      .map(({paymentMeans, ...rest}) => ({
+    const patchList = rts.filter(x => x.paymentMeans.some(({ details: { memo, onetime } }) => !onetime && onetimeMemo(memo)))
+      .map(({ paymentMeans, ...rest }) => ({
         old: rest,
         new: {
           ...rest,
           paymentMeans: paymentMeans.map((item) => {
-            let {details: {memo, onetime}} = item;
+            let { details: { memo, onetime } } = item;
             if (!onetime && onetimeMemo(memo)) {
               item.details.onetime = true;
             }
             return item;
           })
         }
-    }));
+      }));
     console.log(patchList);
     if (patchList.length > 0) {
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
@@ -58,12 +59,12 @@ export class DbScriptsComponent implements OnInit {
   async removeMenuCleanedField() {
     const rts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {menuCleaned: {$exists: true}},
-      projection: {_id: 1, menuCleaned: 1},
+      query: { menuCleaned: { $exists: true } },
+      projection: { _id: 1, menuCleaned: 1 },
       limit: 20000
     }).toPromise();
     console.log('rts with menuCleaned field...', rts.map(rt => rt._id));
-    const patchList = rts.map(rt => ({old: rt, new: {_id: rt._id}}));
+    const patchList = rts.map(rt => ({ old: rt, new: { _id: rt._id } }));
     if (patchList.length > 0) {
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
     }
@@ -94,8 +95,8 @@ export class DbScriptsComponent implements OnInit {
   async disableAtMigrate() {
     const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {disabled: true, disabledAt: {$exists: false}},
-      projection: {_id: 1, 'logs.time': 1, createdAt: 1, disabledAt: 1}
+      query: { disabled: true, disabledAt: { $exists: false } },
+      projection: { _id: 1, 'logs.time': 1, createdAt: 1, disabledAt: 1 }
     }, 50);
     let zero = new Date(0).valueOf();
     const getDTValue = (datetime) => {
@@ -108,17 +109,17 @@ export class DbScriptsComponent implements OnInit {
       let latestLogTime = (rt.logs || []).reduce((a, c) => Math.max(a, getDTValue(c.time)), zero);
       let latestOrder = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'order',
-        query: {restaurant: {$oid: rt._id}},
-        projection: {createdAt: 1},
-        sort: {createdAt: -1},
+        query: { restaurant: { $oid: rt._id } },
+        projection: { createdAt: 1 },
+        sort: { createdAt: -1 },
         limit: 1
       }).toPromise();
       let latestOrderTime = latestOrder.length ? getDTValue(latestOrder[0].createdAt) : zero;
       let latestApiLog = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'apilog',
-        query: {'body.0.old._id': rt._id},
-        projection: {time: 1},
-        sort: {time: -1},
+        query: { 'body.0.old._id': rt._id },
+        projection: { time: 1 },
+        sort: { time: -1 },
         limit: 1
       }).toPromise();
 
@@ -136,8 +137,8 @@ export class DbScriptsComponent implements OnInit {
         disabledAt = createdAt.valueOf();
       }
       patchList.push({
-        old: {_id: rt._id},
-        new: {_id: rt._id, disabledAt: new Date(disabledAt)}
+        old: { _id: rt._id },
+        new: { _id: rt._id, disabledAt: new Date(disabledAt) }
       });
     }
     console.log(patchList);
@@ -152,7 +153,7 @@ export class DbScriptsComponent implements OnInit {
     }, 1000);
     const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {disabled: {$ne: true}}
+      query: { disabled: { $ne: true } }
     }, 50);
     const chineseAgents = [
       'alan', 'alice', 'amy', 'andy', 'annie', 'anny',
@@ -194,15 +195,15 @@ export class DbScriptsComponent implements OnInit {
         if (phoneOrderChannels.length === 0) {
           let preferredLanguage = salesAgent && chineseAgentsSet.has(salesAgent) ? 'CHINESE' : 'ENGLISH';
           updateOp = {
-            old: {_id: rt._id},
-            new: {_id: rt._id, preferredLanguage}
+            old: { _id: rt._id },
+            new: { _id: rt._id, preferredLanguage }
           };
         } else {
           // 1.2 has phone order notification -> keep preferredLanguage, and set it to channelLanguage
           phoneOrderChannels.forEach(x => x.channelLanguage = rt.preferredLanguage);
           updateOp = {
-            old: {_id: rt._id},
-            new: {_id: rt._id, channels}
+            old: { _id: rt._id },
+            new: { _id: rt._id, channels }
           };
         }
       } else {
@@ -211,16 +212,16 @@ export class DbScriptsComponent implements OnInit {
         if (phoneOrderChannels.length === 0) {
           let preferredLanguage = salesAgent && chineseAgentsSet.has(salesAgent) ? 'CHINESE' : 'ENGLISH';
           updateOp = {
-            old: {_id: rt._id},
-            new: {_id: rt._id, preferredLanguage}
+            old: { _id: rt._id },
+            new: { _id: rt._id, preferredLanguage }
           };
         } else {
           // 2.2 has phone order notification -> preferredLanguage and channelLanguage to English
           let preferredLanguage = 'ENGLISH';
           phoneOrderChannels.forEach(x => x.channelLanguage = preferredLanguage);
           updateOp = {
-            old: {_id: rt._id},
-            new: {_id: rt._id, preferredLanguage, channels}
+            old: { _id: rt._id },
+            new: { _id: rt._id, preferredLanguage, channels }
           };
         }
       }
@@ -239,9 +240,9 @@ export class DbScriptsComponent implements OnInit {
       resource: 'restaurant',
       query: {
         $or: [
-          {'menus.name': {$regex: '\\S\\(|\\(\\s+|\\)\\S|\\s+\\)'}},
-          {'menus.mcs.name': {$regex: '\\S\\(|\\(\\s+|\\)\\S|\\s+\\)'}},
-          {'menus.mcs.mis.name': {$regex: '\\S\\(|\\(\\s+|\\)\\S|\\s+\\)'}}
+          { 'menus.name': { $regex: '\\S\\(|\\(\\s+|\\)\\S|\\s+\\)' } },
+          { 'menus.mcs.name': { $regex: '\\S\\(|\\(\\s+|\\)\\S|\\s+\\)' } },
+          { 'menus.mcs.mis.name': { $regex: '\\S\\(|\\(\\s+|\\)\\S|\\s+\\)' } }
         ]
       }
     }, 50);
@@ -269,8 +270,8 @@ export class DbScriptsComponent implements OnInit {
       });
 
       return {
-        old: {_id: rt._id},
-        new: {_id: rt._id, menus: rt.menus}
+        old: { _id: rt._id },
+        new: { _id: rt._id, menus: rt.menus }
       };
     });
     console.log(patchList);
@@ -284,9 +285,9 @@ export class DbScriptsComponent implements OnInit {
       resource: 'restaurant',
       query: {
         $or: [
-          {'menus.name': {$regex: '[（）‘’“”]'}},
-          {'menus.mcs.name': {$regex: '[（）‘’“”]'}},
-          {'menus.mcs.mis.name': {$regex: '[（）‘’“”]'}}
+          { 'menus.name': { $regex: '[（）‘’“”]' } },
+          { 'menus.mcs.name': { $regex: '[（）‘’“”]' } },
+          { 'menus.mcs.mis.name': { $regex: '[（）‘’“”]' } }
         ]
       }
     }, 50);
@@ -316,8 +317,8 @@ export class DbScriptsComponent implements OnInit {
       });
 
       return {
-        old: {_id: rt._id},
-        new: {_id: rt._id, menus: rt.menus}
+        old: { _id: rt._id },
+        new: { _id: rt._id, menus: rt.menus }
       };
     });
     console.log(patchList);
@@ -342,7 +343,7 @@ export class DbScriptsComponent implements OnInit {
   }
 
   detectNumber(item) {
-    let {name} = item;
+    let { name } = item;
     // if name is empty or item has number already, skip
     if (!name || !!item.number) {
       return;
@@ -359,7 +360,7 @@ export class DbScriptsComponent implements OnInit {
     ];
 
     if (numMatched) {
-      let {num, dot, word} = numMatched.groups;
+      let { num, dot, word } = numMatched.groups;
       // if dot after number, definite number, otherwise we check if a measure word after number or not
       let hasMeasure = measureWords.includes((word || '').toLowerCase());
       if (num && /\D+$/.test(num)) {
@@ -394,7 +395,7 @@ export class DbScriptsComponent implements OnInit {
 
 
   detect(item, translations) {
-    let {name} = item;
+    let { name } = item;
     if (!name) {
       return false;
     }
@@ -410,7 +411,7 @@ export class DbScriptsComponent implements OnInit {
     ];
     let number, hasMeasure = false;
     if (numMatched) {
-      let {to_rm, num, dot, word} = numMatched.groups;
+      let { to_rm, num, dot, word } = numMatched.groups;
       // if dot after number, definite number, otherwise we check if a measure word after number or not
       hasMeasure = measureWords.includes((word || '').toLowerCase());
       if (num && /\D+$/.test(num)) {
@@ -447,7 +448,7 @@ export class DbScriptsComponent implements OnInit {
   }
 
   needClean(restaurant) {
-    let {menus} = restaurant;
+    let { menus } = restaurant;
 
     for (let i = 0; i < (menus || []).length; i++) {
       for (let j = 0; j < (menus[i].mcs || []).length; j++) {
@@ -528,8 +529,8 @@ export class DbScriptsComponent implements OnInit {
   async extractMenuNumberInName() {
     const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {disabled: {$ne: true}},
-      projection: {'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, 'menus.mcs.mis.number': 1, name: 1}
+      query: { disabled: { $ne: true } },
+      projection: { 'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, 'menus.mcs.mis.number': 1, name: 1 }
     }, 500);
     let detectedMcs = [], patchList = [];
     let canExtract = rts.filter(rt => {
@@ -541,8 +542,8 @@ export class DbScriptsComponent implements OnInit {
       });
       if (flag) {
         patchList.push({
-          old: {_id: rt._id},
-          new: {_id: rt._id, menus: rt.menus}
+          old: { _id: rt._id },
+          new: { _id: rt._id, menus: rt.menus }
         });
       }
       return flag;
@@ -565,8 +566,8 @@ export class DbScriptsComponent implements OnInit {
 
     const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {disabled: {$ne: true}},
-      projection: {'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, 'menus.mcs.mis.number': 1, name: 1, translations: 1}
+      query: { disabled: { $ne: true } },
+      projection: { 'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, 'menus.mcs.mis.number': 1, name: 1, translations: 1 }
     }, 500);
 
     let needCleaned = rts.filter(rt => this.needClean(rt));
@@ -578,11 +579,11 @@ export class DbScriptsComponent implements OnInit {
   shrink(str) {
     let regex = /(^\s+)|(\s{2,})|(\s+$)/g;
     let changed = regex.test(str);
-    return {changed, result: (str || '').trim().replace(/\s+/g, ' ')};
+    return { changed, result: (str || '').trim().replace(/\s+/g, ' ') };
   }
 
   trimName(item) {
-    let {changed, result} = this.shrink(item.name);
+    let { changed, result } = this.shrink(item.name);
     item.name = result;
     return changed;
   }
@@ -590,8 +591,8 @@ export class DbScriptsComponent implements OnInit {
   async removeAllMenuSpaces() {
     const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {disabled: {$ne: true}},
-      projection: {menus: 1, name: 1},
+      query: { disabled: { $ne: true } },
+      projection: { menus: 1, name: 1 },
     }, 2000);
 
     for (let i = 0; i < rts.length; i++) {
@@ -616,8 +617,8 @@ export class DbScriptsComponent implements OnInit {
       if (hasChanged) {
         try {
           await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-            old: {_id: rt._id},
-            new: {_id: rt._id, menus: rt.menus}
+            old: { _id: rt._id },
+            new: { _id: rt._id, menus: rt.menus }
           }]);
           this._global.publishAlert(
             AlertType.Success,
@@ -645,7 +646,7 @@ export class DbScriptsComponent implements OnInit {
     const rtId = '5a950e6fa5c27b1400a58830';
     const [rt] = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {_id: {$oid: rtId}},
+      query: { _id: { $oid: rtId } },
       projection: {
         name: 1,
         'menus.mcs.mis.name': 1
@@ -654,7 +655,7 @@ export class DbScriptsComponent implements OnInit {
     }).toPromise();
     const latestOrders = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'order',
-      query: {restaurant: {$oid: rtId}},
+      query: { restaurant: { $oid: rtId } },
       projection: {
         'orderItems.miInstance.name': 1
       },
@@ -668,7 +669,7 @@ export class DbScriptsComponent implements OnInit {
     latestOrders.map(o => o.orderItems.map(oi => {
       map[oi.miInstance.name] = (map[oi.miInstance.name] || 0) + 1;
     }));
-    const sorted = Object.keys(map).map(k => ({name: k, value: map[k], percent: 0})).sort((a1, a2) => a2.value - a1.value);
+    const sorted = Object.keys(map).map(k => ({ name: k, value: map[k], percent: 0 })).sort((a1, a2) => a2.value - a1.value);
     const total = sorted.reduce((sum, i) => sum + i.value, 0);
     let subtotal = 0;
     for (let i = 0; i < sorted.length; i++) {
@@ -700,7 +701,7 @@ export class DbScriptsComponent implements OnInit {
       console.log('batch ', batches.indexOf(batch), ' of ', batches.length);
       try {
         const query = {
-          _id: {$in: [...batch.map(id => ({$oid: id}))]}
+          _id: { $in: [...batch.map(id => ({ $oid: id }))] }
         };
         const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
           resource: 'restaurant',
@@ -743,8 +744,8 @@ export class DbScriptsComponent implements OnInit {
             console.log(r.name);
             // write it back
             await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-              old: {_id: r._id},
-              new: {_id: r._id, menus: menus}
+              old: { _id: r._id },
+              new: { _id: r._id, menus: menus }
             }]).toPromise();
           }
           console.log('done updating batch');
@@ -778,8 +779,8 @@ export class DbScriptsComponent implements OnInit {
         resource: 'restaurant',
         query: {
           $or: [
-            {'menus.mcs.sortOrder': {$exists: true}},
-            {'menus.mcs.mis.sortOrder': {$exists: true}}
+            { 'menus.mcs.sortOrder': { $exists: true } },
+            { 'menus.mcs.mis.sortOrder': { $exists: true } }
           ]
         },
         projection: {
@@ -820,8 +821,8 @@ export class DbScriptsComponent implements OnInit {
           });
           // write it back
           await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-            old: {_id: r._id},
-            new: {_id: r._id, menus: menus}
+            old: { _id: r._id },
+            new: { _id: r._id, menus: menus }
           }]).toPromise();
         }
       }
@@ -896,7 +897,7 @@ export class DbScriptsComponent implements OnInit {
   async migrateBlacklist() {
     const bannedCustomers = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'customer',
-      query: {bannedReasons: {$exists: 1}},
+      query: { bannedReasons: { $exists: 1 } },
       projection: {
         email: 1,
         socialId: 1,
@@ -926,7 +927,7 @@ export class DbScriptsComponent implements OnInit {
         resource: 'order',
         query: {
           type: 'DELIVERY',
-          'customerObj._id': {$in: customers.map(c => c._id)}
+          'customerObj._id': { $in: customers.map(c => c._id) }
         },
         projection: {
           'paymentObj.method': 1,
@@ -1088,7 +1089,7 @@ export class DbScriptsComponent implements OnInit {
     const newOwnershipRts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
-        'previousRestaurantId': {$ne: null},
+        'previousRestaurantId': { $ne: null },
       },
       projection: {
         previousRestaurantId: 1,
@@ -1115,7 +1116,7 @@ export class DbScriptsComponent implements OnInit {
     const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'order',
       query: {
-        'restaurant': {$oid: oldId},
+        'restaurant': { $oid: oldId },
       },
       projection: {
         createdAt: 1,
@@ -1133,7 +1134,7 @@ export class DbScriptsComponent implements OnInit {
       },
       new: {
         _id: order._id,
-        restaurant: {$oid: newId},
+        restaurant: { $oid: newId },
         restaurantObj: {
           _id: newId
         }
@@ -1185,7 +1186,7 @@ export class DbScriptsComponent implements OnInit {
       const items = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: dbName,
         query: {
-          createdAt: {$lt: cutoffTime},
+          createdAt: { $lt: cutoffTime },
         },
         projection: {
           createdAt: 1
@@ -1265,7 +1266,7 @@ export class DbScriptsComponent implements OnInit {
         placeIdMap[rt.googleListing.place_id].push(rt);
       }
     });
-    const grouped = Object.keys(placeIdMap).map(place_id => ({place_id: place_id, list: placeIdMap[place_id]}));
+    const grouped = Object.keys(placeIdMap).map(place_id => ({ place_id: place_id, list: placeIdMap[place_id] }));
     grouped.sort((b, a) => a.list.length - b.list.length);
     const duplicatedGroups = grouped.filter(g => g.list.length > 1);
 
@@ -1305,7 +1306,7 @@ export class DbScriptsComponent implements OnInit {
 
     console.log(tmeRestaurants);
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=courier', [{
-      old: {_id: tmeCourier._id},
+      old: { _id: tmeCourier._id },
       new: {
         _id: tmeCourier._id, restaurants: tmeRestaurants.map(r => ({
           _id: r._id,
@@ -1342,7 +1343,7 @@ export class DbScriptsComponent implements OnInit {
       resource: 'restaurant',
       query: {
         'googleAddress.timezone': null,
-        'googleAddress.place_id': {$exists: true}
+        'googleAddress.place_id': { $exists: true }
       },
       projection: {
         name: 1,
@@ -1363,8 +1364,8 @@ export class DbScriptsComponent implements OnInit {
         }).toPromise();
         await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
           {
-            old: {_id: r._id, googleAddress: {}},
-            new: {_id: r._id, googleAddress: {timezone: addressDetails.timezone}}
+            old: { _id: r._id, googleAddress: {} },
+            new: { _id: r._id, googleAddress: { timezone: addressDetails.timezone } }
           }
         ]).toPromise();
         console.log(r.name);
@@ -1401,7 +1402,7 @@ export class DbScriptsComponent implements OnInit {
         const batch = 160;
         const notMigratedOrders = await this._api.get(environment.qmenuApiUrl + 'generic', {
           resource: 'order',
-          query: {'statuses': null},
+          query: { 'statuses': null },
           projection: {
             name: 1
           },
@@ -1416,7 +1417,7 @@ export class DbScriptsComponent implements OnInit {
         const statuses = await this._api.get(environment.qmenuApiUrl + 'generic', {
           resource: 'orderstatus',
           query: {
-            order: {$in: orderIds.map(id => ({$oid: id}))}
+            order: { $in: orderIds.map(id => ({ $oid: id })) }
           },
           limit: batch * 10
         }).toPromise();
@@ -1441,15 +1442,15 @@ export class DbScriptsComponent implements OnInit {
             });
             patchPairs.push(
               {
-                old: {_id: order._id},
-                new: {_id: order._id, statuses: myStatuses}
+                old: { _id: order._id },
+                new: { _id: order._id, statuses: myStatuses }
               }
             );
           } else {
             patchPairs.push(
               {
-                old: {_id: order._id},
-                new: {_id: order._id, statuses: myStatuses}
+                old: { _id: order._id },
+                new: { _id: order._id, statuses: myStatuses }
               }
             );
           }
@@ -1490,7 +1491,7 @@ export class DbScriptsComponent implements OnInit {
       const addresses = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'googleaddress',
         query: {
-          _id: {$in: addressIds.map(id => ({$oid: id}))}
+          _id: { $in: addressIds.map(id => ({ $oid: id })) }
         },
         limit: batch
       }).toPromise();
@@ -1498,8 +1499,8 @@ export class DbScriptsComponent implements OnInit {
       const addressIdDict = addresses.reduce((map, address) => (map[address._id] = address, map), {});
       // patch back to orders!
       const patchPairs = deliveryOrders.map(o => ({
-        old: {_id: o._id},
-        new: {_id: o._id, address: addressIdDict[o.deliveryAddress] || {place_id: 'unknown'}}
+        old: { _id: o._id },
+        new: { _id: o._id, address: addressIdDict[o.deliveryAddress] || { place_id: 'unknown' } }
       }));
       console.log(patchPairs);
 
@@ -1536,7 +1537,7 @@ export class DbScriptsComponent implements OnInit {
       const customers = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'customer',
         query: {
-          _id: {$in: customerIds.map(id => ({$oid: id}))}
+          _id: { $in: customerIds.map(id => ({ $oid: id })) }
         },
         projection: {
           email: 1,
@@ -1559,7 +1560,7 @@ export class DbScriptsComponent implements OnInit {
       const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'restaurant',
         query: {
-          _id: {$in: restaurantIds.map(id => ({$oid: id}))}
+          _id: { $in: restaurantIds.map(id => ({ $oid: id })) }
         },
         projection: {
           alias: 1,
@@ -1577,7 +1578,7 @@ export class DbScriptsComponent implements OnInit {
       const payments = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'payment',
         query: {
-          _id: {$in: paymentIds.map(id => ({$oid: id}))}
+          _id: { $in: paymentIds.map(id => ({ $oid: id })) }
         },
         projection: {
           createdAt: 0,
@@ -1593,7 +1594,7 @@ export class DbScriptsComponent implements OnInit {
       const ccs = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'creditcard',
         query: {
-          _id: {$in: ccIds.map(id => ({$oid: id}))}
+          _id: { $in: ccIds.map(id => ({ $oid: id })) }
         },
         projection: {
           createdAt: 0,
@@ -1613,12 +1614,12 @@ export class DbScriptsComponent implements OnInit {
 
       // patch back to orders!
       const patchPairs = orders.map(o => ({
-        old: {_id: o._id},
+        old: { _id: o._id },
         new: {
           _id: o._id,
           paymentObj: paymentIdDict[o.payment] || {},
-          customerObj: customerIdDict[o.customer] || {_id: o.customer},
-          restaurantObj: restaurantIdDict[o.restaurant] || {_id: o.restaurant}
+          customerObj: customerIdDict[o.customer] || { _id: o.customer },
+          restaurantObj: restaurantIdDict[o.restaurant] || { _id: o.restaurant }
         }
       }));
       console.log(patchPairs);
@@ -1636,8 +1637,8 @@ export class DbScriptsComponent implements OnInit {
     this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
-        address: {$exists: true},
-        googleAddress: {$exists: false},
+        address: { $exists: true },
+        googleAddress: { $exists: false },
       },
       projection: {
         address: 1,
@@ -1650,29 +1651,29 @@ export class DbScriptsComponent implements OnInit {
         .get(environment.qmenuApiUrl + 'generic', {
           resource: 'address',
           query: {
-            _id: {$in: restaurants.filter(r => r.address).map(r => r.address._id || r.address)},
+            _id: { $in: restaurants.filter(r => r.address).map(r => r.address._id || r.address) },
           },
           limit: batchSize
         });
     })).pipe(mergeMap(addresses => {
-        if (addresses.length === 0) {
-          throw 'No referenced address found for restaurants ' + myRestaurants.map(r => r.name).join(', ');
-        }
-        const myRestaurantsOriginal = JSON.parse(JSON.stringify(myRestaurants));
-        const myRestaurantsChanged = JSON.parse(JSON.stringify(myRestaurants));
-        const addressMap = {};
-        addresses.map(a => addressMap[a._id] = a);
-        myRestaurantsChanged.map(r => r.googleAddress = addressMap[r.address ? (r.address._id || r.address) : 'non-exist']);
+      if (addresses.length === 0) {
+        throw 'No referenced address found for restaurants ' + myRestaurants.map(r => r.name).join(', ');
+      }
+      const myRestaurantsOriginal = JSON.parse(JSON.stringify(myRestaurants));
+      const myRestaurantsChanged = JSON.parse(JSON.stringify(myRestaurants));
+      const addressMap = {};
+      addresses.map(a => addressMap[a._id] = a);
+      myRestaurantsChanged.map(r => r.googleAddress = addressMap[r.address ? (r.address._id || r.address) : 'non-exist']);
 
-        return this._api
-          .patch(
-            environment.qmenuApiUrl + 'generic?resource=restaurant',
-            myRestaurantsChanged.map(clone => ({
-              old: myRestaurantsOriginal.filter(r => r._id === clone._id)[0],
-              new: clone
-            }))
-          );
-      })
+      return this._api
+        .patch(
+          environment.qmenuApiUrl + 'generic?resource=restaurant',
+          myRestaurantsChanged.map(clone => ({
+            old: myRestaurantsOriginal.filter(r => r._id === clone._id)[0],
+            new: clone
+          }))
+        );
+    })
     ).subscribe(
       patchResult => {
         this._global.publishAlert(
@@ -1703,7 +1704,7 @@ export class DbScriptsComponent implements OnInit {
       .get(environment.qmenuApiUrl + 'generic', {
         resource: 'lead',
         query: {
-          restaurantId: {$exists: true}
+          restaurantId: { $exists: true }
         },
         projection: {
           restaurantId: 1
@@ -1806,7 +1807,7 @@ export class DbScriptsComponent implements OnInit {
     this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'lead',
       query: {
-        'callLogs.0': {$exists: true},
+        'callLogs.0': { $exists: true },
       },
       projection: {
         callLogs: 1
@@ -1850,8 +1851,8 @@ export class DbScriptsComponent implements OnInit {
     this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
-        googleAddress: {$exists: true},
-        'googleAddress.street_number': {$exists: false},
+        googleAddress: { $exists: true },
+        'googleAddress.street_number': { $exists: false },
       },
       projection: {
         googleAddress: 1,
@@ -1918,9 +1919,9 @@ export class DbScriptsComponent implements OnInit {
         .get(environment.qmenuApiUrl + 'generic', {
           resource: 'order',
           query: {
-            restaurant: {$in: restaurants.map(r => ({$oid: r._id}))},
+            restaurant: { $in: restaurants.map(r => ({ $oid: r._id })) },
             type: 'DELIVERY',
-            deliveryBy: {$ne: 'TME'}
+            deliveryBy: { $ne: 'TME' }
           },
           projection: {
             type: 1,
@@ -1965,7 +1966,7 @@ export class DbScriptsComponent implements OnInit {
     this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'order',
       query: {
-        deliveryBy: {$exists: true}
+        deliveryBy: { $exists: true }
       },
       projection: {
         deliveryBy: 1
@@ -1982,7 +1983,7 @@ export class DbScriptsComponent implements OnInit {
         .get(environment.qmenuApiUrl + 'generic', {
           resource: 'invoice',
           query: {
-            'orders.id': {$in: orders.map(r => r._id)}
+            'orders.id': { $in: orders.map(r => r._id) }
           },
           projection: {
             'restaurant.name': 1,
@@ -2059,7 +2060,7 @@ export class DbScriptsComponent implements OnInit {
     console.log(withAdjustments.length);
 
     for (let i of withAdjustments) {
-      await this._api.post(environment.appApiUrl + 'invoices/compute-derived-fields', {id: i._id}).toPromise();
+      await this._api.post(environment.appApiUrl + 'invoices/compute-derived-fields', { id: i._id }).toPromise();
     }
 
     console.log(invoices.length);
@@ -2075,8 +2076,8 @@ export class DbScriptsComponent implements OnInit {
       resource: 'restaurant',
       query: {
         $or: [
-          {email: {$exists: true}},
-          {phones: {$exists: true}},
+          { email: { $exists: true } },
+          { phones: { $exists: true } },
         ]
       },
       projection: {
@@ -2173,8 +2174,8 @@ export class DbScriptsComponent implements OnInit {
       const stringAfter = JSON.stringify(channels);
       if (JSON.stringify(oldChannels) !== stringAfter) {
         pairs.push({
-          old: {_id: r._id},
-          new: {_id: r._id, channels: channels}
+          old: { _id: r._id },
+          new: { _id: r._id, channels: channels }
         });
       }
 
@@ -2203,26 +2204,26 @@ export class DbScriptsComponent implements OnInit {
         },
         limit: 700000
       })).pipe(mergeMap(gmbs => {
-      const newGmbs = gmbs[0].filter(g0 => !gmbs[1].some(g1 => g1.email.toLowerCase() === g0.email.toLowerCase()));
-      // remove id because newly inserted will have id
-      newGmbs.map(g => delete g._id);
-      // convert email to lowercase
-      newGmbs.map(g => g.email = g.email.toLowerCase());
+        const newGmbs = gmbs[0].filter(g0 => !gmbs[1].some(g1 => g1.email.toLowerCase() === g0.email.toLowerCase()));
+        // remove id because newly inserted will have id
+        newGmbs.map(g => delete g._id);
+        // convert email to lowercase
+        newGmbs.map(g => g.email = g.email.toLowerCase());
 
-      return this._api.post(environment.qmenuApiUrl + 'generic?resource=gmbAccount', newGmbs);
-    })).subscribe(
-      gmbIds => {
-        this._global.publishAlert(
-          AlertType.Success,
-          'Success! Total: ' + gmbIds.length
-        );
-      },
-      error => {
-        this._global.publishAlert(
-          AlertType.Danger,
-          'Error: ' + JSON.stringify(error)
-        );
-      });
+        return this._api.post(environment.qmenuApiUrl + 'generic?resource=gmbAccount', newGmbs);
+      })).subscribe(
+        gmbIds => {
+          this._global.publishAlert(
+            AlertType.Success,
+            'Success! Total: ' + gmbIds.length
+          );
+        },
+        error => {
+          this._global.publishAlert(
+            AlertType.Danger,
+            'Error: ' + JSON.stringify(error)
+          );
+        });
   }
 
   getStripeErrors() {
@@ -2232,7 +2233,7 @@ export class DbScriptsComponent implements OnInit {
       resource: 'payment',
       query: {
         'method': 'QMENU',
-        'stripeObject.charges': {'$exists': false}
+        'stripeObject.charges': { '$exists': false }
       },
       projection: {
         createdAt: 1
@@ -2246,7 +2247,7 @@ export class DbScriptsComponent implements OnInit {
       return this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'order',
         query: {
-          'payment': {$in: payments.map(r => ({$oid: r._id}))}
+          'payment': { $in: payments.map(r => ({ $oid: r._id })) }
         },
         projection: {
           restaurant: 1
@@ -2267,11 +2268,11 @@ export class DbScriptsComponent implements OnInit {
     const latestListeners = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'resource-listener',
       query: {
-        createdAt: {$gt: {$date: dateThreshold}}
+        createdAt: { $gt: { $date: dateThreshold } }
       },
       projection: {
         'query.orderObj.restaurantObj._id': 1,
-        'connections': {$slice: 1}
+        'connections': { $slice: 1 }
       },
       sort: {
         _id: -1
@@ -2337,7 +2338,7 @@ export class DbScriptsComponent implements OnInit {
 
     for (let r of restaurantsMissingBizPhones) {
       try {
-        const crawledResult = await this._api.get(environment.qmenuApiUrl + 'utils/scan-gmb', {q: `${r.name} ${r.googleAddress.formatted_address}`}).toPromise();
+        const crawledResult = await this._api.get(environment.qmenuApiUrl + 'utils/scan-gmb', { q: `${r.name} ${r.googleAddress.formatted_address}` }).toPromise();
         console.log(crawledResult);
         if (crawledResult.phone) {
           // inject phone!
@@ -2352,8 +2353,8 @@ export class DbScriptsComponent implements OnInit {
 
           await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
             {
-              old: {_id: r._id},
-              new: {_id: r._id, channels: clonedChannels}
+              old: { _id: r._id },
+              new: { _id: r._id, channels: clonedChannels }
             }]).toPromise();
         }
       } catch (error) {
@@ -2441,7 +2442,7 @@ export class DbScriptsComponent implements OnInit {
       resource: 'restaurant',
       query: {
         'menus.mcs.mis': null,
-        'menus': {$exists: 1}
+        'menus': { $exists: 1 }
       },
       projection: {
         name: 1,
@@ -2484,8 +2485,8 @@ export class DbScriptsComponent implements OnInit {
       newR.menus = (newR.menus || []).filter(menu => menu.mcs && menu.mcs.length > 0);
 
       return ({
-        old: {_id: oldR._id},
-        new: {_id: newR._id, menus: newR.menus}
+        old: { _id: oldR._id },
+        new: { _id: newR._id, menus: newR.menus }
       });
     });
     console.log(patchList);
@@ -2512,7 +2513,7 @@ export class DbScriptsComponent implements OnInit {
         resource: 'restaurant',
         query: {
           _id: {
-            $in: idNames.map(idName => ({$oid: idName._id}))
+            $in: idNames.map(idName => ({ $oid: idName._id }))
           }
         },
         projection: {
@@ -2548,7 +2549,7 @@ export class DbScriptsComponent implements OnInit {
       resource: 'restaurant',
       query: {
         _id: {
-          $in: affectedRestaurants.map(idName => ({$oid: idName._id}))
+          $in: affectedRestaurants.map(idName => ({ $oid: idName._id }))
         }
       },
       projection: {
@@ -2580,8 +2581,8 @@ export class DbScriptsComponent implements OnInit {
     });
 
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', affectedRestaurantsFull.map(r => ({
-      old: {_id: r._id},
-      new: {_id: r._id, menus: r.menus}
+      old: { _id: r._id },
+      new: { _id: r._id, menus: r.menus }
     }))).toPromise();
   }
 
@@ -2787,7 +2788,7 @@ export class DbScriptsComponent implements OnInit {
         resource: 'restaurant',
         query: {
           _id: {
-            $in: batch.map(rid => ({$oid: rid._id}))
+            $in: batch.map(rid => ({ $oid: rid._id }))
           }
         },
         projection: {
@@ -2835,7 +2836,7 @@ export class DbScriptsComponent implements OnInit {
         resource: 'restaurant',
         query: {
           _id: {
-            $in: batch.map(rid => ({$oid: rid._id}))
+            $in: batch.map(rid => ({ $oid: rid._id }))
           }
         },
         projection: {
@@ -2889,7 +2890,7 @@ export class DbScriptsComponent implements OnInit {
         };
 
         await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', badRestaurants.map(r => ({
-          old: {_id: r._id},
+          old: { _id: r._id },
           new: {
             _id: r._id, menus: fixedMenu(r)
           }
@@ -2906,7 +2907,7 @@ export class DbScriptsComponent implements OnInit {
     const restaurantsWithInvoicesAttribute = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
-        'invoices.0': {$exists: true}
+        'invoices.0': { $exists: true }
       },
       projection: {
         name: 1,
@@ -2918,8 +2919,8 @@ export class DbScriptsComponent implements OnInit {
     console.log(restaurantsWithInvoicesAttribute);
 
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', restaurantsWithInvoicesAttribute.map(r => ({
-      old: {_id: r._id, invoices: []},
-      new: {_id: r._id}
+      old: { _id: r._id, invoices: [] },
+      new: { _id: r._id }
     }))).toPromise();
 
   }
@@ -2953,8 +2954,8 @@ export class DbScriptsComponent implements OnInit {
 
       if (updated) {
         updatedOldNewPairs.push({
-          old: {_id: r._id, name: r.name},
-          new: {_id: r._id, name: r.name, rateSchedules: r.rateSchedules}
+          old: { _id: r._id, name: r.name },
+          new: { _id: r._id, name: r.name, rateSchedules: r.rateSchedules }
         });
       }
     });
@@ -3107,8 +3108,8 @@ export class DbScriptsComponent implements OnInit {
     // inject
     // updatedRestaurants.length = 1;
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', updatedRestaurants.map(r => ({
-      old: {_id: r._id},
-      new: {_id: r._id, web: r.web}
+      old: { _id: r._id },
+      new: { _id: r._id, web: r.web }
     }))).toPromise();
 
   }
@@ -3120,7 +3121,7 @@ export class DbScriptsComponent implements OnInit {
       const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbBiz',
         query: {
-          gmbOwnerships: {$exists: 1},
+          gmbOwnerships: { $exists: 1 },
         },
         projection: {
           _id: 1
@@ -3147,7 +3148,7 @@ export class DbScriptsComponent implements OnInit {
         const batchList = await this._api.get(environment.qmenuApiUrl + 'generic', {
           resource: 'gmbBiz',
           query: {
-            _id: {$in: batch.map(biz => ({$oid: biz._id}))}
+            _id: { $in: batch.map(biz => ({ $oid: biz._id })) }
           },
           skip: gmbBizList.length,
           limit: gmbBizbatchListSize
@@ -3182,10 +3183,10 @@ export class DbScriptsComponent implements OnInit {
             const matchedLocations = (account.locations || []).filter(loc => loc.cid === gmbBiz.cid);
 
             const status = history[i].status || 'Published';
-            const myHistory = [{time: history[i].possessedAt, status: status}];
+            const myHistory = [{ time: history[i].possessedAt, status: status }];
 
             if (history[i + 1] && history[i + 1].email !== history[i].email) {
-              myHistory.push({time: history[i + 1].possessedAt, status: 'Removed'});
+              myHistory.push({ time: history[i + 1].possessedAt, status: 'Removed' });
             }
 
             switch (matchedLocations.length) {
@@ -3234,8 +3235,8 @@ export class DbScriptsComponent implements OnInit {
       if (uniqueChangedAccounts.length > 0) {
 
         await this._api.patch(environment.qmenuApiUrl + 'generic?resource=gmbAccount', uniqueChangedAccounts.map(a => ({
-          old: {_id: a._id},
-          new: {_id: a._id, locations: a.locations}
+          old: { _id: a._id },
+          new: { _id: a._id, locations: a.locations }
         }))).toPromise();
       } else {
         this._global.publishAlert(AlertType.Success, 'No new thing updated');
@@ -3261,7 +3262,7 @@ export class DbScriptsComponent implements OnInit {
         resource: 'restaurant',
         query: {
           _id: {
-            $in: batch.map(rid => ({$oid: rid._id}))
+            $in: batch.map(rid => ({ $oid: rid._id }))
           }
         },
         projection: {
@@ -3314,7 +3315,7 @@ export class DbScriptsComponent implements OnInit {
     let restaurantIds = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
-        menus: {$exists: true}
+        menus: { $exists: true }
       },
       projection: {
         name: 1,
@@ -3339,7 +3340,7 @@ export class DbScriptsComponent implements OnInit {
           resource: 'restaurant',
           query: {
             _id: {
-              $in: batch.map(rid => ({$oid: rid._id}))
+              $in: batch.map(rid => ({ $oid: rid._id }))
             }
           },
           projection: {
@@ -3388,8 +3389,8 @@ export class DbScriptsComponent implements OnInit {
           })));
 
           return ({
-            old: {_id: oldR._id},
-            new: {_id: newR._id, menus: newR.menus}
+            old: { _id: oldR._id },
+            new: { _id: newR._id, menus: newR.menus }
           });
         });
         console.log(patchList);
@@ -3405,7 +3406,7 @@ export class DbScriptsComponent implements OnInit {
   async injectRequireZipBillingAddress() {
     const serviceSettings = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {disabled: {$ne: true}},
+      query: { disabled: { $ne: true } },
       projection: {
         name: 1,
         googleListing: 1,
@@ -3498,7 +3499,7 @@ export class DbScriptsComponent implements OnInit {
         projection: {
           createdAt: 1
         },
-        sort: {createdAt: -1},
+        sort: { createdAt: -1 },
         limit: 300
       }).toPromise();
 
@@ -3646,12 +3647,12 @@ export class DbScriptsComponent implements OnInit {
         $and: [
           {
             createdAt: {
-              $gte: {$date: start}
+              $gte: { $date: start }
             }
           },
           {
             createdAt: {
-              $lte: {$date: to}
+              $lte: { $date: to }
             }
           }
         ]
@@ -3682,7 +3683,7 @@ export class DbScriptsComponent implements OnInit {
         resource: 'restaurant',
         query: {
           _id: {
-            $in: batch.map(b => ({$oid: b}))
+            $in: batch.map(b => ({ $oid: b }))
           }
         },
         projection: {
@@ -3729,7 +3730,7 @@ export class DbScriptsComponent implements OnInit {
     //console.log('englishIdString', englishIdString);
     console.log('chineseIdString', chineseIdString);
 
-    FileSaver.saveAs(new Blob([JSON.stringify(chineseIdString)], {type: 'text'}), 'data.txt');
+    FileSaver.saveAs(new Blob([JSON.stringify(chineseIdString)], { type: 'text' }), 'data.txt');
 
   }
 
@@ -3866,7 +3867,7 @@ export class DbScriptsComponent implements OnInit {
       console.log('batch ', batches.indexOf(batch), ' of ', batches.length);
       try {
         const pcQuery = {
-          'restaurant._id': {$in: batch.map(r => r._id.toString())}
+          'restaurant._id': { $in: batch.map(r => r._id.toString()) }
         };
         const allPrintClients = await this._api.get(environment.qmenuApiUrl + 'generic', {
           resource: 'print-client',
@@ -3919,14 +3920,14 @@ export class DbScriptsComponent implements OnInit {
                         type: pc.type,
                         value: pr.name,
                         printClientId: pc._id,
-                        ...guid ? {guid} : null
+                        ...guid ? { guid } : null
                       },
-                      ...customizedRenderingStyles ? {customizedRenderingStyles} : null,
-                      ...copies ? {copies} : null,
-                      ...format ? {format} : {format: 'png'},
-                      ...templateName ? {templateName} : {templateName: 'default'},
-                      ...menuFilters ? {menuFilters} : null,
-                      ...info ? {info} : null
+                      ...customizedRenderingStyles ? { customizedRenderingStyles } : null,
+                      ...copies ? { copies } : null,
+                      ...format ? { format } : { format: 'png' },
+                      ...templateName ? { templateName } : { templateName: 'default' },
+                      ...menuFilters ? { menuFilters } : null,
+                      ...info ? { info } : null
                     };
 
                     orderNotifications.push(newNotification);
@@ -3939,9 +3940,9 @@ export class DbScriptsComponent implements OnInit {
                       type: pc.type,
                       value: pr.name,
                       printClientId: pc._id,
-                      ...guid ? {guid} : null
+                      ...guid ? { guid } : null
                     },
-                    ...info ? {info} : null
+                    ...info ? { info } : null
                   };
 
                   orderNotifications.push(newNotification);
@@ -3951,8 +3952,8 @@ export class DbScriptsComponent implements OnInit {
           });
 
           oldNewPairs.push({
-            old: {_id: rt._id},
-            new: {_id: rt._id, orderNotifications: orderNotifications}
+            old: { _id: rt._id },
+            new: { _id: rt._id, orderNotifications: orderNotifications }
           });
         }
 
@@ -4017,8 +4018,8 @@ export class DbScriptsComponent implements OnInit {
 
       if (updated) {
         updatedOldNewPairs.push({
-          old: {_id: r._id},
-          new: {_id: r._id, closedHours: r.closedHours}
+          old: { _id: r._id },
+          new: { _id: r._id, closedHours: r.closedHours }
         });
       }
     });
@@ -4029,7 +4030,181 @@ export class DbScriptsComponent implements OnInit {
 
   }
 
+  async calculateForm1099k() {
+    /* mongIdToDate - takes in the MongoDB _id and returns the encoded timestamp information as a date object
+     (this functionality exists as a method of ObjectID, but this helper function acceps a string format) */
+    const mongoIdToDate = function (id) {
+      const timestamp = id.substring(0, 8);
+      return new Date(parseInt(timestamp, 16) * 1000);
+    }
 
+    /* round - helper function to address floating point math imprecision. 
+      e.g. sometimes a total may be expressed as '2.27999999999997'. we need to put that in the format '2.28' */
+    const round = function (num) {
+      return Math.round((num + Number.EPSILON) * 100) / 100;
+    }
+
+    // tabulateMonthlyData - helper function that takes in a RT's orders for a year and returns the total dollar amount, plus total for each month
+    const tabulateMonthlyData = function (orders) {
+      const monthlyData = {
+        0: 0,
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+        5: 0,
+        6: 0,
+        7: 0,
+        8: 0,
+        9: 0,
+        10: 0,
+        11: 0,
+        total: 0
+      }
+
+      orders.forEach(order => {
+        let month = new Date(mongoIdToDate(order._id)).getMonth();
+        let roundedOrderTotal = round(order.computed.total);
+        monthlyData[month] += roundedOrderTotal;
+        monthlyData['total'] += roundedOrderTotal;
+      });
+
+      for (let key of Object.keys(monthlyData)) {
+        // due to floating point math imprecision, we need to round every value in the monthlyData object
+        monthlyData[key] = round(monthlyData[key]);
+      }
+      return monthlyData;
+    }
+    // END of helper functions section
+
+    // BEGIN querying restaurants and orders, and tabulating data
+
+    // taxYear is the previous year, expressed in 4 digit form. e.g. in 2022, taxYear should equal 2021
+    const taxYear = new Date().getFullYear() - 1;
+    let restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: {
+        "form1099k.year": { $ne: taxYear }
+      },
+      projection: {
+        channels: 1,
+        people: 1,
+        googleAddress: 1,
+        form1099k: 1
+      }
+    }, 5000);
+
+    if (restaurants.length === 0) {
+      this._global.publishAlert(
+        AlertType.Warning,
+        `Form 1099k has already been generated for tax year ${taxYear}`
+      );
+      return;
+    }
+
+    const batchSize = 10; // larger batch sizes cause Mongo query errors
+    const batches = Array(Math.ceil(restaurants.length / batchSize)).fill(0).map((i, index) => restaurants.slice(index * batchSize, (index + 1) * batchSize));
+    const totalBatches = batches.length;
+    let currentBatch = 0;
+
+    const orderQuery = {
+      "paymentObj.method": "QMENU",
+      // $expr: {
+      //   $eq: [{ $year: "$createdAt" }, taxYear]
+      // }
+    } as any;
+
+    for (let batch of batches) {
+      currentBatch += 1;
+      const oldNewPairs = [];
+      try {
+        for (let rt of batch) {
+          orderQuery["restaurant"] = {
+            $oid: rt._id,
+          }
+          let orders = [];
+          let fromDate = new Date(taxYear + "-1-1 00:00:00.000");
+          // January to June, July to December
+          for (let i = 0; i < 2; i++) {
+            let toDate = new Date(fromDate);
+            toDate.setMonth(fromDate.getMonth() + 6, 1);
+            const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(fromDate, rt.googleAddress.timezone);
+            const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(toDate, rt.googleAddress.timezone);
+            orderQuery["$and"] = [{
+              createdAt: {
+                $gte: { $date: utcf }
+              } // less than and greater than
+            }, {
+              createdAt: {
+                $lt: { $date: utct }
+              }
+            }]
+            let tempOrders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+              resource: 'order',
+              query: orderQuery,
+              projection: {
+                "computed.total": 1
+              },
+              limit: 100000000000000000
+            }).toPromise();
+            orders = [...orders, ...tempOrders];
+            fromDate.setMonth(toDate.getMonth(), 1);
+          }
+
+          let rt1099KData = {
+            year: taxYear,
+            required: false,
+            createdAt: new Date()
+          } as any;
+
+          if (orders.length >= 200) {
+            const monthlyDataAndTotal = tabulateMonthlyData(orders);
+            if (monthlyDataAndTotal.total >= 20000) {
+              rt1099KData.required = true
+              rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
+            }
+          }
+
+          // for tax year 2021 and before: requirement is >= 200 orders and >= 20,000 dollars
+          // for tax year 2022 and after: requirement is >=1 orders and >= 600 dollars
+
+          if (rt1099KData.required === true) {
+            console.log(rt1099KData);
+          }
+
+          let existing1099kRecords = rt.form1099k || [];
+          let new1099kRecords = [...existing1099kRecords, rt1099KData];
+
+          oldNewPairs.push({
+            old: { _id: rt._id, form1099k: existing1099kRecords },
+            new: { _id: rt._id, form1099k: new1099kRecords }
+          });
+        }
+
+        if (oldNewPairs.length > 0) {
+          try {
+            await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', oldNewPairs).toPromise();
+            this._global.publishAlert(
+              AlertType.Success,
+              `Updated Form 1099k records for ${oldNewPairs.length} restaurants (Batch ${currentBatch} of ${totalBatches})`
+            );
+          } catch (err) {
+            this._global.publishAlert(
+              AlertType.Danger,
+              `Failed to update db records. See console for more info.`
+            );
+            console.error(err);
+          }
+        }
+      } catch (err) {
+        this._global.publishAlert(
+          AlertType.Danger,
+          `Failed to retrieve db records. See console for more info.`
+        );
+        throw err;
+      }
+    }
+  }
 }
 
 

@@ -62,11 +62,22 @@
 
   <!-- Main Table Body -->
   <div class="card-body text-left">
-    <div class="m-3">
-      <label for="timezone_filter">Timezone:</label>
-      <select id="timezone_filter" class="form-control w-auto d-inline-block ml-3" [(ngModel)]="activeTab.filter" (change)="fillTabs()">
-        <option *ngFor="let tz of getTimezoneKeys()" [value]="tz">{{tz}} {{translateTimezone(tz)}}</option>
-      </select>
+    <div class="row mb-3">
+      <div class="col-auto">
+        <label for="timezone_filter">Timezone:</label>
+        <select id="timezone_filter" class="form-control w-auto d-inline-block ml-3" [(ngModel)]="activeTab.timeZone" (change)="fillTabs()">
+          <option *ngFor="let tz of getTimezoneKeys()" [value]="tz">{{tz}} {{translateTimezone(tz)}}</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <label for="funnel_filter">Funnel:</label>
+        <select id="funnel_filter" class="form-control w-auto d-inline-block ml-3" [(ngModel)]="activeTab.funnel" (change)="fillTabs()">
+          <option *ngFor="let funnel of funnels" [value]="funnel">{{funnel}}</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <input class="form-control w-auto d-inline-block ml-3" [qDebounce]="800" (debounce)="fillTabs()" [(ngModel)]="activeTab.keyword" placeholder="Please input lead name">
+      </div>
     </div>
     <q-table [rows]="activeTab.rows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true"
       [pageSize]="100000">
