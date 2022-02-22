@@ -17,18 +17,19 @@ import { Address } from '@qmenu/ui';
 })
 export class SystemDashboardComponent implements OnInit {
   adminLinks = [
+    { route: 'phone-ordering', text: 'Phone Ordering', adminOnly: true },
     { route: 'couriers', text: 'Couriers', adminOnly: true },
     // {route: 'payments', text: 'Payment Means', adminOnly: true},
     // {route: 'transaction', text: 'Transactions', adminOnly: true},
 
-    {route: 'messaging', text: 'Messaging', adminOnly: true},
-    {route: 'orders', text: 'Orders', adminOnly: true},
-    {route: 'users', text: 'Users'},
-    {route: 'routines-admin', text: 'Routines Admin', adminOnly: true},
-    {route: 'leads', text: 'Lead Funnels', adminOnly: true},
-    {route: 'transactions', text: 'Transactions', adminOnly: true},
-    {route: 'qm-bm-sst', text: 'BM/QM SST', adminOnly: true},
-    { route: '1099k-dashboard', text: 'Form 1099K Dashboard', adminOnly: true }
+    { route: 'messaging', text: 'Messaging', adminOnly: true },
+    { route: 'orders', text: 'Orders', adminOnly: true },
+    { route: 'users', text: 'Users' },
+    { route: 'routines-admin', text: 'Routines Admin', adminOnly: true },
+    { route: 'leads', text: 'Lead Funnels', adminOnly: true },
+    { route: 'transactions', text: 'Transactions', adminOnly: true },
+    { route: 'qm-bm-sst', text: 'BM/QM SST', adminOnly: true },
+    { route: '1099k-dashboard', text: 'Form 1099K Dashboard', adminOnly: true },
   ];
 
   system: any;
