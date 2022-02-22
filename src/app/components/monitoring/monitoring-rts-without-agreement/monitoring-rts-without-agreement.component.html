@@ -1,0 +1,62 @@
+<div class="card">
+  <h2 class="card-title m-3">
+    <h1 class="text-center">RTs Service Agreement ({{filterAgreementRTs.length || 0}})</h1>
+  </h2>
+  <div class="card-body">
+    <!-- start with filter control -->
+    <div class="row">
+      <div class="col-8 form-inline form-group">
+        <!-- start with date filter -->
+        <label class="text-center ml-1">RTs created after</label>
+        <input class="form-control ml-1" type="date" [(ngModel)]="fromDate">
+        <!-- end with date filter -->
+        <!-- start with agent filter -->
+        <label class="text-center ml-1">Salesperson</label>
+        <select [(ngModel)]="agent" class="form-control ml-1" (change)="filterRTs()">
+          <option *ngFor="let a of agents" [value]="a">{{a}}</option>
+        </select>
+        <!-- end with agent filter -->
+        <!-- start with  -->
+        <label class="text-center ml-1">Salesperson</label>
+        <select [(ngModel)]="agent" class="form-control ml-1" (change)="filterRTs()">
+          <option *ngFor="let a of agents" [value]="a">{{a}}</option>
+        </select>
+        <!-- end with  -->
+        <!-- start with rule filter -->
+        <label class="text-center ml-1">Gmb owner by</label>
+        <select [(ngModel)]="gmbOwner" class="form-control ml-1" (change)="filterRTs()">
+          <option *ngFor="let owner of gmbOwners" [value]="owner">{{owner}}</option>
+        </select>
+        <!-- end with rule filter -->
+      </div>
+      <div class="col-4 text-right form-group">
+        <button class="btn btn-primary" (click)="loadDatas()"><i class="fas fa-sync"></i> Reload</button>
+      </div>
+    </div>
+    <!-- end with filter control -->
+
+    <q-table [rows]="filterAgreementRTs" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
+      [pageSize]="100000">
+      <tr *tableRowTemplate="let r;">
+        <td>{{filterAgreementRTs.indexOf(r) + 1}}</td>
+        <td>
+          <a routerLink="/restaurants/{{r['_id']}}">{{r.name}} </a><br>
+          <span>{{r._id}}</span>
+        </td>
+        <td>
+          {{r.agent}}
+        </td>
+        <td>
+          {{r.gmbOwner}}
+        </td>
+        <td>
+          <ng-container *ngIf="!r.sent">
+            <span class="text-danger">{{r.sent}}</span>
+          </ng-container>
+          <ng-template #else>
+            <span class="text-success">{{r.agreementSentAt}}</span>
+          </ng-template>
+        </td>
+    </q-table>
+  </div>
+</div>
