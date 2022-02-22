@@ -175,8 +175,10 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     doNotHideUselessMenuItems: 1,
     preventOrdersDuringNonOpenTime: 1,
     menuImages: 1,
-    preventOnlineTipIfCash: 1
-
+    preventOnlineTipIfCash: 1,
+    tin: 1,  // 1099k tab needs it
+    payeeName: 1, // 1099k tab needs it
+    form1099k: 1
   };
 
   showExplanations = false; // a flag to decide whether show English/Chinese translations,and the switch is closed by default.
@@ -199,11 +201,14 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     pickupTimeEstimate: 'Time Estimate for Pickup',
     deliveryTimeEstimate: 'Time Estimate for Delivery',
     deliverySettings: 'Delivery Settings',
-    preferredLanguage: 'Preferred Language'
+    preferredLanguage: 'Preferred Language',
+    "online-service-agreement": "Service agreement not sent"
   };
   invoicesCount = 0;
   openDate;
   earliestInvoiceDueDate;
+  hasGMBWebsite = false;
+  hasGMBOwner = false;
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
     const tabVisibilityRolesMap = {
@@ -502,15 +507,49 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.activeTab = this._global.storeGet('restaurantDetailsTab') || 'Settings';
   }
-  // show checkmark or x on gmb tab to indicate the restaurant has gmb or not
-  hasGMBAtPresent() {
-    if (this.restaurant.gmbOwnerHistory && this.restaurant.gmbOwnerHistory.length > 0) {
-      this.restaurant.gmbOwnerHistory.sort((a, b) => new Date(b.time).valueOf() - new Date(a.time).valueOf());
-      return this.restaurant.gmbOwnerHistory[0].gmbOwner === 'qmenu';
+
+  async computeGMBStatus() {
+    const bizs = (await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      query: {
+        $or: [
+          { qmenuId: this.restaurant.id || this.restaurant['_id'] },
+          { place_id: (this.restaurant.googleListing || {}).place_id || "junk place id" },
+        ]
+      },
+      projection: {cid: 1, gmbWebsite: 1},
+      limit: 10
+    }).toPromise());
+
+    let main = bizs.find(x => this.restaurant.googleListing && x.cid === this.restaurant.googleListing.cid) || bizs[0];
+    if (main) {
+      let gmbWebsite = (main.gmbWebsite || '').replace(/\/+$/, '')
+      let qmWebsite = (this.restaurant.web && this.restaurant.web.qmenuWebsite || '').replace(/\/+$/, '');
+      this.hasGMBWebsite = gmbWebsite && gmbWebsite === qmWebsite;
+      const accounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbAccount',
+        aggregate: [
+          { $match: { "locations.cid": main.cid } },
+          {
+            $project: {
+              locations: {
+                $filter: {
+                  input: "$locations",
+                  as: "location",
+                  cond: { "$eq": ["$$location.cid", main.cid] }
+                },
+              }
+            }
+          },
+        ]
+      }).toPromise();
+      this.hasGMBOwner = accounts.some(acc => (acc.locations || []).some(loc => loc.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].includes(loc.role)))
     } else {
-      return false;
+      this.hasGMBOwner = false;
+      this.hasGMBWebsite = false;
     }
   }
+
   // show count of invoices of invoices tab
   async getInvoicesCountOfRT() {
     const [count] = await this._api
@@ -581,10 +620,13 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   }
 
   isMissingError(error) {
-    return ['should NOT have fewer than 1 items',
+    return [
+      'should NOT have fewer than 1 items',
       'should have required property',
       'it is missing',
-      'should NOT be shorter than 1 characters'].some(errMsg => error.indexOf(errMsg) >= 0);
+      'should NOT be shorter than 1 characters',
+      'Service agreement not sent'
+    ].some(errMsg => error.indexOf(errMsg) >= 0);
   }
 
   // filter the biz of restaurant's contacts to show on rt portal
@@ -734,6 +776,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
             this.getInvoicesCountOfRT();
           }
           this.getDelinquentDates();
+          this.computeGMBStatus()
         },
         error => {
           this.apiRequesting = false;

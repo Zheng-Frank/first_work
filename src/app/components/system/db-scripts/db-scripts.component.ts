@@ -1,3 +1,4 @@
+import { TimezoneHelper } from '@qmenu/ui';
 import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { environment } from '../../../../environments/environment';
@@ -4108,9 +4109,9 @@ export class DbScriptsComponent implements OnInit {
 
     const orderQuery = {
       "paymentObj.method": "QMENU",
-      $expr: {
-        $eq: [{ $year: "$createdAt" }, taxYear]
-      }
+      // $expr: {
+      //   $eq: [{ $year: "$createdAt" }, taxYear]
+      // }
     } as any;
 
     for (let batch of batches) {
@@ -4119,33 +4120,61 @@ export class DbScriptsComponent implements OnInit {
       try {
         for (let rt of batch) {
           orderQuery["restaurant"] = {
-            $oid: rt._id
+            $oid: rt._id,
           }
-
-          let orders = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-            resource: 'order',
-            query: orderQuery,
-            projection: {
-              "computed.total": 1,
-            }
-          }, 2500);
+          let orders = [];
+          let fromDate = new Date(taxYear + "-1-1 00:00:00.000");
+          // January to June, July to December
+          for (let i = 0; i < 2; i++) {
+            let toDate = new Date(fromDate);
+            toDate.setMonth(fromDate.getMonth() + 6, 1);
+            const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(fromDate, rt.googleAddress.timezone);
+            const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(toDate, rt.googleAddress.timezone);
+            orderQuery["$and"] = [{
+              createdAt: {
+                $gte: { $date: utcf }
+              } // less than and greater than
+            }, {
+              createdAt: {
+                $lt: { $date: utct }
+              }
+            }]
+            let tempOrders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+              resource: 'order',
+              query: orderQuery,
+              projection: {
+                "computed.total": 1
+              },
+              limit: 100000000000000000
+            }).toPromise();
+            orders = [...orders, ...tempOrders];
+            fromDate.setMonth(toDate.getMonth(), 1);
+          }
 
           let rt1099KData = {
             year: taxYear,
             required: false,
             createdAt: new Date()
           } as any;
-
-          if (orders.length >= 200) {
-            const monthlyDataAndTotal = tabulateMonthlyData(orders);
-            if (monthlyDataAndTotal.total >= 20000) {
-              rt1099KData.required = true
-              rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
-            }
-          }
-
           // for tax year 2021 and before: requirement is >= 200 orders and >= 20,000 dollars
           // for tax year 2022 and after: requirement is >=1 orders and >= 600 dollars
+          if (taxYear < 2022) {
+            if (orders.length >= 200) {
+              const monthlyDataAndTotal = tabulateMonthlyData(orders);
+              if (monthlyDataAndTotal.total >= 20000) {
+                rt1099KData.required = true
+                rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
+              }
+            }
+          } else if (taxYear === 2022) {
+            if (orders.length >= 1) {
+              const monthlyDataAndTotal = tabulateMonthlyData(orders);
+              if (monthlyDataAndTotal.total >= 600) {
+                rt1099KData.required = true
+                rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
+              }
+            }
+          }
 
           if (rt1099KData.required === true) {
             console.log(rt1099KData);

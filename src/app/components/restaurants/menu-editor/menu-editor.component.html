@@ -34,6 +34,7 @@
   <div class="form-group {{!menu.name ? 'has-danger' : ''}}">
     <label>Menu Name:</label>
     <input type="text" class="form-control" [(ngModel)]="menu.name" placeholder="eg. Seasonal Special" autofocus>
+    <div class="text-danger" *ngIf="nameDuplicated()">Menu name with [{{menu.name}}] already exists!</div>
   </div>
 
   <div class="form-group">

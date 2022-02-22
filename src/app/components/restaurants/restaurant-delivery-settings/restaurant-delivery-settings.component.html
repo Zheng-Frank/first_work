@@ -149,12 +149,11 @@
               </tr>
             </tbody>
           </table>
-          <ng-container *ngIf="restaurant.deliveryArea">
+          <ng-container *ngIf="!restaurant.courier && restaurant.deliveryArea">
             <div class="form-group">
-              <label style="font-size: small">
-                  Delivery Area
-                  <i class="fa fa-info-circle icon-color" data-toggle="tooltip" data-placement="top" [title]="deliveryAreaTip()"></i>
-                </label>
+              <div><label style="font-size: small">Delivery Area</label></div>
+              <div class="row"><a class="btn btn-link" (click)="showAreaTip = !showAreaTip">{{showAreaTip ? 'Hide': 'Show'}} more</a></div>
+              <div *ngIf="showAreaTip">Enter the latitude/longitude coordinates of the shape that defines the delivery area for this restaurant. Follow the instructions in this document: <a target="_blank" href="https://docs.google.com/document/d/1FLJhzS1cRoeoZKdDfKVNzZvxT4-PfESWP8ZMC6XzmBY/edit?usp=sharing">https://docs.google.com/document/d/1FLJhzS1cRoeoZKdDfKVNzZvxT4-PfESWP8ZMC6XzmBY/edit?usp=sharing</a></div>
             </div>
             <div class="form-group row" >
               <div class="col-5 col-form-label pt-0">
@@ -309,14 +308,22 @@
             </tbody>
           </table>
 
-          <div class="form-group row" *ngIf="selectedCourier?.name === 'Self delivery'">
-            <div class="col-4 col-form-label pt-0"><label>Delivery Area</label></div>
-            <div class="col-8 text-left">
-              <div *qIf="editing" class="form-group">
-                <textarea class="form-control" rows="5" [(ngModel)]="deliveryArea"></textarea>
+          <ng-container *ngIf="selectedCourier?.name === 'Self delivery'">
+            <div class="form-group">
+              <div><label style="font-size: small">Delivery Area</label></div>
+              <div class="row"><a class="btn btn-link" (click)="showAreaTip = !showAreaTip">{{showAreaTip ? 'Hide': 'Show'}} more</a></div>
+              <div *ngIf="showAreaTip">Enter the latitude/longitude coordinates of the shape that defines the delivery area for this restaurant. Follow the instructions in this document: <a target="_blank" href="https://docs.google.com/document/d/1FLJhzS1cRoeoZKdDfKVNzZvxT4-PfESWP8ZMC6XzmBY/edit?usp=sharing">https://docs.google.com/document/d/1FLJhzS1cRoeoZKdDfKVNzZvxT4-PfESWP8ZMC6XzmBY/edit?usp=sharing</a></div>
+            </div>
+            <div class="form-group row">
+              <div class="col-4"></div>
+              <div class="col-8 text-left">
+                <div *qIf="editing" class="form-group">
+                  <textarea class="form-control" rows="5" [(ngModel)]="deliveryArea"></textarea>
+                  <div *ngIf="!deliveryAreaValid()" class="text-danger">Format invalid. Please enter a self-closing array longitude/latitude coordinates of the delivery area or a valid geojson shape</div>
+                </div>
               </div>
             </div>
-          </div>
+          </ng-container>
         </div>
       </li>
 
@@ -325,7 +332,7 @@
       </li>
       <li class="list-group-item text-right" *ngIf="editing">
         <button class="btn btn-secondary" (click)="toggleEditing()" style="min-width: 6rem">Cancel</button>
-        <button class="btn btn-primary" (click)="update()" style="min-width: 6rem">OK</button>
+        <button class="btn btn-primary" [disabled]="!deliveryAreaValid()" (click)="update()" style="min-width: 6rem">OK</button>
       </li>
     </ul>
   </div>
