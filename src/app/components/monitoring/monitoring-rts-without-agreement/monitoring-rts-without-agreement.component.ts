@@ -126,16 +126,12 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
       ],
       limit: 100000
     }).toPromise();
-    this.filterRTs();
-  }
-
-  filterRTs() {
     if (!this.fromDate) {
       this.fromDate = this.restaurants[0].createdAt.toISOString().split("T")[0];
     }
-    // filter by createdAt
     this.agents = [];
     this.gmbOwners = [];
+    // filter by createdAt
     this.agreementRTs = this.restaurants.filter(rt => rt.createdAt.valueOf() >= new Date(this.fromDate + "T00:00:00.000Z").valueOf());
     this.agreementRTs.forEach(rt => {
       rt.createdAt = new Date(rt.createdAt);
@@ -161,11 +157,16 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
         this.gmbOwners.push(rt.gmbOwner);
       }
     });
-    this.filterAgreementRTs = this.agreementRTs;
     this.agents.sort((a, b) => a.localeCompare(b));
     this.agents.unshift('All');
     this.gmbOwners.sort((a, b) => a.localeCompare(b));
     this.gmbOwners.unshift('All');
+    this.filterRTs();
+  }
+
+  filterRTs() {
+    // filter by createdAt
+    this.filterAgreementRTs = this.agreementRTs.filter(rt => rt.createdAt.valueOf() >= new Date(this.fromDate + "T00:00:00.000Z").valueOf());
     // filter by agent
     if (this.agent && this.agent !== 'All') {
       this.filterAgreementRTs = this.filterAgreementRTs.filter(rt => rt.agent === this.agent);
