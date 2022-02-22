@@ -87,7 +87,7 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
     this.restaurants.forEach(r => {
       r.createdAt = new Date(r.createdAt);
     });
-    this.restaurants.sort((a, b) => a.createdAt.valueOf() - b.createdAt.valueOf());
+    this.restaurants.sort((a, b) => b.createdAt.valueOf() - a.createdAt.valueOf());
     // this.gmbBizs = await this._api.get(environment.qmenuApiUrl + 'generic', {
     //   resource: 'gmbBiz',
     //   query: {
@@ -127,7 +127,7 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
       limit: 100000
     }).toPromise();
     if (!this.fromDate) {
-      this.fromDate = this.restaurants[0].createdAt.toISOString().split("T")[0];
+      this.fromDate = this.restaurants[this.restaurants.length - 1].createdAt.toISOString().split("T")[0];
     }
     this.agents = [];
     this.gmbOwners = [];
