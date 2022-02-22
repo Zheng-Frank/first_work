@@ -275,14 +275,16 @@ export class Helper {
         };
 
         let matchedTz = '';
-        if (formatted_address && formatted_address.match(/\b[A-Z]{2}/)) {
-            let state = formatted_address.match(/\b[A-Z]{2}/)[0];
-
-            Object.keys(tzMap).map(tz => {
+        if (formatted_address) {
+            let matched = formatted_address.match(/\s[A-Z]{2},?\s/g);
+            if (matched) {
+              let state = matched.pop().replace(/^\s(\w+),?\s/, "$1");
+              Object.keys(tzMap).map(tz => {
                 if (tzMap[tz].indexOf(state) > -1) {
-                    matchedTz = tz;
+                  matchedTz = tz;
                 }
-            });
+              });
+            }
         }
         return matchedTz;
     }
