@@ -7,7 +7,7 @@ import { GlobalService } from 'src/app/services/global.service';
 import { Component, OnInit, Input } from '@angular/core';
 import { ApiService } from 'src/app/services/api.service';
 import { User } from 'src/app/classes/user';
-import { MenuImage, Restaurant, TimezoneHelper } from '@qmenu/ui';
+import { MenuImage, Restaurant } from '@qmenu/ui';
 
 interface menuImage {
   url: string,
