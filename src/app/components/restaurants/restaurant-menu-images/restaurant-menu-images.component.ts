@@ -7,7 +7,7 @@ import { GlobalService } from 'src/app/services/global.service';
 import { Component, OnInit, Input } from '@angular/core';
 import { ApiService } from 'src/app/services/api.service';
 import { User } from 'src/app/classes/user';
-import { MenuImage, Restaurant } from '@qmenu/ui';
+import { MenuImage, Restaurant, TimezoneHelper } from '@qmenu/ui';
 
 interface menuImage {
   url: string,
@@ -50,12 +50,13 @@ export class RestaurantMenuImagesComponent implements OnInit {
   async upload(e) {
     let { files } = e.target;
     const data: any = await Helper.uploadImage(files, this._api, this._http);
+    let createdAt = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(), this.restaurant.googleAddress.timezone);
     if (data && data.Location) {
       const url = decodeURIComponent(data.Location);
       this.images.push({
         url,
         description: 'New image',
-        createdAt: new Date(),
+        createdAt,
         createdBy: this.user.username,
         edit: false
       });

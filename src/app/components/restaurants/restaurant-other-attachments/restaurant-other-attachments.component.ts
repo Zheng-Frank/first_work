@@ -1,3 +1,4 @@
+import { TimezoneHelper } from '@qmenu/ui';
 import { AlertType } from './../../../classes/alert-type';
 import { environment } from 'src/environments/environment';
 import { PrunedPatchService } from 'src/app/services/prunedPatch.service';
@@ -52,13 +53,14 @@ export class RestaurantOtherAttachmentsComponent implements OnInit {
   async upload(e) {
     let { files } = e.target;
     const data: any = await Helper.uploadImage(files, this._api, this._http);
+    let createdAt = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(), this.restaurant.googleAddress.timezone);
     if (data && data.Location) {
       const url = decodeURIComponent(data.Location);
       this.files.push({
         type: 'image',
         url,
         description: 'Image attachment',
-        createdAt: new Date(),
+        createdAt,
         createdBy: this.user.username,
         edit: false
       });
