@@ -196,12 +196,12 @@ export class QmBmSstDashboardComponent implements OnInit {
 
       const gmbBiz = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbBiz',
-        projection: {cid: 1, gmbOwner: 1},
+        projection: {cid: 1, gmbOwner: 1, place_id: 1},
         limit: 1000000000
       }).toPromise();
-      let gmbOwnerDict = {};
-      gmbBiz.forEach(({cid, gmbOwner}) => {
-        gmbOwnerDict[cid] = gmbOwner
+      let gmbWebsiteOwnerDict = {};
+      gmbBiz.forEach(({cid, place_id, gmbOwner}) => {
+        gmbWebsiteOwnerDict[place_id + cid] = gmbOwner
       })
 
       this.qmRTs.forEach(rt => {
@@ -216,7 +216,7 @@ export class QmBmSstDashboardComponent implements OnInit {
         } else {
           rt.hasGmb = false
         }
-        rt.hasGMBWebsite = !!gmbOwnerDict[rt.cid]
+        rt.hasGMBWebsite = !!gmbWebsiteOwnerDict[rt.place_id + rt.cid]
         rt.postmatesAvailable = this.postmatesAvailable(rt)
       })
       // --- BeyondMenu restaurants
