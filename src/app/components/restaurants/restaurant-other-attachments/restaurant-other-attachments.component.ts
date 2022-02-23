@@ -1,4 +1,3 @@
-import { TimezoneHelper } from '@qmenu/ui';
 import { AlertType } from './../../../classes/alert-type';
 import { environment } from 'src/environments/environment';
 import { PrunedPatchService } from 'src/app/services/prunedPatch.service';
@@ -8,7 +7,7 @@ import { GlobalService } from 'src/app/services/global.service';
 import { Component, OnInit, Input } from '@angular/core';
 import { ApiService } from 'src/app/services/api.service';
 import { User } from 'src/app/classes/user';
-import { Restaurant } from '@qmenu/ui';
+import { Restaurant, AttachmentFile } from '@qmenu/ui';
 
 interface attachmentFile {
   type: string,
