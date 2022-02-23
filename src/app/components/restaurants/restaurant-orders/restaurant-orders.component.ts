@@ -913,7 +913,7 @@ export class RestaurantOrdersComponent implements OnInit {
 
   normalizeNotifyStatus(notify) {
     let { endStatuses, logs } = notify;
-    logs.sort((x, y) => new Date(y.time).valueOf() - new Date(x).valueOf());
+    logs.sort((x, y) => new Date(y.time).valueOf() - new Date(x.time).valueOf());
     let status = logs[0].status;
     if (endStatuses && endStatuses.length) {
       status = endStatuses[endStatuses.length - 1];
