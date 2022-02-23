@@ -1,0 +1,38 @@
+<h1>Phone Ordering Configurations</h1>
+
+<table class="table w-100">
+  <thead>
+    <tr>
+      <th>Restaurant Number</th>
+      <th>Proxy Number</th>
+      <th>IVR Number</th>
+      <th>Callback Number</th>
+      <th>Call Count</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let p of phoneOrderingConfigs" class="text-nowrap">
+      <td>
+        {{p.restaurantNumber | phone}}
+        <div *ngFor="let rt of getRestaurants(p.restaurantNumber)">
+          <a href="/#/restaurants/{{rt._id}}" target="__blank">{{rt.name}}</a>
+          <div>
+            <small class="text-muted">Id: {{rt._id}}</small>
+          </div>
+        </div>
+      </td>
+      <td>
+        {{p.proxyNumber | phone}}
+        <div class="text-muted">{{p.proxyServiceProvider}}</div>
+      </td>
+      <td>
+        {{p.ivrNumber | phone}}
+      </td>
+      <td>
+        {{p.restaurantCallbackNumber | phone}}
+      </td>
+      <td>
+        {{getCallCount(p.proxyNumber)}}
+      </td>
+    </tr>
+  </tbody>

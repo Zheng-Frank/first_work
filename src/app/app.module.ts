@@ -271,6 +271,7 @@ import { RestaurantMenuImagesComponent } from './components/restaurants/restaura
 import { QmBmSstDashboardComponent } from './components/monitoring/qm-bm-sst-dashboard/qm-bm-sst-dashboard.component';
 import { Dashboard1099KComponent } from './components/system/1099k-dashboard/1099k-dashboard.component';
 import { MonitoringRtsWithoutAgreementComponent } from './components/monitoring/monitoring-rts-without-agreement/monitoring-rts-without-agreement.component';
+import { PhoneOrderingDashboardComponent } from './components/phone-ordering/phone-ordering-dashboard/phone-ordering-dashboard.component';
 
 
 @NgModule({
@@ -512,7 +513,8 @@ import { MonitoringRtsWithoutAgreementComponent } from './components/monitoring/
     RestaurantMenuImagesComponent,
     QmBmSstDashboardComponent,
     Dashboard1099KComponent,
-    MonitoringRtsWithoutAgreementComponent
+    MonitoringRtsWithoutAgreementComponent,
+    PhoneOrderingDashboardComponent
   ],
   imports: [
     BrowserModule,
