@@ -51,12 +51,11 @@ export class RestaurantMenuImagesComponent implements OnInit {
     let { files } = e.target;
     const data: any = await Helper.uploadImage(files, this._api, this._http);
     if (data && data.Location) {
-      let createdAt = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(), this.restaurant.googleAddress.timezone);
       const url = decodeURIComponent(data.Location);
       this.images.push({
         url,
         description: 'New image',
-        createdAt,
+        createdAt: new Date(),
         createdBy: this.user.username,
         edit: false
       });
