@@ -78,7 +78,7 @@ input:checked + .slider:before {
   z-index: 200;
   -moz-box-shadow: 1px 1px 2px hsla(0, 0%, 0%, 0.3);
   -webkit-box-shadow: 1px 1px 2px hsla(0, 0%, 0%, 0.3);
-  box-shadow: 1px 1px 2x hsla(0, 0%, 0%, 0.3);
+  box-shadow: 1px 1px 2px hsla(0, 0%, 0%, 0.3);
 }
 
 .talk p {
@@ -106,4 +106,24 @@ input:checked + .slider:before {
 .left {
   margin-right: 20px;
   float: right;
+}
+
+#delivery-map {
+  width: 240px;
+  height: 220px;
+}
+
+::ng-deep .qmenu-tooltip .tooltip-inner {
+  color: #000000;
+  border-radius: 10px;
+  background-color: #d8d4d4;
+  background-image: -moz-linear-gradient(hsla(0, 0%, 100%, 0.6), hsla(0, 0%, 100%, 0) 30px);
+  background-image: -webkit-gradient(linear, 0 0, 0 30, from(hsla(0, 0%, 100%, 0.6)), to(hsla(0, 0%, 100%, 0)));
+  -moz-box-shadow: 1px 1px 2px hsla(0, 0%, 0%, 0.3);
+  -webkit-box-shadow: 1px 1px 2px hsla(0, 0%, 0%, 0.3);
+  box-shadow: 1px 1px 2px hsla(0, 0%, 0%, 0.3);
+}
+
+::ng-deep .qmenu-tooltip .arrow::before {
+  border-top-color: #d8d4d4;
 }

@@ -53,7 +53,7 @@ export class RestaurantOrdersComponent implements OnInit {
   cancelError = '';
   undoOrder: any;
   isPostmatesStatusDelivered = false;
-  searchTypes = ['Order Number', 'Customer Phone', 'Postmates ID'];
+  searchTypes = ['Order Number', 'Customer Phone', 'Postmates ID', 'Order ID'];
   type = 'Order Number';//  concrete search type
   showAdvancedSearch: boolean = false;//show advanced Search ,time picker ,search a period time of orders.
   fromDate; //time picker to search order.
@@ -207,6 +207,10 @@ export class RestaurantOrdersComponent implements OnInit {
       } else { //the situation of the phone number don't have '-'
         query['customerObj.phone'] = this.searchText.trim();
       }
+    } else if (this.type === 'Order ID' && this.searchText) {
+      query['_id'] = {
+        $oid: this.searchText.trim()
+      }
     }
     // ISO-Date()
     const orders = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
@@ -326,6 +330,10 @@ export class RestaurantOrdersComponent implements OnInit {
         query['customerObj.phone'] = queryStr
       } else { //the situation of the phone number don't have '-'
         query['customerObj.phone'] = this.searchText.trim();
+      }
+    } else if (this.type === 'Order ID' && this.searchText) {
+      query['_id'] = {
+        $oid: this.searchText.trim()
       }
     }
 

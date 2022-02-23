@@ -1,109 +1,187 @@
-<h2 class="text-center">IRS Form 1099K Dashboard</h2>
-<div class="text-center">RTs with Form 1099K: "{{filteredRows.length}}"</div>
+<h2 class="text-center">IRS Form 1099K Dashboard ({{filteredRows.length}})</h2>
 
 <div class="my-2">
-    <div class="form-inline" style="width: 100%;">
-        <!-- Search Textbox -->
-        <label class="mx-2"> Search:</label>
-        <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control ml-2"
-            placeholder="RT name or ID, R T owner name, email, etc." [(ngModel)]="searchFilter">
+  <div class="form-inline mx-5">
+    <!-- Search Textbox -->
+    <label class="mx-2"> Search:</label>
+    <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control ml-2 search-input"
+      placeholder="RT name or ID, R T owner name, email, etc." [(ngModel)]="searchFilter">
 
-        <!-- Tax Year Dropdown -->
-        <label class="mx-2"> Select Tax Year:</label>
-        <select class="form-control" [(ngModel)]="taxYear" (change)="filterRows()">
-            <option *ngFor="let entry of taxYearOptions"> {{entry}} </option>
-        </select>
+    <!-- Tax Year Dropdown -->
+    <label class="mx-2"> Select Tax Year:</label>
+    <select class="form-control mr-2" [(ngModel)]="taxYear" (change)="filterRows()">
+      <option *ngFor="let entry of taxYearOptions"> {{entry}} </option>
+    </select>
 
-        <!-- Missing Payee/TIN/Email Attributes -->
-        <label class="mx-2"> Show Missing Payee </label>
-        <input class="form-check-input" type="checkbox" [(ngModel)]="showMissingPayee" (change)="filterRows()">
+    <!-- RT open or not -->
+    <select class="form-control mx-2" [(ngModel)]="openOption" (change)="filterRows()">
+      <option *ngFor="let option of openOptions"> {{option}} </option>
+    </select>
 
-        <label class="mx-2"> Show Missing TIN </label>
-        <input class="form-check-input" type="checkbox" [(ngModel)]="showMissingTIN" (change)="filterRows()">
+    <!-- Missing Payee/TIN/Email Attributes -->
+    <select class="form-control mx-2" [(ngModel)]="missPayeeOption" (change)="filterRows()">
+      <option *ngFor="let option of missPayeeOptions"> {{option}} </option>
+    </select>
 
+    <select class="form-control mx-2" [(ngModel)]="missTINOption" (change)="filterRows()">
+      <option *ngFor="let option of missTINOptions"> {{option}} </option>
+    </select>
 
-        <label class="mx-2"> Show Missing Email </label>
-        <input class="form-check-input" type="checkbox" [(ngModel)]="showMissingEmail" (change)="filterRows()">
-
-    </div>
-
-    <!-- <div class="form-inline mt-2" style="width: 100%;">
-        <label class="mx-2"> Bulk File Operations</label>
-        <select class="form-control" [(ngModel)]="bulkFileOperation">
-            <option value="" disabled selectedtml> Choose an option... </option>
-            <option value="qmenu"> Download all qMenu Forms </option>
-            <option value="restaurant"> Send forms to all restaurants </option>
-        </select>
-
-        <span class="mx-2"> for the year</span>
-        <select class="form-control mx-2" [(ngModel)]="bulkOperationYear">
-            <option value="" disabled selectedtml> Choose an option... </option>
-            <option value="2021"> 2021 </option>
-            <option value="2020"> 2020 </option>
-        </select>
-
-        <button class="btn btn-primary" (click)="executeBulkFileOperation()" [disabled]="isMissingBulkFileAttributes()">
-            Execute</button>
-
-    </div> -->
+    <select class="form-control mx-2" [(ngModel)]="missingEmailOption" (change)="filterRows()">
+      <option *ngFor="let option of missingEmailOptions"> {{option}} </option>
+    </select>
+    <!-- sent or not -->
+    <select class="form-control mx-2" [(ngModel)]="sentEmailOption" (change)="filterRows()">
+      <option *ngFor="let option of sentEmailOptions"> {{option}} </option>
+    </select>
+    <i class="fa fa-info-circle icon-color" (mouseover)="showExplanation = true" (mouseout)="showExplanation = false">
+      <div *ngIf="showExplanation" class="left talk radius">
+        <p>Filter by whether the form for the currently-selected tax year has been sent to the restaurant yet.</p>
+        -------------<br>
+        <p>根据当前所选纳税年度的表格是否已发送到餐厅进行筛选。</p>
+      </div>
+    </i>
+    <button class="btn btn-primary recan-btn" (click)="rescan()"><i class="fas fa-sync"></i> Rescan</button>
+  </div>
+  <hr>
+  <div class="form-inline mx-5 pl-1">
+    <label class="mx-2">Bulk Action Tool</label>
+    <select class="form-control" [(ngModel)]="bulkFileOperation">
+      <option value="" disabled selectedtml> Choose an option... </option>
+      <option *ngFor="let option of bulkFileOperations"> {{option}} </option>
+    </select>
+    <label class="mx-2">for the year</label>
+    <select class="form-control mx-2" [(ngModel)]="bulkOperationYear">
+      <option value="" disabled selectedtml> Choose an option... </option>
+      <option *ngFor="let year of bulkOperationYears"> {{year}} </option>
+    </select>
+    <button class="btn btn-primary mx-2" (click)="executeBulkFileOperation()" [disabled]="isMissingBulkFileAttributes()"
+      [qLoading]="sendLoading">Execute</button>
+    {{ bulkFileOperation === '' ? '' : bulkFileOperation === bulkFileOperationTypes.Download? 'Bulk download functionality coming soon!' : ''}}
+    <button class="btn btn-link" (click)="handleShowExtraTools()">
+      {{!showExtraTools ? 'Show extra tools' : 'Hide extra tools'}}</button>
+  </div>
+  <div class="form-inline mx-5 my-3" *ngIf="showExtraTools">
+    <label class="mx-2">Calculate Tool</label>
+    <input type="text" class="form-control ml-2 search-input" placeholder="RT ID" [(ngModel)]="calcRTFilter">
+    <label class="ml-2">From:</label>
+    <input class="form-control ml-1" type="date" [(ngModel)]="fromDate">
+    <label class="ml-2">To:</label>
+    <input class="form-control ml-1" type="date" [(ngModel)]="toDate">
+    <button class="btn btn-primary ml-2" (click)="calcTransactionByTime()"><i class="fa fa-calculator"></i>
+      Calculate</button>
+    <span *ngIf="transactionText" class="ml-2">{{transactionText}}</span>
+  </div>
 </div>
 
 <!-- single row/card template. we will popoulate one per RT with a 1099K -->
-
-<div *ngFor="let row of filteredRows; let rowIndex = index" class="card pl-1 ml-1 mb-1 pb-1" style="width: 75%;">
+<div class="row mx-5">
+  <div *ngFor="let row of filteredRows; let rowIndex = index" class="card pl-1 ml-1 mb-1 pb-1 card-width">
     <div class="card-body">
-        <h5 class="card-title">
-            <a href="/#/restaurants/{{row.id.toString()}}">{{row.name}}</a>
-        </h5>
-        <div class="card-text d-flex justify-content-between">
-            <span class="py2 text-left">
-                <div>
-                    <b>TIN: </b>
-                    <span *ngIf="row.rtTIN; else elseBlockTIN">{{row.rtTIN}} <q-edit-label [value]="" [type]="'text'"
-                            (edit)="submitTIN($event, rowIndex)"></q-edit-label></span>
-                    <ng-template #elseBlockTIN>
-                        <b class="text-danger">Attribute Missing</b>
-                        <q-edit-label [emptyHint]="'(click to add)'" [value]="" [type]="'text'"
-                            (edit)="submitTIN($event, rowIndex)"></q-edit-label>
-                    </ng-template>
-                </div>
-                <div>
-                    <b>Payee: </b>
-                    <span *ngIf="row.payeeName; else elseBlockPayee">{{row.payeeName}} <q-edit-label [value]=""
-                            [type]="'text'" (edit)="submitPayee($event, rowIndex)"></q-edit-label></span>
-                    <ng-template #elseBlockPayee>
-                        <b class="text-danger">Attribute Missing</b>
-                        <q-edit-label [emptyHint]="'(click to add)'" [value]="" [type]="'text'"
-                            (edit)="submitPayee($event, rowIndex)"></q-edit-label>
-                    </ng-template>
-                </div>
-                <div>
-                    <b>Email: </b>
-                    <span *ngIf="row.email.length > 0; else elseBlockEmail">{{row.email.join(', ')}} </span>
-                    <ng-template #elseBlockEmail>
-                        <b class="text-danger">Attribute Missing</b>
-                        <q-edit-label [emptyHint]="'(click to add)'" [value]="" [type]="'text'"
-                            (edit)="submitEmail($event, rowIndex)"></q-edit-label>
-                    </ng-template>
-                </div>
-            </span>
-            <span class="py-2 text-right">
-                <div *ngIf="allAttributesPresent(row); else missingAttributesBlock">
-                    <div *ngFor="let form of (row.form1099k  || [])">
-                        {{form.year}} Form:
-                        <button class="btn btn-link" (click)="renderPDFForm(row, form, 'qmenu')"> for qMenu <i
-                                class="fa fa-download" aria-hidden="true"></i></button>
-                        <button class="btn btn-link" (click)="renderPDFForme(row, form, 'restaurant')"> for
-                            Restaurant <i class="fa fa-download" aria-hidden="true"></i></button>
-                    </div>
-                </div>
-
-                <ng-template #missingAttributesBlock>
-                    <div>
-                        Fill in all missing attributes to enable file download.
-                    </div>
-                </ng-template>
-            </span>
-        </div>
+      <h5 class="card-title">
+        <a href="/#/restaurants/{{row.id.toString()}}" target="_blank">{{row.name}}</a>
+      </h5>
+      <div class="d-flex">
+        <b>
+          {{row.id}}
+        </b>
+        <span class="mx-1">
+          ({{getBizContacts(row.channels)|| 'None'}})
+        </span>
+        <span class="mx-1">
+          - {{now| adjustedDate: 'h:mm a':row.timezone}},
+        </span>
+        <span class="mx-1 {{row.openOrNot? 'text-success': 'text-danger'}}">
+          {{row.openOrNot?'Open':'Closed'}}
+        </span>
+      </div>
+      <div class="card-text row">
+        <span class="col-9">
+          <div>
+            <b>TIN: </b>
+            <b class="text-danger" *ngIf="!row.rtTIN">Attribute Missing</b>
+            <q-edit-label [value]="row.rtTIN" (edit)="onEdit($event, rowIndex, 'rtTIN')">
+            </q-edit-label>
+          </div>
+          <div>
+            <b>Payee: </b>
+            <b class="text-danger" *ngIf="!row.payeeName">Attribute Missing</b>
+            <q-edit-label [value]="row.payeeName" (edit)="onEdit($event, rowIndex, 'payeeName')">
+            </q-edit-label>
+          </div>
+          <div>
+            <b>Email: </b>
+            <span *ngIf="row.email.length > 0; else elseBlockEmail">{{row.email.join(', ')}} </span>
+            <ng-template #elseBlockEmail>
+              <b class="text-danger">Attribute Missing</b>
+              <q-edit-label [emptyHint]="'(click to add)'" [value]="" [type]="'text'"
+                (edit)="onEdit($event, rowIndex, 'Email')"></q-edit-label>
+            </ng-template>
+          </div>
+        </span>
+        <span class="col-3">
+          <div *ngFor="let form of (row.form1099k  || [])">
+            <ng-container *ngIf="form.required;else requiredBlock">
+              {{form.year}} -
+              <ng-container *ngIf="allAttributesPresent(row); else missingAttributesBlock">
+                <a class="btn-link" (click)="renderPDFForm(row, form, 'qmenu')"> for qMenu <i
+                    class="fa fa-download"></i></a>
+                <a class="btn-link ml-2" (click)="renderPDFForm(row, form, 'restaurant')"> for
+                  Restaurant <i class="fa fa-download"></i></a>
+                <a class="btn-link ml-2" (click)="openSendEmailModal(row, form)">Send</a>
+                <span *ngIf="form.sent" class="text-success">
+                  (Sent)
+                </span>
+              </ng-container>
+              <ng-template #missingAttributesBlock>
+                <span class="text-danger">
+                  Fill in all missing attributes to enable file download.
+                </span>
+              </ng-template>
+            </ng-container>
+            <ng-template #requiredBlock>
+              <span>
+                {{form.year}} - No Form Required for this year
+              </span>
+            </ng-template>
+          </div>
+        </span>
+      </div>
     </div>
+  </div>
+  <!-- start with send emails modal -->
+  <q-modal #sendEmailModal [size]="'lg'">
+    <button type="button" class="close" (click)="sendEmailModal.hide()">
+      <span>×</span>
+    </button>
+    <h4 class="text-center">Send PDF Form</h4>
+    <hr>
+    <!-- start with email channels -->
+    <div *ngIf="allEmails.length > 0">
+      <div *ngFor="let email of allEmails">
+        <input type="checkbox" (change)="selectTarget($event, email)" [value]="email.value"
+          [checked]="targets.includes(email)">
+        <i class="fas fa-envelope-square"></i>
+        {{email.value}}
+        <ng-container *ngIf="email.notifications?.length">({{email.notifications?.join("/")}})</ng-container>
+      </div>
+    </div>
+    <div *ngIf="allEmails.length <= 0">
+      No message target found, please add the contact you need to the RT's contacts.
+    </div>
+    <!-- end with email channels -->
+    <!-- template has some input varible to fill in -->
+    <div *ngIf="template">
+      <div class="mt-2" *ngFor="let field of template.inputs">
+        <label>{{field.label}}<span class="text-danger">*</span></label>
+        <input class="form-control" type="{{field.type || 'text'}}" [(ngModel)]="field.value">
+      </div>
+      <div class="msg-content mt-2" [innerHTML]="sanitized(template.html)"></div>
+    </div>
+    <div class="d-flex justify-content-end p-4">
+      <button class="btn btn-secondary mr-2" (click)="sendEmailModal.hide()">Cancel</button>
+      <button class="btn btn-primary" (click)="sendPDFFormToRT()" [qLoading]="sendLoading">Send</button>
+    </div>
+  </q-modal>
+  <!-- end with send email modal -->
 </div>

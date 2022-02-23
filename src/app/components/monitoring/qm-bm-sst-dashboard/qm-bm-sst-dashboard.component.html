@@ -1,0 +1,211 @@
+<div class="container-fluid">
+
+  <div class="row">
+    <h2 class="col-12 text-center"> Qmenu / BeyondMenu - Single Source of Truth ({{filteredRows.length}}) </h2>
+  </div>
+
+  <div class="mt-5">
+    <div class="d-flex align-items-center row">
+      <span class="d-inline-flex align-items-center col-auto mb-3">
+        <label for="qmSearchText" class="m-0 p-0">Search </label>
+        <input type="text" class="ml-2 form-control" [qDebounce]="500" (debounce)="filter()" placeholder="Search by RT name, address or phone" id="qmSearchText" [(ngModel)]="filters.keyword">
+        <i class="fa fa-info-circle ml-1" data-toggle="tooltip" title="You can search for a restaurant by name, address, or phone number." data-placement="top"></i>
+      </span>
+      <div class="d-inline-flex align-items-center col-auto mb-3">
+        <span class="mr-2">Filters: </span>
+        <select class="form-control custom-select" [(ngModel)]="filters.platform" (change)="filter()">
+          <option [ngValue]="''">Platform?</option>
+          <option *ngFor="let opt of dropdowns('platform')" [ngValue]="opt">{{opt}}</option>
+        </select>
+      </div>
+
+      <div class="col-auto mb-3">
+        <select class="form-control custom-select" [(ngModel)]="filters.status" (change)="filter()">
+          <option [ngValue]="''">Active?</option>
+          <option *ngFor="let opt of dropdowns('status')" [ngValue]="opt">{{opt}}</option>
+        </select>
+      </div>
+
+      <div class="col-auto mb-3">
+        <select class="form-control custom-select" [(ngModel)]="filters.hasPlaceId" (change)="filter()">
+          <option [ngValue]="''">Has place_id?</option>
+          <option *ngFor="let opt of dropdowns('place_id')" [ngValue]="opt">{{opt}}</option>
+        </select>
+      </div>
+
+      <div class="col-auto d-inline-flex align-items-center mb-3">
+        <select class="form-control custom-select" [(ngModel)]="filters.tier" (change)="filter()">
+          <option [ngValue]="''">Tier?</option>
+          <option *ngFor="let opt of dropdowns('tier')" [ngValue]="opt">{{opt}}</option>
+        </select>
+        <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Restaurants that are tier 1 in either the BM or QM platform indicated with green dot, tier 2 in either platform with yellow dot, and tier 3 in both platforms with red dot."></i>
+      </div>
+      <div class="col-auto mb-3">
+        <select class="form-control custom-select" [(ngModel)]="filters.sameName" (change)="filter()">
+          <option [ngValue]="''">RT Name?</option>
+          <option *ngFor="let opt of dropdowns('name')" [ngValue]="opt">{{opt}}</option>
+        </select>
+      </div>
+      <div class="col-auto mb-3">
+        <select class="form-control custom-select" [(ngModel)]="filters.gmbStatus" (change)="filter()">
+          <option [ngValue]="''">GMB Status?</option>
+          <option *ngFor="let opt of dropdowns('gmb')" [ngValue]="opt">{{opt}}</option>
+        </select>
+      </div>
+<!--      <div class="col-auto mb-3">-->
+<!--        <select class="form-control custom-select" [(ngModel)]="filters.pricing" (change)="filter()">-->
+<!--          <option [ngValue]="''">Pricing?</option>-->
+<!--          <option *ngFor="let opt of dropdowns('pricing')" [ngValue]="opt">{{opt}}</option>-->
+<!--        </select>-->
+<!--      </div>-->
+      <div class="col-auto mb-3">
+        <select class="form-control custom-select" [(ngModel)]="filters.postmates" (change)="filter()">
+          <option [ngValue]="''">Postmates?</option>
+          <option *ngFor="let opt of dropdowns('postmates')" [ngValue]="opt">{{opt}}</option>
+        </select>
+      </div>
+      <div class="col-auto mb-3">
+        <button class="btn btn-link text-info" (click)="showPricing = !showPricing">{{showPricing ? 'Hide' : 'Show'}} Pricing</button>
+      </div>
+      <div class="col-auto mb-3">
+        <button class="btn btn-link text-info" (click)="showPhones = !showPhones">{{showPhones ? 'Hide' : 'Show'}} Phones</button>
+      </div>
+      <div class="col-auto mb-3">
+        <button class="btn btn-link text-info" (click)="showOtherContacts = !showOtherContacts">{{showOtherContacts ? 'Hide' : 'Show'}} other contacts</button>
+      </div>
+      <div class="col-auto mb-3">
+        <button class="btn btn-link text-info" (click)="showPostmatesStatus = !showPostmatesStatus">{{showPostmatesStatus ? 'Hide' : 'Show'}} Postmates status</button>
+      </div>
+      <div class="col-auto mb-3">
+        <button class="btn btn-link" (click)="clearFilter()">Reset Filters</button>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div>
+      <a class="btn btn-link" (click)="showSummary = !showSummary">{{showSummary ? 'Hide': 'Show'}} Summary <i class="fa fa-angle-{{showSummary ? 'up': 'down'}}"></i></a>
+    </div>
+    <table class="table table-sm" *ngIf="showSummary">
+      <thead><tr><th></th><th>Total</th><th>Tier 1</th><th>Tier 2</th><th>Tier 3</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>OVERALL RTs</td>
+          <td>{{summary.overall.length}}</td>
+          <td>{{countByTier(summary.overall, 1)}}</td>
+          <td>{{countByTier(summary.overall, 2)}}</td>
+          <td>{{countByTier(summary.overall, 3)}}</td>
+        </tr>
+        <tr>
+          <td>RTs on both platforms</td>
+          <td>{{summary.both.length}}</td>
+          <td>{{countByTier(summary.both, 1)}}</td>
+          <td>{{countByTier(summary.both, 2)}}</td>
+          <td>{{countByTier(summary.both, 3)}}</td>
+        </tr>
+        <tr>
+          <td>Qmenu-only RTs</td>
+          <td>{{summary.qmOnly.length}}</td>
+          <td>{{countByTier(summary.qmOnly, 1)}}</td>
+          <td>{{countByTier(summary.qmOnly, 2)}}</td>
+          <td>{{countByTier(summary.qmOnly, 3)}}</td>
+        </tr>
+        <tr>
+          <td>BeyondMenu-only RTs</td>
+          <td>{{summary.bmOnly.length}}</td>
+          <td>{{countByTier(summary.bmOnly, 1)}}</td>
+          <td>{{countByTier(summary.bmOnly, 2)}}</td>
+          <td>{{countByTier(summary.bmOnly, 3)}}</td>
+        </tr>
+        <tr>
+          <td>All BeyondMenu RTs</td>
+          <td>{{summary.bmAll.length}}</td>
+          <td>{{countByTier(summary.bmAll, 1)}}</td>
+          <td>{{countByTier(summary.bmAll, 2)}}</td>
+          <td>{{countByTier(summary.bmAll, 3)}}</td>
+        </tr><tr>
+          <td>All Qmenu RTs</td>
+          <td>{{summary.qmAll.length}}</td>
+          <td>{{countByTier(summary.qmAll, 1)}}</td>
+          <td>{{countByTier(summary.qmAll, 2)}}</td>
+          <td>{{countByTier(summary.qmAll, 3)}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <table class="table table-sm mt-2 mb-3">
+    <thead>
+      <tr>
+        <th [colSpan]="4">
+          <div class="float-right">
+            <q-pager #myPager1 [numberOfRows]="filteredRows.length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
+          </div>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <ng-container *ngFor="let row of paged(); let i = index">
+        <tr>
+          <td rowspan="2">{{i + 1}}</td>
+          <td rowspan="2" class="td-dot"><span class="dot {{getTierColor(row.tier, row.btier)}}"></span></td>
+          <td rowspan="2">
+            <div class="d-flex align-items-center">
+              <ng-container *ngIf="row._id">
+                <span class="qm-icon mr-1"></span>
+                <a class="mr-2" [routerLink]="'/restaurants/' + row._id" *ngIf="row.name !== row.bname">{{row.name}}</a>
+              </ng-container>
+              <ng-container *ngIf="row._bid">
+                <span class="bm-icon mr-1"></span>
+                <a [routerLink]="'/restaurants/' + row._id" *ngIf="row.name === row.bname">{{row.name}}</a>
+                <span *ngIf="row.name !== row.bname">{{row.bname}}</span>
+              </ng-container>
+            </div>
+            <div>
+              <div>palce_id: {{row.place_id || row.bplace_id || 'N/A'}}</div>
+              <div *ngIf="row._id">
+                QM: Tier {{row.tier || 'N/A'}}, ID: {{row._id}},
+                <ng-container *ngIf="row.createdAt">created: {{row.createdAt | dateTz: "yyyy-MM-dd": "America/New_York"}}</ng-container>,
+                domain: <a *ngIf="row.website" [href]="row.website">{{row.website}}</a>
+              </div>
+              <ng-container *ngIf="row._bid">
+                <div>BM: Tier {{row.btier || 'N/A'}}, ID: {{row._bid}}, <ng-container *ngIf="row.createdAt">created: {{row.createdAt | dateTz: "YYYY-MM-DD": "America/New_York"}}</ng-container>, domain: <a [href]="row.bwebsite">{{row.bwebsite}}</a></div>
+                <div *ngIf="showPricing">BM Pricing: {{row.bpricing}}</div>
+              </ng-container>
+            </div>
+            <div>Address: <span class="mr-1" *ngIf="row.address">{{row.address}} (QM)</span>/<span class="ml-1" *ngIf="row.baddress">{{row.baddress}} (BM)</span></div>
+            <div *ngIf="showPhones">Phone: {{groupChannels(row, 'Phone')}}</div>
+            <div *ngIf="showOtherContacts">Emails: {{groupChannels(row, 'Email')}} / Fax: {{groupChannels(row, 'Fax')}}</div>
+          </td>
+          <td class="td-icon-top">
+            <ng-container *ngIf="showPostmatesStatus">
+              <img class="pm-green" *ngIf="row.courier === 'Postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
+              <img class="pm-grey" *ngIf="row.courier != 'Postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
+            </ng-container>
+          </td>
+        </tr>
+        <tr>
+          <td class="td-icon-bottom">
+            <div class="d-inline-flex align-items-center">
+              <i class="fab fa-google mr-2"></i>
+              <span class="qm-icon" *ngIf="row.hasGmb"></span>
+              <span class="bm-icon" *ngIf="row.bhasGmb"></span>
+              <span class="text-danger" *ngIf="!row.hasGmb && !row.bhasGmb">&#10008;</span>
+            </div>
+          </td>
+        </tr>
+      </ng-container>
+    </tbody>
+    <tfoot>
+      <tr>
+        <th [colSpan]="4">
+          <div class="float-right">
+            <q-pager #myPager2 [numberOfRows]="filteredRows.length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
+          </div>
+        </th>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+

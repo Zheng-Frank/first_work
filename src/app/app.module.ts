@@ -265,9 +265,12 @@ import { MonitoringDineInOrdersComponent } from './components/monitoring/monitor
 import { RestaurantPosterComponent } from './components/restaurants/restaurant-poster/restaurant-poster.component';
 import { FaxHealthDashboardComponent } from './components/monitoring/fax-health-dashboard/fax-health-dashboard.component';
 import { RestaurantMsgLogsComponent } from './components/restaurants/restaurant-msg-logs/restaurant-msg-logs.component';
+import { MonitoringSoftwareComponent } from './components/monitoring/monitoring-software/monitoring-software.component';
 import { RestaurantSetupCommissionsComponent } from './components/restaurants/restaurant-setup/restaurant-setup-commissions/restaurant-setup-commissions.component';
 import { RestaurantMenuImagesComponent } from './components/restaurants/restaurant-menu-images/restaurant-menu-images.component';
+import { QmBmSstDashboardComponent } from './components/monitoring/qm-bm-sst-dashboard/qm-bm-sst-dashboard.component';
 import { Dashboard1099KComponent } from './components/system/1099k-dashboard/1099k-dashboard.component';
+import { PhoneOrderingDashboardComponent } from './components/phone-ordering/phone-ordering-dashboard/phone-ordering-dashboard.component';
 
 
 @NgModule({
@@ -504,9 +507,12 @@ import { Dashboard1099KComponent } from './components/system/1099k-dashboard/109
     FaxHealthDashboardComponent,
     MonitoringDineInOrdersComponent,
     RestaurantMsgLogsComponent,
+    MonitoringSoftwareComponent,
     RestaurantSetupCommissionsComponent,
     RestaurantMenuImagesComponent,
-    Dashboard1099KComponent
+    QmBmSstDashboardComponent,
+    Dashboard1099KComponent,
+    PhoneOrderingDashboardComponent
   ],
   imports: [
     BrowserModule,

@@ -39,11 +39,13 @@ export class InvoicesAnualComponent implements OnInit {
     tip: 0,
     total: 0,
     balance: 0,
+    alreadyPaidToQmenu: 0,
     restaurantCollected: 0,
     qmenuCcCollected: 0,
     ccProcessingFee: 0,
     commissionScheme: [],
     commission: 0,
+    feesForQmenu: 0,
     surcharge: 0,
     stripeFee: 0,
     adjustment: 0,
@@ -167,11 +169,13 @@ export class InvoicesAnualComponent implements OnInit {
         tip: 0,
         total: 0,
         balance: 0,
+        alreadyPaidToQmenu: 0,
         restaurantCollected: 0,
         qmenuCcCollected: 0,
         ccProcessingFee: 0,
         commissionScheme: [],
         commission: 0,
+        feesForQmenu: 0,
         surcharge: 0,
         stripeFee: 0,
         adjustment: 0,
@@ -263,31 +267,35 @@ export class InvoicesAnualComponent implements OnInit {
       + this.swipeInPerson.deliveryCharge + this.keyIn.deliveryCharge;
     // Compute
     this.statements.map((statementAcc, index) => {
+      let countingInvoices = this.invoices.filter(i => i.fromDate.getFullYear() === statementAcc.year && !i.isCanceled);
+      let balanceInvoices = this.filterBalanceInvoices(countingInvoices), paidInvoices = balanceInvoices.filter(i => i.isPaymentCompleted);
       // --- Assume all invoices during the year have the same restaurant, picks first invoice's rt info
       this.statements[index].restaurant.name = this.invoices[0].restaurant.name;
       this.statements[index].restaurant.address.apt = this.invoices[0].restaurant.address.apt || '';
       this.statements[index].restaurant.address.formattedAddress = this.invoices[0].restaurant.address.formatted_address.replace(', USA', '');
       this.statements[index].restaurant.phone = this.invoices[0].restaurant.phone;
 
-      this.statements[index].subtotal = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((subtotalAcc, invoice) => subtotalAcc + invoice.subtotal, 0);
-      this.statements[index].tax = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((taxAcc, invoice) => taxAcc + invoice.tax, 0);
-      this.statements[index].delivery = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((deliveryAcc, invoice) => deliveryAcc + invoice.deliveryCharge, 0);
-      this.statements[index].tip = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((tipAcc, invoice) => tipAcc + invoice.tip, 0);
-      this.statements[index].total = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((totalAcc, invoice) => totalAcc + invoice.total, 0);
-      this.statements[index].balance = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((balanceAcc, invoice) => balanceAcc + invoice.balance, 0);
+      this.statements[index].subtotal = countingInvoices.reduce((subtotalAcc, invoice) => subtotalAcc + invoice.subtotal, 0);
+      this.statements[index].tax = countingInvoices.reduce((taxAcc, invoice) => taxAcc + invoice.tax, 0);
+      this.statements[index].delivery = countingInvoices.reduce((deliveryAcc, invoice) => deliveryAcc + invoice.deliveryCharge, 0);
+      this.statements[index].tip = countingInvoices.reduce((tipAcc, invoice) => tipAcc + invoice.tip, 0);
+      this.statements[index].total = countingInvoices.reduce((totalAcc, invoice) => totalAcc + invoice.total, 0);
+      this.statements[index].balance = balanceInvoices.reduce((balanceAcc, invoice) => balanceAcc + invoice.balance, 0);
+      this.statements[index].alreadyPaidToQmenu = paidInvoices.reduce((acc, cur) => acc + cur.balance, 0);
 
-      this.statements[index].restaurantCollected = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((restaurantCollectedAcc, invoice) => restaurantCollectedAcc + invoice.cashCollected + invoice.restaurantCcCollected, 0);
-      this.statements[index].qmenuCcCollected = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((qmenuCcCollectedAcc, invoice) => qmenuCcCollectedAcc + invoice.qMenuCcCollected, 0);
-      this.statements[index].ccProcessingFee = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((ccProcessingFeeAcc, invoice) => ccProcessingFeeAcc + invoice.ccProcessingFee, 0);
-      this.statements[index].stripeFee = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((stripeFeeAcc, invoice) => stripeFeeAcc + invoice.stripeFee, 0);
+      this.statements[index].restaurantCollected = countingInvoices.reduce((restaurantCollectedAcc, invoice) => restaurantCollectedAcc + invoice.cashCollected + invoice.restaurantCcCollected, 0);
+      this.statements[index].qmenuCcCollected = countingInvoices.reduce((qmenuCcCollectedAcc, invoice) => qmenuCcCollectedAcc + invoice.qMenuCcCollected, 0);
+      this.statements[index].ccProcessingFee = countingInvoices.reduce((ccProcessingFeeAcc, invoice) => ccProcessingFeeAcc + invoice.ccProcessingFee, 0);
+      this.statements[index].stripeFee = countingInvoices.reduce((stripeFeeAcc, invoice) => stripeFeeAcc + invoice.stripeFee, 0);
 
-      this.statements[index].commissionScheme = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).map(invoice => invoice.orders.reduce((acc, order) => [order.rate, order.fixed], 0)).reduce((acc, orderScheme) => [orderScheme], 0);
-      this.statements[index].commission = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((commissionAcc, invoice) => commissionAcc + invoice.commission, 0);
+      this.statements[index].commissionScheme = countingInvoices.map(invoice => invoice.orders.reduce((acc, order) => [order.rate, order.fixed], 0)).reduce((acc, orderScheme) => [orderScheme], 0);
+      this.statements[index].commission = countingInvoices.reduce((commissionAcc, invoice) => commissionAcc + invoice.commission, 0);
+      this.statements[index].feesForQmenu = countingInvoices.reduce((acc, invoice) => acc + invoice.feesForQmenu, 0);
 
-      this.statements[index].surcharge = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((surchargeAcc, invoice) => surchargeAcc + invoice.surcharge, 0);
-      this.statements[index].adjustment = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((adjustmentAcc, invoice) => adjustmentAcc + invoice.adjustment, 0);
-      this.statements[index].thirdPartyDeliveryCharge = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((thirdPartyDeliveryChargeAcc, invoice) => thirdPartyDeliveryChargeAcc + invoice.thirdPartyDeliveryCharge, 0);
-      this.statements[index].thirdPartyDeliveryTip = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((thirdPartyDeliveryTipAcc, invoice) => thirdPartyDeliveryTipAcc + invoice.thirdPartyDeliveryTip, 0);
+      this.statements[index].surcharge = countingInvoices.reduce((surchargeAcc, invoice) => surchargeAcc + invoice.surcharge, 0);
+      this.statements[index].adjustment = countingInvoices.reduce((adjustmentAcc, invoice) => adjustmentAcc + invoice.adjustment, 0);
+      this.statements[index].thirdPartyDeliveryCharge = countingInvoices.reduce((thirdPartyDeliveryChargeAcc, invoice) => thirdPartyDeliveryChargeAcc + invoice.thirdPartyDeliveryCharge, 0);
+      this.statements[index].thirdPartyDeliveryTip = countingInvoices.reduce((thirdPartyDeliveryTipAcc, invoice) => thirdPartyDeliveryTipAcc + invoice.thirdPartyDeliveryTip, 0);
 
       this.statements[index].validOrdersCount = this.invoices.filter(i => i.fromDate.getFullYear() == statementAcc.year && !i.isCanceled).reduce((validOrdersCountAcc, invoice) => validOrdersCountAcc + invoice.orders.filter(o => !o.canceled).length, 0);
 
@@ -310,6 +318,25 @@ export class InvoicesAnualComponent implements OnInit {
 
   downloadPdf() {
     window.print();
+  }
+
+  filterBalanceInvoices(invoices) {
+    let dict = {}, rolled = new Set();
+    this.invoices.forEach(invoice => {
+      dict[invoice._id] = invoice;
+    });
+    this.invoices.forEach(invoice => {
+      if (invoice.isPaymentCompleted) {
+        let prev = dict[invoice.previousInvoiceId];
+        while (prev) {
+          if (!prev.isPaymentCompleted) {
+            rolled.add(prev._id);
+          }
+          prev = dict[prev.previousInvoiceId];
+        }
+      }
+    })
+    return invoices.filter(i => !rolled.has(i._id))
   }
 
   getCssClass(invoice: Invoice) {

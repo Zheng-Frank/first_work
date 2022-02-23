@@ -1,11 +1,15 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { DomSanitizer } from '@angular/platform-browser';
+import { AlertType } from 'src/app/classes/alert-type';
+import { GlobalService } from './../../../services/global.service';
+import { Component, OnInit, Input, ViewChild } from '@angular/core';
 import { PDFDocument } from 'pdf-lib';
-
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
-import { Restaurant, Order } from '@qmenu/ui';
+import { TimezoneHelper } from '@qmenu/ui';
 import { CurrencyPipe, DatePipe } from '@angular/common';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { form1099kEmailTemplate } from './html-email-templates';
 
 @Component({
   selector: 'app-restaurant-form1099-k',
@@ -15,22 +19,235 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 })
 
 export class Form1099KComponent implements OnInit {
-  orders: Order[] = [];
+  @Input() restaurant;
+  @ViewChild('sendEmailModal') sendEmailModal: ModalComponent;
   formLinks = [];
-
-  @Input() restaurant: Restaurant;
-
-  constructor(private _api: ApiService, private sanitizer: DomSanitizer) { }
+  showExplanation = false;
+  emails = [];
+  allEmails = [];
+  targets = [];
+  template;
+  sendLoading = false;
+  constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer, private _http: HttpClient) { }
 
   async ngOnInit() {
-    // const years = [2020, 2021];
+    this.populateFormLinks();
+    this.populateEmails();
+  }
 
-    // for (let year of years) {
-    //   await this.populateOrdersForYear(year);
-    //   await this.calculateRestaurantTransactionsForYear(year);
-    // }
-    await this.getFormFields();
+  prunedRestaurantRequriedData() {
+    const rtTIN = this.restaurant.tin || null;
+    const payeeName = this.restaurant.payeeName || null;
+    const email = (this.restaurant.channels || []).filter(ch => ch.type === 'Email' && (ch.notifications || []).includes('Invoice')).map(ch => ch.value); // RT *must* have an invoice email channel
+    const ga = this.restaurant.googleAddress;
+    const streetAddress = `${ga.street_number} ${ga.route}`;
+    const cityStateZip = `${ga.locality}, ${ga.administrative_area_level_1} ${ga.postal_code}`
+    return {
+      _id: this.restaurant._id,
+      name: this.restaurant.name,
+      email,
+      streetAddress,
+      cityStateZip,
+      form1099k: this.restaurant.form1099k,
+      payeeName,
+      rtTIN,
+    };
+  }
 
+  fillMessageTemplate(template, dataset, regex = /\{\{([A-Z_]+)}}/g) {
+    return template.replace(regex, (_, p1) => dataset[p1]);
+  }
+
+  sanitized(origin) {
+    return this.sanitizer.bypassSecurityTrustHtml(origin);
+  }
+
+  async uploadPDF(year) {
+    let mediaUrl;
+    let rt = this.prunedRestaurantRequriedData();
+    let yearForm1099kData = (rt.form1099k || []).find(form => form.year === year);
+    const blob = await this.generatePDF("restaurant", rt, yearForm1099kData);
+    const currentFile = new File([blob], `${yearForm1099kData.year}_Form_1099K_${rt._id}_forRT.pdf`);
+    const apiPath = `utils/qmenu-uploads-s3-signed-url?file=${encodeURIComponent(currentFile.name)}`;
+
+    // Get presigned url
+    const response = await this._api.get(environment.appApiUrl + apiPath).toPromise();
+    const presignedUrl = response['url'];
+    const fileLocation = presignedUrl.slice(0, presignedUrl.indexOf('?'));
+
+    await this._http.put(presignedUrl, currentFile).toPromise();
+    // if it's already PDF, then we can directly send it to fax service.
+    // otherwise we need to get a PDF version of the uploaded file (fileLocation) from our renderer service
+    // please upload an image or text or html file for the following test
+    if (fileLocation.toLowerCase().endsWith('pdf')) {
+      mediaUrl = fileLocation;
+    } else {
+      mediaUrl = `${environment.utilsApiUrl}render-url?url=${encodeURIComponent(fileLocation)}&format=pdf`;
+    }
+    return mediaUrl;
+  }
+
+  async sendPDFFormToRT() {
+    try {
+      if (this.targets.length === 0) {
+        return this._global.publishAlert(AlertType.Danger, 'Please select an valid email!');
+      }
+      // fill inputs
+      let { inputs, html } = this.template;
+      if (inputs.some(field => !field.value)) {
+        return this._global.publishAlert(AlertType.Danger, `Please fill in necessary field!`);
+      }
+      this.sendLoading = true;
+      if (inputs) {
+        inputs.forEach(field => {
+          if (html) {
+            html = field.apply(html, field.value);
+          }
+        });
+      }
+      let mediaUrl = await this.uploadPDF(this.template.year);
+
+      html = this.fillMessageTemplate(html, {
+        'AWS_FORM_1099K_LINK_HERE': mediaUrl
+      }, /%%(AWS_FORM_1099K_LINK_HERE)%%/g);
+
+      const jobs = this.targets.map(target => {
+        return {
+          'name': 'send-email',
+          'params': {
+            'to': target.value,
+            'subject': this.template.subject,
+            'html': html,
+            'trigger': {
+              'id': this._global.user._id,
+              'name': this._global.user.username,
+              'source': 'CSR',
+              'module': '1099K Form'
+            }
+          }
+        }
+      });
+
+      this._api.post(environment.qmenuApiUrl + 'events/add-jobs', jobs)
+        .subscribe(
+          () => {
+            this._global.publishAlert(AlertType.Success, 'Email message sent success');
+            // update send flag to know whether has sent email to rt
+            let new1099kRecords = JSON.parse(JSON.stringify(this.restaurant.form1099k));
+            new1099kRecords.forEach(record => {
+              if (record.year === this.template.year) {
+                record.sent = true;
+              }
+            });
+            this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+              {
+                old: { _id: this.restaurant._id },
+                new: { _id: this.restaurant._id, form1099k: new1099kRecords }
+              }
+            ]).toPromise();
+            this.restaurant.form1099k = new1099kRecords;
+            this.populateFormLinks();
+            this.sendLoading = false;
+            this.sendEmailModal.hide();
+          },
+          error => {
+            console.log(error);
+            this.sendLoading = false;
+            this._global.publishAlert(AlertType.Danger, 'Email message sent failed!');
+          }
+        );
+    } catch (error) {
+      this.sendLoading = false;
+      this.sendEmailModal.hide();
+      console.log("File uploading fail due to network error, please refresh the page and retry again!");
+    }
+  }
+
+  selectTarget(e, target) {
+    if (e.target.checked) {
+      this.targets.push(target);
+    } else {
+      this.targets = this.targets.filter(x => x !== target);
+    }
+  }
+
+  openSendEmailModal(year) {
+    let dataset = {
+      'LAST_YEAR': year,
+      'RT_NAME': this.restaurant.name
+    }
+    this.targets = [];
+    this.allEmails = (this.restaurant.channels || []).filter(ch => ch.type === 'Email');
+    // if invoice emails, set them to target by default
+    this.allEmails.forEach(email => {
+      if ((email.notifications || []).includes('Invoice')) {
+        this.targets.push(email);
+      }
+    });
+    this.template = {
+      subject: `1099-K Form for ${year}`,
+      html: this.fillMessageTemplate(form1099kEmailTemplate, dataset),
+      year: year,
+      inputs: [
+        {
+          label: "Restaurant Name",
+          value: this.restaurant.name,
+          apply: (tpl, value) => this.fillMessageTemplate(tpl, { "RT_NAME": value }, /%%(RT_NAME)%%/g)
+        }]
+    }
+    this.sendEmailModal.show();
+  }
+
+  populateFormLinks() {
+    this.formLinks = [];
+    const years = [2020, 2021, 2022];
+    for (let year of years) {
+      let yearForm1099kData = (this.restaurant.form1099k || []).find(form => form.year === year);
+      if (yearForm1099kData) {
+        this.formLinks.push([yearForm1099kData, year]);
+      } else {
+        this.formLinks.push([null, year]);
+      }
+    }
+    this.formLinks.sort((a, b) => b[1] - a[1]);
+  }
+
+  populateEmails() {
+    this.emails = (this.restaurant.channels || []).filter(ch => ch.type === 'Email' && (ch.notifications || []).includes('Invoice')).map(ch => ch.value); // RT *must* have an invoice email channel
+  }
+
+  allAttributesPresent() {
+    const emailExists = this.emails.length > 0;
+    const payeeNameExists = (this.restaurant.payeeName || "").length > 0;
+    const tinExists = (this.restaurant.tin || "").length > 0;
+    return emailExists && payeeNameExists && tinExists;
+  }
+
+  async onEdit(event, field: string) {
+    let newObj = { _id: this.restaurant._id };
+    if (field === 'rtTIN') {
+      this.restaurant.tin = newObj['tin'] = event.newValue;
+    }
+    if (field === 'payeeName') {
+      this.restaurant.payeeName = newObj['payeeName'] = event.newValue;
+    }
+    if (field === 'Email') {
+      /* we only allow user to submit email if one does not already exist. 
+      to avoid possible confusion, will not allow users to edit existing channels from this component*/
+      const newChannel = {
+        type: 'Email',
+        value: event.newValue,
+        notifications: ['Invoice']
+      }
+      this.restaurant.channels = newObj['channels'] = [...(this.restaurant.channels || []), newChannel];
+      this.populateEmails();
+    }
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+      {
+        old: { _id: this.restaurant._id },
+        new: newObj
+      }
+    ]).toPromise();
   }
 
   async populateOrdersForYear(year) {
@@ -38,114 +255,131 @@ export class Form1099KComponent implements OnInit {
       restaurant: {
         $oid: this.restaurant._id
       },
-      "paymentObj.method": "QMENU",
-      $expr: {
-        $eq: [{ $year: "$createdAt" }, year]
-      }
+      "paymentObj.method": "QMENU"
     } as any;
 
-    const orders = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
-      resource: "order",
-      query: query,
-      projection: {
-        // Fields that cannot be omitted:
-        // paymentObj
-        logs: 0,
-        timeToDeliver: 0,
-        sendNotificationOnReady: 0,
-        runtime: 0,
-        address: 0,
-        courierName: 0,
-        customerPreviousOrderStatus: 0,
-        restauranceNotie: 0,
-        customerNotice: 0,
-        customerObj: 0,
-        _id: 0,
-        delivery: 0
-      },
-      sort: {
-        createdAt: -1
-      }
-    }, 250);
+    let orders = [];
+    let fromDate = new Date(year + "-1-1 00:00:00.000");
+    // January to June, July to December
+    for (let i = 0; i < 2; i++) {
+      let toDate = new Date(fromDate);
+      toDate.setMonth(fromDate.getMonth() + 6, 1);
+      const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(fromDate, this.restaurant.googleAddress.timezone);
+      const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(toDate, this.restaurant.googleAddress.timezone);
+      query["$and"] = [{
+        createdAt: {
+          $gte: { $date: utcf }
+        } // less than and greater than
+      }, {
+        createdAt: {
+          $lt: { $date: utct }
+        }
+      }]
+      let tempOrders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'order',
+        query: query,
+        projection: {
+          "computed.total": 1
+        },
+        limit: 100000000000000000
+      }).toPromise();
+      orders = [...orders, ...tempOrders];
+      fromDate.setMonth(toDate.getMonth(), 1);
+    }
+    return orders;
+  }
+  /* mongIdToDate - takes in the MongoDB _id and returns the encoded timestamp information as a date object
+       (this functionality exists as a method of ObjectID, but this helper function acceps a string format) */
+  mongoIdToDate(id) {
+    const timestamp = id.substring(0, 8);
+    return new Date(parseInt(timestamp, 16) * 1000);
+  }
 
-    console.log(orders);
-    this.orders = orders.map(order => {
-      order.payment = order.paymentObj;
-      order.id = order._id;
-      return new Order(order);
+  round(num) {
+    return Math.round((num + Number.EPSILON) * 100) / 100;
+  }
+
+  tabulateMonthlyData(orders) {
+    const monthlyData = {
+      0: 0,
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+      5: 0,
+      6: 0,
+      7: 0,
+      8: 0,
+      9: 0,
+      10: 0,
+      11: 0,
+      total: 0
+    }
+
+    orders.forEach(order => {
+      let month = new Date(this.mongoIdToDate(order._id)).getMonth();
+      let roundedOrderTotal = this.round(order.computed.total);
+      monthlyData[month] += roundedOrderTotal;
+      monthlyData['total'] += roundedOrderTotal;
     });
+
+    for (let key of Object.keys(monthlyData)) {
+      // due to floating point math imprecision, we need to round every value in the monthlyData object
+      monthlyData[key] = this.round(monthlyData[key]);
+    }
+    return monthlyData;
   }
 
-  async calculateRestaurantTransactionsForYear(year) {
-    let restaurantTotals = {
-      orderCount: 0,
-      sumOfTransactions: 0
-    };
+  // calculates form1099k of rt, and repopulates formLinks
+  async calculateForm1099k(year) {
+    const orders = await this.populateOrdersForYear(year);
 
-    for (const order of this.orders) {
-      if (order.statuses[order.statuses.length - 1].status !== "CANCELED") {
-        const total = order.getTotal();
-        const roundedTotal = this.round(total);
-        restaurantTotals.sumOfTransactions += roundedTotal;
-        restaurantTotals.orderCount += 1;
-      }
-    }
-    restaurantTotals.sumOfTransactions = this.round(restaurantTotals.sumOfTransactions);
-
-
-    // Make sure the values on the line below are actually 200 and 20000, respectively.
-    if (restaurantTotals.orderCount >= 1 && restaurantTotals.sumOfTransactions >= 1) {
-      const restaurantAddress = this.restaurant.googleAddress;
-      const form1099KData = {
-        name: this.restaurant.name,
-        year: year,
-        required: true,
-        orderCount: restaurantTotals.orderCount,
-        sumOfTransactions: restaurantTotals.sumOfTransactions,
-        streetAddress: restaurantAddress.street_number + " " + restaurantAddress.route,
-        state: restaurantAddress.administrative_area_level_1,
-        cityStateAndZip: restaurantAddress.locality + ", " + restaurantAddress.administrative_area_level_1 + " " + restaurantAddress.postal_code,
-        monthlyTotals: {
-          0: 0,
-          1: 0,
-          2: 0,
-          3: 0,
-          4: 0,
-          5: 0,
-          6: 0,
-          7: 0,
-          8: 0,
-          9: 0,
-          10: 0,
-          11: 0,
-        }
-      };
-
-      for (const order of this.orders) {
-        if (order.statuses[order.statuses.length - 1].status !== "CANCELED") {
-          const total = this.round(order.getTotal());
-          form1099KData.monthlyTotals[new Date(order.createdAt).getMonth()] += total;
+    let rt1099KData = {
+      year: year,
+      required: false,
+      createdAt: new Date()
+    } as any;
+    if (year < 2022) {
+      if (orders.length >= 200) {
+        const monthlyDataAndTotal = this.tabulateMonthlyData(orders);
+        if (monthlyDataAndTotal.total >= 20000) {
+          rt1099KData.required = true
+          rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
         }
       }
-      this.generateForm1099kPDF(form1099KData);
-    } else {
-      this.formLinks.push([null, year]);
+    } else if (year === 2022) {
+      if (orders.length >= 1) {
+        const monthlyDataAndTotal = this.tabulateMonthlyData(orders);
+        if (monthlyDataAndTotal.total >= 600) {
+          rt1099KData.required = true
+          rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
+        }
+      }
     }
+
+    let existing1099kRecords = this.restaurant.form1099k || [];
+    let new1099kRecords = [...existing1099kRecords, rt1099KData];
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+      {
+        old: { _id: this.restaurant._id, form1099k: existing1099kRecords },
+        new: { _id: this.restaurant._id, form1099k: new1099kRecords }
+      }
+    ]).toPromise();
+    this._global.publishAlert(
+      AlertType.Success,
+      `Updated Form 1099k records success!`
+    );
+    this.restaurant.form1099k = new1099kRecords;
+    this.populateFormLinks();
   }
 
-  async generateForm1099kPDF(form1099KData) {
+  async generatePDF(target, rt, yearForm1099kData) {
     let formTemplateUrl;
-    switch (form1099KData.year) {
-      case 2021:
-        formTemplateUrl = "../../../../assets/form1099k/f1099k_2021.pdf";
-        break;
-      case 2020:
-        formTemplateUrl = "../../../../assets/form1099k/f1099k_2020.pdf";
-        break;
-      default:
-        console.log(`Form generation is not supported for ${form1099KData.year}`);
+    if (target === 'qmenu') {
+      formTemplateUrl = "../../../../assets/form1099k/form1099k_qmenu.pdf";
+    } else if (target === 'restaurant') {
+      formTemplateUrl = "../../../../assets/form1099k/form1099k.pdf";
     }
-
     const formBytes = await fetch(formTemplateUrl).then((res) => res.arrayBuffer());
     const pdfDoc = await PDFDocument.load(formBytes);
     const form = pdfDoc.getForm();
@@ -155,121 +389,96 @@ export class Form1099KComponent implements OnInit {
     107 Technology Pkwy NW, Ste. 211
     Peachtree Corners, GA 30092`;
 
-    // Filer's name
-    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_1[0]`).setText(qMenuAddress);
+    // Calendar Year Blank (fill in last two digits of tax year)
+    form.getTextField(`topmostSubform[0].CopyB[0].CopyBHeader[0].CalendarYear[0].f2_1[0]`).setText(yearForm1099kData.year.toString().slice(-2));
     // Filer checkbox
     form.getCheckBox(`topmostSubform[0].CopyB[0].LeftCol[0].FILERCheckbox_ReadOrder[0].c2_3[0]`).check();
 
-    // Transaction reporting checkbox
+    // Transaction reporting checkbox:
     form.getCheckBox(`topmostSubform[0].CopyB[0].LeftCol[0].c2_5[0]`).check();
-    // Payee's name
-    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_2[0]`).setText(form1099KData.name);
-    // Street address
-    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_3[0]`).setText(form1099KData.streetAddress);
-    // City, State, and ZIP code
-    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_4[0]`).setText(form1099KData.cityStateAndZip);
-    // PSE name and telephone
-    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_5[0]`).setText('');
-    // Account number
+    // Payee's name:
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_2[0]`).setText(qMenuAddress);
+    // Payee's Name:
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_3[0]`).setText(rt.payeeName);
+    // Street Address:
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_4[0]`).setText(rt.streetAddress);
+    // City, State, and ZIP Code:
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_5[0]`).setText(rt.cityStateZip);
+    // PSE's Name and Telephone Number:
     form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_6[0]`).setText('');
+    // Account Number (leave blank)
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_7[0]`).setText('');
+
     // Filer's TIN
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_7[0]`).setText('81-4208444');
-    // Payee's TIN
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_8[0]`).setText('');
-    // Box 1a Gross amount
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_9[0]`).setText(form1099KData.sumOfTransactions.toFixed(2))
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_8[0]`).setText('81-4208444');
+    // Payee's TIN    
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_9[0]`).setText(rt.rtTIN)
     // Box 1b card not present transactions
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box1b_ReadOrder[0].f2_10[0]`).setText(form1099KData.sumOfTransactions.toFixed(2))
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box1b_ReadOrder[0].f2_11[0]`).setText(yearForm1099kData.total.toFixed(2));
     // Box 2 - Merchant category code (Always 5812 for restaurants)
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_11[0]`).setText('5812');
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_12[0]`).setText('5812');
     // Box 3 - Number of payment transactions
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_12[0]`).setText(form1099KData.orderCount.toString())
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_13[0]`).setText(yearForm1099kData.transactions.toString());
     // Box 4 - Federal income tax withheld
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_13[0]`).setText('');
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_14[0]`).setText('');
     // Box 5a - January income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5a_ReadOrder[0].f2_14[0]`).setText(form1099KData.monthlyTotals[0].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5a_ReadOrder[0].f2_15[0]`).setText(yearForm1099kData[0].toFixed(2));
     // Box 5b - February income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_15[0]`).setText(form1099KData.monthlyTotals[1].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_16[0]`).setText(yearForm1099kData[1].toFixed(2));
     // Box 5c - March income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5c_ReadOrder[0].f2_16[0]`).setText(form1099KData.monthlyTotals[2].toFixed(2))
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5c_ReadOrder[0].f2_17[0]`).setText(yearForm1099kData[2].toFixed(2))
     // Box 5d - April income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_17[0]`).setText(form1099KData.monthlyTotals[3].toFixed(2))
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_18[0]`).setText(yearForm1099kData[3].toFixed(2))
     // Box 5e - May income
 
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5e_ReadOrder[0].f2_18[0]`).setText(form1099KData.monthlyTotals[4].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5e_ReadOrder[0].f2_19[0]`).setText(yearForm1099kData[4].toFixed(2));
     // Box 5f - June income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_19[0]`).setText(form1099KData.monthlyTotals[5].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_20[0]`).setText(yearForm1099kData[5].toFixed(2));
     // Box 5g - July income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5g_ReadOrder[0].f2_20[0]`).setText(form1099KData.monthlyTotals[6].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5g_ReadOrder[0].f2_21[0]`).setText(yearForm1099kData[6].toFixed(2));
     // Box 5h - August income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_21[0]`).setText(form1099KData.monthlyTotals[7].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_22[0]`).setText(yearForm1099kData[7].toFixed(2));
     // Box 5i - September income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5i_ReadOrder[0].f2_22[0]`).setText(form1099KData.monthlyTotals[8].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5i_ReadOrder[0].f2_23[0]`).setText(yearForm1099kData[8].toFixed(2));
     // Box 5j - October income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_23[0]`).setText(form1099KData.monthlyTotals[9].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_24[0]`).setText(yearForm1099kData[9].toFixed(2));
     // Box 5k - November income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5k_ReadOrder[0].f2_24[0]`).setText(form1099KData.monthlyTotals[10].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5k_ReadOrder[0].f2_25[0]`).setText(yearForm1099kData[10].toFixed(2));
     // Box 5l - December income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_25[0]`).setText(form1099KData.monthlyTotals[11].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_26[0]`).setText(yearForm1099kData[11].toFixed(2));
     // Box 6 - State
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box6_ReadOrder[0].f2_26[0]`).setText(form1099KData.state);
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box6_ReadOrder[0].f2_27[0]`).setText('');
     // Box 7 - State ID
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box7_ReadOrder[0].f2_28[0]`).setText('');
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box7_ReadOrder[0].f2_29[0]`).setText('');
 
     form.updateFieldAppearances();
+    let pdfBytes;
 
+    if (target === 'qmenu') {
+      pdfBytes = await pdfDoc.save();
+    } else if (target === 'restaurant') {
+      const newDoc = await PDFDocument.create();
+      const [copiedPage] = await newDoc.copyPages(pdfDoc, [3]);
+      newDoc.addPage(copiedPage);
+      pdfBytes = await newDoc.save();
+    }
 
-    const pdfBytes = await pdfDoc.save();
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    return blob;
+  }
 
+  // download PDF according to target
+  async renderPDFForm(target, year) {
+    let rt = this.prunedRestaurantRequriedData();
+    let yearForm1099kData = (rt.form1099k || []).find(form => form.year === year);
+    const blob = await this.generatePDF(target, rt, yearForm1099kData);
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
-    link.download = `f1099k_${form1099KData.year}_${form1099KData.name}.pdf`;
-    this.formLinks.push([link, form1099KData.year]);
+    // 2021_Form_1099K_58ba1a8d9b4e441100d8cdc1_forRT.pdf
+    // 2021_Form_1099K_58ba1a8d9b4e441100d8cdc1_forQM.pdf
+    link.download = `${yearForm1099kData.year}_Form_1099K_${rt._id}_for${target === 'qmenu' ? 'QM' : 'RT'}.pdf`
+    link.click();
   }
 
-  sanitizeLink(url: string) {
-    return this.sanitizer.bypassSecurityTrustUrl(url);
-  }
-
-  round(num) {
-    return Math.round((num + Number.EPSILON) * 100) / 100;
-  }
-
-  async getFormFields() {
-    let formTemplateUrl = "../../../../assets/form1099k/form1099k.pdf";
-    const formBytes = await fetch(formTemplateUrl).then((res) => res.arrayBuffer());
-    const pdfDoc = await PDFDocument.load(formBytes);
-    const form = pdfDoc.getForm();
-
-    const fields = await form.getFields();
-
-    let allFields = '';
-    fields.forEach(field => {
-
-      allFields += field.getName() + '\n';
-    })
-
-
-
-    console.log(allFields);
-  }
 }
 
-
-/* 
-restaurant: {
-name: '', 
-payeeName: 'John Doe',
-TIN: '123',
-1099k: [
-  {
-  year: 2020, 
-  
- }, 
-
-]
-}
-
-
-*/

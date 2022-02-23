@@ -2,6 +2,7 @@ import { environment } from '../../environments/environment';
 import { ApiService } from '../services/api.service';
 import {Address, Hour, TimezoneHelper} from '@qmenu/ui';
 import { HttpClient } from '@angular/common/http';
+import { saveAs } from "file-saver/FileSaver";
 
 const FULL_LOCALE_OPTS = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit' };
 
@@ -552,6 +553,24 @@ export class Helper {
           }
         });
       return result;
+    }
+
+    static downloadCSV(filename: string, fields: {paths: string[], label: string}[], data: object[]) {
+      let lines = [fields.map(({label}) => label).join(",")];
+      data.forEach(item => {
+        lines.push(fields.map(({paths}) => {
+          let keys = [...paths].reverse(), key = keys.pop(), value = item;
+          while (key && value) {
+            value = value[key]
+            key = keys.pop();
+          }
+          return (value === null || value === undefined) ? '' : value;
+        }).join(','))
+      })
+      if (!filename.endsWith('.csv')) {
+        filename += '.csv';
+      }
+      saveAs(new Blob([lines.join('\n')], { type: "application/octet-stream" }), filename);
     }
 
 }
