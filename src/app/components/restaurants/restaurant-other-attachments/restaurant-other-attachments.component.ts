@@ -59,7 +59,7 @@ export class RestaurantOtherAttachmentsComponent implements OnInit {
         type: 'image',
         url,
         description: 'Image attachment',
-        createdAt:new Date(),
+        createdAt: new Date(),
         createdBy: this.user.username,
         edit: false
       });
