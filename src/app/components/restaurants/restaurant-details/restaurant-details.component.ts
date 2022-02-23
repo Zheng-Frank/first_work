@@ -175,6 +175,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     doNotHideUselessMenuItems: 1,
     preventOrdersDuringNonOpenTime: 1,
     menuImages: 1,
+    otherAttachments: 1,
     preventOnlineTipIfCash: 1,
     tin: 1,  // 1099k tab needs it
     payeeName: 1, // 1099k tab needs it
