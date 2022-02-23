@@ -65,6 +65,7 @@ export class RestaurantsByCourierComponent implements OnInit {
       projection: {
         _id: 1,
         "googleAddress.formatted_address": 1,
+        'googleAddress.timezone': 1,
         name: 1,
         courier: 1,
         score: 1,
@@ -85,7 +86,7 @@ export class RestaurantsByCourierComponent implements OnInit {
       name: each.name,
       address: each.googleAddress.formatted_address,
       score: each.score,
-      timeZone: Helper.getTimeZone(each.googleAddress.formatted_address),
+      timeZone: each.googleAddress.timezone,
       courier: each.courier,
       deliveryClosedHours: each.deliveryClosedHours,
       deliverySettings: each.deliverySettings,

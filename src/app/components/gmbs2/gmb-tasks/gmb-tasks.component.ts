@@ -266,7 +266,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             verification: ((task.request.verificationHistory || [])[0] || { verifications: [] }).verifications.filter(verification => verification.state === 'PENDING' && verification.method === vo.verificationMethod)[0]
         }));
         return {
-            timezoneCell: Helper.getTimeZone(formatedAddr),
+            timezoneCell: Helper.getTimeZoneAbbr(timezoneR),
             localTimeString: new Date().toLocaleString('en-US', { timeZone: timezoneR, hour: '2-digit', minute: '2-digit' }), // toLocaleTimeString toooo slow, use to localeString instead!!!!
             statusClass: this.getStatusClass(task),
             address: (formatedAddr.split(', USA'))[0],
@@ -333,6 +333,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
             }
         }).toPromise();
         this.restaurantDict = restaurants.reduce((dict, rt) => (dict[rt._id] = rt, dict), {});
+        this.timeZoneList = Array.from(new Set(restaurants.map(rt => Helper.getTimeZoneAbbr(rt.googleAddress.timezone)))).sort();
     }
 
     private async populateQMDomains() {
@@ -378,7 +379,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
     assignee: string;
     filteredTasks = [];
     timeZone = "All";
-    timeZoneList = ["PDT", "MDT", "CDT", "EDT", "HST", "AKDT"].sort();
+    timeZoneList = [];
     owner = "All";
     ownerList = [];
 
@@ -407,7 +408,7 @@ export class GmbTasksComponent implements OnInit, OnDestroy {
 
         if (this.timeZone && this.timeZone !== "All") {
             this.filteredTasks = this.filteredTasks.filter(t =>
-                Helper.getTimeZone((this.restaurantDict[t.relatedMap.restaurantId].googleAddress || {}).formatted_address) === this.timeZone)
+                Helper.getTimeZoneAbbr((this.restaurantDict[t.relatedMap.restaurantId].googleAddress || {}).timezone) === this.timeZone)
         };
 
         if (this.owner && this.owner !== "All") {

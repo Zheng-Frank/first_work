@@ -141,6 +141,7 @@ export class RestaurantCourierService {
       projection: {
         _id: 1,
         "googleAddress.formatted_address": 1,
+        'googleAddress.timezone': 1,
         name: 1,
         courier: 1,
         score: 1,
@@ -157,7 +158,7 @@ export class RestaurantCourierService {
       address: each.googleAddress.formatted_address,
       disabled: each.disabled,
       score: each.score,
-      timeZone: Helper.getTimeZone(each.googleAddress.formatted_address),
+      timeZone: Helper.getTimeZoneAbbr(each.googleAddress.timezone),
       availability: (each.courier && each.courier.name === this.courier.name) ? "signed up" : null,
     }));
     return ret;

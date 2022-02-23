@@ -261,7 +261,16 @@ export class Helper {
             (address.apt ? ', ' + address.apt : '');
     }
 
-    static getTimeZone(formatted_address) {
+    static getTimeZoneAbbr(timezone) {
+      if (!timezone) {
+        return 'UNKNOWN';
+      }
+      let options = {timeZone: timezone, timeZoneName: 'short'}
+      let str = new Date().toLocaleString('en-US', options)
+      return str.split(',')[1].trim();
+    }
+
+  static getTimeZone(formatted_address) {
         const tzMap = {
             PDT: ['WA', 'OR', 'CA', 'NV', 'AZ'],
             MDT: ['MT', 'ID', 'WY', 'UT', 'CO', 'NM'],
