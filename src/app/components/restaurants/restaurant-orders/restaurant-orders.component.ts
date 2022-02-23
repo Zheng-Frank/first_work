@@ -1008,13 +1008,6 @@ export class RestaurantOrdersComponent implements OnInit {
     }[name] || name;
   }
 
-  normalizeNotifyErrorMessage(notify) {
-    const status = this.normalizeNotifyStatus(notify);
-    if (status.includes('fail')) {
-
-    }
-  }
-
   async testOrder() {
     const enabledMenus = (this.restaurant.menus || []).filter(menu => {
       menu.mcs = (menu.mcs || []).filter(mc => {
