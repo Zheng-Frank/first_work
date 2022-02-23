@@ -63,6 +63,16 @@ enum PricingOptions {
   BmEqQm = 'QM=BM Pricing'
 }
 
+enum SalesPerspectiveOptions {
+  BM = 'BM',
+  QM = 'QM'
+}
+
+enum SalesWorthinessOptions {
+  Worthy = 'Sales-worthy',
+  NotWorthy = 'NOT Sales-worthy'
+}
+
 @Component({
   selector: 'app-qm-bm-sst-dashboard',
   templateUrl: './qm-bm-sst-dashboard.component.html',
@@ -83,7 +93,9 @@ export class QmBmSstDashboardComponent implements OnInit {
     tier: '',
     gmbStatus: '',
     postmates: '',
-    pricing: ''
+    pricing: '',
+    perspective: '',
+    worthiness: ''
   }
 
   summary = {
@@ -108,6 +120,7 @@ export class QmBmSstDashboardComponent implements OnInit {
   showOtherContacts = false;
   showSummary = false;
   showPostmatesStatus = false;
+  showSalesWorthiness = false
 
   constructor(private _api: ApiService) { }
 
@@ -146,7 +159,9 @@ export class QmBmSstDashboardComponent implements OnInit {
       name: RTsNameOptions,
       gmb: GMBStatusOptions,
       postmates: PostmatesOptions,
-      pricing: PricingOptions
+      pricing: PricingOptions,
+      perspective: SalesPerspectiveOptions,
+      worthiness: SalesWorthinessOptions
     }[key])
   }
 
@@ -161,6 +176,7 @@ export class QmBmSstDashboardComponent implements OnInit {
             $project: {
               place_id: "$googleListing.place_id",
               address: "$googleAddress.formatted_address",
+              cid: '$googleListing.cid',
               disabled: 1,
               'gmbOwnerHistory.time': 1,
               'gmbOwnerHistory.gmbOwner': 1,
@@ -177,6 +193,17 @@ export class QmBmSstDashboardComponent implements OnInit {
           }
         ],
       }, 5000));
+
+      const gmbBiz = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        projection: {cid: 1, gmbOwner: 1},
+        limit: 1000000000
+      }).toPromise();
+      let gmbOwnerDict = {};
+      gmbBiz.forEach(({cid, gmbOwner}) => {
+        gmbOwnerDict[cid] = gmbOwner
+      })
+
       this.qmRTs.forEach(rt => {
         if (rt.place_id) {
           this.qmRTsPlaceDict[rt.place_id] = rt;
@@ -189,6 +216,7 @@ export class QmBmSstDashboardComponent implements OnInit {
         } else {
           rt.hasGmb = false
         }
+        rt.hasGMBWebsite = !!gmbOwnerDict[rt.cid]
         rt.postmatesAvailable = this.postmatesAvailable(rt)
       })
       // --- BeyondMenu restaurants
@@ -233,7 +261,12 @@ export class QmBmSstDashboardComponent implements OnInit {
         return data;
       });
       let bmOnly = this.bmRTs.filter(({bplace_id}) => !bplace_id || !this.qmRTsPlaceDict[bplace_id]);
-      this.unionRTs = [...this.qmRTs, ...bmOnly].map(x => ({...x, ...(this.bmRTsPlaceDict[x.place_id]) || {}}));
+      this.unionRTs = [...this.qmRTs, ...bmOnly].map(x => {
+        let item = {...x, ...(this.bmRTsPlaceDict[x.place_id]) || {}};
+        item.worthy = item._bid && (item.bdisabled || !item.bhasGmb);
+        item.bworthy = item._id && (item.disabled || (!item.hasGmb && !item.hasGMBWebsite))
+        return item;
+      });
       this.filter();
     } catch (error) {
       console.error(error);
@@ -304,8 +337,34 @@ export class QmBmSstDashboardComponent implements OnInit {
     return (Math.min(qt, bt) || Math.max(qt, bt))
   }
 
+  getWorthyStyle(rt) {
+    let field = {[SalesPerspectiveOptions.BM]: 'bworthy', [SalesPerspectiveOptions.QM]: 'worthy'}[this.filters.perspective]
+    return rt[field] ? 'fa-thumbs-up text-success' : 'fa-thumbs-down text-warning'
+  }
+
+  worthyFilter(list, perspective, worthiness) {
+    if (perspective) {
+      let field = {[SalesPerspectiveOptions.BM]: 'bworthy', [SalesPerspectiveOptions.QM]: 'worthy'}[perspective]
+      if (worthiness) {
+        if (worthiness === SalesWorthinessOptions.Worthy) {
+          list = list.filter(rt => rt[field])
+        } else {
+          list = list.filter(rt => !rt[field])
+        }
+      }
+    } else {
+      this.filters.worthiness = ''
+      this.showSalesWorthiness = false;
+    }
+    return list;
+  }
+
   filter() {
-    let { platform, status, tier, hasPlaceId, sameName, gmbStatus, pricing, postmates, keyword } = this.filters;
+    let {
+      platform, status, tier, hasPlaceId,
+      sameName, gmbStatus, pricing, postmates,
+      perspective, worthiness, keyword
+    } = this.filters;
     let list = this.unionRTs;
     switch (platform) {
       case PlatformOptions.Both:
@@ -430,6 +489,8 @@ export class QmBmSstDashboardComponent implements OnInit {
         break;
     }
 
+    list = this.worthyFilter(list, perspective, worthiness);
+
     if (keyword && keyword.trim()) {
       const kwMatch = str => str && str.toLowerCase().includes(keyword.toLowerCase())
       let digits = keyword.replace(/[^a-zA-Z0-9]/g, '');
@@ -477,7 +538,9 @@ export class QmBmSstDashboardComponent implements OnInit {
       tier: '',
       gmbStatus: '',
       postmates: '',
-      pricing: ''
+      pricing: '',
+      perspective: '',
+      worthiness: ''
     }
 
     this.filter();
