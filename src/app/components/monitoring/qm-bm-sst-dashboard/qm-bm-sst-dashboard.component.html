@@ -194,7 +194,7 @@
           </td>
           <td class="td-icon-top">
             <div class="d-flex flex-column align-items-end">
-              <i *ngIf="showSalesWorthiness" class="mb-3 fa {{getWorthyStyle(row)}}"></i>
+              <span *ngIf="showSalesWorthiness" [innerHTML]="getWorthy(row)"></span>
               <ng-container *ngIf="showPostmatesStatus">
                 <img class="pm-green" *ngIf="row.courier === 'Postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
                 <img class="pm-grey" *ngIf="row.courier != 'Postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />

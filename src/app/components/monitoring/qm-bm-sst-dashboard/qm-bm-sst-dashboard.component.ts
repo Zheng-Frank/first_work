@@ -64,8 +64,8 @@ enum PricingOptions {
 }
 
 enum SalesPerspectiveOptions {
-  BM = 'BM',
-  QM = 'QM'
+  BM = 'BM Sales',
+  QM = 'QM Sales'
 }
 
 enum SalesWorthinessOptions {
@@ -337,19 +337,30 @@ export class QmBmSstDashboardComponent implements OnInit {
     return (Math.min(qt, bt) || Math.max(qt, bt))
   }
 
-  getWorthyStyle(rt) {
-    let field = {[SalesPerspectiveOptions.BM]: 'bworthy', [SalesPerspectiveOptions.QM]: 'worthy'}[this.filters.perspective]
-    return rt[field] ? 'fa-thumbs-up text-success' : 'fa-thumbs-down text-warning'
+  getWorthy(rt) {
+    switch (this.filters.perspective) {
+      case SalesPerspectiveOptions.QM:
+        if (rt._id) {
+          return 'N/A'
+        }
+        return rt.worthy ? `<i class="mb-3 fa fa-thumbs-up text-success"></i>` : `<i class="mb-3 fa fa-thumbs-down text-warning"></i>`
+      case SalesPerspectiveOptions.BM:
+        if (rt._bid) {
+          return 'N/A'
+        }
+        return rt.bworthy ? `<i class="mb-3 fa fa-thumbs-up text-success"></i>` : `<i class="mb-3 fa fa-thumbs-down text-warning"></i>`
+    }
   }
 
   worthyFilter(list, perspective, worthiness) {
     if (perspective) {
       let field = {[SalesPerspectiveOptions.BM]: 'bworthy', [SalesPerspectiveOptions.QM]: 'worthy'}[perspective]
+      let id = {[SalesPerspectiveOptions.BM]: '_bid', [SalesPerspectiveOptions.QM]: '_id'}[perspective]
       if (worthiness) {
         if (worthiness === SalesWorthinessOptions.Worthy) {
-          list = list.filter(rt => rt[field])
+          list = list.filter(rt => !rt[id] && rt[field])
         } else {
-          list = list.filter(rt => !rt[field])
+          list = list.filter(rt => !rt[id] && !rt[field])
         }
       }
     } else {
@@ -371,10 +382,10 @@ export class QmBmSstDashboardComponent implements OnInit {
         list = list.filter(({_id, _bid}) => _id &&  _bid);
         break;
       case PlatformOptions.BmOnly:
-        list = this.bmRTs.filter(({bplace_id}) => !this.qmRTsPlaceDict[bplace_id])
+        list = list.filter(({_id, _bid, bplace_id}) => !_id && _bid && !this.qmRTsPlaceDict[bplace_id])
         break;
       case PlatformOptions.QmOnly:
-        list = this.qmRTs.filter(({place_id}) => !this.bmRTsPlaceDict[place_id])
+        list = list.filter(({_id, _bid, place_id}) => _id && !_bid && !this.bmRTsPlaceDict[place_id])
         break;
     }
 
