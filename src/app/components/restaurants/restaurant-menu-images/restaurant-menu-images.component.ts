@@ -50,8 +50,8 @@ export class RestaurantMenuImagesComponent implements OnInit {
   async upload(e) {
     let { files } = e.target;
     const data: any = await Helper.uploadImage(files, this._api, this._http);
-    let createdAt = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(), this.restaurant.googleAddress.timezone);
     if (data && data.Location) {
+      let createdAt = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(), this.restaurant.googleAddress.timezone);
       const url = decodeURIComponent(data.Location);
       this.images.push({
         url,
