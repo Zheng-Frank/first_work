@@ -241,7 +241,7 @@
         <ng-container>
           <i class="fas fa-{{normalizeNotifyTarget(notify.params.target)}}"></i>
           {{notify.createdAt | adjustedDate: "HH:mm:ss, yyyy-MM-dd"}}
-          <ng-container>{{normalizeNotifyStatus(notify)}}</ng-container>
+          <span class="{{normalizeNotifyFontColor(notify)}}">{{normalizeNotifyStatus(notify)}}</span>
           <strong>{{normalizeNotifyDesc(notify)}}</strong>
           <ng-container>{{normalizeNotifyProvider(notify)}}</ng-container>
           <ng-container>{{normalizeNotifyTail(notify)}}</ng-container>

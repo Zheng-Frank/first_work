@@ -896,6 +896,7 @@ export class RestaurantOrdersComponent implements OnInit {
       limit: 100
     }).toPromise();
     this.notificationHistory.sort((x, y) => new Date(y.createdAt).valueOf() - new Date(x.createdAt).valueOf());
+
     this.notificationHistoryModal.show();
   }
 
@@ -909,6 +910,14 @@ export class RestaurantOrdersComponent implements OnInit {
       return "user";
     }
     return "building";
+  }
+
+  normalizeNotifyFontColor(notify) {
+    const status = this.normalizeNotifyStatus(notify);
+    if (status.includes('fail')) {
+      return 'text-danger'
+    }
+    return ''
   }
 
   normalizeNotifyStatus(notify) {
@@ -958,6 +967,12 @@ export class RestaurantOrdersComponent implements OnInit {
     if (to) {
       to = "to " + to;
     }
+
+    const status = this.normalizeNotifyStatus(notify);
+    if (status.includes('fail')) {
+      name += "-failure";
+    }
+
     const formatLine = prefix => `${prefix} ${to}`;
     return {
       "new-order": formatLine("Call made"),
@@ -970,8 +985,26 @@ export class RestaurantOrdersComponent implements OnInit {
       "send-order-start-cooking-voice": formatLine("Call made"),
       "send-order-fei-e": "Printout sent (fei-e)",
       "send-order-longhorn": "Printout sent (longhorn)",
-      "send-phoenix": "Printout sent (phoenix)"
+      "send-phoenix": "Printout sent (phoenix)",
+      "new-order-failure": formatLine("Call failed"),
+      "send-order-email-failure": formatLine("Email delivery failed"),
+      "send-order-sms-failure": formatLine("SMS delivery failed"),
+      "send-order-fax-failure": formatLine("Fax delivery failed"),
+      "send-order-voice-failure": formatLine("Call failed"),
+      "send-order-reminder-voice-failure": formatLine("Call failed"),
+      "send-order-cancelation-voice-failure": formatLine("Call failed"),
+      "send-order-start-cooking-voice-failure": formatLine("Call failed"),
+      "send-order-fei-e-failure": "Printout failed (fei-e)",
+      "send-order-longhorn-failure": "Printout failed (longhorn)",
+      "send-phoenix-failure": "Printout failed (phoenix)",
     }[name] || name;
+  }
+
+  normalizeNotifyErrorMessage(notify) {
+    const status = this.normalizeNotifyStatus(notify);
+    if (status.includes('fail')) {
+
+    }
   }
 
   async testOrder() {
