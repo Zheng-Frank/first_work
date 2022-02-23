@@ -88,22 +88,7 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
       r.createdAt = new Date(r.createdAt);
     });
     this.restaurants.sort((a, b) => b.createdAt.valueOf() - a.createdAt.valueOf());
-    // this.gmbBizs = await this._api.get(environment.qmenuApiUrl + 'generic', {
-    //   resource: 'gmbBiz',
-    //   query: {
-    //     "qmenuId": {
-    //       $exists: true
-    //     },
-    //     "gmbOwner":{
-    //       $exists: true
-    //     }
-    //   },
-    //   projection: {
-    //     "qmenuId": 1,
-    //     "gmbOwner": 1
-    //   },
-    //   limit: 10000000000000000
-    // }).toPromise();
+   
     this.jobs = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "job",
       aggregate: [
@@ -150,7 +135,6 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
         let sentTime = rt.agreementSentAt.valueOf() - rt.createdAt.valueOf();
         rt.sentDays = Number((sentTime / (24 * 3600 * 1000)).toFixed(0));
       }
-      // rt.gmbOwner = this.gmbBizs.filter(gmbBiz => gmbBiz.qmenuId = rt._id).map(gmbBiz => gmbBiz.gmbOwner).toString() || 'None';
       rt.gmbOwner = ((rt.gmbOwnerHistory || [])[0] || {}).gmbOwner || 'unknown';
       // add gmbOwner to gmbOwners filter
       if (this.gmbOwners.indexOf(rt.gmbOwner) === -1) {

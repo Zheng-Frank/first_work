@@ -12,25 +12,21 @@
         <!-- end with date filter -->
         <!-- start with agent filter -->
         <label class="text-center ml-3">Salesperson</label>
-        <select [(ngModel)]="agent" class="form-control ml-1">
+        <select [(ngModel)]="agent" class="form-control ml-1" (change)="filterRTs()">
           <option *ngFor="let a of agents" [value]="a">{{a}}</option>
         </select>
         <!-- end with agent filter -->
         <!-- start with agreement sent condition filter -->
         <label class="text-center ml-3">Agreement Sent</label>
-        <select [(ngModel)]="agreementView" class="form-control ml-1">
+        <select [(ngModel)]="agreementView" class="form-control ml-1" (change)="filterRTs()">
           <option *ngFor="let view of agreementViews" [value]="view">{{view}}</option>
         </select>
         <!-- end with agreement sent condition filter -->
         <!-- start with Gmb owner filter -->
         <label class="text-center ml-3">Gmb Owner by</label>
-        <select [(ngModel)]="gmbOwner" class="form-control ml-1">
+        <select [(ngModel)]="gmbOwner" class="form-control ml-1" (change)="filterRTs()">
           <option *ngFor="let owner of gmbOwners" [value]="owner">{{owner}}</option>
         </select>
-        <!-- end with Gmb owner filter -->
-        <!-- start with filter button -->
-        <button class="btn btn-link ml-3" (click)="filterRTs()">Filter</button>
-        <!-- end with filter button -->
       </div>
       <div class="col-2 text-right form-group">
         <button class="btn btn-primary" (click)="loadDatas()"><i class="fas fa-sync"></i> Reload</button>
