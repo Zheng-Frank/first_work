@@ -89,9 +89,9 @@
         <td>
           <div class="my-text-b text-info" role="button" (click)="showDetails(row.lead)">{{row.lead.name}}</div>
           <div>
+            {{row.lead?.address}}, {{row.lead?.city}}, {{row.lead?.state}} {{row.lead?.zipcode}} 
             <a *ngIf="row.lead.googleListing?.place_id" class="my-text-small"
-              href="https://www.google.com/search?q={{getQ(row.lead)}}" target="_blank">{{row.lead.address}},
-              {{row.lead.city}}, {{row.lead.state}} {{row.lead.zipcode}} <i class="fas fa-external-link-alt"></i></a>
+              href="https://www.google.com/search?q={{getQ(row.lead)}}" target="_blank"><i class="fas fa-external-link-alt"></i></a>
           </div>
           <div (click)="copyToClipboard(row.lead.phone)" style="cursor:pointer;">
             {{row.lead.phone | phone}} <i class="fas fa-database"></i> <span class="text-success" *ngIf="row.lead.phone === copiedText">✓ copied</span>
