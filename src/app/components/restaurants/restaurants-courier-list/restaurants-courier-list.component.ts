@@ -17,6 +17,7 @@ export class RestaurantsCourierListComponent implements OnInit {
   @Input() user: User;
   @Input() restaurantList: RestaurantWithCourier[] = [];
   @Input() restaurantCourierService: RestaurantCourierService;
+  @Input() timeZoneList = [];
   @Output() actionDone = new EventEmitter();
 
   @ViewChild("callModal") callModal: ModalComponent;
@@ -32,7 +33,6 @@ export class RestaurantsCourierListComponent implements OnInit {
   availabilityList = ["All", "signed up", "available", "not available", "unknown"];
 
   selectedTimeZone = "All";
-  timeZoneList = ["PDT", "MDT", "CDT", "EDT", "HST", "AKDT"].sort();
 
   selectedCaller = "All";
   callerList = [];

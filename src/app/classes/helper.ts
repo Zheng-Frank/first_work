@@ -261,12 +261,20 @@ export class Helper {
             (address.apt ? ', ' + address.apt : '');
     }
 
-    static getTimeZoneAbbr(timezone) {
+    static getTimeZoneAbbr({timezone, country, formatted_address}) {
       if (!timezone) {
         return 'UNKNOWN';
       }
       let options = {timeZone: timezone, timeZoneName: 'short'}
-      let str = new Date().toLocaleString('en-US', options)
+      if (!country) {
+        let nation = formatted_address.split(',').pop().trim();
+        if (['US', 'USA'].includes(nation)) {
+          country = 'US'
+        } else if (['Canada', 'CA'].includes(nation)) {
+          country = 'CA'
+        }
+      }
+      let str = new Date().toLocaleString('en-' + (country || 'US'), options)
       return str.split(',')[1].trim();
     }
 
