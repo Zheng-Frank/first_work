@@ -3,6 +3,17 @@
 <div class="card-group">
     <div class="card">
         <div class="card-body">
+            <h5 class="card-title">Check GMB Website Owner</h5>
+            <p class="card-text">
+                Find all RTs and gmbBiz data, compare gmbWebsite and qmenuWebsite, find RTs that:
+                1. gmbWebsite === qmenuWebsite and gmbOwner !== qmenu;
+                2. gmbWebsite !== qmenuWebsite and gmbOwner === qmenu.
+            </p>
+            <button class="btn btn-primary" (click)="checkGmbWebsiteOwner()" [disabled]="false">Execute</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
             <h5 class="card-title">Form 1099K Calculator</h5>
             <p class="card-text">
                 Calculate order and dollar amount totals for all RTs for the previous year. Data will be stored on the

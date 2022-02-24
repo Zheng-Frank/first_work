@@ -518,15 +518,13 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           { place_id: (this.restaurant.googleListing || {}).place_id || "junk place id" },
         ]
       },
-      projection: {cid: 1, gmbWebsite: 1},
+      projection: {cid: 1, gmbOwner: 1},
       limit: 10
     }).toPromise());
 
     let main = bizs.find(x => this.restaurant.googleListing && x.cid === this.restaurant.googleListing.cid) || bizs[0];
     if (main) {
-      let gmbWebsite = (main.gmbWebsite || '').replace(/\/+$/, '')
-      let qmWebsite = (this.restaurant.web && this.restaurant.web.qmenuWebsite || '').replace(/\/+$/, '');
-      this.hasGMBWebsite = gmbWebsite && gmbWebsite === qmWebsite;
+      this.hasGMBWebsite = main.gmbOwner === 'qmenu'
       const accounts = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbAccount',
         aggregate: [
