@@ -194,7 +194,7 @@ const routes: Routes = [
   { path: 'vip-rts', component: MonitoringVipRestaurantsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR_MANAGER'] } },
   { path: 'fax-health', component: FaxHealthDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR_MANAGER', 'CSR'] } },
   { path: 'dine-in-orders', component: MonitoringDineInOrdersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
-  { path: 'qm-bm-sst', component: QmBmSstDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+  { path: 'qm-bm-sst', component: QmBmSstDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'SST_USER'] } },
   { path: '1099k-dashboard', component: Dashboard1099KComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'rts-without-agreement', component: MonitoringRtsWithoutAgreementComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'phone-ordering', component: PhoneOrderingDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
