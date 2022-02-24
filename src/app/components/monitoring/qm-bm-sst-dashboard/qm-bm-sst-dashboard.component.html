@@ -65,6 +65,18 @@
         </select>
       </div>
       <div class="col-auto mb-3">
+        <select class="form-control custom-select" [(ngModel)]="filters.perspective" (change)="filter()">
+          <option [ngValue]="''">Sales Perspective?</option>
+          <option *ngFor="let opt of dropdowns('perspective')" [ngValue]="opt">{{opt}}</option>
+        </select>
+      </div>
+      <div class="col-auto mb-3" *ngIf="!!filters.perspective">
+        <select class="form-control custom-select" [(ngModel)]="filters.worthiness" (change)="filter()">
+          <option [ngValue]="''">Sales-worthiness?</option>
+          <option *ngFor="let opt of dropdowns('worthiness')" [ngValue]="opt">{{opt}}</option>
+        </select>
+      </div>
+      <div class="col-auto mb-3">
         <button class="btn btn-link text-info" (click)="showPricing = !showPricing">{{showPricing ? 'Hide' : 'Show'}} Pricing</button>
       </div>
       <div class="col-auto mb-3">
@@ -75,6 +87,9 @@
       </div>
       <div class="col-auto mb-3">
         <button class="btn btn-link text-info" (click)="showPostmatesStatus = !showPostmatesStatus">{{showPostmatesStatus ? 'Hide' : 'Show'}} Postmates status</button>
+      </div>
+      <div class="col-auto mb-3" *ngIf="!!filters.perspective">
+        <button class="btn btn-link text-info" (click)="showSalesWorthiness = !showSalesWorthiness">{{showSalesWorthiness ? 'Hide' : 'Show'}} Sales-worthiness</button>
       </div>
       <div class="col-auto mb-3">
         <button class="btn btn-link" (click)="clearFilter()">Reset Filters</button>
@@ -178,10 +193,13 @@
             <div *ngIf="showOtherContacts">Emails: {{groupChannels(row, 'Email')}} / Fax: {{groupChannels(row, 'Fax')}}</div>
           </td>
           <td class="td-icon-top">
-            <ng-container *ngIf="showPostmatesStatus">
-              <img class="pm-green" *ngIf="row.courier === 'Postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
-              <img class="pm-grey" *ngIf="row.courier != 'Postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
-            </ng-container>
+            <div class="d-flex flex-column align-items-end">
+              <span *ngIf="showSalesWorthiness" [innerHTML]="getWorthy(row)"></span>
+              <ng-container *ngIf="showPostmatesStatus">
+                <img class="pm-green" *ngIf="row.courier === 'Postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
+                <img class="pm-grey" *ngIf="row.courier != 'Postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
+              </ng-container>
+            </div>
           </td>
         </tr>
         <tr>

@@ -1,0 +1,27 @@
+<div class="row ml-1">
+  <div class="file-item mb-3" *ngFor="let attachment of files; let i = index;">
+    <div class="btn-close" (click)="removeAttachment(i)">
+      <i class="fa fa-times"></i>
+    </div>
+    <img [src]="attachment.url" />
+    <div class="pb-1">
+      <div class="edit-box" *ngIf="!attachment.edit">
+        <small class="text-center text-unwrap"><i>{{attachment.createdAt | adjustedDate: 'MMM d h:mm a':restaurant.googleAddress?.timezone}} - {{attachment.createdBy}}</i></small>
+        <div class="text-start">{{getShortSDecription(attachment.description)}}<a class="pl-2 pt-1" (click)="attachment.edit = true">Edit</a></div>
+      </div>
+      <div class="save-box mt-1" *ngIf="attachment.edit">
+        <textarea class="form-control" maxlength="200" [(ngModel)]="attachment.description"></textarea>
+        <div class="d-flex justify-content-end mt-1">
+          <button class="btn btn-secondary mr-1" (click)="attachment.edit = false">Cancel</button>
+          <button class="btn btn-primary" (click)="saveAttachmentDesc(attachment)">Ok</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="add-file-btn">
+    <div class="add-icon-box">
+      <i class="fas fa-plus" (click)="fileInput.click()"></i>
+    </div>
+    <input #fileInput type="file" accept="image/*" (change)="upload($event)" style="display:none;" />
+  </div>
+</div>

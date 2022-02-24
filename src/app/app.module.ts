@@ -272,6 +272,7 @@ import { QmBmSstDashboardComponent } from './components/monitoring/qm-bm-sst-das
 import { Dashboard1099KComponent } from './components/system/1099k-dashboard/1099k-dashboard.component';
 import { MonitoringRtsWithoutAgreementComponent } from './components/monitoring/monitoring-rts-without-agreement/monitoring-rts-without-agreement.component';
 import { PhoneOrderingDashboardComponent } from './components/phone-ordering/phone-ordering-dashboard/phone-ordering-dashboard.component';
+import { RestaurantOtherAttachmentsComponent } from './components/restaurants/restaurant-other-attachments/restaurant-other-attachments.component';
 
 
 @NgModule({
@@ -514,7 +515,8 @@ import { PhoneOrderingDashboardComponent } from './components/phone-ordering/pho
     QmBmSstDashboardComponent,
     Dashboard1099KComponent,
     MonitoringRtsWithoutAgreementComponent,
-    PhoneOrderingDashboardComponent
+    PhoneOrderingDashboardComponent,
+    RestaurantOtherAttachmentsComponent
   ],
   imports: [
     BrowserModule,
