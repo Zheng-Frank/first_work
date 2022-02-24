@@ -25,7 +25,8 @@ export class RestaurantOthersComponent implements OnInit {
       "Stats": ['ADMIN', 'CSR', 'CSR_MANAGER'],
       "Poster": ['ADMIN', 'CSR', 'CSR_MANAGER', 'MARKETER'],
       'Sent Msgs': ['ADMIN'],
-      'Menu Images': ['ADMIN', 'CSR']
+      'Menu Images': ['ADMIN', 'CSR'],
+      'Other Attachments': ['ADMIN', 'CSR']
     }
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0 || this._global.user.username === r));
   }
