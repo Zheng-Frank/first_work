@@ -8,7 +8,7 @@ export class RestaurantWithCourier {
   address: string = null;
   score: number = null;
   timeZone: string = null;
-
+  country: string = null;
   disabled = false;
 
   courier: string = null;

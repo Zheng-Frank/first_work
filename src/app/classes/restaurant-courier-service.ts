@@ -1,6 +1,5 @@
 import { ApiService } from "../services/api.service";
 import { environment } from "../../environments/environment";
-import { Helper } from "./helper";
 import { Courier } from "./courier";
 import { RestaurantWithCourier } from './restaurant-courier'
 
@@ -141,6 +140,8 @@ export class RestaurantCourierService {
       projection: {
         _id: 1,
         "googleAddress.formatted_address": 1,
+        'googleAddress.timezone': 1,
+        'googleAddress.country': 1,
         name: 1,
         courier: 1,
         score: 1,
@@ -157,7 +158,8 @@ export class RestaurantCourierService {
       address: each.googleAddress.formatted_address,
       disabled: each.disabled,
       score: each.score,
-      timeZone: Helper.getTimeZone(each.googleAddress.formatted_address),
+      timeZone: each.googleAddress.timezone,
+      country: each.googleAddress.country,
       availability: (each.courier && each.courier.name === this.courier.name) ? "signed up" : null,
     }));
     return ret;

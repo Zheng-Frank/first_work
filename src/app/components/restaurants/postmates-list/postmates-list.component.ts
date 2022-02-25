@@ -3,6 +3,7 @@ import { ApiService } from "../../../services/api.service";
 import { User } from '../../../classes/user';
 import { RestaurantWithCourier } from "../../../classes/restaurant-courier";
 import { RestaurantCourierService } from "../../../classes/restaurant-courier-service";
+import {Helper} from '../../../classes/helper';
 
 @Component({
   selector: 'app-postmates-list',
@@ -16,6 +17,7 @@ export class PostmatesListComponent implements OnInit {
   postmatesList: RestaurantWithCourier[];
   user: User; // Not really used yet.
   restaurantCourierService: RestaurantCourierService;
+  timeZoneList = [];
 
   constructor(private _api: ApiService) { }
 
@@ -38,6 +40,7 @@ export class PostmatesListComponent implements OnInit {
 
   async refresh() {
     this.postmatesList = await this.restaurantCourierService.reloadRestaurantData();
+    this.timeZoneList = Array.from(new Set(this.postmatesList.map(({timeZone, address, country}) => Helper.getTimeZoneAbbr({timezone: timeZone, country, formatted_address: address}))))
     return;
   }
 

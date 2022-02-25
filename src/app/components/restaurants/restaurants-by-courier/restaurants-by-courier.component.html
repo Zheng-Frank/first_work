@@ -4,16 +4,35 @@
 <div *ngIf="!restaurants || restaurants.length === 0">
   Restaurants with Delivery list is empty.
 </div>
-<div class="float-left form-inline mt-2 mb-2 ml-2">
-  <label class="mr-2"> Courier:</label>
-  <select class="mr-5 form-control" [(ngModel)]="courier" (change)="filter()">
-    <option value="All">All</option>
-    <option value="Postmates">Postmates</option> 
-    <option value="Self delivery">Self delivery</option> 
-    <ng-container *ngFor="let courier of couriers">
-      <option *ngIf="courier.name && courier.name != 'Postmates'" [value]='courier.name'>{{courier.name}}</option>
-    </ng-container>
-  </select>
+<div class="form-group row mt-3">
+  <div class="col-auto form-inline">
+    <label class="mr-2">Courier:</label>
+    <select class="form-control custom-select" [(ngModel)]="courier" (change)="filter()">
+      <option value="All">All</option>
+      <option value="Postmates">Postmates</option>
+      <option value="Self delivery">Self delivery</option>
+      <ng-container *ngFor="let courier of couriers">
+        <option *ngIf="courier.name && courier.name != 'Postmates'" [value]='courier.name'>{{courier.name}}</option>
+      </ng-container>
+    </select>
+  </div>
+  <div class="col-auto form-inline">
+    <label class="mr-2">Delivery Service:</label>
+    <select class="form-control custom-select" [(ngModel)]="deliveryStatus" (change)="filter()">
+      <option value="">All</option>
+      <option value="ON">ON</option>
+      <option value="OFF">OFF</option>
+    </select>
+  </div>
+  <div class="col-auto form-inline">
+    <label class="mr-2">Time Zone:</label>
+    <select class="form-control custom-select" [(ngModel)]="timezone" (change)="filter()">
+      <option value="All">All</option>
+      <ng-container *ngFor="let tz of timezones">
+        <option [value]='tz'>{{tz}}</option>
+      </ng-container>
+    </select>
+  </div>
 </div>
 
 <q-table [rows]="filteredRestaurants" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true">
@@ -25,10 +44,12 @@
       {{restaurant.address}}
     </td>
     <td *ngIf="restaurant.courier"> {{restaurant.courier?.name}} </td>
-    <td *ngIf="restaurant.courier"> {{isDeliveryServiceEnabled(restaurant.serviceSettings)? 'ON' : 'OFF'}} </td>
-    <td *ngIf="!restaurant.courier && restaurant.deliverySettings && restaurant.deliverySettings.length > 0"> Self delivery </td>
-    <td *ngIf="!restaurant.courier && !(restaurant.deliverySettings && restaurant.deliverySettings.length > 0)"> None </td>
+    <td *ngIf="!restaurant.courier">
+      <ng-container *ngIf="restaurant.deliverySettings && restaurant.deliverySettings.length > 0">Self delivery</ng-container>
+      <ng-container *ngIf="!(restaurant.deliverySettings && restaurant.deliverySettings.length > 0)">None</ng-container>
+    </td>
+    <td> {{deliveryStatusLabel(restaurant.serviceSettings)}} </td>
     <td>{{restaurant.timeZone}}</td>
-    <td>{{restaurant.score | number : '1.0-1' || 0}}</td>
+    <td>{{(restaurant.score || 0) | number : '1.0-1'}}</td>
   </tr>
 </q-table>
