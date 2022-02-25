@@ -98,7 +98,7 @@ import { PhoneOrderingDashboardComponent } from './components/phone-ordering/pho
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'DEVELOPER'] } },
   { path: 'ui-preview', component: UIPreviewComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'DEVELOPER'] } },
-  { path: 'home', component: HomeComponent, canActivate: [RoleGuard], data: { roles: ['MENU_EDITOR', 'ADMIN', 'MARKETER', 'MARKETER_MANAGER', 'ACCOUNTANT', 'GMB', 'CSR', 'CSR_MANAGER'] } },
+  { path: 'home', component: HomeComponent },
   { path: 'logs', component: LogsDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETER_MANAGER', 'MARKETER', 'GMB', 'CSR', 'CSR_MANAGER', 'ACCOUNTANT', 'MENU_EDITOR', 'DRIVER', 'RATE_EDITOR'] } },
   { path: 'invoices', component: InvoiceDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER'] } },
   { path: 'invoices/cycles', component: CyclesComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT'] } },

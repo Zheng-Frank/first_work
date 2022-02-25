@@ -35,12 +35,7 @@ export class LoginComponent implements OnInit {
       result => {
         this.apiRequesting = false;
         this._global.storeSetUsernameAndToken(this.username, result.token);
-        let roles = this._global.user.roles;
-        if (roles.length === 1 && roles.includes('SST_USER')) {
-          this._router.navigate(['qm-bm-sst']);
-        } else {
-          this._router.navigate(['home']);
-        }
+        this._router.navigate(['home']);
       },
       error => { this.apiRequesting = false; this.apiError = error.json(); console.log(error); });
   }
