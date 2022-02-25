@@ -9,6 +9,7 @@ import { PDFDocument } from "pdf-lib";
 import { TimezoneHelper, Hour } from "@qmenu/ui";
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { form1099kEmailTemplate } from '../../restaurants/restaurant-form1099-k/html-email-templates';
+declare var $: any;
 enum openRTOptionTypes {
   All = 'Open now?',
   Open = 'Open',
@@ -128,6 +129,8 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       this.fromDate = '';
       this.calcRTFilter = '';
       this.transactionText = '';
+    } else {
+      $("[data-toggle='tooltip']").tooltip();
     }
   }
 
@@ -171,7 +174,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       }],
       "paymentObj.method": "QMENU"
     } as any;
-    
+
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: query,
@@ -180,7 +183,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       },
       limit: 100000000000000000
     }).toPromise();
-    
+
     /* round - helper function to address floating point math imprecision. 
      e.g. sometimes a total may be expressed as '2.27999999999997'. we need to put that in the format '2.28' */
     const round = function (num) {
