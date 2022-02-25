@@ -35,11 +35,11 @@
     </div>
   </div>
   <!-- end with Payee/TIN/Email Attributes -->
-  <p><br> Please be patient. Downloading maybe take some time. </p>
+  <p><br> Please be patient. Downloading may take some time. </p>
   <!-- start with 1099k form list -->
   <ul>
     <ng-container *ngFor="let linkEntry of formLinks">
-      <li *ngIf="linkEntry[0]; else elseBlock">
+      <li *ngIf="linkEntry[0]; else elseBlock" class="py-2">
         <ng-container *ngIf="linkEntry[0].required; else requiredBlock">
           {{linkEntry[1]}} - 
           <ng-container *ngIf="allAttributesPresent(); else missingAttributesBlock">
@@ -64,7 +64,7 @@
       </li>
       <ng-template #elseBlock>
         <li>
-          <button class="btn btn-link" [disabled]="disbleCalBtn(linkEntry[1])" (click)="calculateForm1099k(linkEntry[1])">Calculate 1099K</button>
+          <a class="btn-link" [disabled]="disbleCalBtn(linkEntry[1])" (click)="calculateForm1099k(linkEntry[1])">Calculate 1099K</a>
         </li>
       </ng-template>
     </ng-container>
