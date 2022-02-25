@@ -330,6 +330,15 @@ export class Form1099KComponent implements OnInit {
     return monthlyData;
   }
 
+  disbleCalBtn(year){
+    if(year < 2022){
+      return true;
+    }
+    if(year >= 2022){
+      return new Date().getFullYear() <= year;
+    }
+  }
+
   // calculates form1099k of rt, and repopulates formLinks
   async calculateForm1099k(year) {
     const orders = await this.populateOrdersForYear(year);
