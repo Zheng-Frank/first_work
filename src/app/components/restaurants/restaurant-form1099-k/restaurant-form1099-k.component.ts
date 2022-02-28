@@ -11,6 +11,12 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { form1099kEmailTemplate } from './html-email-templates';
 
+enum enumTinTypes {
+  Remove = '',
+  EIN = 'EIN',
+  SSN = 'SSN'
+}
+
 @Component({
   selector: 'app-restaurant-form1099-k',
   templateUrl: './restaurant-form1099-k.component.html',
@@ -21,6 +27,7 @@ import { form1099kEmailTemplate } from './html-email-templates';
 export class Form1099KComponent implements OnInit {
   @Input() restaurant;
   @ViewChild('sendEmailModal') sendEmailModal: ModalComponent;
+  @ViewChild('tinTypeModal') tinTypeModal: ModalComponent;
   formLinks = [];
   showExplanation = false;
   emails = [];
@@ -28,11 +35,31 @@ export class Form1099KComponent implements OnInit {
   targets = [];
   template;
   sendLoading = false;
+  tinTypes = [enumTinTypes.EIN, enumTinTypes.SSN, enumTinTypes.Remove];
+  tinType = enumTinTypes.EIN;
   constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer, private _http: HttpClient) { }
 
   async ngOnInit() {
     this.populateFormLinks();
     this.populateEmails();
+  }
+
+  openTinTypeModal() {
+    this.tinType = enumTinTypes.EIN;
+    this.tinTypeModal.show();
+  }
+
+  async patchTinType() {
+    let newObj = { _id: this.restaurant._id };
+    newObj['tinType'] = this.tinType === enumTinTypes.Remove ? undefined : this.tinType;
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+      {
+        old: { _id: this.restaurant._id, tinType: this.restaurant.tinType},
+        new: newObj
+      }
+    ]).toPromise();
+    this.restaurant.tinType = newObj['tinType'];
+    this.tinTypeModal.hide();
   }
 
   prunedRestaurantRequriedData() {
@@ -330,11 +357,11 @@ export class Form1099KComponent implements OnInit {
     return monthlyData;
   }
 
-  disbleCalBtn(year){
-    if(year < 2022){
+  disbleCalBtn(year) {
+    if (year < 2022) {
       return true;
     }
-    if(year >= 2022){
+    if (year >= 2022) {
       return new Date().getFullYear() <= year;
     }
   }

@@ -179,7 +179,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     preventOnlineTipIfCash: 1,
     tin: 1,  // 1099k tab needs it
     payeeName: 1, // 1099k tab needs it
-    form1099k: 1
+    form1099k: 1,
+    tinType: 1
   };
 
   showExplanations = false; // a flag to decide whether show English/Chinese translations,and the switch is closed by default.

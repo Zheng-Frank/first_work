@@ -123,6 +123,12 @@
                 (edit)="onEdit($event, rowIndex, 'Email')"></q-edit-label>
             </ng-template>
           </div>
+          <div>
+            <b>Tin Type: </b>
+            <b class="text-danger" *ngIf="!row.rtTinType">Attribute Missing</b>
+            <span>{{row.rtTinType}}</span>
+            <a class="btn-link ml-2" (click)="openTinTypeModal(rowIndex)">Edit</a>
+          </div>
         </span>
         <span class="col-3">
           <div *ngFor="let form of (row.form1099k  || [])">
@@ -189,4 +195,22 @@
     </div>
   </q-modal>
   <!-- end with send email modal -->
+  <!-- start with tin type modal -->
+  <q-modal #tinTypeModal>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">×</span>
+      </button>
+      <h4 class="text-center">Tin Type</h4>
+      <hr>
+      <div class="row my-3">
+        <select class="form-control mx-2" [(ngModel)]="tinType">
+          <option *ngFor="let type of tinTypes"> {{type}} </option>
+        </select>
+      </div>
+      <div class="d-flex justify-content-end p-4">
+        <button class="btn btn-secondary mr-2" (click)="tinTypeModal.hide()">Cancel</button>
+        <button class="btn btn-primary" (click)="patchTinType()">Submit</button>
+      </div>
+    </q-modal>
+    <!-- end with tin type modal -->
 </div>
