@@ -133,13 +133,28 @@
           <td>{{countByTier(summary.bmOnly, 3)}}</td>
         </tr>
         <tr>
-          <td>All BeyondMenu RTs</td>
+          <td>
+            <div class="d-flex justify-content-between">
+              <span>All BeyondMenu RTs</span>
+              <span>
+                <input type="checkbox" (change)="calcSummary()" [(ngModel)]="sumBmActiveOnly"> Active
+              </span>
+            </div>
+          </td>
           <td>{{summary.bmAll.length}}</td>
           <td>{{countByTier(summary.bmAll, 1)}}</td>
           <td>{{countByTier(summary.bmAll, 2)}}</td>
           <td>{{countByTier(summary.bmAll, 3)}}</td>
-        </tr><tr>
-          <td>All Qmenu RTs</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="d-flex justify-content-between">
+              <span>All Qmenu RTs</span>
+              <span>
+                <input type="checkbox" (change)="calcSummary()" [(ngModel)]="sumQmActiveOnly"> Active
+              </span>
+            </div>
+          </td>
           <td>{{summary.qmAll.length}}</td>
           <td>{{countByTier(summary.qmAll, 1)}}</td>
           <td>{{countByTier(summary.qmAll, 2)}}</td>

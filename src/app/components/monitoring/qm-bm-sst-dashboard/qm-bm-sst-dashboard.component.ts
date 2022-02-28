@@ -98,6 +98,9 @@ export class QmBmSstDashboardComponent implements OnInit {
     worthiness: ''
   }
 
+  sumBmActiveOnly = true;
+  sumQmActiveOnly = true;
+
   summary = {
     overall: [],
     both: [],
@@ -130,7 +133,7 @@ export class QmBmSstDashboardComponent implements OnInit {
     await this.preload();
   }
 
-  countByTier(list, tier) {
+  countByTier(list, tier, activeOnly = false) {
     let num = list.filter(rt => this.getEiterTier(rt) === tier).length;
     return `${num} (${num ? (Math.round((num / list.length) * 10000) / 100) : 0}%)`
   }
@@ -140,8 +143,8 @@ export class QmBmSstDashboardComponent implements OnInit {
     this.summary.both = this.filteredRows.filter(({_id, _bid}) => _id && _bid);
     this.summary.qmOnly = this.filteredRows.filter(({_id, place_id}) => _id && !this.bmRTsPlaceDict[place_id])
     this.summary.bmOnly = this.filteredRows.filter(({_bid, bplace_id}) => _bid && !this.qmRTsPlaceDict[bplace_id])
-    this.summary.qmAll = this.filteredRows.filter(({_id}) => !!_id)
-    this.summary.bmAll = this.filteredRows.filter(({_bid}) => !!_bid)
+    this.summary.qmAll = this.filteredRows.filter(({_id, disabled}) => !!_id && (!this.sumQmActiveOnly || !disabled))
+    this.summary.bmAll = this.filteredRows.filter(({_bid, bdisabled}) => !!_bid && (!this.sumBmActiveOnly || !bdisabled))
   }
 
   paginate(index) {
