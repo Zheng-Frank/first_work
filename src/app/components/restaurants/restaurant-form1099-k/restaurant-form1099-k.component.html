@@ -33,6 +33,12 @@
         </q-edit-label>
       </ng-template>
     </div>
+    <div class="mx-2">
+      <b>Tin Type: </b>
+      <b class="text-danger" *ngIf="!restaurant.tinType">Attribute Missing</b>
+      <b>{{restaurant.tinType}}</b>
+      <a class="btn-link ml-2" (click)="openTinTypeModal()">Edit Type</a>
+    </div>
   </div>
   <!-- end with Payee/TIN/Email Attributes -->
   <p><br> Please be patient. Downloading may take some time. </p>
@@ -41,7 +47,7 @@
     <ng-container *ngFor="let linkEntry of formLinks">
       <li *ngIf="linkEntry[0]; else elseBlock" class="py-2">
         <ng-container *ngIf="linkEntry[0].required; else requiredBlock">
-          {{linkEntry[1]}} - 
+          {{linkEntry[1]}} -
           <ng-container *ngIf="allAttributesPresent(); else missingAttributesBlock">
             <a class="btn-link" (click)="renderPDFForm('qmenu',linkEntry[1])"> for qMenu
               <i class="fa fa-download"></i></a>
@@ -65,7 +71,8 @@
       <ng-template #elseBlock>
         <li>
           <a class="btn-link disabled" *ngIf="disbleCalBtn(linkEntry[1])">Calculate 1099K</a>
-          <a class="btn-link" *ngIf="!disbleCalBtn(linkEntry[1])" (click)="calculateForm1099k(linkEntry[1])">Calculate 1099K</a>
+          <a class="btn-link" *ngIf="!disbleCalBtn(linkEntry[1])" (click)="calculateForm1099k(linkEntry[1])">Calculate
+            1099K</a>
         </li>
       </ng-template>
     </ng-container>
@@ -106,4 +113,22 @@
     </div>
   </q-modal>
   <!-- end with send email modal -->
+  <!-- start with tin type modal -->
+  <q-modal #tinTypeModal>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">Tin Type</h4>
+    <hr>
+    <div class="row my-3">
+      <select class="form-control mx-2" [(ngModel)]="tinType">
+        <option *ngFor="let type of tinTypes"> {{type}} </option>
+      </select>
+    </div>
+    <div class="d-flex justify-content-end p-4">
+      <button class="btn btn-secondary mr-2" (click)="injectImagesModal.hide()">Cancel</button>
+      <button class="btn btn-primary" (click)="patchTinType()">Submit</button>
+    </div>
+  </q-modal>
+  <!-- end with tin type modal -->
 </div>
