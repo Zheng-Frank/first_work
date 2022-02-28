@@ -36,8 +36,8 @@
     <div class="mx-2">
       <b>Tin Type: </b>
       <b class="text-danger" *ngIf="!restaurant.tinType">Attribute Missing</b>
-      <b>{{restaurant.tinType}}</b>
-      <a class="btn-link ml-2" (click)="openTinTypeModal()">Edit Type</a>
+      <span>{{restaurant.tinType}}</span>
+      <a class="btn-link ml-2" (click)="openTinTypeModal()">Edit</a>
     </div>
   </div>
   <!-- end with Payee/TIN/Email Attributes -->

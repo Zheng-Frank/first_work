@@ -12,7 +12,7 @@ import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { form1099kEmailTemplate } from './html-email-templates';
 
 enum enumTinTypes {
-  Remove = 'Remove Tin Type',
+  Remove = '',
   EIN = 'EIN',
   SSN = 'SSN'
 }

@@ -46,7 +46,7 @@ enum sentEmailOptionTypes {
 }
 
 enum enumTinTypes {
-  Remove = 'Remove Tin Type',
+  Remove = '',
   EIN = 'EIN',
   SSN = 'SSN'
 }

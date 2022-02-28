@@ -126,8 +126,8 @@
           <div>
             <b>Tin Type: </b>
             <b class="text-danger" *ngIf="!row.rtTinType">Attribute Missing</b>
-            <b>{{row.rtTinType}}</b>
-            <a class="btn-link ml-2" (click)="openTinTypeModal(rowIndex)">Edit Type</a>
+            <span>{{row.rtTinType}}</span>
+            <a class="btn-link ml-2" (click)="openTinTypeModal(rowIndex)">Edit</a>
           </div>
         </span>
         <span class="col-3">
