@@ -14,7 +14,7 @@
         <button class="btn btn-link" (click)="importJson = !importJson">Override JSON (JSON替换导入)</button>
         <ng-container *ngIf="getMenus().length > 0">
           <button class="btn btn-link" (click)="cleanup()">Clean up menu (清理菜单)</button>
-          <button *ngIf="!restaurant.skipImageInjection" class="btn btn-link" (click)="injectImages()">Inject Image
+          <button *ngIf="!restaurant.skipImageInjection" class="btn btn-link" (click)="openInjectImagesModal()">Inject Image
             (加图片)</button>
           <button class="btn btn-link" (click)="deleteImages()">Delete Image (删除图片)</button>
           <button class="btn btn-link" (click)="disableNotes()">{{ !disableNotesFlag ? 'Enable Notes(打开注释)': 'Disable Notes(取消客人注释)' }}</button>
@@ -154,6 +154,30 @@
       <button class="btn btn-primary btn-block" (click)="clickNew()">Create New Menu</button>
     </div>
   </div>
+
+  <!-- start with inject images modal -->
+  <q-modal #injectImagesModal>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">Inject Images</h4>
+    <hr>
+    <div class="row my-3">
+      <label class="ml-2">For menu</label>
+      <select class="form-control mx-2" [(ngModel)]="menuName">
+        <option *ngFor="let name of menuNames"> {{name}} </option>
+      </select>
+    </div>
+    <div class="row form-inline ml-2">
+      <input type="checkbox" [(ngModel)]="overwriteExistImgs"> 
+      <label class="ml-2">Overwrite existing images</label>
+    </div>
+    <div class="d-flex justify-content-end p-4">
+      <button class="btn btn-secondary mr-2" (click)="injectImagesModal.hide()">Cancel</button>
+      <button class="btn btn-primary" (click)="injectImages()">Send</button>
+    </div>
+  </q-modal>
+  <!-- end with inject images modal -->
 
   <q-modal #menuEditingModal>
     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
