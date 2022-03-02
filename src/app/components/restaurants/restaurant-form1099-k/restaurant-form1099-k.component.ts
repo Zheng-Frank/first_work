@@ -28,6 +28,7 @@ export class Form1099KComponent implements OnInit {
   @Input() restaurant;
   @ViewChild('sendEmailModal') sendEmailModal: ModalComponent;
   @ViewChild('tinTypeModal') tinTypeModal: ModalComponent;
+  @ViewChild('customize1099kModal') customize1099kModal: ModalComponent;
   formLinks = [];
   showExplanation = false;
   emails = [];
@@ -37,11 +38,228 @@ export class Form1099KComponent implements OnInit {
   sendLoading = false;
   tinTypes = [enumTinTypes.EIN, enumTinTypes.SSN, enumTinTypes.Remove];
   tinType = enumTinTypes.EIN;
+  customize1099kList = [];
+  taxYearOptions = [
+    'All',
+    '2022',
+    // '2022', // taxYear 2022 will need to be enabled beginning in 2023
+    '2021',
+    '2020',
+  ];
+  taxYear = 'All';
   constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer, private _http: HttpClient) { }
 
   async ngOnInit() {
     this.populateFormLinks();
     this.populateEmails();
+  }
+
+  /*
+  Add ability to calculate, separate, and save separately, 
+  1099K info for a specific restaurant for different portions of the tax year 
+  and generate multiple 1099Ks, from the 1099K dashboard.
+  */
+  openCustomize1099kModal() {
+    this.customize1099kList = [];
+    let item = {
+      tin: '',
+      payeeName: '',
+      fromDate: '',//  e.g.: 2022-01-01
+      toDate: ''
+    };
+    this.customize1099kList.push(item);
+    this.customize1099kModal.show();
+  }
+
+  closeCustomize1099kModal() {
+    this.customize1099kModal.hide();
+  }
+
+  deleteCustomNewLine(i) {
+    this.customize1099kList.splice(i, 1);
+  }
+
+  // check error of all items of customizeList
+  hasCustomize1099kError() {
+    const tinErr = this.customize1099kList.some(item => !item.tin);
+    const payeeErr = this.customize1099kList.some(item => !item.payeeName);
+    const dateErr = this.customize1099kList.some(item => !item.fromDate || !item.toDate) || this.customize1099kList.some(item => !item.payeeName) || this.customize1099kList.some(item => new Date(item.fromDate).valueOf() >= new Date(item.toDate).valueOf()) || this.customize1099kList.some(item => item.fromDate.split('-')[0] !== this.taxYear || item.toDate.split('-')[0] !== this.taxYear);
+    const otherItemDateErr = this.customize1099kList.some((item, i) => this.customize1099kList.some((another, index) => new Date(another.fromDate).valueOf() <= new Date(item.toDate).valueOf() && index > i));
+    const noform1099kDataErr = this.customize1099kList.some(item => !item.rt1099KData);
+    return tinErr || payeeErr || dateErr || otherItemDateErr || noform1099kDataErr;
+  }
+
+  // check error of every item of customizeList 
+  hasCustomItemErr(i) {
+    const item = this.customize1099kList[i];
+    if (!item) {
+      return 'Item is undefined';
+    }
+    const dateErr = 'Data entry error! Ensure date range within the tax year are accounted for, and that the date ranges are in chronological order.';
+    const tinErr = 'Data entry error! Ensure tin is not empty!';
+    const payeeErr = 'Data entry error! Ensure payee name is not empty!';
+    const otherItemDateErr = 'Data entry error! fromTime of another item is smaller than this, but its index is behind!';
+    if (!item.tin) {
+      return tinErr;
+    }
+    if (!item.payeeName) {
+      return payeeErr;
+    }
+    if (!item.fromDate || !item.toDate) {
+      return dateErr;
+    }
+    // to time or from time must exsit in follow if condition
+    if (new Date(item.fromDate).valueOf() >= new Date(item.toDate).valueOf() || item.fromDate.split('-')[0] !== this.taxYear || item.toDate.split('-')[0] !== this.taxYear) {
+      return dateErr;
+    }
+    // check this condition:
+    // fromTime of another item is smaller than this item but its index is behind  
+    if (this.customize1099kList.some((another, index) => new Date(another.fromDate).valueOf() <= new Date(item.toDate).valueOf() && index > i)) {
+      return otherItemDateErr;
+    }
+    return '';
+  }
+
+  addCustomNewLine() {
+    let item = {
+      tin: '',
+      payeeName: '',
+      fromDate: '',// e.g.: 2022-01-01
+      toDate: ''
+    }
+    this.customize1099kList.push(item);
+  }
+
+  async patchCustom1099k() {
+    let newObj = {
+      _id: this.restaurant._id,
+      form1099k: this.restaurant.form1099k
+    }
+    newObj.form1099k = newObj.form1099k.filter(item => !item.customized);
+    this.customize1099kList.forEach(item => {
+      newObj.form1099k.push(item.rt1099KData);
+    });
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+      {
+        old: { _id: this.restaurant._id },
+        new: newObj
+      }
+    ]).toPromise();
+    // update origin data
+    this.restaurant.form1099k = newObj.form1099k;
+    this._global.publishAlert(AlertType.Success, `Customized form 1099k for restaurant ${this.restaurant.name}!`);
+    this.closeCustomize1099kModal();
+  }
+
+  // show which part the customization is
+  getCustomizedNum(form) {
+    let yearforms = (this.restaurant.form1099k || []).filter(item => item.year === form.year && item.customized);
+    yearforms.sort((a, b) => new Date(a.createdAt).valueOf() - new Date(b.createdAt).valueOf());
+    return yearforms.findIndex(f => f.createdAt === form.createdAt) + 1;
+  }
+
+  // calculate tool of customize 1099k 
+  async calcTransactionByTime(fromDate, toDate, customizeItem) {
+    if (!fromDate || !toDate) {
+      return this._global.publishAlert(AlertType.Danger, "Please input a correct from time date format!");
+    }
+
+    if (new Date(fromDate).valueOf() - new Date(toDate).valueOf() > 0) {
+      return this._global.publishAlert(AlertType.Danger, "Please input a correct date format, from time is less than or equals to time!");
+    }
+
+    const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(fromDate + " 00:00:00.000"), this.restaurant.googleAddress.timezone || 'America/New_York');
+    const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(toDate + " 23:59:59.999"), this.restaurant.googleAddress.timezone || 'America/New_York');
+
+    const query = {
+      restaurant: {
+        $oid: this.restaurant._id
+      },
+      $and: [{
+        createdAt: {
+          $gte: { $date: utcf }
+        } // less than and greater than
+      }, {
+        createdAt: {
+          $lt: { $date: utct }
+        }
+      }],
+      "paymentObj.method": "QMENU"
+    } as any;
+
+    const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "order",
+      query: query,
+      projection: {
+        "computed.total": 1
+      },
+      limit: 100000000000000000
+    }).toPromise();
+
+    /**
+     * form1099k item example:
+     *  {
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "transactions": 234,
+        "year": 2021,
+        "yearPeriodStart": "2021-07-16T00:00:00.000Z",
+        "yearPeriodEnd": "2021-12-31T00:00:00.000Z",
+        "periodTin": "55-5555555",
+        "periodPayeeName": "Dragon Fly Old Name",
+        "required": true,
+        "createdAt": "2022-02-09T17:14:38.303Z",
+        "total": 42454.75
+    }
+     * 
+     */
+    let rt1099KData = {
+      year: +this.taxYear,
+      required: false,
+      yearPeriodStart: utcf,
+      yearPeriodEnd: utct,
+      periodTin: customizeItem.tin,
+      periodPayeeName: customizeItem.payeeName,
+      createdAt: new Date(),
+      customized: true
+    } as any;
+    const monthlyDataAndTotal = this.tabulateMonthlyData(orders);
+    let fromMonth = fromDate.split('-')[1] - 1;// The month is the same as the array index
+    let toMonth = toDate.split('-')[1] - 1;
+    let filteredMonthlyDataAndTotal = {};
+    let numberReg = /[0-9]/;
+    // Only need transaction between fromDate and toDate
+    Object.keys(monthlyDataAndTotal).forEach(key => {
+      if ((numberReg.test(key) && +key >= fromMonth && +key <= toMonth) || !numberReg.test(key)) {
+        filteredMonthlyDataAndTotal[key] = monthlyDataAndTotal[key];
+      }
+    });
+
+    if (+this.taxYear < 2022) {
+      if (orders.length >= 200) {
+        if (monthlyDataAndTotal.total >= 20000) {
+          rt1099KData.required = true;
+          rt1099KData = { transactions: orders.length, ...rt1099KData, ...filteredMonthlyDataAndTotal };
+        }
+      }
+    } else if (+this.taxYear === 2022) {
+      if (orders.length >= 1) {
+        if (monthlyDataAndTotal.total >= 600) {
+          rt1099KData.required = true;
+          rt1099KData = { transactions: orders.length, ...rt1099KData, ...filteredMonthlyDataAndTotal };
+        }
+      }
+    }
+    if (rt1099KData.required) {
+      customizeItem['transactionText'] = `${rt1099KData.transactions} transactions totaling \$${this.round(rt1099KData.total)}`;
+    } else {
+      customizeItem['transactionText'] = `1099K won't be generated for this period since it's not needed. (${orders.length} transactions totaling \$${filteredMonthlyDataAndTotal['total']})`;
+    }
+    customizeItem['rt1099KData'] = rt1099KData;
+
   }
 
   openTinTypeModal() {
@@ -54,7 +272,7 @@ export class Form1099KComponent implements OnInit {
     newObj['tinType'] = this.tinType === enumTinTypes.Remove ? undefined : this.tinType;
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
       {
-        old: { _id: this.restaurant._id, tinType: this.restaurant.tinType},
+        old: { _id: this.restaurant._id, tinType: this.restaurant.tinType },
         new: newObj
       }
     ]).toPromise();
@@ -227,16 +445,18 @@ export class Form1099KComponent implements OnInit {
 
   populateFormLinks() {
     this.formLinks = [];
-    const years = [2020, 2021, 2022];
+    const years = [2022, 2021, 2020];
+    this.restaurant.form1099k.sort((a, b) => b[1] - a[1]);
     for (let year of years) {
-      let yearForm1099kData = (this.restaurant.form1099k || []).find(form => form.year === year);
-      if (yearForm1099kData) {
-        this.formLinks.push([yearForm1099kData, year]);
+      if ((this.restaurant.form1099k || []).some(form => form.year === year)) {
+        let yearForm1099kDatas = (this.restaurant.form1099k || []).filter(form => form.year === year);
+        yearForm1099kDatas.forEach(form => {
+          this.formLinks.push([form, year]);
+        });
       } else {
         this.formLinks.push([null, year]);
       }
     }
-    this.formLinks.sort((a, b) => b[1] - a[1]);
   }
 
   populateEmails() {
@@ -435,7 +655,7 @@ export class Form1099KComponent implements OnInit {
     // Payee's name:
     form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_2[0]`).setText(qMenuAddress);
     // Payee's Name:
-    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_3[0]`).setText(rt.payeeName);
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_3[0]`).setText(yearForm1099kData.customized ? yearForm1099kData.periodPayeeName : rt.payeeName);
     // Street Address:
     form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_4[0]`).setText(rt.streetAddress);
     // City, State, and ZIP Code:
@@ -448,7 +668,7 @@ export class Form1099KComponent implements OnInit {
     // Filer's TIN
     form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_8[0]`).setText('81-4208444');
     // Payee's TIN    
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_9[0]`).setText(rt.rtTIN)
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_9[0]`).setText(yearForm1099kData.customized ? yearForm1099kData.periodTin : rt.rtTIN)
     // Box 1b card not present transactions
     form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box1b_ReadOrder[0].f2_11[0]`).setText(yearForm1099kData.total.toFixed(2));
     // Box 2 - Merchant category code (Always 5812 for restaurants)
@@ -458,30 +678,29 @@ export class Form1099KComponent implements OnInit {
     // Box 4 - Federal income tax withheld
     form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_14[0]`).setText('');
     // Box 5a - January income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5a_ReadOrder[0].f2_15[0]`).setText(yearForm1099kData[0].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5a_ReadOrder[0].f2_15[0]`).setText(yearForm1099kData[0] ? yearForm1099kData[0].toFixed(2) : 0);
     // Box 5b - February income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_16[0]`).setText(yearForm1099kData[1].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_16[0]`).setText(yearForm1099kData[1] ? yearForm1099kData[1].toFixed(2) : "0");
     // Box 5c - March income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5c_ReadOrder[0].f2_17[0]`).setText(yearForm1099kData[2].toFixed(2))
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5c_ReadOrder[0].f2_17[0]`).setText(yearForm1099kData[2] ? yearForm1099kData[2].toFixed(2) : "0");
     // Box 5d - April income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_18[0]`).setText(yearForm1099kData[3].toFixed(2))
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_18[0]`).setText(yearForm1099kData[3] ? yearForm1099kData[3].toFixed(2) : "0");
     // Box 5e - May income
-
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5e_ReadOrder[0].f2_19[0]`).setText(yearForm1099kData[4].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5e_ReadOrder[0].f2_19[0]`).setText(yearForm1099kData[4] ? yearForm1099kData[4].toFixed(2) : "0");
     // Box 5f - June income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_20[0]`).setText(yearForm1099kData[5].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_20[0]`).setText(yearForm1099kData[5] ? yearForm1099kData[5].toFixed(2) : "0");
     // Box 5g - July income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5g_ReadOrder[0].f2_21[0]`).setText(yearForm1099kData[6].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5g_ReadOrder[0].f2_21[0]`).setText(yearForm1099kData[6] ? yearForm1099kData[6].toFixed(2) : "0");
     // Box 5h - August income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_22[0]`).setText(yearForm1099kData[7].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_22[0]`).setText(yearForm1099kData[7] ? yearForm1099kData[7].toFixed(2) : "0");
     // Box 5i - September income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5i_ReadOrder[0].f2_23[0]`).setText(yearForm1099kData[8].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5i_ReadOrder[0].f2_23[0]`).setText(yearForm1099kData[8] ? yearForm1099kData[8].toFixed(2) : "0");
     // Box 5j - October income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_24[0]`).setText(yearForm1099kData[9].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_24[0]`).setText(yearForm1099kData[9] ? yearForm1099kData[9].toFixed(2) : "0");
     // Box 5k - November income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5k_ReadOrder[0].f2_25[0]`).setText(yearForm1099kData[10].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5k_ReadOrder[0].f2_25[0]`).setText(yearForm1099kData[10] ? yearForm1099kData[10].toFixed(2) : "0");
     // Box 5l - December income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_26[0]`).setText(yearForm1099kData[11].toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_26[0]`).setText(yearForm1099kData[11] ? yearForm1099kData[11].toFixed(2) : "0");
     // Box 6 - State
     form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box6_ReadOrder[0].f2_27[0]`).setText('');
     // Box 7 - State ID

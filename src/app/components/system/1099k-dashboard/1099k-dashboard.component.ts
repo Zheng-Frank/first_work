@@ -224,12 +224,6 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     this.customize1099kList.push(item);
   }
 
-  openTinTypeModal(rowIndex) {
-    this.currRowIndex = rowIndex;
-    this.tinType = enumTinTypes.EIN;
-    this.tinTypeModal.show();
-  }
-
   async patchCustom1099k() {
     let newObj = {
       _id: this.filteredRows[this.currRowIndex].id,
@@ -253,14 +247,21 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     });
     this.rows = this.restaurants.map(rt => this.turnRtObjectIntoRow(rt));
     this.filterRows();
+    this.closeCustomize1099kModal();
     this._global.publishAlert(AlertType.Success, `Customized form 1099k for restaurant ${this.filteredRows[this.currRowIndex].name}!`);
   }
 
   // show which part the customization is
   getCustomizedNum(form, form1099k) {
-    let yearform = form1099k.filter(item => item.year === form.year && item.customized);
-    yearform.sort((a, b) => new Date(a.createdAt).valueOf() - new Date(b.createdAt).valueOf());
-    return yearform.findIndex(f => f.createdAt === form.createdAt) + 1;
+    let yearforms = form1099k.filter(item => item.year === form.year && item.customized);
+    yearforms.sort((a, b) => new Date(a.createdAt).valueOf() - new Date(b.createdAt).valueOf());
+    return yearforms.findIndex(f => f.createdAt === form.createdAt) + 1;
+  }
+
+  openTinTypeModal(rowIndex) {
+    this.currRowIndex = rowIndex;
+    this.tinType = enumTinTypes.EIN;
+    this.tinTypeModal.show();
   }
 
   async patchTinType() {
@@ -500,7 +501,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     // documentation regarding Amazon SES Raw Email (AWS email service that allows attachments)
     // 1. filter row whose form1099k sent flag is false and has all necessary attributes
     this.sendLoading = true;
-    let notSendRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +year && !form.sent && form.required) && this.allAttributesPresent(row));
+    let notSendRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +year && !form.sent && form.required && !form.customized) && this.allAttributesPresent(row));
     let templates = [];
 
     notSendRows.forEach(row => {
@@ -916,6 +917,13 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && !form.sent));
     }
 
+    // customized form1099k or not in the year
+    if (this.customizeOption === customizeOptionTypes.Custom) {
+      this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && form.customized));
+    } else if (this.sentEmailOption === sentEmailOptionTypes.Form_Not_Sent) {
+      this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && !form.customized));
+    }
+    
     // search will match RT name, RT id, payee name, or email address
     if (this.searchFilter && this.searchFilter.trim().length > 0) {
       this.filteredRows = this.filteredRows.filter(row => {

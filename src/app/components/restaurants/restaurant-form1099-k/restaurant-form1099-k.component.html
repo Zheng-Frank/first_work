@@ -11,7 +11,7 @@
   </p>
   <hr>
   <!-- start with Payee/TIN/Email Attributes -->
-  <div class="row ml-2">
+  <div class="row ml-2 form-inline">
     <div>
       <b>TIN: </b>
       <b class="text-danger" *ngIf="!restaurant.tin">Attribute Missing</b>
@@ -39,6 +39,15 @@
       <span>{{restaurant.tinType}}</span>
       <a class="btn-link ml-2" (click)="openTinTypeModal()">Edit</a>
     </div>
+    <!-- start with tax year filter -->
+    <select class="form-control mx-2" [(ngModel)]="taxYear">
+      <option *ngFor="let entry of taxYearOptions"> {{entry}} </option>
+    </select>
+    <!-- end with tax year filter -->
+    <!-- start with customized btn -->
+    <a class="btn-link" (click)="openCustomize1099kModal()" *ngIf="taxYear !== 'All'">Edit
+        Customizations</a>
+    <!-- end with customized btn -->
   </div>
   <!-- end with Payee/TIN/Email Attributes -->
   <p><br> Please be patient. Downloading may take some time. </p>
@@ -47,7 +56,7 @@
     <ng-container *ngFor="let linkEntry of formLinks">
       <li *ngIf="linkEntry[0]; else elseBlock" class="py-2">
         <ng-container *ngIf="linkEntry[0].required; else requiredBlock">
-          {{linkEntry[1]}} -
+          {{linkEntry[1]}} <span *ngIf="linkEntry[0].customized">(Customized Part {{getCustomizedNum(linkEntry[0])}})</span> -
           <ng-container *ngIf="allAttributesPresent(); else missingAttributesBlock">
             <a class="btn-link" (click)="renderPDFForm('qmenu',linkEntry[1])"> for qMenu
               <i class="fa fa-download"></i></a>
@@ -65,7 +74,7 @@
           </ng-template>
         </ng-container>
         <ng-template #requiredBlock>
-          {{linkEntry[1]}} - No Form Required for this year
+          {{linkEntry[1]}} <span *ngIf="linkEntry[0].customized">(Customized Part {{getCustomizedNum(linkEntry[0])}})</span> - No Form Required for this year
         </ng-template>
       </li>
       <ng-template #elseBlock>
@@ -131,4 +140,55 @@
     </div>
   </q-modal>
   <!-- end with tin type modal -->
+  <!-- start with customize 1099k modal -->
+  <q-modal #customize1099kModal [size]="'600px'">
+    <button type="button" class="close" (click)="closeCustomize1099kModal()">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">Customize 1099k</h4>
+    <hr>
+    <div class="container">
+      <div class="my-3" *ngFor="let item of customize1099kList;let i = index;">
+        <div class="row">
+          <div class="form-inline">
+            <label>Tax Year {{taxYear}} (Part {{i+1}})</label>
+            <a class="btn-link close-btn-pos" *ngIf="i > 0" (click)="deleteCustomNewLine(i)">
+              <i class="fa fa-times"></i>
+            </a>
+          </div>
+          <input class="form-control" type="text" [(ngModel)]="item.tin" placeholder="Period TIN">
+          <input class="form-control mt-2" type="text" [(ngModel)]="item.payeeName" placeholder="Period Payee Name">
+        </div>
+        <div class="row form-inline mt-2">
+          <label>From:</label>
+          <input class="form-control ml-1" type="date" [(ngModel)]="item.fromDate">
+          <label class="ml-2">To:</label>
+          <input class="form-control ml-1" type="date" [(ngModel)]="item.toDate">
+          <button class="btn btn-primary ml-2" [disabled]="hasCustomItemErr(i)"
+            (click)="calcTransactionByTime(item.fromDate, item.toDate, item)">
+            <i class="fa fa-calculator"></i>
+            Calculate
+          </button>
+        </div>
+        <div class="row text-muted" *ngIf="item.rt1099KData">
+          {{item.transactionText}}
+        </div>
+        <div class="row" *ngIf="hasCustomItemErr(item)">
+          <span class="text-danger">{{hasCustomItemErr(i)}}</span>
+        </div>
+        <hr *ngIf="i < customize1099kList.length - 1" />
+      </div>
+      <div class="row">
+        <button class="btn btn-primary" (click)="addCustomNewLine()" *ngIf="customize1099kList.length >= 1"><i
+            class="fa fa-plus"></i>
+          Add new portion
+        </button>
+      </div>
+    </div>
+    <div class="d-flex justify-content-end p-4">
+      <button class="btn btn-secondary mr-2" (click)="closeCustomize1099kModal()">Cancel</button>
+      <button class="btn btn-primary" (click)="patchCustom1099k()" [disabled]="hasCustomize1099kError()">Submit</button>
+    </div>
+  </q-modal>
+  <!-- end with custom 1099k modal -->
 </div>
