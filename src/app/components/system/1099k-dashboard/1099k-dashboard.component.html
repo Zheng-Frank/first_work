@@ -5,7 +5,7 @@
     <!-- Search Textbox -->
     <label class="mx-2"> Search:</label>
     <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control ml-2 search-input"
-      placeholder="RT name or ID, R T owner name, email, etc." [(ngModel)]="searchFilter">
+      placeholder="RT name or ID, RT owner name, email" [(ngModel)]="searchFilter">
 
     <!-- Tax Year Dropdown -->
     <label class="mx-2"> Select Tax Year:</label>
@@ -30,18 +30,20 @@
     <select class="form-control mx-2" [(ngModel)]="missingEmailOption" (change)="filterRows()">
       <option *ngFor="let option of missingEmailOptions"> {{option}} </option>
     </select>
-    <!-- sent or not -->
+    <!-- start sent or not -->
     <select class="form-control mx-2" [(ngModel)]="sentEmailOption" (change)="filterRows()">
       <option *ngFor="let option of sentEmailOptions"> {{option}} </option>
     </select>
-    <i class="fa fa-info-circle icon-color" (mouseover)="showExplanation = true" (mouseout)="showExplanation = false">
-      <div *ngIf="showExplanation" class="left talk radius">
-        <p>Filter by whether the form for the currently-selected tax year has been sent to the restaurant yet.</p>
-        -------------<br>
-        <p>根据当前所选纳税年度的表格是否已发送到餐厅进行筛选。</p>
-      </div>
-    </i>
-    <button class="btn btn-primary recan-btn" (click)="rescan()"><i class="fas fa-sync"></i> Rescan</button>
+    <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Filter by whether the form for the currently-selected tax year has been sent to the restaurant yet.
+      (根据当前所选纳税年度的表格是否已发送到餐厅进行筛选。)"></i>
+    <!-- end sent or not -->
+    <!-- start customize 1099k or not -->
+    <select class="form-control mx-2" [(ngModel)]="customizeOption" (change)="filterRows()">
+      <option *ngFor="let option of customizeOptions"> {{option}} </option>
+    </select>
+    <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Some restaurants may change the legal entity under which they operate their business mid-year, which could mean we need to generate multiple 1099K forms for them, one for each period, to the extent there was enough order volume in each period to necessitate a form.
+      (一些餐厅可能会在年中改变经营业务的法律实体，这可能意味着我们需要为他们生成多份1099K表格，每个期间一份，只要每个期间有足够的订单量需要一份表格。)"></i>
+    <!-- end customize 1099k or not -->
   </div>
   <hr>
   <div class="form-inline mx-5 pl-1">
@@ -60,6 +62,7 @@
     {{ bulkFileOperation === '' ? '' : bulkFileOperation === bulkFileOperationTypes.Download? 'Bulk download functionality coming soon!' : ''}}
     <button class="btn btn-link" (click)="handleShowExtraTools()">
       {{!showExtraTools ? 'Show extra tools' : 'Hide extra tools'}}</button>
+    <button class="btn btn-primary recan-btn" (click)="rescan()"><i class="fas fa-sync"></i> Rescan</button>
   </div>
   <div class="form-inline mx-5 my-3" *ngIf="showExtraTools">
     <label class="mx-2">Calculate Tool</label>
@@ -68,12 +71,13 @@
     <input class="form-control ml-1" type="date" [(ngModel)]="fromDate">
     <label class="ml-2">To:</label>
     <input class="form-control ml-1" type="date" [(ngModel)]="toDate">
-    <button class="btn btn-primary ml-2" (click)="calcTransactionByTime()"><i class="fa fa-calculator"></i>
+    <button class="btn btn-primary ml-2" (click)="calcTransactionByTime(fromDate, toDate)"><i
+        class="fa fa-calculator"></i>
       Calculate</button>
     <span *ngIf="transactionText" class="ml-2">{{transactionText}}</span>
     <div class="ml-2">
-      <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" 
-      title="For 2021 and prior, if RT has less than 200 transactions or less than $20k of transactions, they don’t need a 1099K form for the currently-selected period. For 2022 and beyond, if the RT has less than $600 of transactions, they don’t need a 1099K form for the currently-selected period.
+      <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top"
+        title="For 2021 and prior, if RT has less than 200 transactions or less than $20k of transactions, they don’t need a 1099K form for the currently-selected period. For 2022 and beyond, if the RT has less than $600 of transactions, they don’t need a 1099K form for the currently-selected period.
       (对于2021和以前，如果餐馆具有少于200个事务或少于20000美元的事务，则它们不需要当前选择的周期的1099 K表。在2022年及以后，如果餐馆的交易额少于600美元，则在当前选定的期间内，他们不需要1099K表格。)"></i>
     </div>
   </div>
@@ -129,11 +133,15 @@
             <span>{{row.rtTinType}}</span>
             <a class="btn-link ml-2" (click)="openTinTypeModal(rowIndex)">Edit</a>
           </div>
+          <div>
+            <a class="btn-link" (click)="openCustomize1099kModal(rowIndex)" *ngIf="taxYear !== 'All'">Edit
+              Customizations</a>
+          </div>
         </span>
         <span class="col-3">
           <div *ngFor="let form of (row.form1099k  || [])">
             <ng-container *ngIf="form.required;else requiredBlock">
-              {{form.year}} -
+              {{form.year}} <span *ngIf="form.customized">(Customized Part {{getCustomizedNum(form, row.form1099k)}})</span> -
               <ng-container *ngIf="allAttributesPresent(row); else missingAttributesBlock">
                 <a class="btn-link" (click)="renderPDFForm(row, form, 'qmenu')"> for qMenu <i
                     class="fa fa-download"></i></a>
@@ -152,7 +160,7 @@
             </ng-container>
             <ng-template #requiredBlock>
               <span>
-                {{form.year}} - No Form Required for this year
+                {{form.year}} <span *ngIf="form.customized">(Customized Part {{getCustomizedNum(form, row.form1099k)}})</span> - No Form Required for this year
               </span>
             </ng-template>
           </div>
@@ -197,20 +205,71 @@
   <!-- end with send email modal -->
   <!-- start with tin type modal -->
   <q-modal #tinTypeModal>
-      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-        <span aria-hidden="true">×</span>
-      </button>
-      <h4 class="text-center">Tin Type</h4>
-      <hr>
-      <div class="row my-3">
-        <select class="form-control mx-2" [(ngModel)]="tinType">
-          <option *ngFor="let type of tinTypes"> {{type}} </option>
-        </select>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">Tin Type</h4>
+    <hr>
+    <div class="row my-3">
+      <select class="form-control mx-2" [(ngModel)]="tinType">
+        <option *ngFor="let type of tinTypes"> {{type}} </option>
+      </select>
+    </div>
+    <div class="d-flex justify-content-end p-4">
+      <button class="btn btn-secondary mr-2" (click)="tinTypeModal.hide()">Cancel</button>
+      <button class="btn btn-primary" (click)="patchTinType()">Submit</button>
+    </div>
+  </q-modal>
+  <!-- end with tin type modal -->
+  <!-- start with customize 1099k modal -->
+  <q-modal #customize1099kModal [size]="'600px'">
+    <button type="button" class="close" (click)="closeCustomize1099kModal()">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">Customize 1099k</h4>
+    <hr>
+    <div class="container">
+      <div class="my-3" *ngFor="let item of customize1099kList;let i = index;">
+        <div class="row">
+          <div class="form-inline">
+            <label>Tax Year {{taxYear}} (Part {{i+1}})</label>
+            <a class="btn-link close-btn-pos" *ngIf="i > 0" (click)="deleteCustomNewLine(i)">
+              <i class="fa fa-times"></i>
+            </a>
+          </div>
+          <input class="form-control" type="text" [(ngModel)]="item.tin" placeholder="Period TIN">
+          <input class="form-control mt-2" type="text" [(ngModel)]="item.payeeName" placeholder="Period Payee Name">
+        </div>
+        <div class="row form-inline mt-2">
+          <label>From:</label>
+          <input class="form-control ml-1" type="date" [(ngModel)]="item.fromDate">
+          <label class="ml-2">To:</label>
+          <input class="form-control ml-1" type="date" [(ngModel)]="item.toDate">
+          <button class="btn btn-primary ml-2" [disabled]="hasCustomItemErr(i)"
+            (click)="calcTransactionByTime(item.fromDate, item.toDate, item)">
+            <i class="fa fa-calculator"></i>
+            Calculate
+          </button>
+        </div>
+        <div class="row text-muted" *ngIf="item.rt1099KData">
+          {{item.transactionText}}
+        </div>
+        <div class="row" *ngIf="hasCustomItemErr(item)">
+          <span class="text-danger">{{hasCustomItemErr(i)}}</span>
+        </div>
+        <hr *ngIf="i < customize1099kList.length - 1" />
       </div>
-      <div class="d-flex justify-content-end p-4">
-        <button class="btn btn-secondary mr-2" (click)="tinTypeModal.hide()">Cancel</button>
-        <button class="btn btn-primary" (click)="patchTinType()">Submit</button>
+      <div class="row">
+        <button class="btn btn-primary" (click)="addCustomNewLine()" *ngIf="customize1099kList.length >= 1"><i
+            class="fa fa-plus"></i>
+          Add new portion
+        </button>
       </div>
-    </q-modal>
-    <!-- end with tin type modal -->
+    </div>
+    <div class="d-flex justify-content-end p-4">
+      <button class="btn btn-secondary mr-2" (click)="closeCustomize1099kModal()">Cancel</button>
+      <button class="btn btn-primary" (click)="patchCustom1099k()" [disabled]="hasCustomize1099kError()">Submit</button>
+    </div>
+  </q-modal>
+  <!-- end with custom 1099k modal -->
 </div>
