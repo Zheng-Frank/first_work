@@ -11,6 +11,12 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { form1099kEmailTemplate } from './html-email-templates';
 
+enum enumTinTypes {
+  Remove = '',
+  EIN = 'EIN',
+  SSN = 'SSN'
+}
+
 @Component({
   selector: 'app-restaurant-form1099-k',
   templateUrl: './restaurant-form1099-k.component.html',
@@ -21,6 +27,7 @@ import { form1099kEmailTemplate } from './html-email-templates';
 export class Form1099KComponent implements OnInit {
   @Input() restaurant;
   @ViewChild('sendEmailModal') sendEmailModal: ModalComponent;
+  @ViewChild('tinTypeModal') tinTypeModal: ModalComponent;
   formLinks = [];
   showExplanation = false;
   emails = [];
@@ -28,11 +35,31 @@ export class Form1099KComponent implements OnInit {
   targets = [];
   template;
   sendLoading = false;
+  tinTypes = [enumTinTypes.EIN, enumTinTypes.SSN, enumTinTypes.Remove];
+  tinType = enumTinTypes.EIN;
   constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer, private _http: HttpClient) { }
 
   async ngOnInit() {
     this.populateFormLinks();
     this.populateEmails();
+  }
+
+  openTinTypeModal() {
+    this.tinType = enumTinTypes.EIN;
+    this.tinTypeModal.show();
+  }
+
+  async patchTinType() {
+    let newObj = { _id: this.restaurant._id };
+    newObj['tinType'] = this.tinType === enumTinTypes.Remove ? undefined : this.tinType;
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+      {
+        old: { _id: this.restaurant._id, tinType: this.restaurant.tinType},
+        new: newObj
+      }
+    ]).toPromise();
+    this.restaurant.tinType = newObj['tinType'];
+    this.tinTypeModal.hide();
   }
 
   prunedRestaurantRequriedData() {
@@ -200,7 +227,7 @@ export class Form1099KComponent implements OnInit {
 
   populateFormLinks() {
     this.formLinks = [];
-    const years = [2020, 2021];
+    const years = [2020, 2021, 2022];
     for (let year of years) {
       let yearForm1099kData = (this.restaurant.form1099k || []).find(form => form.year === year);
       if (yearForm1099kData) {
@@ -330,6 +357,15 @@ export class Form1099KComponent implements OnInit {
     return monthlyData;
   }
 
+  disbleCalBtn(year) {
+    if (year < 2022) {
+      return true;
+    }
+    if (year >= 2022) {
+      return new Date().getFullYear() <= year;
+    }
+  }
+
   // calculates form1099k of rt, and repopulates formLinks
   async calculateForm1099k(year) {
     const orders = await this.populateOrdersForYear(year);
@@ -339,14 +375,24 @@ export class Form1099KComponent implements OnInit {
       required: false,
       createdAt: new Date()
     } as any;
-
-    if (orders.length >= 200) {
-      const monthlyDataAndTotal = this.tabulateMonthlyData(orders);
-      if (monthlyDataAndTotal.total >= 20000) {
-        rt1099KData.required = true
-        rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
+    if (year < 2022) {
+      if (orders.length >= 200) {
+        const monthlyDataAndTotal = this.tabulateMonthlyData(orders);
+        if (monthlyDataAndTotal.total >= 20000) {
+          rt1099KData.required = true
+          rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
+        }
+      }
+    } else if (year === 2022) {
+      if (orders.length >= 1) {
+        const monthlyDataAndTotal = this.tabulateMonthlyData(orders);
+        if (monthlyDataAndTotal.total >= 600) {
+          rt1099KData.required = true
+          rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
+        }
       }
     }
+
     let existing1099kRecords = this.restaurant.form1099k || [];
     let new1099kRecords = [...existing1099kRecords, rt1099KData];
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [

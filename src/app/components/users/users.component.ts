@@ -45,7 +45,8 @@ export class UsersComponent implements OnInit {
     'MENU_EDITOR', 'PAYER',
     'RATE_EDITOR',
     'SIGNUP_AGENT',
-    'FRAUD_TRACKER'
+    'FRAUD_TRACKER',
+    'SST_USER'
     // NOTE: please add new roles in alphabetical order
   ].map(role => ({
     text: role,
@@ -108,7 +109,7 @@ export class UsersComponent implements OnInit {
     }));
 
     this.roleUsers = Object.keys(roleMap).map(role => ({ role: role, users: roleMap[role] }));
-    
+
     if (!this.isAdmin()) {
       this.roleUsers = this.roleUsers.filter(x => !['ADMIN', 'CSR_MANAGER'].includes(x.role));
     }

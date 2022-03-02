@@ -27,6 +27,52 @@ export class DbScriptsComponent implements OnInit {
   ngOnInit() {
   }
 
+  checkWebsiteEqual(web1, web2) {
+    [/^https?:\/\//, /www\./, /\/+$/].forEach(r => {
+      web1 = (web1 || '').replace(r, '');
+      web2 = (web2 || '').replace(r, '');
+    });
+    return web1 && web1 === web2;
+  }
+
+
+  async checkGmbWebsiteOwner() {
+    const rts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: { _id: 1, 'web.qmenuWebsite': 1, 'googleListing.cid': 1},
+      limit: 20000
+    }).toPromise();
+
+    const biz =  await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: {cid: 1, gmbWebsite: 1, gmbOwner: 1},
+    }, 20000);
+
+    let dict = {}
+    biz.forEach(({cid, gmbWebsite, gmbOwner}) => {
+      if (dict[cid]) {
+        console.log('repeat...', cid, gmbWebsite, gmbOwner, dict[cid])
+      }
+      if (cid && gmbWebsite) {
+        dict[cid] = {gmbWebsite, gmbOwner}
+      }
+    })
+
+    const data = []
+    rts.forEach(rt => {
+      // @ts-ignore
+      let {gmbWebsite, gmbOwner} = dict[rt.googleListing.cid] || {}
+      let qw = rt.web && rt.web.qmenuWebsite;
+      if (gmbWebsite && qw) {
+        data.push({gw: gmbWebsite, qw, owner: gmbOwner})
+      }
+    })
+    let websiteEqualNotQmenu = data.filter(({gw, qw, owner}) => this.checkWebsiteEqual(gw, qw) && owner !== 'qmenu');
+    let websiteNotEqualInQmenu = data.filter(({gw, qw, owner}) => !this.checkWebsiteEqual(gw, qw) && owner === 'qmenu');
+    console.log('gmbWebsite === qmenuWebsite and owner !== qmenu: ', websiteEqualNotQmenu)
+    console.log('gmbWebsite !== qmenuWebsite and owner === qmenu: ', websiteNotEqualInQmenu)
+  }
+
   async migratePaymentMeansOneTime() {
     const rts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
@@ -4038,7 +4084,7 @@ export class DbScriptsComponent implements OnInit {
       return new Date(parseInt(timestamp, 16) * 1000);
     }
 
-    /* round - helper function to address floating point math imprecision. 
+    /* round - helper function to address floating point math imprecision.
       e.g. sometimes a total may be expressed as '2.27999999999997'. we need to put that in the format '2.28' */
     const round = function (num) {
       return Math.round((num + Number.EPSILON) * 100) / 100;
@@ -4156,17 +4202,25 @@ export class DbScriptsComponent implements OnInit {
             required: false,
             createdAt: new Date()
           } as any;
-
-          if (orders.length >= 200) {
-            const monthlyDataAndTotal = tabulateMonthlyData(orders);
-            if (monthlyDataAndTotal.total >= 20000) {
-              rt1099KData.required = true
-              rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
-            }
-          }
-
           // for tax year 2021 and before: requirement is >= 200 orders and >= 20,000 dollars
           // for tax year 2022 and after: requirement is >=1 orders and >= 600 dollars
+          if (taxYear < 2022) {
+            if (orders.length >= 200) {
+              const monthlyDataAndTotal = tabulateMonthlyData(orders);
+              if (monthlyDataAndTotal.total >= 20000) {
+                rt1099KData.required = true
+                rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
+              }
+            }
+          } else if (taxYear === 2022) {
+            if (orders.length >= 1) {
+              const monthlyDataAndTotal = tabulateMonthlyData(orders);
+              if (monthlyDataAndTotal.total >= 600) {
+                rt1099KData.required = true
+                rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
+              }
+            }
+          }
 
           if (rt1099KData.required === true) {
             console.log(rt1099KData);

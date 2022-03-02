@@ -71,6 +71,11 @@
     <button class="btn btn-primary ml-2" (click)="calcTransactionByTime()"><i class="fa fa-calculator"></i>
       Calculate</button>
     <span *ngIf="transactionText" class="ml-2">{{transactionText}}</span>
+    <div class="ml-2">
+      <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" 
+      title="For 2021 and prior, if RT has less than 200 transactions or less than $20k of transactions, they don’t need a 1099K form for the currently-selected period. For 2022 and beyond, if the RT has less than $600 of transactions, they don’t need a 1099K form for the currently-selected period.
+      (对于2021和以前，如果餐馆具有少于200个事务或少于20000美元的事务，则它们不需要当前选择的周期的1099 K表。在2022年及以后，如果餐馆的交易额少于600美元，则在当前选定的期间内，他们不需要1099K表格。)"></i>
+    </div>
   </div>
 </div>
 
@@ -117,6 +122,12 @@
               <q-edit-label [emptyHint]="'(click to add)'" [value]="" [type]="'text'"
                 (edit)="onEdit($event, rowIndex, 'Email')"></q-edit-label>
             </ng-template>
+          </div>
+          <div>
+            <b>Tin Type: </b>
+            <b class="text-danger" *ngIf="!row.rtTinType">Attribute Missing</b>
+            <span>{{row.rtTinType}}</span>
+            <a class="btn-link ml-2" (click)="openTinTypeModal(rowIndex)">Edit</a>
           </div>
         </span>
         <span class="col-3">
@@ -184,4 +195,22 @@
     </div>
   </q-modal>
   <!-- end with send email modal -->
+  <!-- start with tin type modal -->
+  <q-modal #tinTypeModal>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">×</span>
+      </button>
+      <h4 class="text-center">Tin Type</h4>
+      <hr>
+      <div class="row my-3">
+        <select class="form-control mx-2" [(ngModel)]="tinType">
+          <option *ngFor="let type of tinTypes"> {{type}} </option>
+        </select>
+      </div>
+      <div class="d-flex justify-content-end p-4">
+        <button class="btn btn-secondary mr-2" (click)="tinTypeModal.hide()">Cancel</button>
+        <button class="btn btn-primary" (click)="patchTinType()">Submit</button>
+      </div>
+    </q-modal>
+    <!-- end with tin type modal -->
 </div>

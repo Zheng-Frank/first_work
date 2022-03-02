@@ -43,6 +43,35 @@ enum RTsNameOptions {
   Diff = 'Q/B Diff name'
 }
 
+enum GMBStatusOptions {
+  BmOwned = 'BM Owned',
+  QmOwned = 'QM Owned',
+  BmOrQmOwned = 'BM or QM Owned',
+  NeitherOwned = 'Neither BM/QM Owned'
+}
+
+enum PostmatesOptions {
+  HasInQm = 'Has Postmates in QM',
+  NoInQm = 'No Postmates in QM',
+  Available = 'Postmates available',
+  Unavailable = 'Postamtes unavailable'
+}
+
+enum PricingOptions {
+  BmHigher = 'BM Pricing Higher',
+  QmHigher = 'QM Pricing Higer',
+  BmEqQm = 'QM=BM Pricing'
+}
+
+enum SalesPerspectiveOptions {
+  BM = 'BM Sales',
+  QM = 'QM Sales'
+}
+
+enum SalesWorthinessOptions {
+  Worthy = 'Sales-worthy',
+  NotWorthy = 'NOT Sales-worthy'
+}
 
 @Component({
   selector: 'app-qm-bm-sst-dashboard',
@@ -58,11 +87,19 @@ export class QmBmSstDashboardComponent implements OnInit {
   filters = {
     keyword: '',
     platform: '',
-    status: '',
+    status: StatusOptions.EitherUp.toString(),
     hasPlaceId: '',
     sameName: '',
-    tier: ''
+    tier: '',
+    gmbStatus: '',
+    postmates: '',
+    pricing: '',
+    perspective: '',
+    worthiness: ''
   }
+
+  sumBmActiveOnly = true;
+  sumQmActiveOnly = true;
 
   summary = {
     overall: [],
@@ -75,35 +112,39 @@ export class QmBmSstDashboardComponent implements OnInit {
 
   pageIndex = 0;
   pageSize = 200;
-
+  viabilities = [];
   qmRTs = [];
   bmRTs = [];
   unionRTs = [];
   qmRTsPlaceDict = {};
   bmRTsPlaceDict = {};
-  showBmPricing = true;
+  showPricing = false;
+  showPhones = false;
+  showOtherContacts = false;
   showSummary = false;
+  showPostmatesStatus = false;
+  showSalesWorthiness = false
 
   constructor(private _api: ApiService) { }
 
   async ngOnInit() {
     $("[data-toggle='tooltip']").tooltip();
+    await this.getViabilities();
     await this.preload();
   }
 
-  countByTier(list, tier) {
-    return list.filter(rt => this.getEiterTier(rt) === tier).length
+  countByTier(list, tier, activeOnly = false) {
+    let num = list.filter(rt => this.getEiterTier(rt) === tier).length;
+    return `${num} (${num ? (Math.round((num / list.length) * 10000) / 100) : 0}%)`
   }
 
   calcSummary() {
-    let bmOnly = this.bmRTs.filter(({bplace_id}) => !bplace_id || !this.qmRTsPlaceDict[bplace_id]);
-    this.unionRTs = [...this.qmRTs, ...bmOnly].map(x => ({...x, ...(this.bmRTsPlaceDict[x.place_id]) || {}}));
-    this.summary.overall = this.unionRTs;
-    this.summary.both = this.unionRTs.filter(({_id, _bid}) => _id && _bid);
-    this.summary.qmOnly = this.qmRTs.filter(({place_id}) => !this.bmRTsPlaceDict[place_id])
-    this.summary.bmOnly = this.bmRTs.filter(({bplace_id}) => !this.qmRTsPlaceDict[bplace_id])
-    this.summary.qmAll = this.qmRTs
-    this.summary.bmAll = this.bmRTs
+    this.summary.overall = this.filteredRows;
+    this.summary.both = this.filteredRows.filter(({_id, _bid}) => _id && _bid);
+    this.summary.qmOnly = this.filteredRows.filter(({_id, place_id}) => _id && !this.bmRTsPlaceDict[place_id])
+    this.summary.bmOnly = this.filteredRows.filter(({_bid, bplace_id}) => _bid && !this.qmRTsPlaceDict[bplace_id])
+    this.summary.qmAll = this.filteredRows.filter(({_id, disabled}) => !!_id && (!this.sumQmActiveOnly || !disabled))
+    this.summary.bmAll = this.filteredRows.filter(({_bid, bdisabled}) => !!_bid && (!this.sumBmActiveOnly || !bdisabled))
   }
 
   paginate(index) {
@@ -118,7 +159,12 @@ export class QmBmSstDashboardComponent implements OnInit {
       status: StatusOptions,
       tier: TierOptions,
       place_id: PlaceIdOptions,
-      name: RTsNameOptions
+      name: RTsNameOptions,
+      gmb: GMBStatusOptions,
+      postmates: PostmatesOptions,
+      pricing: PricingOptions,
+      perspective: SalesPerspectiveOptions,
+      worthiness: SalesWorthinessOptions
     }[key])
   }
 
@@ -133,28 +179,48 @@ export class QmBmSstDashboardComponent implements OnInit {
             $project: {
               place_id: "$googleListing.place_id",
               address: "$googleAddress.formatted_address",
+              cid: '$googleListing.cid',
               disabled: 1,
+              'gmbOwnerHistory.time': 1,
+              'gmbOwnerHistory.gmbOwner': 1,
               website: "$web.qmenuWebsite",
               name: 1,
+              courier: '$courier.name',
+              lat: '$googleAddress.lat',
+              lng: '$googleAddress.lng',
               score: "$score",
               createdAt: "$createdAt",
               owner: "$googleListing.gmbOwner",
-              channels: {
-                $filter: {
-                  input: "$channels",
-                  as: "channel",
-                  cond: { $eq: ["$$channel.type", "Phone"] }
-                }
-              },
+              channels: 1,
             }
           }
         ],
-      }, 10000));
+      }, 5000));
+
+      const gmbBiz = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbBiz',
+        projection: {cid: 1, gmbOwner: 1, place_id: 1},
+        limit: 1000000000
+      }).toPromise();
+      let gmbWebsiteOwnerDict = {};
+      gmbBiz.forEach(({cid, place_id, gmbOwner}) => {
+        gmbWebsiteOwnerDict[place_id + cid] = gmbOwner
+      })
+
       this.qmRTs.forEach(rt => {
         if (rt.place_id) {
           this.qmRTsPlaceDict[rt.place_id] = rt;
         }
         rt.tier = this.getTier(rt.score)
+
+        if (rt.gmbOwnerHistory && rt.gmbOwnerHistory.length > 0) {
+          rt.gmbOwnerHistory.sort((a, b) => new Date(b.time).valueOf() - new Date(a.time).valueOf());
+          rt.hasGmb = rt.gmbOwnerHistory[0].gmbOwner === 'qmenu';
+        } else {
+          rt.hasGmb = false
+        }
+        rt.hasGMBWebsite = !!gmbWebsiteOwnerDict[rt.place_id + rt.cid]
+        rt.postmatesAvailable = this.postmatesAvailable(rt)
       })
       // --- BeyondMenu restaurants
       let bmRTs = await this._api.post(environment.gmbNgrok + 'get-bm-restaurant').toPromise();
@@ -164,10 +230,10 @@ export class QmBmSstDashboardComponent implements OnInit {
         const channels = [];
         [1, 2, 3, 4].map(num => {
           if (item[`Phone${num}`]) {
-            channels.push({ value: item[`Phone${num}`]});
+            channels.push({ type: 'Phone', value: item[`Phone${num}`]});
           }
           if (item[`CellPhone${num}`]) {
-            channels.push({ value: item[`CellPhone${num}`]});
+            channels.push({ type: 'Phone', value: item[`CellPhone${num}`]});
           }
         });
         let place_id = item.GooglePlaceID;
@@ -197,19 +263,68 @@ export class QmBmSstDashboardComponent implements OnInit {
         }
         return data;
       });
-      this.calcSummary();
+      let bmOnly = this.bmRTs.filter(({bplace_id}) => !bplace_id || !this.qmRTsPlaceDict[bplace_id]);
+      this.unionRTs = [...this.qmRTs, ...bmOnly].map(x => {
+        let item = {...x, ...(this.bmRTsPlaceDict[x.place_id]) || {}};
+        item.worthy = item._bid && (item.bdisabled || !item.bhasGmb);
+        item.bworthy = item._id && (item.disabled || (!item.hasGmb && !item.hasGMBWebsite))
+        return item;
+      });
       this.filter();
     } catch (error) {
       console.error(error);
     }
   }
 
+  async getViabilities() {
+    this.viabilities = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "viability-lookup",
+      query: {},
+      projection: {
+        'Branch Name': 1,
+        'Addresses': 1,
+        Latitude: 1,
+        Longitude: 1,
+        Viability: 1
+      },
+      limit: 20000
+    }).toPromise();
+  }
+
+  getDistance(lat1, lng1, lat2, lng2) {
+    let radLat1 = lat1 * Math.PI / 180.0;
+    let radLat2 = lat2 * Math.PI / 180.0;
+    let a = radLat1 - radLat2;
+    let b = lng1 * Math.PI / 180.0 - lng2 * Math.PI / 180.0;
+    let s = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a / 2), 2) +
+      Math.cos(radLat1) * Math.cos(radLat2) * Math.pow(Math.sin(b / 2), 2)));
+    s = s * 6378.137; // EARTH_RADIUS;
+    s = Math.round(s * 10000) / 10000;
+    // The distance to call return is in miles.
+    s = s * 0.62137; // 1 kilometre is 0.62137 mile.
+    return s;
+  }
+
+  postmatesAvailable({lat, lng}) {
+    let distances = [];
+    this.viabilities.forEach(item => {
+      if (item.Latitude && item.Longitude) {
+        const distance = this.getDistance(lat, lng, item.Latitude, item.Longitude)
+        distances.push(distance);
+      } else {
+        distances.push(Number.MAX_VALUE);
+      }
+    });
+    let minDistance = Math.min(...distances), index = distances.indexOf(minDistance);
+    return minDistance < 0.5 && (['V1', 'V2', 'V3', 'V4'].includes(this.viabilities[index].Viability));
+  }
+
   getTier(score) {
     if (!score) {
       return 0;
-    } else if (score >= 0 && score < 3) {
+    } else if (score >= 0 && score <= 4) {
       return 3;
-    } else if (score >= 3 && score < 6) {
+    } else if (score > 4 && score <= 40) {
       return 2;
     } else {
       return 1;
@@ -225,18 +340,55 @@ export class QmBmSstDashboardComponent implements OnInit {
     return (Math.min(qt, bt) || Math.max(qt, bt))
   }
 
+  getWorthy(rt) {
+    switch (this.filters.perspective) {
+      case SalesPerspectiveOptions.QM:
+        if (rt._id) {
+          return 'N/A'
+        }
+        return rt.worthy ? `<i class="mb-3 fa fa-thumbs-up text-success"></i>` : `<i class="mb-3 fa fa-thumbs-down text-warning"></i>`
+      case SalesPerspectiveOptions.BM:
+        if (rt._bid) {
+          return 'N/A'
+        }
+        return rt.bworthy ? `<i class="mb-3 fa fa-thumbs-up text-success"></i>` : `<i class="mb-3 fa fa-thumbs-down text-warning"></i>`
+    }
+  }
+
+  worthyFilter(list, perspective, worthiness) {
+    if (perspective) {
+      let field = {[SalesPerspectiveOptions.BM]: 'bworthy', [SalesPerspectiveOptions.QM]: 'worthy'}[perspective]
+      let id = {[SalesPerspectiveOptions.BM]: '_bid', [SalesPerspectiveOptions.QM]: '_id'}[perspective]
+      if (worthiness) {
+        if (worthiness === SalesWorthinessOptions.Worthy) {
+          list = list.filter(rt => !rt[id] && rt[field])
+        } else {
+          list = list.filter(rt => !rt[id] && !rt[field])
+        }
+      }
+    } else {
+      this.filters.worthiness = ''
+      this.showSalesWorthiness = false;
+    }
+    return list;
+  }
+
   filter() {
-    let { platform, status, tier, hasPlaceId, sameName, keyword } = this.filters;
+    let {
+      platform, status, tier, hasPlaceId,
+      sameName, gmbStatus, pricing, postmates,
+      perspective, worthiness, keyword
+    } = this.filters;
     let list = this.unionRTs;
     switch (platform) {
       case PlatformOptions.Both:
         list = list.filter(({_id, _bid}) => _id &&  _bid);
         break;
       case PlatformOptions.BmOnly:
-        list = this.bmRTs.filter(({bplace_id}) => !this.qmRTsPlaceDict[bplace_id])
+        list = list.filter(({_id, _bid, bplace_id}) => !_id && _bid && !this.qmRTsPlaceDict[bplace_id])
         break;
       case PlatformOptions.QmOnly:
-        list = this.qmRTs.filter(({place_id}) => !this.bmRTsPlaceDict[place_id])
+        list = list.filter(({_id, _bid, place_id}) => _id && !_bid && !this.bmRTsPlaceDict[place_id])
         break;
     }
 
@@ -312,15 +464,57 @@ export class QmBmSstDashboardComponent implements OnInit {
         break;
     }
 
+    switch (gmbStatus) {
+      case GMBStatusOptions.QmOwned:
+        list = list.filter(rt => rt.hasGmb && !rt.bhasGmb)
+        break;
+      case GMBStatusOptions.BmOwned:
+        list = list.filter(rt => !rt.hasGmb && rt.bhasGmb)
+        break;
+      case GMBStatusOptions.BmOrQmOwned:
+        list = list.filter(rt => rt.hasGmb || rt.bhasGmb)
+        break;
+      case GMBStatusOptions.NeitherOwned:
+        list = list.filter(rt => !rt.hasGmb && !rt.bhasGmb)
+        break;
+    }
+
+    switch (postmates) {
+      case PostmatesOptions.HasInQm:
+        list = list.filter(rt => rt._id && rt.courier === 'Postmates');
+        break;
+      case PostmatesOptions.NoInQm:
+        list = list.filter(rt => !rt._id || rt.courier !== 'Postmates');
+        break;
+      case PostmatesOptions.Available:
+        list = list.filter(rt => rt.postmatesAvailable) // only calc qm RTs for now
+        break;
+      case PostmatesOptions.Unavailable:
+        list = list.filter(rt => rt._id && !rt.postmatesAvailable) // only calc qm RTs for now
+        break;
+    }
+
+    switch (pricing) {
+      case PricingOptions.BmHigher:
+        break;
+      case PricingOptions.QmHigher:
+        break;
+      case PricingOptions.BmEqQm:
+        break;
+    }
+
+    list = this.worthyFilter(list, perspective, worthiness);
+
     if (keyword && keyword.trim()) {
       const kwMatch = str => str && str.toLowerCase().includes(keyword.toLowerCase())
-      let digits = keyword.replace(/\D/g, '');
+      let digits = keyword.replace(/[^a-zA-Z0-9]/g, '');
       list = list.filter(({name, bname, address, baddress, channels, bchannels}) => {
         return kwMatch(name) || kwMatch(bname) || kwMatch(address) || kwMatch(baddress)
-        || (digits && ((channels || []).some(p => p.value.includes(digits)) || (bchannels || []).some(p => p.value.includes(digits))))
+        || (digits && ((channels || []).some(p => p.type === 'Phone' && p.value.includes(digits)) || (bchannels || []).some(p => p.value.includes(digits))))
       })
     }
     this.filteredRows = list
+    this.calcSummary()
     this.paginate(0)
   }
 
@@ -328,8 +522,24 @@ export class QmBmSstDashboardComponent implements OnInit {
     return this.filteredRows.slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize)
   }
 
-  phones(channels) {
-    return (channels || []).map(c => c.value).join(', ')
+  groupChannels({channels, bchannels}, type) {
+    let qmWhole = (channels || []).filter(c => c.type === type).map(c => c.value);
+    let bmWhole = (bchannels || []).filter(c => c.type === type).map(c => c.value);
+    let whole = Array.from(new Set([...qmWhole, ...bmWhole]))
+    let shared = whole.filter(p => qmWhole.includes(p) && bmWhole.includes(p));
+    let qmOnly = qmWhole.filter(p => !shared.includes(p));
+    let bmOnly = bmWhole.filter(p => !shared.includes(p));
+    let contents = [];
+    if (shared.length > 0) {
+      contents.push(shared.join(', ') + ' (Both)');
+    }
+    if (qmOnly.length > 0) {
+      contents.push(qmOnly.join(', ') + ' (QM)');
+    }
+    if (bmOnly.length > 0) {
+      contents.push(bmOnly.join(', ') + ' (BM)')
+    }
+    return contents.join(', ');
   }
 
   clearFilter() {
@@ -339,7 +549,12 @@ export class QmBmSstDashboardComponent implements OnInit {
       platform: '',
       hasPlaceId: '',
       sameName: '',
-      tier: ''
+      tier: '',
+      gmbStatus: '',
+      postmates: '',
+      pricing: '',
+      perspective: '',
+      worthiness: ''
     }
 
     this.filter();

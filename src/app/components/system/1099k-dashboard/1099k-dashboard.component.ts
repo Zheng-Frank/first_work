@@ -9,6 +9,7 @@ import { PDFDocument } from "pdf-lib";
 import { TimezoneHelper, Hour } from "@qmenu/ui";
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { form1099kEmailTemplate } from '../../restaurants/restaurant-form1099-k/html-email-templates';
+declare var $: any;
 enum openRTOptionTypes {
   All = 'Open now?',
   Open = 'Open',
@@ -44,6 +45,12 @@ enum sentEmailOptionTypes {
   Form_Not_Sent = 'Form Not Sent'
 }
 
+enum enumTinTypes {
+  Remove = '',
+  EIN = 'EIN',
+  SSN = 'SSN'
+}
+
 @Component({
   selector: "app-1099k-dashboard",
   templateUrl: "./1099k-dashboard.component.html",
@@ -51,11 +58,12 @@ enum sentEmailOptionTypes {
 })
 export class Dashboard1099KComponent implements OnInit, OnDestroy {
   @ViewChild('sendEmailModal') sendEmailModal: ModalComponent;
-
+  @ViewChild('tinTypeModal') tinTypeModal: ModalComponent;
   rows = [];
   filteredRows = [];
   taxYearOptions = [
     'All',
+    '2022',
     // '2022', // taxYear 2022 will need to be enabled beginning in 2023
     '2021',
     '2020',
@@ -81,6 +89,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   bulkFileOperation = '';
 
   bulkOperationYears = [
+    '2022',
     '2021',
     '2020',
   ];
@@ -99,6 +108,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   template;
   currRow;
   currForm;
+  currRowIndex;
   sendLoading = false;
   showExplanation = false;
   showExtraTools = false;
@@ -106,6 +116,8 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   fromDate; //time picker to calculate transactions.
   toDate;
   transactionText = '';
+  tinTypes = [enumTinTypes.EIN, enumTinTypes.SSN, enumTinTypes.Remove];
+  tinType = enumTinTypes.EIN;
   constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer, private _http: HttpClient) { }
 
   async ngOnInit() {
@@ -119,6 +131,25 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     this.filterRows();
   }
 
+  openTinTypeModal(rowIndex) {
+    this.currRowIndex = rowIndex;
+    this.tinType = enumTinTypes.EIN;
+    this.tinTypeModal.show();
+  }
+
+  async patchTinType() {
+    let newObj = { _id: this.filteredRows[this.currRowIndex].id };
+    newObj['tinType'] = this.tinType === enumTinTypes.Remove ? undefined : this.tinType;
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+      {
+        old: { _id: this.filteredRows[this.currRowIndex].id, tinType: this.filteredRows[this.currRowIndex].rtTinType},
+        new: newObj
+      }
+    ]).toPromise();
+    this.filteredRows[this.currRowIndex].rtTinType = newObj['tinType'];
+    this.tinTypeModal.hide();
+  }
+
   handleShowExtraTools() {
     this.showExtraTools = !this.showExtraTools;
     if (!this.showExtraTools) {
@@ -126,6 +157,8 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       this.fromDate = '';
       this.calcRTFilter = '';
       this.transactionText = '';
+    } else {
+      $("[data-toggle='tooltip']").tooltip();
     }
   }
 
@@ -164,11 +197,12 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
         } // less than and greater than
       }, {
         createdAt: {
-          $lte: { $date: utct }
+          $lt: { $date: utct }
         }
       }],
       "paymentObj.method": "QMENU"
     } as any;
+
     const orders = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
       query: query,
@@ -177,6 +211,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       },
       limit: 100000000000000000
     }).toPromise();
+
     /* round - helper function to address floating point math imprecision. 
      e.g. sometimes a total may be expressed as '2.27999999999997'. we need to put that in the format '2.28' */
     const round = function (num) {
@@ -238,7 +273,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
           }]
       });
     });
-    
+
     for (let i = 0; i < templates.length; i++) {
       let template = templates[i];
       this.currRow = template.row;
@@ -511,7 +546,8 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
         googleAddress: 1,
         people: 1,
         tin: 1,
-        payeeName: 1
+        payeeName: 1,
+        tinType: 1
       }
     }, 5000);
     this.now = new Date();
@@ -520,6 +556,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
 
   turnRtObjectIntoRow(rt) {
     const rtTIN = rt.tin || null;
+    const rtTinType = rt.tinType || null;
     const payeeName = rt.payeeName || null;
     const email = (rt.channels || []).filter(ch => ch.type === 'Email' && (ch.notifications || []).includes('Invoice')).map(ch => ch.value); // RT *must* have an invoice email channel
     const ga = rt.googleAddress;
@@ -532,7 +569,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     });
     const closedHours = rt.closedHours;
     const openOrNot = this.isRTOpened(menus, closedHours, timezone);
-    rt.form1099k.sort((a,b)=>b.year - a.year);
+    rt.form1099k.sort((a, b) => b.year - a.year);
     return {
       id: rt._id,
       name: rt.name,
@@ -542,6 +579,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       form1099k: rt.form1099k,
       payeeName,
       rtTIN,
+      rtTinType,
       channels: rt.channels || [],
       timezone,
       openOrNot

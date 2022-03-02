@@ -261,7 +261,24 @@ export class Helper {
             (address.apt ? ', ' + address.apt : '');
     }
 
-    static getTimeZone(formatted_address) {
+    static getTimeZoneAbbr({timezone, country, formatted_address}) {
+      if (!timezone) {
+        return 'UNKNOWN';
+      }
+      let options = {timeZone: timezone, timeZoneName: 'short'}
+      if (!country) {
+        let nation = formatted_address.split(',').pop().trim();
+        if (['US', 'USA'].includes(nation)) {
+          country = 'US'
+        } else if (['Canada', 'CA'].includes(nation)) {
+          country = 'CA'
+        }
+      }
+      let str = new Date().toLocaleString('en-' + (country || 'US'), options)
+      return str.split(',')[1].trim();
+    }
+
+  static getTimeZone(formatted_address) {
         const tzMap = {
             PDT: ['WA', 'OR', 'CA', 'NV', 'AZ'],
             MDT: ['MT', 'ID', 'WY', 'UT', 'CO', 'NM'],
@@ -275,14 +292,16 @@ export class Helper {
         };
 
         let matchedTz = '';
-        if (formatted_address && formatted_address.match(/\b[A-Z]{2}/)) {
-            let state = formatted_address.match(/\b[A-Z]{2}/)[0];
-
-            Object.keys(tzMap).map(tz => {
+        if (formatted_address) {
+            let matched = formatted_address.match(/\s[A-Z]{2},?\s/g);
+            if (matched) {
+              let state = matched.pop().replace(/^\s(\w+),?\s/, "$1");
+              Object.keys(tzMap).map(tz => {
                 if (tzMap[tz].indexOf(state) > -1) {
-                    matchedTz = tz;
+                  matchedTz = tz;
                 }
-            });
+              });
+            }
         }
         return matchedTz;
     }

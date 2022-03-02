@@ -1,8 +1,7 @@
-import { filter } from 'rxjs/operators';
-import { Helper } from './../../../classes/helper';
-import { environment } from 'src/environments/environment';
-import { ApiService } from 'src/app/services/api.service';
-import { Component, OnInit } from '@angular/core';
+import {Helper} from '../../../classes/helper';
+import {environment} from 'src/environments/environment';
+import {ApiService} from 'src/app/services/api.service';
+import {Component, OnInit} from '@angular/core';
 
 @Component({
   selector: 'app-restaurants-by-courier',
@@ -12,8 +11,11 @@ import { Component, OnInit } from '@angular/core';
 export class RestaurantsByCourierComponent implements OnInit {
 
   couriers = [];
-  courier = 'Postmates';  
+  courier = 'Postmates';
+  deliveryStatus = '';
+  timezone = 'All'
   restaurants = [];
+  timezones = [];
   filteredRestaurants = [];
 
   restaurantsColumnDescriptors = [
@@ -46,10 +48,10 @@ export class RestaurantsByCourierComponent implements OnInit {
   ngOnInit() {
     this.populateRestaurantListByCourier();
   }
-  isDeliveryServiceEnabled(settings) {
-    if (settings) {
-      return settings.some(e => e.name === 'Delivery' && e.paymentMethods && e.paymentMethods.length > 0);
-    }
+
+  deliveryStatusLabel(settings) {
+    let enabled = settings && settings.some(e => e.name === 'Delivery' && e.paymentMethods && e.paymentMethods.length > 0);
+    return enabled ? 'ON' : 'OFF'
   }
 
   async populateRestaurantListByCourier() {
@@ -63,6 +65,8 @@ export class RestaurantsByCourierComponent implements OnInit {
       projection: {
         _id: 1,
         "googleAddress.formatted_address": 1,
+        'googleAddress.timezone': 1,
+        'googleAddress.country': 1,
         name: 1,
         courier: 1,
         score: 1,
@@ -72,39 +76,47 @@ export class RestaurantsByCourierComponent implements OnInit {
       },
     }, 5000);
     this.restaurants = this.parseRestaurants(this.restaurants).filter(each => (each.courier && each.courier.name) || (!each.courier && each.deliverySettings && each.deliverySettings.length > 0));
+    this.timezones = Array.from(new Set(this.restaurants.map(rt => rt.timeZone)))
     this.filteredRestaurants = this.restaurants;
     this.filter();
   }
 
   parseRestaurants(restaurants) {
-    const ret = restaurants.map(each => ({
+    return restaurants.map(each => ({
       restaurantId: each._id,
       name: each.name,
       address: each.googleAddress.formatted_address,
       score: each.score,
-      timeZone: Helper.getTimeZone(each.googleAddress.formatted_address),
+      timeZone: Helper.getTimeZoneAbbr(each.googleAddress),
       courier: each.courier,
       deliveryClosedHours: each.deliveryClosedHours,
       deliverySettings: each.deliverySettings,
       serviceSettings: each.serviceSettings
     }));
-    return ret;
   }
 
   filter() {
+    let list = this.restaurants;
     switch (this.courier) {
       case 'All':
-        this.filteredRestaurants = this.restaurants;
         break;
       case 'Postmates':
-        this.filteredRestaurants = this.restaurants.filter(each => each.courier && each.courier.name && each.courier.name === 'Postmates');
+        list = list.filter(each => each.courier && each.courier.name && each.courier.name === 'Postmates');
         break;
       case 'Self delivery':
-        this.filteredRestaurants = this.restaurants.filter(each => !each.courier && each.deliverySettings && each.deliverySettings.length > 0);
+        list = list.filter(each => !each.courier && each.deliverySettings && each.deliverySettings.length > 0);
         break;
       default:
-        this.filteredRestaurants = this.restaurants.filter(each => each.courier && each.courier.name && each.courier.name === this.courier);
+        list = list.filter(each => each.courier && each.courier.name && each.courier.name === this.courier);
         break;
     }
+    if (this.deliveryStatus) {
+      list = list.filter(rt => this.deliveryStatusLabel(rt.serviceSettings) === this.deliveryStatus)
+    }
+    if (this.timezone !== 'All') {
+      list = list.filter(rt => rt.timeZone === this.timezone);
+    }
+
+    this.filteredRestaurants = list
   }
 }
