@@ -1,15 +1,15 @@
-import { DomSanitizer } from '@angular/platform-browser';
-import { HttpClient } from '@angular/common/http';
-import { AlertType } from 'src/app/classes/alert-type';
-import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
-import { ApiService } from "../../../services/api.service";
-import { environment } from "../../../../environments/environment";
-import { GlobalService } from "../../../services/global.service";
-import { PDFDocument } from "pdf-lib";
-import { TimezoneHelper, Hour } from "@qmenu/ui";
-import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-import { form1099kEmailTemplate } from '../../restaurants/restaurant-form1099-k/html-email-templates';
-import { download } from './irs-fire-helper';
+import {DomSanitizer} from '@angular/platform-browser';
+import {HttpClient} from '@angular/common/http';
+import {AlertType} from 'src/app/classes/alert-type';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {ApiService} from '../../../services/api.service';
+import {environment} from '../../../../environments/environment';
+import {GlobalService} from '../../../services/global.service';
+import {PDFDocument} from 'pdf-lib';
+import {Hour, TimezoneHelper} from '@qmenu/ui';
+import {ModalComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
+import {form1099kEmailTemplate} from '../../restaurants/restaurant-form1099-k/html-email-templates';
+import {download} from './irs-fire-helper';
 
 
 declare var $: any;
@@ -154,7 +154,11 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   }
 
   downloadFIRE() {
-    download(this.bulkOperationYear, this.rows);
+    try {
+      download(this.taxYear, this.rows);
+    } catch (e) {
+      this._global.publishAlert(AlertType.Danger, e.message)
+    }
   }
 
   tooltip() {
@@ -638,6 +642,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   }
 
   filterRows() {
+    this.tooltip();
     /* pass through several layers of filtering based on each possible criteria:
     taxYear, showingMissingPayee, showMissingTIN, and showMissingEmail */
     this.filteredRows = JSON.parse(JSON.stringify(this.rows));

@@ -31,7 +31,7 @@ const TFields: Field[] = [
   {name: "TransmitterControlCode", index: 4, length: 5},
   {name: "Blank", index: 5, length: 7, blank: true},
   {name: "TestFileIndicator", index: 6, length: 1, blank: true},
-  {name: "ForeignEntityIndicator", index: 7, length: 1},
+  {name: "ForeignEntityIndicator", index: 7, length: 1, blank: true},
   // Name of one of the people set up on the account (e.g. authorized user), fill in with spaces up to 80 chararcters
   {name: "TransmitterName", index: 8, length: 80},
   {name: "CompanyName", index: 9, length: 80},
@@ -267,7 +267,6 @@ const renderRow = (fields, data) => {
     if (!email) { value = value.toUpperCase(); }
     // for number, pad left with 0, for string, pad right with space
     let text = pad(value, length, numeric)
-    console.log(name, data[name], text, value)
     return text;
   }).join('')
   console.log(data.RecordSequenceNumber, content.length)
@@ -287,17 +286,17 @@ class Renderer {
       TransmitterTIN: '814208444',
       TransmitterControlCode : "95102",
       TestFileIndicator : "",
-      ForeignEntityIndicator : '',
-      TransmitterName : "Gary Sui",
-      CompanyName : "QMenu Inc,",
-      CompanyAddress : "Suite 211, 107 Technology Pkwy NW",
-      CompanyCity : "Atlanta",
+      ForeignEntityIndicator : '', // leave empty
+      TransmitterName : "Guanghua Sui",
+      CompanyName : "QMENU, INC",
+      CompanyAddress : "107 Technology Pkwy NW Suite 211",
+      CompanyCity : "Peachtree Corners",
       CompanyState : "GA",
       CompanyZipcode : "30092",
       TotalPayees : total,
-      CompanyContactName : "Sashank Tadepalli",
-      CompanyContactPhone : "7072345548",
-      CompanyContactEmail : "soulcyon@gmail.com",
+      CompanyContactName : "Guanghua Sui",
+      CompanyContactPhone : "4075807504",
+      CompanyContactEmail : "garysui@gmail.com",
       VendorIndicator: 'I',
       VendorName : '',
       VendorAddress : '',
@@ -315,17 +314,17 @@ class Renderer {
   static aRow(year) {
     let data = {
       type: 'A', CFSF: 1, PaymentYear: year,
-      PayerTIN: '', PayerNameControl: '',
+      PayerTIN: '814208444', PayerNameControl: '', // leave empty
       TypeOfReturn: Constants.TYPE_OF_RECORD,
       AmountCodes: Constants.REPORT_AMOUNTCODES,
       ForeignEntityIndicator : '',
-      PayerName : "Kydia Inc dba BeyondMenu",
+      PayerName : "QMENU, INC",
       TransferAgentIndicator: '0',
-      PayerAddress : "10400 W Higgins Rd Ste 205",
-      PayerCity : "Rosemont",
-      PayerState : "IL",
-      PayerZipcode : "60018",
-      PayerPhone : "6307763590",
+      PayerAddress : "107 Technology Pkwy NW Suite 211",
+      PayerCity : "Peachtree Corners",
+      PayerState : "GA",
+      PayerZipcode : "30092",
+      PayerPhone : "4043829768",
       RecordSequenceNumber: 2
     }
     return renderRow(AFields, data)
@@ -335,21 +334,27 @@ class Renderer {
     let sequence = 3, states = {}, rows = [];
     let sum = {type: 'C', GrossAmount: 0, CardNotPresentTransactions: 0, NumberOfPayees: 0};
     list.forEach(item => {
-      item.form1099k.filter(x => x.year === Number(year))
+      item.form1099k.filter(x => x.required && x.year === Number(year))
         .forEach(form => {
+          // verify data
+          let tin = form.periodTin || item.rtTIN,
+            payeeName = form.periodPayeeName || item.payeeName;
+          if (!tin || !payeeName) {
+            throw new Error('One or more restaurants is missing information required to download the FIRE submission. Please fill in all required fields before downloading.')
+          }
           let data = {
             type: 'B', PaymentYear: year,
-            PayeeNameControl: '',
-            PayeeTINType: {EIN: '1', SSN: '2'}[item.rtTinType],
-            PayeeTIN: (form.periodTin || item.rtTIN || '').replace(/[-\s]/g, ''),
-            PayerAccountNumber: '',
-            PayeeName: form.periodPayeeName || item.payeeName,
+            PayeeNameControl: '', // leave empty
+            PayeeTINType: {EIN: '1', SSN: '2'}[form.periodTinType || item.rtTinType] || '1', // default to EIN
+            PayeeTIN: tin.replace(/[-\s]/g, ''),
+            PayerAccountNumber: item.id.substr(4), // use last 20 chars in _id
+            PayeeName: payeeName,
             GrossAmount: round(form.total),
             CardNotPresentTransactions: Number(form.transactions || 0),
             PayeeAddress: item.streetAddress, PayeeCity: item.city, PayeeState: item.state,
             PayeeZipcode: item.zipCode, RecordSequenceNumber: sequence++,
             SecondTINNotice: '', TypeOfFiler: '2', TypeOfPayment: '2',
-            NumberOfTransactions: form.transactions,
+            NumberOfTransactions: Number(form.transactions || 0),
             PSENameAndPhone: '', MerchantCategoryCode: Constants.MERCHANT_CATEGORY_CODE,
             CFSCCode: StateCodes[item.state]
           };

@@ -36,6 +36,10 @@
     </select>
     <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Filter by whether the form for the currently-selected tax year has been sent to the restaurant yet.(根据当前所选纳税年度的表格是否已发送到餐厅进行筛选。)"></i>
     <button class="btn btn-primary my-2 mx-2" (click)="rescan()"><i class="fas fa-sync"></i> Rescan</button>
+    <ng-container *ngIf="taxYear &&  taxYear !== 'All'">
+      <button class="my-2 mx-2 btn btn-primary" (click)="downloadFIRE()">Download FIRE Submission</button>
+      <i class="fa fa-info-circle ml-2" data-toggle="tooltip" data-placement="top" title="We need to submit a document (similar to a CSV) to the FIRE website of the IRS. This document, among other things, contains a line for each legal entity for which we’ve submitted a 1099K form and the data values contained in each form. Before submitting it, we must make sure that all 1099K information for all restaurants is correct, that all customizations have been done first, and that TIN-matching has already been done and is verified."></i>
+    </ng-container>
   </div>
   <hr>
   <div class="form-inline mx-5 pl-1">
@@ -45,7 +49,7 @@
       <option *ngFor="let option of bulkFileOperations"> {{option}} </option>
     </select>
     <label class="mx-2">for the year</label>
-    <select class="form-control mx-2" [(ngModel)]="bulkOperationYear" (change)="tooltip()">
+    <select class="form-control mx-2" [(ngModel)]="bulkOperationYear">
       <option value="" disabled> Choose an option... </option>
       <option *ngFor="let year of bulkOperationYears"> {{year}} </option>
     </select>
@@ -54,10 +58,6 @@
     {{ bulkFileOperation === '' ? '' : bulkFileOperation === bulkFileOperationTypes.Download? 'Bulk download functionality coming soon!' : ''}}
     <button class="btn btn-link" (click)="handleShowExtraTools()">
       {{!showExtraTools ? 'Show extra tools' : 'Hide extra tools'}}</button>
-    <ng-container *ngIf="bulkOperationYear">
-      <button class="btn btn-primary" (click)="downloadFIRE()">Download FIRE Submission</button>
-      <i class="fa fa-info-circle ml-2" data-toggle="tooltip" data-placement="top" title="We need to submit a document (similar to a CSV) to the FIRE website of the IRS. This document, among other things, contains a line for each legal entity for which we’ve submitted a 1099K form and the data values contained in each form. Before submitting it, we must make sure that all 1099K information for all restaurants is correct, that all customizations have been done first, and that TIN-matching has already been done and is verified."></i>
-    </ng-container>
   </div>
   <div class="form-inline mx-5 my-3" *ngIf="showExtraTools">
     <label class="mx-2">Calculate Tool</label>
