@@ -180,7 +180,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     tin: 1,  // 1099k tab needs it
     payeeName: 1, // 1099k tab needs it
     form1099k: 1,
-    tinType: 1
+    customerPaidFeesTaxable: 1
   };
 
   showExplanations = false; // a flag to decide whether show English/Chinese translations,and the switch is closed by default.
@@ -686,14 +686,14 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       this._global.languageType = LanguageType.CHINESE;
     }
     // restaurantProfile may be hided
-    if(this.restaurantProfile){
+    if (this.restaurantProfile) {
       this.restaurantProfile.changeLanguageFlag = this._global.languageType;
     }
     // restaurantSetupEntry may be hided
-    if(this.restaurantSetupEntry){
+    if (this.restaurantSetupEntry) {
       this.restaurantSetupEntry.changeLanguageFlag = this._global.languageType;
-      [this.restaurantSetupEntry.basicPanel, this.restaurantSetupEntry.menuPanel, this.restaurantSetupEntry.hoursPanel, this.restaurantSetupEntry.contactPanel, this.restaurantSetupEntry.deliveryPanel, this.restaurantSetupEntry.paymentPanel, this.restaurantSetupEntry.invoicingPanel].forEach(panel=>{
-        if(panel){
+      [this.restaurantSetupEntry.basicPanel, this.restaurantSetupEntry.menuPanel, this.restaurantSetupEntry.hoursPanel, this.restaurantSetupEntry.contactPanel, this.restaurantSetupEntry.deliveryPanel, this.restaurantSetupEntry.paymentPanel, this.restaurantSetupEntry.invoicingPanel].forEach(panel => {
+        if (panel) {
           panel.changeLanguageFlag = this.restaurantSetupEntry.changeLanguageFlag;
         }
       });
