@@ -40,13 +40,11 @@ export class Form1099KComponent implements OnInit {
   tinType = enumTinTypes.EIN;
   customize1099kList = [];
   taxYearOptions = [
-    'All',
     '2022',
-    // '2022', // taxYear 2022 will need to be enabled beginning in 2023
     '2021',
     '2020',
   ];
-  taxYear = 'All';
+  taxYear = '';
   constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer, private _http: HttpClient) { }
 
   async ngOnInit() {
@@ -147,6 +145,7 @@ export class Form1099KComponent implements OnInit {
     ]).toPromise();
     // update origin data
     this.restaurant.form1099k = newObj.form1099k;
+    this.populateFormLinks();
     this._global.publishAlert(AlertType.Success, `Customized form 1099k for restaurant ${this.restaurant.name}!`);
     this.closeCustomize1099kModal();
   }

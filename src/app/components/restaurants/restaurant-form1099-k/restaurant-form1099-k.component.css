@@ -2,3 +2,8 @@
   background: #e9ecef;
   border: 1px solid #ced4da;
 }
+
+.close-btn-pos {
+  position: absolute;
+  right: 25px;
+}

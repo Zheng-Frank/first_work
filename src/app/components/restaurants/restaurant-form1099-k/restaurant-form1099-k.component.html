@@ -41,12 +41,13 @@
     </div>
     <!-- start with tax year filter -->
     <select class="form-control mx-2" [(ngModel)]="taxYear">
+      <option value="" disabled selectedtml> Choose an option... </option>
       <option *ngFor="let entry of taxYearOptions"> {{entry}} </option>
     </select>
     <!-- end with tax year filter -->
     <!-- start with customized btn -->
-    <a class="btn-link" (click)="openCustomize1099kModal()" *ngIf="taxYear !== 'All'">Edit
-        Customizations</a>
+    <a class="btn-link" (click)="openCustomize1099kModal()" *ngIf="taxYear">Edit
+      Customizations</a>
     <!-- end with customized btn -->
   </div>
   <!-- end with Payee/TIN/Email Attributes -->
@@ -56,7 +57,8 @@
     <ng-container *ngFor="let linkEntry of formLinks">
       <li *ngIf="linkEntry[0]; else elseBlock" class="py-2">
         <ng-container *ngIf="linkEntry[0].required; else requiredBlock">
-          {{linkEntry[1]}} <span *ngIf="linkEntry[0].customized">(Customized Part {{getCustomizedNum(linkEntry[0])}})</span> -
+          {{linkEntry[1]}} <span *ngIf="linkEntry[0].customized">(Customized Part
+            {{getCustomizedNum(linkEntry[0])}})</span> -
           <ng-container *ngIf="allAttributesPresent(); else missingAttributesBlock">
             <a class="btn-link" (click)="renderPDFForm('qmenu',linkEntry[1])"> for qMenu
               <i class="fa fa-download"></i></a>
@@ -74,7 +76,8 @@
           </ng-template>
         </ng-container>
         <ng-template #requiredBlock>
-          {{linkEntry[1]}} <span *ngIf="linkEntry[0].customized">(Customized Part {{getCustomizedNum(linkEntry[0])}})</span> - No Form Required for this year
+          {{linkEntry[1]}} <span *ngIf="linkEntry[0].customized">(Customized Part
+            {{getCustomizedNum(linkEntry[0])}})</span> - No Form Required for this year
         </ng-template>
       </li>
       <ng-template #elseBlock>
