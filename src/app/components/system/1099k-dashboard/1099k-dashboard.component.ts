@@ -453,8 +453,8 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
         });
 
         if (+this.taxYear < 2022) {
-          if (orders.length >= 2) {
-            if (monthlyDataAndTotal.total >= 20) {
+          if (orders.length >= 200) {
+            if (monthlyDataAndTotal.total >= 20000) {
               rt1099KData.required = true;
               rt1099KData = { transactions: orders.length, ...rt1099KData, ...filteredMonthlyDataAndTotal };
             }
