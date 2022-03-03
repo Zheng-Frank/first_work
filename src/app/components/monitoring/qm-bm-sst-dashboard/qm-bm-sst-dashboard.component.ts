@@ -348,7 +348,6 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   getWorthy(rt) {
-    console.log('rt...', rt)
     switch (this.filters.perspective) {
       case SalesPerspectiveOptions.QM:
         if (rt._id) {
