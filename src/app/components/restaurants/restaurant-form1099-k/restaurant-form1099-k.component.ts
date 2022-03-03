@@ -38,6 +38,7 @@ export class Form1099KComponent implements OnInit {
   sendLoading = false;
   tinTypes = [enumTinTypes.EIN, enumTinTypes.SSN, enumTinTypes.Remove];
   tinType = enumTinTypes.EIN;
+  customizeTinTypes = [enumTinTypes.EIN, enumTinTypes.SSN];
   customize1099kList = [];
   taxYearOptions = [
     '2022',
@@ -59,13 +60,33 @@ export class Form1099KComponent implements OnInit {
   */
   openCustomize1099kModal() {
     this.customize1099kList = [];
-    let item = {
-      tin: '',
-      payeeName: '',
-      fromDate: '',//  e.g.: 2022-01-01
-      toDate: ''
-    };
-    this.customize1099kList.push(item);
+    // show saved data last times if it exists
+    let customizedYear1099k = (this.restaurant.form1099k || []).filter(form => form.year === +this.taxYear && form.yearPeriodStart);
+    if (customizedYear1099k.length > 0) {
+      customizedYear1099k.sort((a, b) => new Date(a.yearPeriodStart).valueOf() - new Date(b.yearPeriodStart).valueOf());
+      for (let i = 0; i < customizedYear1099k.length; i++) {
+        const customizedForm = customizedYear1099k[i];
+        let item = {
+          tin: customizedForm.periodTin,
+          payeeName: customizedForm.periodPayeeName,
+          tinType: customizedForm.periodTinType || enumTinTypes.EIN,// EIN is defalut value
+          fromDate: customizedForm.yearPeriodStart,//  e.g.: 2022-01-01
+          toDate: customizedForm.yearPeriodEnd,
+          rt1099KData: customizedForm,
+          transactionText: customizedForm.required ? `${customizedForm.transactions} transactions totaling \$${this.round(customizedForm.total)}` : `1099K won't be generated for this period since it's not needed.`
+        };
+        this.customize1099kList.push(item);
+      }
+    } else {
+      let item = {
+        tin: '',
+        payeeName: '',
+        tinType: enumTinTypes.EIN,// EIN is defalut value
+        fromDate: `${this.taxYear}-01-01`,//  e.g.: 2022-01-01
+        toDate: ''
+      };
+      this.customize1099kList.push(item);
+    }
     this.customize1099kModal.show();
   }
 
@@ -77,13 +98,21 @@ export class Form1099KComponent implements OnInit {
     this.customize1099kList.splice(i, 1);
   }
 
+  // reset 1099k form of item if form element value is changed
+  changeCustomItem(item) {
+    item.rt1099KData = undefined;
+  }
+
   // check error of all items of customizeList
   hasCustomize1099kError() {
-    const tinErr = this.customize1099kList.some(item => !item.tin);
-    const payeeErr = this.customize1099kList.some(item => !item.payeeName);
-    const dateErr = this.customize1099kList.some(item => !item.fromDate || !item.toDate) || this.customize1099kList.some(item => !item.payeeName) || this.customize1099kList.some(item => new Date(item.fromDate).valueOf() >= new Date(item.toDate).valueOf()) || this.customize1099kList.some(item => item.fromDate.split('-')[0] !== this.taxYear || item.toDate.split('-')[0] !== this.taxYear);
+    const tinErr = this.customize1099kList.some((item, i) => !item.tin && i < this.customize1099kList.length - 1 || this.customize1099kList.some((another, index) => (index === i + 1 && another.tin === item.tin) || (index === i - 1 && another.tin === item.tin)));
+    const payeeErr = this.customize1099kList.some((item, i) => !item.payeeName && i < this.customize1099kList.length - 1 || this.customize1099kList.some((another, index) => (index === i + 1 && another.payeeName === item.payeeName) || (index === i - 1 && another.payeeName === item.payeeName)));
+    const dateErr = this.customize1099kList.some((item, i) => !item.fromDate || !item.toDate || (i === 0 && item.fromDate !== `${this.taxYear}-01-01`) || (i === this.customize1099kList.length - 1 && item.toDate !== `${this.taxYear}-12-31`))
+      || this.customize1099kList.some(item => new Date(item.fromDate).valueOf() >= new Date(item.toDate).valueOf())
+      || this.customize1099kList.some(item => item.fromDate.split('-')[0] !== this.taxYear || item.toDate.split('-')[0] !== this.taxYear);
     const otherItemDateErr = this.customize1099kList.some((item, i) => this.customize1099kList.some((another, index) => new Date(another.fromDate).valueOf() <= new Date(item.toDate).valueOf() && index > i));
     const noform1099kDataErr = this.customize1099kList.some(item => !item.rt1099KData);
+
     return tinErr || payeeErr || dateErr || otherItemDateErr || noform1099kDataErr;
   }
 
@@ -97,11 +126,22 @@ export class Form1099KComponent implements OnInit {
     const tinErr = 'Data entry error! Ensure tin is not empty!';
     const payeeErr = 'Data entry error! Ensure payee name is not empty!';
     const otherItemDateErr = 'Data entry error! fromTime of another item is smaller than this, but its index is behind!';
-    if (!item.tin) {
+    const duplicateTinErr = 'Tin names between two adjacent items cannot be the same';
+    const duplicatePayeeNameErr = 'Tin names between two adjacent items cannot be the same';
+    const dateNoCoveredErr = 'Dates need to cover a full year';
+    if (!item.tin && i < this.customize1099kList.length - 1) {
       return tinErr;
     }
-    if (!item.payeeName) {
+    // Tin names between two adjacent items cannot be the same
+    if (this.customize1099kList.some((another, index) => (index === i + 1 && another.tin === item.tin) || (index === i - 1 && another.tin === item.tin))) {
+      return duplicateTinErr;
+    }
+    if (!item.payeeName && i < this.customize1099kList.length - 1) {
       return payeeErr;
+    }
+    // payeeName names between two adjacent items cannot be the same
+    if (this.customize1099kList.some((another, index) => (index === i + 1 && another.payeeName === item.payeeName) || (index === i - 1 && another.payeeName === item.payeeName))) {
+      return duplicatePayeeNameErr;
     }
     if (!item.fromDate || !item.toDate) {
       return dateErr;
@@ -115,6 +155,11 @@ export class Form1099KComponent implements OnInit {
     if (this.customize1099kList.some((another, index) => new Date(another.fromDate).valueOf() <= new Date(item.toDate).valueOf() && index > i)) {
       return otherItemDateErr;
     }
+    // Dates need to cover a full year
+    if ((i === 0 && item.fromDate !== `${this.taxYear}-01-01`) || (i === this.customize1099kList.length - 1 && item.toDate !== `${this.taxYear}-12-31`)) {
+      return dateNoCoveredErr;
+    }
+
     return '';
   }
 
@@ -133,7 +178,7 @@ export class Form1099KComponent implements OnInit {
       _id: this.restaurant._id,
       form1099k: this.restaurant.form1099k
     }
-    newObj.form1099k = newObj.form1099k.filter(item => !item.customized);
+    newObj.form1099k = newObj.form1099k.filter(item => item.year !== +this.taxYear);
     this.customize1099kList.forEach(item => {
       newObj.form1099k.push(item.rt1099KData);
     });
@@ -152,7 +197,7 @@ export class Form1099KComponent implements OnInit {
 
   // show which part the customization is
   getCustomizedNum(form) {
-    let yearforms = (this.restaurant.form1099k || []).filter(item => item.year === form.year && item.customized);
+    let yearforms = (this.restaurant.form1099k || []).filter(item => item.year === form.year && item.yearPeriodStart);
     yearforms.sort((a, b) => new Date(a.createdAt).valueOf() - new Date(b.createdAt).valueOf());
     return yearforms.findIndex(f => f.createdAt === form.createdAt) + 1;
   }
@@ -196,66 +241,64 @@ export class Form1099KComponent implements OnInit {
     }).toPromise();
 
     /**
-     * form1099k item example:
-     *  {
-        "7": 0,
-        "8": 0,
-        "9": 0,
-        "10": 0,
-        "11": 0,
-        "transactions": 234,
-        "year": 2021,
-        "yearPeriodStart": "2021-07-16T00:00:00.000Z",
-        "yearPeriodEnd": "2021-12-31T00:00:00.000Z",
-        "periodTin": "55-5555555",
-        "periodPayeeName": "Dragon Fly Old Name",
-        "required": true,
-        "createdAt": "2022-02-09T17:14:38.303Z",
-        "total": 42454.75
-    }
-     * 
-     */
+        * form1099k item example:
+        *  {
+        *  "0": 22.41,
+           "1": 55.66,
+           "2": 0,
+           "3": 65.16,
+           "4": 210.08,
+           "5": 0,
+           "6": 0,
+           "7": 0,
+           "8": 0,
+           "9": 0,
+           "10": 0,
+           "11": 0,
+           "transactions": 234,
+           "year": 2021,
+           "yearPeriodStart": "2021-07-16T00:00:00.000Z",
+           "yearPeriodEnd": "2021-12-31T00:00:00.000Z",
+           "periodTin": "55-5555555",
+           "periodPayeeName": "Dragon Fly Old Name",
+           "periodTinType": "EIN", 
+           "required": true,
+           "createdAt": "2022-02-09T17:14:38.303Z",
+           "total": 42454.75
+       }
+        * 
+        */
     let rt1099KData = {
       year: +this.taxYear,
       required: false,
-      yearPeriodStart: utcf,
-      yearPeriodEnd: utct,
+      yearPeriodStart: fromDate,
+      yearPeriodEnd: toDate,
       periodTin: customizeItem.tin,
       periodPayeeName: customizeItem.payeeName,
-      createdAt: new Date(),
-      customized: true
+      periodTinType: customizeItem.tinType, // EIN is default value
+      createdAt: new Date()
     } as any;
     const monthlyDataAndTotal = this.tabulateMonthlyData(orders);
-    let fromMonth = fromDate.split('-')[1] - 1;// The month is the same as the array index
-    let toMonth = toDate.split('-')[1] - 1;
-    let filteredMonthlyDataAndTotal = {};
-    let numberReg = /[0-9]/;
-    // Only need transaction between fromDate and toDate
-    Object.keys(monthlyDataAndTotal).forEach(key => {
-      if ((numberReg.test(key) && +key >= fromMonth && +key <= toMonth) || !numberReg.test(key)) {
-        filteredMonthlyDataAndTotal[key] = monthlyDataAndTotal[key];
-      }
-    });
 
     if (+this.taxYear < 2022) {
       if (orders.length >= 200) {
         if (monthlyDataAndTotal.total >= 20000) {
           rt1099KData.required = true;
-          rt1099KData = { transactions: orders.length, ...rt1099KData, ...filteredMonthlyDataAndTotal };
+          rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
         }
       }
     } else if (+this.taxYear === 2022) {
       if (orders.length >= 1) {
         if (monthlyDataAndTotal.total >= 600) {
           rt1099KData.required = true;
-          rt1099KData = { transactions: orders.length, ...rt1099KData, ...filteredMonthlyDataAndTotal };
+          rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
         }
       }
     }
     if (rt1099KData.required) {
       customizeItem['transactionText'] = `${rt1099KData.transactions} transactions totaling \$${this.round(rt1099KData.total)}`;
     } else {
-      customizeItem['transactionText'] = `1099K won't be generated for this period since it's not needed. (${orders.length} transactions totaling \$${filteredMonthlyDataAndTotal['total']})`;
+      customizeItem['transactionText'] = `1099K won't be generated for this period since it's not needed. (${orders.length} transactions totaling \$${monthlyDataAndTotal['total']})`;
     }
     customizeItem['rt1099KData'] = rt1099KData;
 
@@ -466,7 +509,8 @@ export class Form1099KComponent implements OnInit {
     const emailExists = this.emails.length > 0;
     const payeeNameExists = (this.restaurant.payeeName || "").length > 0;
     const tinExists = (this.restaurant.tin || "").length > 0;
-    return emailExists && payeeNameExists && tinExists;
+    const tinTypeExists = (this.restaurant.tinType || "").length > 0;
+    return emailExists && payeeNameExists && tinExists && tinTypeExists;
   }
 
   async onEdit(event, field: string) {

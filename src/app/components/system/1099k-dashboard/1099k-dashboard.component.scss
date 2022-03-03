@@ -21,3 +21,17 @@
   position: absolute;
   right: 25px;
 }
+
+.download-pos {
+  position: absolute;
+  left: 1000px;
+}
+
+.custom-tintype-width {
+  min-width: 355px;
+}
+
+.text-unwrap {
+  word-break: keep-all;
+  white-space: nowrap;
+}

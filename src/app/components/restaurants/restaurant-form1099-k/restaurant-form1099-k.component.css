@@ -7,3 +7,7 @@
   position: absolute;
   right: 25px;
 }
+
+.custom-tintype-width {
+  min-width: 355px;
+}

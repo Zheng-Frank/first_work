@@ -1,4 +1,4 @@
-<h2 class="text-center">IRS Form 1099K Dashboard ({{filteredRows.length}})</h2>
+<h2 class="text-center">IRS Form 1099K Dashboard ({{getAllFiltered1099kCount()}})</h2>
 
 <div class="my-2">
   <div class="form-inline mx-5">
@@ -105,7 +105,7 @@
         </span>
       </div>
       <div class="card-text row">
-        <span class="col-9">
+        <span class="pl-3">
           <div>
             <b>TIN: </b>
             <b class="text-danger" *ngIf="!row.rtTIN">Attribute Missing</b>
@@ -134,14 +134,16 @@
             <a class="btn-link ml-2" (click)="openTinTypeModal(rowIndex)">Edit</a>
           </div>
           <div>
-            <a class="btn-link" (click)="openCustomize1099kModal(rowIndex)" *ngIf="taxYear !== 'All'">Edit
-              Customizations</a>
+            <a class="btn-link" (click)="openCustomize1099kModal(rowIndex)" *ngIf="taxYear !== 'All'">
+              {{hasCustomOfThisYear(row.form1099k || []) ? 'Edit Customizations' : 'Customize'}}
+            </a>
           </div>
         </span>
-        <span class="col-3">
+        <span class="download-pos text-unwrap">
           <div *ngFor="let form of (row.form1099k  || [])">
             <ng-container *ngIf="form.required;else requiredBlock">
-              {{form.year}} <span *ngIf="form.customized">(Customized Part {{getCustomizedNum(form, row.form1099k)}})</span> -
+              {{form.year}} <span *ngIf="form.yearPeriodStart">(Customized Part
+                {{getCustomizedNum(form, row.form1099k)}})</span> -
               <ng-container *ngIf="allAttributesPresent(row); else missingAttributesBlock">
                 <a class="btn-link" (click)="renderPDFForm(row, form, 'qmenu')"> for qMenu <i
                     class="fa fa-download"></i></a>
@@ -160,7 +162,8 @@
             </ng-container>
             <ng-template #requiredBlock>
               <span>
-                {{form.year}} <span *ngIf="form.customized">(Customized Part {{getCustomizedNum(form, row.form1099k)}})</span> - No Form Required for this year
+                {{form.year}} <span *ngIf="form.yearPeriodStart">(Customized Part
+                  {{getCustomizedNum(form, row.form1099k)}})</span> - No Form Required for this year
               </span>
             </ng-template>
           </div>
@@ -230,21 +233,28 @@
     <hr>
     <div class="container">
       <div class="my-3" *ngFor="let item of customize1099kList;let i = index;">
-        <div class="row">
-          <div class="form-inline">
+        <div>
+          <div class="row">
             <label>Tax Year {{taxYear}} (Part {{i+1}})</label>
             <a class="btn-link close-btn-pos" *ngIf="i > 0" (click)="deleteCustomNewLine(i)">
               <i class="fa fa-times"></i>
             </a>
           </div>
-          <input class="form-control" type="text" [(ngModel)]="item.tin" placeholder="Period TIN">
-          <input class="form-control mt-2" type="text" [(ngModel)]="item.payeeName" placeholder="Period Payee Name">
+          <div class="row form-inline">
+            <input class="form-control" (change)="changeCustomItem(item)" type="text" [(ngModel)]="item.tin" placeholder="Period TIN">
+            <select class="form-control ml-2 custom-tintype-width" [(ngModel)]="item.tinType" (change)="changeCustomItem(item)">
+              <option *ngFor="let type of customizeTinTypes"> {{type}} </option>
+            </select>
+          </div>
+          <div class="row">
+            <input class="form-control mt-2" type="text" (change)="changeCustomItem(item)" [(ngModel)]="item.payeeName" placeholder="Period Payee Name">
+          </div>
         </div>
         <div class="row form-inline mt-2">
           <label>From:</label>
-          <input class="form-control ml-1" type="date" [(ngModel)]="item.fromDate">
+          <input class="form-control ml-1" type="date" (change)="changeCustomItem(item)" [(ngModel)]="item.fromDate">
           <label class="ml-2">To:</label>
-          <input class="form-control ml-1" type="date" [(ngModel)]="item.toDate">
+          <input class="form-control ml-1" type="date" (change)="changeCustomItem(item)" [(ngModel)]="item.toDate">
           <button class="btn btn-primary ml-2" [disabled]="hasCustomItemErr(i)"
             (click)="calcTransactionByTime(item.fromDate, item.toDate, item)">
             <i class="fa fa-calculator"></i>

@@ -130,6 +130,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   tinType = enumTinTypes.EIN;
   customize1099kList = [];
   isCustomize1099k = false;
+  customizeTinTypes = [enumTinTypes.EIN, enumTinTypes.SSN];
   constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer, private _http: HttpClient) { }
 
   async ngOnInit() {
@@ -144,6 +145,11 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     this.filterRows();
   }
 
+  // title of page has a number that should show all 1099k count instead of rt count
+  getAllFiltered1099kCount() {
+    return (this.filteredRows || []).reduce((prev, curr) => prev + (curr.form1099k || []).length, 0);
+  }
+
   /*
   Add ability to calculate, separate, and save separately, 
   1099K info for a specific restaurant for different portions of the tax year 
@@ -153,13 +159,33 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     this.currRowIndex = rowIndex;
     this.customize1099kList = [];
     this.isCustomize1099k = true;
-    let item = {
-      tin: '',
-      payeeName: '',
-      fromDate: '',//  e.g.: 2022-01-01
-      toDate: ''
-    };
-    this.customize1099kList.push(item);
+    // show saved data last times if it exists
+    let customizedYear1099k = (this.filteredRows[this.currRowIndex].form1099k || []).filter(form => form.year === +this.taxYear && form.yearPeriodStart);
+    if (customizedYear1099k.length > 0) {
+      customizedYear1099k.sort((a, b) => new Date(a.yearPeriodStart).valueOf() - new Date(b.yearPeriodStart).valueOf());
+      for (let i = 0; i < customizedYear1099k.length; i++) {
+        const customizedForm = customizedYear1099k[i];
+        let item = {
+          tin: customizedForm.periodTin,
+          payeeName: customizedForm.periodPayeeName,
+          tinType: customizedForm.periodTinType || enumTinTypes.EIN,// EIN is defalut value
+          fromDate: customizedForm.yearPeriodStart,//  e.g.: 2022-01-01
+          toDate: customizedForm.yearPeriodEnd,
+          rt1099KData: customizedForm,
+          transactionText: customizedForm.required ? `${customizedForm.transactions} transactions totaling \$${this.round(customizedForm.total)}` : `1099K won't be generated for this period since it's not needed.`
+        };
+        this.customize1099kList.push(item);
+      }
+    } else {
+      let item = {
+        tin: '',
+        payeeName: '',
+        tinType: enumTinTypes.EIN,// EIN is defalut value
+        fromDate: `${this.taxYear}-01-01`,//  e.g.: 2022-01-01
+        toDate: ''
+      };
+      this.customize1099kList.push(item);
+    }
     this.customize1099kModal.show();
   }
 
@@ -172,14 +198,21 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   deleteCustomNewLine(i) {
     this.customize1099kList.splice(i, 1);
   }
+  // reset 1099k form of item if form element value is changed
+  changeCustomItem(item){
+    item.rt1099KData = undefined;
+  }
 
   // check error of all items of customizeList
   hasCustomize1099kError() {
-    const tinErr = this.customize1099kList.some(item => !item.tin);
-    const payeeErr = this.customize1099kList.some(item => !item.payeeName);
-    const dateErr = this.customize1099kList.some(item => !item.fromDate || !item.toDate) || this.customize1099kList.some(item => !item.payeeName) || this.customize1099kList.some(item => new Date(item.fromDate).valueOf() >= new Date(item.toDate).valueOf()) || this.customize1099kList.some(item => item.fromDate.split('-')[0] !== this.taxYear || item.toDate.split('-')[0] !== this.taxYear);
+    const tinErr = this.customize1099kList.some((item, i) => !item.tin && i < this.customize1099kList.length - 1 || this.customize1099kList.some((another, index) => (index === i + 1 && another.tin === item.tin) || (index === i - 1 && another.tin === item.tin)));
+    const payeeErr = this.customize1099kList.some((item, i) => !item.payeeName && i < this.customize1099kList.length - 1 || this.customize1099kList.some((another, index) => (index === i + 1 && another.payeeName === item.payeeName) || (index === i - 1 && another.payeeName === item.payeeName)));
+    const dateErr = this.customize1099kList.some((item, i) => !item.fromDate || !item.toDate || (i === 0 && item.fromDate !== `${this.taxYear}-01-01`) || (i === this.customize1099kList.length - 1 && item.toDate !== `${this.taxYear}-12-31`))
+      || this.customize1099kList.some(item => new Date(item.fromDate).valueOf() >= new Date(item.toDate).valueOf())
+      || this.customize1099kList.some(item => item.fromDate.split('-')[0] !== this.taxYear || item.toDate.split('-')[0] !== this.taxYear);
     const otherItemDateErr = this.customize1099kList.some((item, i) => this.customize1099kList.some((another, index) => new Date(another.fromDate).valueOf() <= new Date(item.toDate).valueOf() && index > i));
     const noform1099kDataErr = this.customize1099kList.some(item => !item.rt1099KData);
+
     return tinErr || payeeErr || dateErr || otherItemDateErr || noform1099kDataErr;
   }
 
@@ -193,11 +226,22 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     const tinErr = 'Data entry error! Ensure tin is not empty!';
     const payeeErr = 'Data entry error! Ensure payee name is not empty!';
     const otherItemDateErr = 'Data entry error! fromTime of another item is smaller than this, but its index is behind!';
-    if (!item.tin) {
+    const duplicateTinErr = 'Tin names between two adjacent items cannot be the same';
+    const duplicatePayeeNameErr = 'Tin names between two adjacent items cannot be the same';
+    const dateNoCoveredErr = 'Dates need to cover a full year';
+    if (!item.tin && i < this.customize1099kList.length - 1) {
       return tinErr;
     }
-    if (!item.payeeName) {
+    // Tin names between two adjacent items cannot be the same
+    if (this.customize1099kList.some((another, index) => (index === i + 1 && another.tin === item.tin) || (index === i - 1 && another.tin === item.tin))) {
+      return duplicateTinErr;
+    }
+    if (!item.payeeName && i < this.customize1099kList.length - 1) {
       return payeeErr;
+    }
+    // payeeName names between two adjacent items cannot be the same
+    if (this.customize1099kList.some((another, index) => (index === i + 1 && another.payeeName === item.payeeName) || (index === i - 1 && another.payeeName === item.payeeName))) {
+      return duplicatePayeeNameErr;
     }
     if (!item.fromDate || !item.toDate) {
       return dateErr;
@@ -211,15 +255,21 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     if (this.customize1099kList.some((another, index) => new Date(another.fromDate).valueOf() <= new Date(item.toDate).valueOf() && index > i)) {
       return otherItemDateErr;
     }
+    // Dates need to cover a full year
+    if ((i === 0 && item.fromDate !== `${this.taxYear}-01-01`) || (i === this.customize1099kList.length - 1 && item.toDate !== `${this.taxYear}-12-31`)) {
+      return dateNoCoveredErr;
+    }
+
     return '';
   }
 
   addCustomNewLine() {
     let item = {
-      tin: '',
-      payeeName: '',
-      fromDate: '',// e.g.: 2022-01-01
-      toDate: ''
+      tin: this.filteredRows[this.currRowIndex].rtTIN,
+      payeeName: this.filteredRows[this.currRowIndex].payeeName,
+      tinType: enumTinTypes.EIN,
+      fromDate: '',//  e.g.: 2022-01-01
+      toDate: `${this.taxYear}-12-31` // e.g. 2021.12.31 date should cover one year
     }
     this.customize1099kList.push(item);
   }
@@ -229,7 +279,8 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       _id: this.filteredRows[this.currRowIndex].id,
       form1099k: this.filteredRows[this.currRowIndex].form1099k
     }
-    newObj.form1099k = newObj.form1099k.filter(item => !item.customized);
+    // 1099k of other years should be remained excluding this taxYear
+    newObj.form1099k = newObj.form1099k.filter(item => item.year !== +this.taxYear);
     this.customize1099kList.forEach(item => {
       newObj.form1099k.push(item.rt1099KData);
     });
@@ -251,9 +302,14 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     this._global.publishAlert(AlertType.Success, `Customized form 1099k for restaurant ${this.filteredRows[this.currRowIndex].name}!`);
   }
 
+  // btn will show diff text according to this function
+  hasCustomOfThisYear(form1099k) {
+    return form1099k.some(item => item.year === +this.taxYear && item.yearPeriodStart);
+  }
+
   // show which part the customization is
   getCustomizedNum(form, form1099k) {
-    let yearforms = form1099k.filter(item => item.year === form.year && item.customized);
+    let yearforms = form1099k.filter(item => item.year === form.year && item.yearPeriodStart);
     yearforms.sort((a, b) => new Date(a.createdAt).valueOf() - new Date(b.createdAt).valueOf());
     return yearforms.findIndex(f => f.createdAt === form.createdAt) + 1;
   }
@@ -414,6 +470,13 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
         /**
          * form1099k item example:
          *  {
+         *  "0": 22.41,
+            "1": 55.66,
+            "2": 0,
+            "3": 65.16,
+            "4": 210.08,
+            "5": 0,
+            "6": 0,
             "7": 0,
             "8": 0,
             "9": 0,
@@ -425,6 +488,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
             "yearPeriodEnd": "2021-12-31T00:00:00.000Z",
             "periodTin": "55-5555555",
             "periodPayeeName": "Dragon Fly Old Name",
+            "periodTinType": "EIN", 
             "required": true,
             "createdAt": "2022-02-09T17:14:38.303Z",
             "total": 42454.75
@@ -434,44 +498,34 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
         let rt1099KData = {
           year: +this.taxYear,
           required: false,
-          yearPeriodStart: utcf,
-          yearPeriodEnd: utct,
+          yearPeriodStart: fromDate,
+          yearPeriodEnd: toDate,
           periodTin: customizeItem.tin,
           periodPayeeName: customizeItem.payeeName,
-          createdAt: new Date(),
-          customized: true
+          periodTinType: customizeItem.tinType, // EIN is default value
+          createdAt: new Date()
         } as any;
         const monthlyDataAndTotal = this.tabulateMonthlyData(orders);
-        let fromMonth = fromDate.split('-')[1] - 1;// The month is the same as the array index
-        let toMonth = toDate.split('-')[1] - 1;
-        let filteredMonthlyDataAndTotal = {};
-        let numberReg = /[0-9]/;
-        // Only need transaction between fromDate and toDate
-        Object.keys(monthlyDataAndTotal).forEach(key => {
-          if ((numberReg.test(key) && +key >= fromMonth && +key <= toMonth) || !numberReg.test(key)) {
-            filteredMonthlyDataAndTotal[key] = monthlyDataAndTotal[key];
-          }
-        });
 
         if (+this.taxYear < 2022) {
           if (orders.length >= 200) {
             if (monthlyDataAndTotal.total >= 20000) {
               rt1099KData.required = true;
-              rt1099KData = { transactions: orders.length, ...rt1099KData, ...filteredMonthlyDataAndTotal };
+              rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
             }
           }
         } else if (+this.taxYear === 2022) {
           if (orders.length >= 1) {
             if (monthlyDataAndTotal.total >= 600) {
               rt1099KData.required = true;
-              rt1099KData = { transactions: orders.length, ...rt1099KData, ...filteredMonthlyDataAndTotal };
+              rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
             }
           }
         }
         if (rt1099KData.required) {
           customizeItem['transactionText'] = `${rt1099KData.transactions} transactions totaling \$${this.round(rt1099KData.total)}`;
         } else {
-          customizeItem['transactionText'] = `1099K won't be generated for this period since it's not needed. (${orders.length} transactions totaling \$${filteredMonthlyDataAndTotal['total']})`;
+          customizeItem['transactionText'] = `1099K won't be generated for this period since it's not needed. (${orders.length} transactions totaling \$${monthlyDataAndTotal['total']})`;
         }
         customizeItem['rt1099KData'] = rt1099KData;
       }
@@ -868,7 +922,8 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     const emailExists = (row.email || []).length > 0;
     const payeeNameExists = (row.payeeName || "").length > 0;
     const tinExists = (row.rtTIN || "").length > 0;
-    return emailExists && payeeNameExists && tinExists;
+    const tinTypeExists = (row.rtTinType || "").length > 0;
+    return emailExists && payeeNameExists && tinExists && tinTypeExists;
   }
 
   filterRows() {
@@ -919,11 +974,11 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
 
     // customized form1099k or not in the year
     if (this.customizeOption === customizeOptionTypes.Custom) {
-      this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && form.customized));
+      this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && form.yearPeriodStart));
     } else if (this.sentEmailOption === sentEmailOptionTypes.Form_Not_Sent) {
-      this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && !form.customized));
+      this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && !form.yearPeriodStart));
     }
-    
+
     // search will match RT name, RT id, payee name, or email address
     if (this.searchFilter && this.searchFilter.trim().length > 0) {
       this.filteredRows = this.filteredRows.filter(row => {
@@ -996,7 +1051,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     const formBytes = await fetch(formTemplateUrl).then((res) => res.arrayBuffer());
     const pdfDoc = await PDFDocument.load(formBytes);
     const form = pdfDoc.getForm();
-    
+
     const qMenuAddress = `
     qMenu, Inc.
     107 Technology Pkwy NW, Ste. 211
