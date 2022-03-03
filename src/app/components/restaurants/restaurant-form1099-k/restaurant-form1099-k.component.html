@@ -47,7 +47,8 @@
     <!-- end with tax year filter -->
     <!-- start with customized btn -->
     <a class="btn-link" (click)="openCustomize1099kModal()" *ngIf="taxYear">Edit
-      Customizations</a>
+      {{hasCustomOfThisYear(restaurant.form1099k || []) ? 'Edit Customizations' : 'Customize'}}
+    </a>
     <!-- end with customized btn -->
   </div>
   <!-- end with Payee/TIN/Email Attributes -->

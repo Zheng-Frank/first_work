@@ -195,6 +195,11 @@ export class Form1099KComponent implements OnInit {
     this.closeCustomize1099kModal();
   }
 
+  // btn will show diff text according to this function
+  hasCustomOfThisYear(form1099k) {
+    return form1099k.some(item => item.year === +this.taxYear && item.yearPeriodStart);
+  }
+
   // show which part the customization is
   getCustomizedNum(form) {
     let yearforms = (this.restaurant.form1099k || []).filter(item => item.year === form.year && item.yearPeriodStart);
@@ -698,7 +703,7 @@ export class Form1099KComponent implements OnInit {
     // Payee's name:
     form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_2[0]`).setText(qMenuAddress);
     // Payee's Name:
-    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_3[0]`).setText(yearForm1099kData.customized ? yearForm1099kData.periodPayeeName : rt.payeeName);
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_3[0]`).setText(yearForm1099kData.yearPeriodStart ? yearForm1099kData.periodPayeeName : rt.payeeName);
     // Street Address:
     form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_4[0]`).setText(rt.streetAddress);
     // City, State, and ZIP Code:

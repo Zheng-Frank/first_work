@@ -1067,7 +1067,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     // Payee's name:
     form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_2[0]`).setText(qMenuAddress);
     // Payee's Name:
-    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_3[0]`).setText(form1099KData.customized ? form1099KData.periodPayeeName : row.payeeName);
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_3[0]`).setText(form1099KData.yearPeriodStart ? form1099KData.periodPayeeName : row.payeeName);
     // Street Address:
     form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_4[0]`).setText(row.streetAddress);
     // City, State, and ZIP Code:
