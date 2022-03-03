@@ -32,6 +32,9 @@ export class RestaurantsByCourierComponent implements OnInit {
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
+      label: "Sales Rep",
+    },
+    {
       label: "Courier",
     },
     {
