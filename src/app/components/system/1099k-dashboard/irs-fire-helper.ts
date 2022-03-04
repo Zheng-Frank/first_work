@@ -268,7 +268,9 @@ const renderRow = (fields, data) => {
     // for number, pad left with 0, for string, pad right with space
     return pad(value, length, numeric);
   }).join('')
-  console.log(data.RecordSequenceNumber, content.length)
+  if (content.length !== 748) {
+    console.log('content length wrong!', content.length, content, data, fields)
+  }
   return content;
 }
 
@@ -360,18 +362,23 @@ class Renderer {
           sum.GrossAmount += data.GrossAmount;
           sum.CardNotPresentTransactions += data.CardNotPresentTransactions;
           sum.NumberOfPayees++;
-          states[item.state] = states[item.state] || {
-            type: 'K', GrossAmount: 0, RecordSequenceNumber: 0, NumberOfPayees: 0,
-            CFSCCode: StateCodes[item.state], CardNotPresentTransactions: 0
+          let cfsc = StateCodes[item.state];
+          if (cfsc) {
+            states[item.state] = states[item.state] || {
+              type: 'K', GrossAmount: 0, RecordSequenceNumber: 0, NumberOfPayees: 0,
+              CFSCCode: cfsc, CardNotPresentTransactions: 0
+            }
+            states[item.state].GrossAmount += data.GrossAmount;
+            states[item.state].NumberOfPayees++;
+            states[item.state].CardNotPresentTransactions += data.CardNotPresentTransactions;
           }
-          states[item.state].GrossAmount += data.GrossAmount;
-          states[item.state].NumberOfPayees++;
-          states[item.state].CardNotPresentTransactions += data.CardNotPresentTransactions;
           Months.forEach((m, i) => {
             let key = `${m}Amount`;
             data[key] = round(form[`${i}`]);
             sum[key] = (sum[key] || 0) + data[key]
-            states[item.state][key] = (states[item.state][key] || 0) + data[key]
+            if (cfsc) {
+              states[item.state][key] = (states[item.state][key] || 0) + data[key];
+            }
           })
           rows.push(renderRow(BFields, data))
         })

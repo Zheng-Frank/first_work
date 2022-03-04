@@ -598,7 +598,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       rtTIN,
       rtTinType,
       city: ga.locality,
-      state: ga.state,
+      state: ga.administrative_area_level_1,
       zipCode: ga.postal_code,
       channels: rt.channels || [],
       timezone,
