@@ -58,14 +58,14 @@
     <ng-container *ngFor="let linkEntry of formLinks">
       <li *ngIf="linkEntry[0]; else elseBlock" class="py-2">
         <ng-container *ngIf="linkEntry[0].required; else requiredBlock">
-          {{linkEntry[1]}} <span *ngIf="linkEntry[0].customized">(Customized Part
+          {{linkEntry[1]}} <span *ngIf="linkEntry[0].yearPeriodStart">(Customized Part
             {{getCustomizedNum(linkEntry[0])}})</span> -
           <ng-container *ngIf="allAttributesPresent(); else missingAttributesBlock">
-            <a class="btn-link" (click)="renderPDFForm('qmenu',linkEntry[1])"> for qMenu
+            <a class="btn-link" (click)="renderPDFForm('qmenu',linkEntry)"> for qMenu
               <i class="fa fa-download"></i></a>
-            <a class="btn-link ml-2" (click)="renderPDFForm('restaurant',linkEntry[1])"> for Restaurant
+            <a class="btn-link ml-2" (click)="renderPDFForm('restaurant',linkEntry)"> for Restaurant
               <i class="fa fa-download"></i></a>
-            <a class="btn-link ml-2" (click)="openSendEmailModal(linkEntry[1])">Send</a>
+            <a class="btn-link ml-2" (click)="openSendEmailModal(linkEntry)">Send</a>
             <span *ngIf="linkEntry[0].sent" class="text-success">
               (Sent)
             </span>
@@ -77,14 +77,15 @@
           </ng-template>
         </ng-container>
         <ng-template #requiredBlock>
-          {{linkEntry[1]}} <span *ngIf="linkEntry[0].customized">(Customized Part
+          {{linkEntry[1]}} <span *ngIf="linkEntry[0].yearPeriodStart">(Customized Part
             {{getCustomizedNum(linkEntry[0])}})</span> - No Form Required for this year
         </ng-template>
       </li>
       <ng-template #elseBlock>
         <li>
-          <a class="btn-link disabled" *ngIf="disbleCalBtn(linkEntry[1])">Calculate 1099K</a>
-          <a class="btn-link" *ngIf="!disbleCalBtn(linkEntry[1])" (click)="calculateForm1099k(linkEntry[1])">Calculate
+          <a class="btn-link disabled" *ngIf="disbleCalBtn(linkEntry)">Calculate 1099K</a>
+          <!-- *ngIf="!disbleCalBtn(linkEntry)" -->
+          <a class="btn-link"  (click)="calculateForm1099k(linkEntry)">Calculate
             1099K</a>
         </li>
       </ng-template>
@@ -120,6 +121,14 @@
       </div>
       <div class="msg-content mt-2" [innerHTML]="sanitized(template.html)"></div>
     </div>
+    <!--start with mark only checkbox-->
+    <div class="mt-3">
+      <input type="checkbox" [(ngModel)]="markSentFlag"> Only Mark as Sent
+      <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="If you've already sent the 1099K form(s) to the restaurant outside of this tool,
+         you can mark the status as 'Sent' by checking this box and clicking 'Send', and it'll update the status to 'Sent' without actually sending the form(s) again.
+        (如果您已经将1099K表格发送到该工具之外的餐厅，您可以通过选中此框并单击“发送”将状态标记为“已发送”，它会将状态更新为“已发送”，而不会再次实际发送表格。)"></i>
+    </div>
+    <!-- end with mark only checkbox -->
     <div class="d-flex justify-content-end p-4">
       <button class="btn btn-secondary mr-2" (click)="sendEmailModal.hide()">Cancel</button>
       <button class="btn btn-primary" (click)="sendPDFFormToRT()" [qLoading]="sendLoading">Send</button>

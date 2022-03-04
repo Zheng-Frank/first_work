@@ -131,6 +131,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   customize1099kList = [];
   isCustomize1099k = false;
   customizeTinTypes = [enumTinTypes.EIN, enumTinTypes.SSN];
+  markSentFlag = false;// if it is true, the email won't actually be sent, it'll simply mark the status as "Sent" for that restaurant for that tax year.
   constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer, private _http: HttpClient) { }
 
   async ngOnInit() {
@@ -199,7 +200,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     this.customize1099kList.splice(i, 1);
   }
   // reset 1099k form of item if form element value is changed
-  changeCustomItem(item){
+  changeCustomItem(item) {
     item.rt1099KData = undefined;
   }
 
@@ -296,10 +297,10 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
         rt.form1099k = newObj['form1099k'];
       }
     });
+    this._global.publishAlert(AlertType.Success, `Customized form 1099k for restaurant ${this.filteredRows[this.currRowIndex].name}!`);
     this.rows = this.restaurants.map(rt => this.turnRtObjectIntoRow(rt));
     this.filterRows();
     this.closeCustomize1099kModal();
-    this._global.publishAlert(AlertType.Success, `Customized form 1099k for restaurant ${this.filteredRows[this.currRowIndex].name}!`);
   }
 
   // btn will show diff text according to this function
@@ -360,12 +361,12 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
 
   /* mongIdToDate - takes in the MongoDB _id and returns the encoded timestamp information as a date object
     (this functionality exists as a method of ObjectID, but this helper function acceps a string format) */
-  mongoIdToDate(id) {
+  mongoIdToDate(id, timezone) {
     const timestamp = id.substring(0, 8);
-    return new Date(parseInt(timestamp, 16) * 1000);
+    return new Date(parseInt(timestamp, 16) * 1000).toLocaleDateString('en-US', { timeZone: timezone });
   }
 
-  tabulateMonthlyData(orders) {
+  tabulateMonthlyData(orders, timezone) {
     const monthlyData = {
       0: 0,
       1: 0,
@@ -381,9 +382,8 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       11: 0,
       total: 0
     }
-
     orders.forEach(order => {
-      let month = new Date(this.mongoIdToDate(order._id)).getMonth();
+      let month = new Date(this.mongoIdToDate(order._id, timezone)).getMonth();
       let roundedOrderTotal = this.round(order.computed.total);
       monthlyData[month] += roundedOrderTotal;
       monthlyData['total'] += roundedOrderTotal;
@@ -456,14 +456,18 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
 
     if (!this.isCustomize1099k) {
       let timeRangeData = {
+        0: 0,
         transactionNum: 0,
         total: 0
       }
       orders.forEach(order => {
+        let month = new Date(this.mongoIdToDate(order._id, restaurant.googleAddress.timezone || 'America/New_York')).getMonth();
         let roundedOrderTotal = this.round(order.computed.total);
+        timeRangeData[month] += roundedOrderTotal;
         timeRangeData.total += roundedOrderTotal;
         timeRangeData.transactionNum++;
       });
+
       this.transactionText = `${timeRangeData.transactionNum} transactions totaling \$${this.round(timeRangeData.total)}`;
     } else {
       if (customizeItem) {
@@ -505,7 +509,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
           periodTinType: customizeItem.tinType, // EIN is default value
           createdAt: new Date()
         } as any;
-        const monthlyDataAndTotal = this.tabulateMonthlyData(orders);
+        const monthlyDataAndTotal = this.tabulateMonthlyData(orders, restaurant.googleAddress.timezone || 'America/New_York');
 
         if (+this.taxYear < 2022) {
           if (orders.length >= 200) {
@@ -555,7 +559,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     // documentation regarding Amazon SES Raw Email (AWS email service that allows attachments)
     // 1. filter row whose form1099k sent flag is false and has all necessary attributes
     this.sendLoading = true;
-    let notSendRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +year && !form.sent && form.required && !form.customized) && this.allAttributesPresent(row));
+    let notSendRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +year && !form.sent && form.required && !form.yearPeriodStart) && this.allAttributesPresent(row));
     let templates = [];
 
     notSendRows.forEach(row => {
@@ -629,8 +633,15 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
           canSendEmailTemplates.forEach(template => {
             let new1099kRecords = JSON.parse(JSON.stringify(template.row.form1099k));
             new1099kRecords.forEach(record => {
-              if (record.year === template.form.year) {
-                record.sent = true;
+              // year maybe divided several
+              if (record.yearPeriodStart) {
+                if (template.form.yearPeriodStart === record.yearPeriodStart && template.form.year === record.year) {
+                  record.sent = true;
+                }
+              } else {
+                if (template.form.year === record.year) {
+                  record.sent = true;
+                }
               }
             });
             oldNewPairs.push({
@@ -671,7 +682,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
 
   async uploadPDF() {
     let mediaUrl;
-    const blob = await this.generatePDF("restaurant", this.currRow, this.currForm);
+    const blob = await this.generatePDF("restaurant");
     const currentFile = new File([blob], `${this.currForm.year}_Form_1099K_${this.currRow.id}_forRT.pdf`);
     const apiPath = `utils/qmenu-uploads-s3-signed-url?file=${encodeURIComponent(currentFile.name)}`;
 
@@ -703,6 +714,40 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
         return this._global.publishAlert(AlertType.Danger, `Please fill in necessary field!`);
       }
       this.sendLoading = true;
+      // update sent flag if markSentFlag is true and not sending really
+      if (this.markSentFlag) {
+        // update send flag to know whether has sent email to rt
+        let new1099kRecords = JSON.parse(JSON.stringify(this.currRow.form1099k));
+        new1099kRecords.forEach(record => {
+          // year maybe divided several
+          if (this.currForm.yearPeriodStart) {
+            if (this.currForm.yearPeriodStart === record.yearPeriodStart && this.currForm.year === record.year) {
+              record.sent = true;
+            }
+          } else {
+            if (this.currForm.year === record.year) {
+              record.sent = true;
+            }
+          }
+        });
+        this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+          {
+            old: { _id: this.currRow.id },
+            new: { _id: this.currRow.id, form1099k: new1099kRecords }
+          }
+        ]).toPromise();
+        // update form 1099k of local row datas
+        this.restaurants.forEach(rt => {
+          if (rt._id === this.currRow.id) {
+            rt.form1099k = new1099kRecords;
+          }
+        });
+        this.rows = this.restaurants.map(rt => this.turnRtObjectIntoRow(rt));
+        this.filterRows();
+        this.sendLoading = false;
+        this.sendEmailModal.hide();
+        return this._global.publishAlert(AlertType.Success, `Mark the status as 'Sent' success`);
+      }
       if (inputs) {
         inputs.forEach(field => {
           if (html) {
@@ -740,8 +785,15 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
             // update send flag to know whether has sent email to rt
             let new1099kRecords = JSON.parse(JSON.stringify(this.currRow.form1099k));
             new1099kRecords.forEach(record => {
-              if (record.year === this.template.year) {
-                record.sent = true;
+              // year maybe divided several
+              if (this.currForm.yearPeriodStart) {
+                if (this.currForm.yearPeriodStart === record.yearPeriodStart && this.currForm.year === record.year) {
+                  record.sent = true;
+                }
+              } else {
+                if (this.currForm.year === record.year) {
+                  record.sent = true;
+                }
               }
             });
             this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
@@ -785,6 +837,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   openSendEmailModal(row, form) {
     this.currRow = row;
     this.currForm = form;
+    this.markSentFlag = false;
     let dataset = {
       'LAST_YEAR': this.currForm.year,
       'RT_NAME': this.currRow.name
@@ -839,7 +892,16 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     this.restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
-        "form1099k.required": true
+        $or: [
+          {
+            "form1099k.required": true
+          },
+          {
+            "form1099k.yearPeriodStart": {
+              $exists: true
+            }
+          }
+        ]
       },
       projection: {
         "closedHours": 1,
@@ -922,8 +984,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     const emailExists = (row.email || []).length > 0;
     const payeeNameExists = (row.payeeName || "").length > 0;
     const tinExists = (row.rtTIN || "").length > 0;
-    const tinTypeExists = (row.rtTinType || "").length > 0;
-    return emailExists && payeeNameExists && tinExists && tinTypeExists;
+    return emailExists && payeeNameExists && tinExists;
   }
 
   filterRows() {
@@ -1041,7 +1102,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     this.filterRows();
   }
 
-  async generatePDF(target, row, form1099KData) {
+  async generatePDF(target) {
     let formTemplateUrl;
     if (target === 'qmenu') {
       formTemplateUrl = "../../../../assets/form1099k/form1099k_qmenu.pdf";
@@ -1051,6 +1112,14 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     const formBytes = await fetch(formTemplateUrl).then((res) => res.arrayBuffer());
     const pdfDoc = await PDFDocument.load(formBytes);
     const form = pdfDoc.getForm();
+    // const fields = await form.getFields();
+
+    // let allFields = '';
+    // fields.forEach(field => {
+
+    //   allFields += field.getName() + '\n';
+    // })
+    // console.log(allFields);
 
     const qMenuAddress = `
     qMenu, Inc.
@@ -1058,7 +1127,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     Peachtree Corners, GA 30092`;
 
     // Calendar Year Blank (fill in last two digits of tax year)
-    form.getTextField(`topmostSubform[0].CopyB[0].CopyBHeader[0].CalendarYear[0].f2_1[0]`).setText(form1099KData.year.toString().slice(-2));
+    form.getTextField(`topmostSubform[0].CopyB[0].CopyBHeader[0].CalendarYear[0].f2_1[0]`).setText(this.currForm.year.toString().slice(-2));
     // Filer checkbox
     form.getCheckBox(`topmostSubform[0].CopyB[0].LeftCol[0].FILERCheckbox_ReadOrder[0].c2_3[0]`).check();
 
@@ -1067,11 +1136,11 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     // Payee's name:
     form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_2[0]`).setText(qMenuAddress);
     // Payee's Name:
-    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_3[0]`).setText(form1099KData.yearPeriodStart ? form1099KData.periodPayeeName : row.payeeName);
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_3[0]`).setText(this.currForm.yearPeriodStart ? this.currForm.periodPayeeName : this.currForm.payeeName);
     // Street Address:
-    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_4[0]`).setText(row.streetAddress);
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_4[0]`).setText(this.currRow.streetAddress);
     // City, State, and ZIP Code:
-    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_5[0]`).setText(row.cityStateZip);
+    form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_5[0]`).setText(this.currRow.cityStateZip);
     // PSE's Name and Telephone Number:
     form.getTextField(`topmostSubform[0].CopyB[0].LeftCol[0].f2_6[0]`).setText('');
     // Account Number (leave blank)
@@ -1080,40 +1149,41 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     // Filer's TIN
     form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_8[0]`).setText('81-4208444');
     // Payee's TIN    
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_9[0]`).setText(form1099KData.customized ? form1099KData.periodTin : row.rtTIN);
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_9[0]`).setText(this.currForm.yearPeriodStart ? this.currForm.periodTin : this.currRow.rtTIN);
+    // Box 1a gross amount of payment card/third party network transactions 
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_10[0]`).setText(this.currForm.total.toFixed(2));
     // Box 1b card not present transactions
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box1b_ReadOrder[0].f2_11[0]`).setText(form1099KData.total.toFixed(2));
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box1b_ReadOrder[0].f2_11[0]`).setText(this.currForm.total.toFixed(2));
     // Box 2 - Merchant category code (Always 5812 for restaurants)
     form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_12[0]`).setText('5812');
     // Box 3 - Number of payment transactions
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_13[0]`).setText(form1099KData.transactions.toString());
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_13[0]`).setText(this.currForm.transactions.toString());
     // Box 4 - Federal income tax withheld
     form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_14[0]`).setText('');
     // Box 5a - January income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5a_ReadOrder[0].f2_15[0]`).setText(form1099KData[0] ? form1099KData[0].toFixed(2) : "0");
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5a_ReadOrder[0].f2_15[0]`).setText(this.currForm[0] ? this.currForm[0].toFixed(2) : "0.00");
     // Box 5b - February income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_16[0]`).setText(form1099KData[1] ? form1099KData[1].toFixed(2) : "0");
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_16[0]`).setText(this.currForm[1] ? this.currForm[1].toFixed(2) : "0.00");
     // Box 5c - March income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5c_ReadOrder[0].f2_17[0]`).setText(form1099KData[2] ? form1099KData[2].toFixed(2) : "0");
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5c_ReadOrder[0].f2_17[0]`).setText(this.currForm[2] ? this.currForm[2].toFixed(2) : "0.00");
     // Box 5d - April income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_18[0]`).setText(form1099KData[3] ? form1099KData[3].toFixed(2) : "0");
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_18[0]`).setText(this.currForm[3] ? this.currForm[3].toFixed(2) : "0.00");
     // Box 5e - May income
-
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5e_ReadOrder[0].f2_19[0]`).setText(form1099KData[4] ? form1099KData[4].toFixed(2) : "0");
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5e_ReadOrder[0].f2_19[0]`).setText(this.currForm[4] ? this.currForm[4].toFixed(2) : "0.00");
     // Box 5f - June income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_20[0]`).setText(form1099KData[5] ? form1099KData[5].toFixed(2) : "0");
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_20[0]`).setText(this.currForm[5] ? this.currForm[5].toFixed(2) : "0.00");
     // Box 5g - July income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5g_ReadOrder[0].f2_21[0]`).setText(form1099KData[6] ? form1099KData[6].toFixed(2) : "0");
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5g_ReadOrder[0].f2_21[0]`).setText(this.currForm[6] ? this.currForm[6].toFixed(2) : "0.00");
     // Box 5h - August income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_22[0]`).setText(form1099KData[7] ? form1099KData[7].toFixed(2) : "0");
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_22[0]`).setText(this.currForm[7] ? this.currForm[7].toFixed(2) : "0.00");
     // Box 5i - September income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5i_ReadOrder[0].f2_23[0]`).setText(form1099KData[8] ? form1099KData[8].toFixed(2) : "0");
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5i_ReadOrder[0].f2_23[0]`).setText(this.currForm[8] ? this.currForm[8].toFixed(2) : "0.00");
     // Box 5j - October income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_24[0]`).setText(form1099KData[9] ? form1099KData[9].toFixed(2) : "0");
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_24[0]`).setText(this.currForm[9] ? this.currForm[9].toFixed(2) : "0.00");
     // Box 5k - November income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5k_ReadOrder[0].f2_25[0]`).setText(form1099KData[10] ? form1099KData[10].toFixed(2) : "0");
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box5k_ReadOrder[0].f2_25[0]`).setText(this.currForm[10] ? this.currForm[10].toFixed(2) : "0.00");
     // Box 5l - December income
-    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_26[0]`).setText(form1099KData[11] ? form1099KData[11].toFixed(2) : "0");
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_26[0]`).setText(this.currForm[11] ? this.currForm[11].toFixed(2) : "0.00");
     // Box 6 - State
     form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box6_ReadOrder[0].f2_27[0]`).setText('');
     // Box 7 - State ID
@@ -1136,7 +1206,9 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   }
 
   async renderPDFForm(row, form1099KData, target) {
-    const blob = await this.generatePDF(target, row, form1099KData);
+    this.currRow = row;
+    this.currForm = form1099KData;
+    const blob = await this.generatePDF(target);
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
     // 2021_Form_1099K_58ba1a8d9b4e441100d8cdc1_forRT.pdf

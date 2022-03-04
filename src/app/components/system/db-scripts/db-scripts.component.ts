@@ -4079,11 +4079,10 @@ export class DbScriptsComponent implements OnInit {
   async calculateForm1099k() {
     /* mongIdToDate - takes in the MongoDB _id and returns the encoded timestamp information as a date object
      (this functionality exists as a method of ObjectID, but this helper function acceps a string format) */
-    const mongoIdToDate = function (id) {
+    const mongoIdToDate = function (id, timezone) {
       const timestamp = id.substring(0, 8);
-      return new Date(parseInt(timestamp, 16) * 1000);
+      return new Date(parseInt(timestamp, 16) * 1000).toLocaleDateString('en-US', { timeZone: timezone });
     }
-
     /* round - helper function to address floating point math imprecision.
       e.g. sometimes a total may be expressed as '2.27999999999997'. we need to put that in the format '2.28' */
     const round = function (num) {
@@ -4091,7 +4090,7 @@ export class DbScriptsComponent implements OnInit {
     }
 
     // tabulateMonthlyData - helper function that takes in a RT's orders for a year and returns the total dollar amount, plus total for each month
-    const tabulateMonthlyData = function (orders) {
+    const tabulateMonthlyData = function (orders, timezone) {
       const monthlyData = {
         0: 0,
         1: 0,
@@ -4109,7 +4108,7 @@ export class DbScriptsComponent implements OnInit {
       }
 
       orders.forEach(order => {
-        let month = new Date(mongoIdToDate(order._id)).getMonth();
+        let month = new Date(mongoIdToDate(order._id, timezone)).getMonth();
         let roundedOrderTotal = round(order.computed.total);
         monthlyData[month] += roundedOrderTotal;
         monthlyData['total'] += roundedOrderTotal;
@@ -4174,8 +4173,8 @@ export class DbScriptsComponent implements OnInit {
           for (let i = 0; i < 2; i++) {
             let toDate = new Date(fromDate);
             toDate.setMonth(fromDate.getMonth() + 6, 1);
-            const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(fromDate, rt.googleAddress.timezone);
-            const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(toDate, rt.googleAddress.timezone);
+            const utcf = TimezoneHelper.getTimezoneDateFromBrowserDate(fromDate, rt.googleAddress.timezone || 'America/New_York');
+            const utct = TimezoneHelper.getTimezoneDateFromBrowserDate(toDate, rt.googleAddress.timezone || 'America/New_York');
             orderQuery["$and"] = [{
               createdAt: {
                 $gte: { $date: utcf }
@@ -4206,7 +4205,7 @@ export class DbScriptsComponent implements OnInit {
           // for tax year 2022 and after: requirement is >=1 orders and >= 600 dollars
           if (taxYear < 2022) {
             if (orders.length >= 200) {
-              const monthlyDataAndTotal = tabulateMonthlyData(orders);
+              const monthlyDataAndTotal = tabulateMonthlyData(orders, rt.googleAddress.timezone || 'America/New_York');
               if (monthlyDataAndTotal.total >= 20000) {
                 rt1099KData.required = true
                 rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
@@ -4214,7 +4213,7 @@ export class DbScriptsComponent implements OnInit {
             }
           } else if (taxYear === 2022) {
             if (orders.length >= 1) {
-              const monthlyDataAndTotal = tabulateMonthlyData(orders);
+              const monthlyDataAndTotal = tabulateMonthlyData(orders, rt.googleAddress.timezone || 'America/New_York');
               if (monthlyDataAndTotal.total >= 600) {
                 rt1099KData.required = true
                 rt1099KData = { transactions: orders.length, ...rt1099KData, ...monthlyDataAndTotal };
