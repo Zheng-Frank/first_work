@@ -262,12 +262,11 @@ const pad = (value, total, prefix = false) => {
 
 const renderRow = (fields, data) => {
   let content = fields.sort((x, y) => x.index - y.index).map(({name, length, blank, numeric, email}) => {
-    let value = blank ? (numeric ? ZERO : BLANK) : (data[name] || '').toString().trim();
+    let value = blank ? (numeric ? ZERO : BLANK) : (data[name] || '').toString().replace(/\s+/g, ' ').trim().substr(0, 40);
     // if not email, make value to uppercase
     if (!email) { value = value.toUpperCase(); }
     // for number, pad left with 0, for string, pad right with space
-    let text = pad(value, length, numeric)
-    return text;
+    return pad(value, length, numeric);
   }).join('')
   console.log(data.RecordSequenceNumber, content.length)
   return content;
@@ -284,7 +283,7 @@ class Renderer {
       type: 'T',
       PaymentYear: year,
       TransmitterTIN: '814208444',
-      TransmitterControlCode : "95102",
+      TransmitterControlCode : "WFIRS",
       TestFileIndicator : "",
       ForeignEntityIndicator : '', // leave empty
       TransmitterName : "Guanghua Sui",
@@ -348,7 +347,7 @@ class Renderer {
             PayeeTINType: {EIN: '1', SSN: '2'}[form.periodTinType || item.rtTinType] || '1', // default to EIN
             PayeeTIN: tin.replace(/[-\s]/g, ''),
             PayerAccountNumber: item.id.substr(4), // use last 20 chars in _id
-            PayeeName: payeeName,
+            PayeeName: payeeName, // use first 40 chars in case of too long name
             GrossAmount: round(form.total),
             CardNotPresentTransactions: Number(form.transactions || 0),
             PayeeAddress: item.streetAddress, PayeeCity: item.city, PayeeState: item.state,
@@ -391,7 +390,6 @@ class Renderer {
 }
 
 const download = (year, list) => {
-  console.log(list)
   let { rows, totalPayees } = Renderer.bckfRow(year, list);
   rows.unshift(Renderer.aRow(year))
   rows.unshift(Renderer.tRow(year, totalPayees))
