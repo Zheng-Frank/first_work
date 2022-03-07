@@ -253,25 +253,33 @@ const StateCodes = {
   "WI": "55"
 }
 
-const pad = (value, total, prefix = false) => {
+const pad = (value, total, numeric = false) => {
   while (value.toString().length < total) {
-    if (prefix) { value = ZERO + value; } else { value += BLANK; }
+    if (numeric) { value = ZERO + value; } else { value += BLANK; }
   }
   return value;
 }
 
 const renderRow = (fields, data) => {
-  let content = fields.sort((x, y) => x.index - y.index).map(({name, length, blank, numeric, email}) => {
-    let value = blank ? (numeric ? ZERO : BLANK) : (data[name] || '').toString().replace(/\s+/g, ' ').trim().substr(0, 40);
+  return fields.sort((x, y) => x.index - y.index).map(({name, length, blank, numeric, email}) => {
+    let value = (data[name] || '').toString().replace(/\s+/g, ' ').trim().substr(0, length);
+    if (blank) {
+      value = BLANK;
+      if (numeric) {
+        value = ZERO;
+      }
+    }
     // if not email, make value to uppercase
-    if (!email) { value = value.toUpperCase(); }
+    if (!email) {
+      value = value.toUpperCase();
+    }
     // for number, pad left with 0, for string, pad right with space
-    return pad(value, length, numeric);
-  }).join('')
-  if (content.length !== 748) {
-    console.log('content length wrong!', content.length, content, data, fields)
-  }
-  return content;
+    value = pad(value, length, numeric);
+    if (value.length !== length) {
+      throw new Error('Value length incorrect!')
+    }
+    return value;
+  }).join('');
 }
 
 const Months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
