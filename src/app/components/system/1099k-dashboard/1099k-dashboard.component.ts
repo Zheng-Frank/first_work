@@ -156,8 +156,8 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   downloadFIRE() {
     try {
 
-      const download = () => {
-        let blob = new Blob([rows.join('\n')], {type: 'text/plain; charset=utf-8'});
+      const download = (content) => {
+        let blob = new Blob([content], {type: 'text/plain; charset=utf-8'});
         let node = document.createElement('a');
         node.href = URL.createObjectURL(blob);
         let dt = new Date();
@@ -175,10 +175,10 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       const { rows, errors } = IRSHelper.generate(this.taxYear, this.rows);
       if (errors.length > 0) {
         if (confirm('Some restaurants are missing payee and/or TIN. Do you want to proceed with download anyway?')) {
-          download()
+          download(rows.join('\n'))
         }
       } else {
-        download();
+        download(rows.join('\n'));
       }
     } catch (e) {
       this._global.publishAlert(AlertType.Danger, e.message)
