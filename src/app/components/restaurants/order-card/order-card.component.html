@@ -3,10 +3,11 @@
           {{order.statusEqual('CANCELED') ? 'app-order-finished card-outline-danger' : ''}}
           {{order.statusEqual('COMPLETED') ? 'card-outline-success app-order-finished' : ''}}" style="height:100%">
   <div class="order-number">
-    <span class="pl-1" routerLink="/order/{{order.id}}">{{order.orderNumber}}</span>
+    <span class="pl-1">{{order.orderNumber}}</span>
     <i class="fa fa-clipboard" (click)="copyToClipboard(order)" style="cursor:pointer;"></i>
   </div>
   <div *ngIf="order.dineInSessionObj" class="qr order-from-row">
+    <i class="fas fa-database mr-2 db-icon-cursor" *ngIf="showAllInfo()" (click)="openDBInfoModal(order)"></i>
     <div class="order-from-border mr-2">{{getOrderOrigin(order)}}</div>
     <div *ngIf="orderFromPC(order)" class="order-from-border">
       <i class="fa fa-laptop"></i>
@@ -47,6 +48,7 @@
   </div>
   <!-- start with pc/phone icon -->
   <div *ngIf="!order.dineInSessionObj" class="qr order-from-row">
+    <i class="fas fa-database mr-2 db-icon-cursor" *ngIf="showAllInfo()" (click)="openDBInfoModal(order)"></i>
     <div class="order-from-border mr-2">{{getOrderOrigin(order)}}</div>
     <div *ngIf="orderFromPC(order)" class="order-from-border">
       <i class="fa fa-laptop"></i>
@@ -89,7 +91,7 @@
       <h4 class="text-sm-center">
         {{getCustomerName(order)}}
       </h4>
-      <h6 class="text-center text-muted">{{order.id}}</h6>
+      
       <div class="text-danger text-sm-center pb-2" *ngIf="!order.customerPreviousOrderStatus">Note: New Customer</div>
         <!-- 显示用户被禁止的理由(show the banned reson of customer if it exsits!) -->
       <div *ngIf="order.customer?.bannedReasons" class="alert alert-danger">
