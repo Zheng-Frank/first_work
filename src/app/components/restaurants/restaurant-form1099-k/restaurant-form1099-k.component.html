@@ -84,8 +84,7 @@
       <ng-template #elseBlock>
         <li>
           <a class="btn-link disabled" *ngIf="disbleCalBtn(linkEntry)">Calculate 1099K</a>
-          <!-- *ngIf="!disbleCalBtn(linkEntry)" -->
-          <a class="btn-link"  (click)="calculateForm1099k(linkEntry)">Calculate
+          <a class="btn-link"  *ngIf="!disbleCalBtn(linkEntry)" (click)="calculateForm1099k(linkEntry)">Calculate
             1099K</a>
         </li>
       </ng-template>
