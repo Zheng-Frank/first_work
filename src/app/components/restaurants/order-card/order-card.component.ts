@@ -28,6 +28,7 @@ export class OrderCardComponent implements OnInit {
   @Output() onOpenChangeOrderTypesModal = new EventEmitter();
   @Output() onOpenPreviousCanceledOrderModal = new EventEmitter();
   @Output() onViewNotificationHistory = new EventEmitter();
+  @Output() onOpenDBInfoModal = new EventEmitter();
 
   @ViewChild('toggleButton') toggleButton;
   @ViewChild('confirmModal') confirmModal: ConfirmComponent;
@@ -43,6 +44,10 @@ export class OrderCardComponent implements OnInit {
   }
 
   ngOnInit() {
+  }
+  // the modal will show order id, rt id, customer id
+  openDBInfoModal(order) {
+    this.onOpenDBInfoModal.emit(order);
   }
 
   showAllInfo() {
