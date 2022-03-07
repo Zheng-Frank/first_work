@@ -758,6 +758,8 @@ export class Form1099KComponent implements OnInit {
     form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_8[0]`).setText('81-4208444');
     // Payee's TIN    
     form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_9[0]`).setText(this.currForm.yearPeriodStart ? this.currForm.periodTin : rt.rtTIN)
+    // Box 1a gross amount of payment card/third party network transactions 
+    form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_10[0]`).setText(this.currForm.total.toFixed(2));
     // Box 1b card not present transactions
     form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box1b_ReadOrder[0].f2_11[0]`).setText(this.currForm.total.toFixed(2));
     // Box 2 - Merchant category code (Always 5812 for restaurants)
@@ -823,6 +825,7 @@ export class Form1099KComponent implements OnInit {
     // 2021_Form_1099K_58ba1a8d9b4e441100d8cdc1_forQM.pdf
     link.download = `${this.currForm.year}_Form_1099K_${rt._id}_for${target === 'qmenu' ? 'QM' : 'RT'}.pdf`
     link.click();
+    link.remove();
   }
 
 }

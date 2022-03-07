@@ -1215,6 +1215,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     // 2021_Form_1099K_58ba1a8d9b4e441100d8cdc1_forQM.pdf
     link.download = `${form1099KData.year}_Form_1099K_${row.id}_for${target === 'qmenu' ? 'QM' : 'RT'}.pdf`
     link.click();
+    link.remove();
   }
 
 
