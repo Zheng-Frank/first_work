@@ -2,6 +2,7 @@ import {Helper} from '../../../classes/helper';
 import {environment} from 'src/environments/environment';
 import {ApiService} from 'src/app/services/api.service';
 import {Component, OnInit} from '@angular/core';
+import {GlobalService} from '../../../services/global.service';
 
 @Component({
   selector: 'app-restaurants-by-courier',
@@ -14,9 +15,12 @@ export class RestaurantsByCourierComponent implements OnInit {
   courier = 'Postmates';
   deliveryStatus = '';
   timezone = 'All'
+  salesRep = 'All'
   restaurants = [];
   timezones = [];
   filteredRestaurants = [];
+  users = [];
+  agents = [];
 
   restaurantsColumnDescriptors = [
     {
@@ -26,6 +30,9 @@ export class RestaurantsByCourierComponent implements OnInit {
       label: "Restaurant",
       paths: ['name'], // the paths property is used to make the colunm sortable.
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
+    },
+    {
+      label: "Sales Rep",
     },
     {
       label: "Courier",
@@ -43,10 +50,11 @@ export class RestaurantsByCourierComponent implements OnInit {
     }
   ];
 
-  constructor(private _api: ApiService) { }
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
-  ngOnInit() {
-    this.populateRestaurantListByCourier();
+  async ngOnInit() {
+    this.users = await this._global.getCachedUserList();
+    await this.populateRestaurantListByCourier();
   }
 
   deliveryStatusLabel(settings) {
@@ -67,6 +75,8 @@ export class RestaurantsByCourierComponent implements OnInit {
         "googleAddress.formatted_address": 1,
         'googleAddress.timezone': 1,
         'googleAddress.country': 1,
+        'rateSchedules.date': 1,
+        'rateSchedules.agent': 1,
         name: 1,
         courier: 1,
         score: 1,
@@ -76,6 +86,7 @@ export class RestaurantsByCourierComponent implements OnInit {
       },
     }, 5000);
     this.restaurants = this.parseRestaurants(this.restaurants).filter(each => (each.courier && each.courier.name) || (!each.courier && each.deliverySettings && each.deliverySettings.length > 0));
+    this.agents = Array.from(new Set(this.restaurants.map(rt => rt.agent))).sort((a: string, b: string) => a.localeCompare(b))
     this.timezones = Array.from(new Set(this.restaurants.map(rt => rt.timeZone)))
     this.filteredRestaurants = this.restaurants;
     this.filter();
@@ -91,7 +102,8 @@ export class RestaurantsByCourierComponent implements OnInit {
       courier: each.courier,
       deliveryClosedHours: each.deliveryClosedHours,
       deliverySettings: each.deliverySettings,
-      serviceSettings: each.serviceSettings
+      serviceSettings: each.serviceSettings,
+      agent: Helper.getSalesAgent(each.rateSchedules, this.users)
     }));
   }
 
@@ -115,6 +127,9 @@ export class RestaurantsByCourierComponent implements OnInit {
     }
     if (this.timezone !== 'All') {
       list = list.filter(rt => rt.timeZone === this.timezone);
+    }
+    if (this.salesRep !== 'All') {
+      list = list.filter(rt => rt.agent === this.salesRep);
     }
 
     this.filteredRestaurants = list

@@ -219,7 +219,7 @@ export class QmBmSstDashboardComponent implements OnInit {
         } else {
           rt.hasGmb = false
         }
-        rt.hasGMBWebsite = !!gmbWebsiteOwnerDict[rt.place_id + rt.cid]
+        rt.hasGMBWebsite = gmbWebsiteOwnerDict[rt.place_id + rt.cid] === 'qmenu'
         rt.postmatesAvailable = this.postmatesAvailable(rt)
       })
       // --- BeyondMenu restaurants
@@ -322,13 +322,20 @@ export class QmBmSstDashboardComponent implements OnInit {
   getTier(score) {
     if (!score) {
       return 0;
-    } else if (score >= 0 && score <= 4) {
-      return 3;
-    } else if (score > 4 && score <= 40) {
-      return 2;
-    } else {
+    }
+    // 30.2: avg days per month, 0.7: discount factor
+    let value = score * 30.2 * 0.7;
+
+    if (value > 40) {
       return 1;
     }
+    if (value > 4) {
+      return 2;
+    }
+    if (value > 0) {
+      return 3;
+    }
+    return 0;
   }
 
   getTierColor(tier = 0, btier = 0) {

@@ -33,6 +33,15 @@
       </ng-container>
     </select>
   </div>
+  <div class="col-auto form-inline">
+    <label class="mr-2">Sales Rep:</label>
+    <select class="form-control custom-select" [(ngModel)]="salesRep" (change)="filter()">
+      <option value="All">All</option>
+      <ng-container *ngFor="let agent of agents">
+        <option [value]='agent'>{{agent}}</option>
+      </ng-container>
+    </select>
+  </div>
 </div>
 
 <q-table [rows]="filteredRestaurants" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true">
@@ -43,6 +52,7 @@
       <br>
       {{restaurant.address}}
     </td>
+    <td>{{restaurant.agent}}</td>
     <td *ngIf="restaurant.courier"> {{restaurant.courier?.name}} </td>
     <td *ngIf="!restaurant.courier">
       <ng-container *ngIf="restaurant.deliverySettings && restaurant.deliverySettings.length > 0">Self delivery</ng-container>
