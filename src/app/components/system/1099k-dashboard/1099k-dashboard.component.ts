@@ -9,7 +9,7 @@ import {PDFDocument} from 'pdf-lib';
 import {Hour, TimezoneHelper} from '@qmenu/ui';
 import {ModalComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
 import {form1099kEmailTemplate} from '../../restaurants/restaurant-form1099-k/html-email-templates';
-import {download} from './irs-fire-helper';
+import IRSHelper from './irs-fire-helper';
 
 
 declare var $: any;
@@ -155,7 +155,31 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
 
   downloadFIRE() {
     try {
-      download(this.taxYear, this.rows);
+
+      const download = () => {
+        let blob = new Blob([rows.join('\n')], {type: 'text/plain; charset=utf-8'});
+        let node = document.createElement('a');
+        node.href = URL.createObjectURL(blob);
+        let dt = new Date();
+        let y = dt.getFullYear();
+        let M =  IRSHelper.pad(dt.getMonth() + 1, 2, true)
+        let d = IRSHelper.pad(dt.getDate(), 2, true)
+        let h = IRSHelper.pad(dt.getHours(), 2, true)
+        let m = IRSHelper.pad(dt.getMinutes(), 2, true)
+        let s = IRSHelper.pad(dt.getSeconds(), 2, true)
+        node.download = `${this.taxYear}-tax-year_Qmenu_FIRE_Submission-created_${[y, M, d, h, m, s].join('_')}.txt`;
+        node.click();
+        node.remove();
+      }
+
+      const { rows, errors } = IRSHelper.generate(this.taxYear, this.rows);
+      if (errors.length > 0) {
+        if (confirm('Some restaurants are missing payee and/or TIN. Do you want to proceed with download anyway?')) {
+          download()
+        }
+      } else {
+        download();
+      }
     } catch (e) {
       this._global.publishAlert(AlertType.Danger, e.message)
     }

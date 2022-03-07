@@ -340,7 +340,7 @@ class Renderer {
   }
 
   static bckfRow(year, list) {
-    let sequence = 3, states = {}, rows = [];
+    let sequence = 3, states = {}, rows = [], errors = [];
     let sum = {type: 'C', GrossAmount: 0, CardNotPresentTransactions: 0, NumberOfPayees: 0};
     list.forEach(item => {
       item.form1099k.filter(x => x.required && x.year === Number(year))
@@ -349,7 +349,9 @@ class Renderer {
           let tin = form.periodTin || item.rtTIN,
             payeeName = form.periodPayeeName || item.payeeName;
           if (!tin || !payeeName) {
-            throw new Error('One or more restaurants is missing information required to download the FIRE submission. Please fill in all required fields before downloading.')
+            // skip rts in-completed
+            errors.push(item.id)
+            return;
           }
           let data = {
             type: 'B', PaymentYear: year,
@@ -399,30 +401,19 @@ class Renderer {
       type: 'F', NumberOfARecords: 1, TotalNumberOfPayees: sum.NumberOfPayees,
       RecordSequenceNumber: sequence++,
     }))
-    return {rows, totalPayees: sum.NumberOfPayees};
+    return {rows, totalPayees: sum.NumberOfPayees, errors};
   }
 
 }
 
-const download = (year, list) => {
-  let { rows, totalPayees } = Renderer.bckfRow(year, list);
+const generate = (year, list) => {
+  let { rows, totalPayees, errors } = Renderer.bckfRow(year, list);
   rows.unshift(Renderer.aRow(year))
   rows.unshift(Renderer.tRow(year, totalPayees))
-  let blob = new Blob([rows.join('\n')], {type: 'text/plain; charset=utf-8'});
-  let node = document.createElement('a');
-  node.href = URL.createObjectURL(blob);
-  let dt = new Date();
-  let y = dt.getFullYear();
-  let M =  pad(dt.getMonth() + 1, 2, true)
-  let d = pad(dt.getDate(), 2, true)
-  let h = pad(dt.getHours(), 2, true)
-  let m = pad(dt.getMinutes(), 2, true)
-  let s = pad(dt.getSeconds(), 2, true)
-  node.download = `${year}-tax-year_Qmenu_FIRE_Submission-created_${[y, M, d, h, m, s].join('_')}.txt`;
-  node.click();
-  node.remove();
+  return { rows, errors};
 }
 
-export {
-  download
+export default {
+  generate,
+  pad
 }
