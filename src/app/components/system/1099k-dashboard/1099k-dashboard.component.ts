@@ -1,14 +1,17 @@
-import { DomSanitizer } from '@angular/platform-browser';
-import { HttpClient } from '@angular/common/http';
-import { AlertType } from 'src/app/classes/alert-type';
-import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
-import { ApiService } from "../../../services/api.service";
-import { environment } from "../../../../environments/environment";
-import { GlobalService } from "../../../services/global.service";
-import { PDFDocument } from "pdf-lib";
-import { TimezoneHelper, Hour } from "@qmenu/ui";
-import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-import { form1099kEmailTemplate } from '../../restaurants/restaurant-form1099-k/html-email-templates';
+import {DomSanitizer} from '@angular/platform-browser';
+import {HttpClient} from '@angular/common/http';
+import {AlertType} from 'src/app/classes/alert-type';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {ApiService} from '../../../services/api.service';
+import {environment} from '../../../../environments/environment';
+import {GlobalService} from '../../../services/global.service';
+import {PDFDocument} from 'pdf-lib';
+import {Hour, TimezoneHelper} from '@qmenu/ui';
+import {ModalComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
+import {form1099kEmailTemplate} from '../../restaurants/restaurant-form1099-k/html-email-templates';
+import IRSHelper from './irs-fire-helper';
+
+
 declare var $: any;
 enum openRTOptionTypes {
   All = 'Open now?',
@@ -110,10 +113,9 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   currForm;
   currRowIndex;
   sendLoading = false;
-  showExplanation = false;
   showExtraTools = false;
   calcRTFilter;
-  fromDate; //time picker to calculate transactions.
+  fromDate; // time picker to calculate transactions.
   toDate;
   transactionText = '';
   tinTypes = [enumTinTypes.EIN, enumTinTypes.SSN, enumTinTypes.Remove];
@@ -121,6 +123,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer, private _http: HttpClient) { }
 
   async ngOnInit() {
+    this.tooltip();
     // refresh the page every hour
     this.timer = setInterval(() => {
       this.now = new Date();
@@ -150,6 +153,44 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     this.tinTypeModal.hide();
   }
 
+  downloadFIRE() {
+    try {
+
+      const download = (content) => {
+        let blob = new Blob([content], {type: 'text/plain; charset=utf-8'});
+        let node = document.createElement('a');
+        node.href = URL.createObjectURL(blob);
+        let dt = new Date();
+        let y = dt.getFullYear();
+        let M =  IRSHelper.pad(dt.getMonth() + 1, 2, true)
+        let d = IRSHelper.pad(dt.getDate(), 2, true)
+        let h = IRSHelper.pad(dt.getHours(), 2, true)
+        let m = IRSHelper.pad(dt.getMinutes(), 2, true)
+        let s = IRSHelper.pad(dt.getSeconds(), 2, true)
+        node.download = `${this.taxYear}-tax-year_Qmenu_FIRE_Submission-created_${[y, M, d, h, m, s].join('_')}.txt`;
+        node.click();
+        node.remove();
+      }
+
+      const { rows, errors } = IRSHelper.generate(this.taxYear, this.rows);
+      if (errors.length > 0) {
+        if (confirm('Some restaurants are missing payee and/or TIN. Do you want to proceed with download anyway?')) {
+          download(rows.join('\n'))
+        }
+      } else {
+        download(rows.join('\n'));
+      }
+    } catch (e) {
+      this._global.publishAlert(AlertType.Danger, e.message)
+    }
+  }
+
+  tooltip() {
+    setTimeout(() => {
+      $("[data-toggle='tooltip']").tooltip();
+    })
+  }
+
   handleShowExtraTools() {
     this.showExtraTools = !this.showExtraTools;
     if (!this.showExtraTools) {
@@ -158,7 +199,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       this.calcRTFilter = '';
       this.transactionText = '';
     } else {
-      $("[data-toggle='tooltip']").tooltip();
+      this.tooltip();
     }
   }
 
@@ -212,7 +253,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       limit: 100000000000000000
     }).toPromise();
 
-    /* round - helper function to address floating point math imprecision. 
+    /* round - helper function to address floating point math imprecision.
      e.g. sometimes a total may be expressed as '2.27999999999997'. we need to put that in the format '2.28' */
     const round = function (num) {
       return Math.round((num + Number.EPSILON) * 100) / 100;
@@ -580,6 +621,9 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       payeeName,
       rtTIN,
       rtTinType,
+      city: ga.locality,
+      state: ga.administrative_area_level_1,
+      zipCode: ga.postal_code,
       channels: rt.channels || [],
       timezone,
       openOrNot
@@ -622,13 +666,14 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   }
 
   filterRows() {
-    /* pass through several layers of filtering based on each possible criteria: 
+    this.tooltip();
+    /* pass through several layers of filtering based on each possible criteria:
     taxYear, showingMissingPayee, showMissingTIN, and showMissingEmail */
     this.filteredRows = JSON.parse(JSON.stringify(this.rows));
 
     // taxYear
     if (this.taxYear !== 'All') {
-      const year = parseInt(this.taxYear);
+      const year = Number.parseInt(this.taxYear);
       this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).findIndex(form => form.year === year) >= 0);
       this.filteredRows.map(row => {
         row.form1099k = (row.form1099k || []).filter(form => form.year === year);
@@ -689,9 +734,9 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       this.filteredRows[rowIndex].payeeName = newObj['payeeName'] = event.newValue;
     }
     if (field === 'Email') {
-      /* we only allow user to submit email if one does not already exist. 
+      /* we only allow user to submit email if one does not already exist.
       to avoid possible confusion, will not allow users to edit existing channels from this component*/
-      /* we only allow user to submit email if one does not already exist. 
+      /* we only allow user to submit email if one does not already exist.
    to avoid possible confusion, will not allow users to edit existing channels from this component*/
       const newChannel = {
         type: 'Email',
@@ -751,7 +796,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
 
     // Filer's TIN
     form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_8[0]`).setText('81-4208444');
-    // Payee's TIN    
+    // Payee's TIN
     form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_9[0]`).setText(row.rtTIN)
     // Box 1b card not present transactions
     form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box1b_ReadOrder[0].f2_11[0]`).setText(form1099KData.total.toFixed(2));

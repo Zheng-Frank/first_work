@@ -3,56 +3,54 @@
 <div class="my-2">
   <div class="form-inline mx-5">
     <!-- Search Textbox -->
-    <label class="mx-2"> Search:</label>
-    <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control ml-2 search-input"
+    <label class="my-2 mx-2"> Search:</label>
+    <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control my-2 mx-2 search-input"
       placeholder="RT name or ID, R T owner name, email, etc." [(ngModel)]="searchFilter">
 
     <!-- Tax Year Dropdown -->
-    <label class="mx-2"> Select Tax Year:</label>
-    <select class="form-control mr-2" [(ngModel)]="taxYear" (change)="filterRows()">
+    <label class="my-2 mx-2"> Select Tax Year:</label>
+    <select class="form-control my-2 mx-2" [(ngModel)]="taxYear" (change)="filterRows()">
       <option *ngFor="let entry of taxYearOptions"> {{entry}} </option>
     </select>
 
     <!-- RT open or not -->
-    <select class="form-control mx-2" [(ngModel)]="openOption" (change)="filterRows()">
+    <select class="form-control my-2 mx-2" [(ngModel)]="openOption" (change)="filterRows()">
       <option *ngFor="let option of openOptions"> {{option}} </option>
     </select>
 
     <!-- Missing Payee/TIN/Email Attributes -->
-    <select class="form-control mx-2" [(ngModel)]="missPayeeOption" (change)="filterRows()">
+    <select class="form-control my-2 mx-2" [(ngModel)]="missPayeeOption" (change)="filterRows()">
       <option *ngFor="let option of missPayeeOptions"> {{option}} </option>
     </select>
 
-    <select class="form-control mx-2" [(ngModel)]="missTINOption" (change)="filterRows()">
+    <select class="form-control my-2 mx-2" [(ngModel)]="missTINOption" (change)="filterRows()">
       <option *ngFor="let option of missTINOptions"> {{option}} </option>
     </select>
 
-    <select class="form-control mx-2" [(ngModel)]="missingEmailOption" (change)="filterRows()">
+    <select class="form-control my-2 mx-2" [(ngModel)]="missingEmailOption" (change)="filterRows()">
       <option *ngFor="let option of missingEmailOptions"> {{option}} </option>
     </select>
     <!-- sent or not -->
-    <select class="form-control mx-2" [(ngModel)]="sentEmailOption" (change)="filterRows()">
+    <select class="form-control my-2 mx-2" [(ngModel)]="sentEmailOption" (change)="filterRows()">
       <option *ngFor="let option of sentEmailOptions"> {{option}} </option>
     </select>
-    <i class="fa fa-info-circle icon-color" (mouseover)="showExplanation = true" (mouseout)="showExplanation = false">
-      <div *ngIf="showExplanation" class="left talk radius">
-        <p>Filter by whether the form for the currently-selected tax year has been sent to the restaurant yet.</p>
-        -------------<br>
-        <p>根据当前所选纳税年度的表格是否已发送到餐厅进行筛选。</p>
-      </div>
-    </i>
-    <button class="btn btn-primary recan-btn" (click)="rescan()"><i class="fas fa-sync"></i> Rescan</button>
+    <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Filter by whether the form for the currently-selected tax year has been sent to the restaurant yet.(根据当前所选纳税年度的表格是否已发送到餐厅进行筛选。)"></i>
+    <button class="btn btn-primary my-2 mx-2" (click)="rescan()"><i class="fas fa-sync"></i> Rescan</button>
+    <ng-container *ngIf="taxYear &&  taxYear !== 'All'">
+      <button class="my-2 mx-2 btn btn-primary" (click)="downloadFIRE()">Download FIRE Submission</button>
+      <i class="fa fa-info-circle ml-2" data-toggle="tooltip" data-placement="top" title="We need to submit a document (similar to a CSV) to the FIRE website of the IRS. This document, among other things, contains a line for each legal entity for which we’ve submitted a 1099K form and the data values contained in each form. Before submitting it, we must make sure that all 1099K information for all restaurants is correct, that all customizations have been done first, and that TIN-matching has already been done and is verified."></i>
+    </ng-container>
   </div>
   <hr>
   <div class="form-inline mx-5 pl-1">
     <label class="mx-2">Bulk Action Tool</label>
     <select class="form-control" [(ngModel)]="bulkFileOperation">
-      <option value="" disabled selectedtml> Choose an option... </option>
+      <option value="" disabled> Choose an option... </option>
       <option *ngFor="let option of bulkFileOperations"> {{option}} </option>
     </select>
     <label class="mx-2">for the year</label>
     <select class="form-control mx-2" [(ngModel)]="bulkOperationYear">
-      <option value="" disabled selectedtml> Choose an option... </option>
+      <option value="" disabled> Choose an option... </option>
       <option *ngFor="let year of bulkOperationYears"> {{year}} </option>
     </select>
     <button class="btn btn-primary mx-2" (click)="executeBulkFileOperation()" [disabled]="isMissingBulkFileAttributes()"
@@ -72,7 +70,7 @@
       Calculate</button>
     <span *ngIf="transactionText" class="ml-2">{{transactionText}}</span>
     <div class="ml-2">
-      <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" 
+      <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top"
       title="For 2021 and prior, if RT has less than 200 transactions or less than $20k of transactions, they don’t need a 1099K form for the currently-selected period. For 2022 and beyond, if the RT has less than $600 of transactions, they don’t need a 1099K form for the currently-selected period.
       (对于2021和以前，如果餐馆具有少于200个事务或少于20000美元的事务，则它们不需要当前选择的周期的1099 K表。在2022年及以后，如果餐馆的交易额少于600美元，则在当前选定的期间内，他们不需要1099K表格。)"></i>
     </div>
