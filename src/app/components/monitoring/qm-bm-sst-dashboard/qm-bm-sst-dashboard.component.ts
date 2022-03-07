@@ -133,7 +133,7 @@ export class QmBmSstDashboardComponent implements OnInit {
     await this.preload();
   }
 
-  countByTier(list, tier, activeOnly = false) {
+  countByTier(list, tier) {
     let num = list.filter(rt => this.getEiterTier(rt) === tier).length;
     return `${num} (${num ? (Math.round((num / list.length) * 10000) / 100) : 0}%)`
   }
@@ -513,10 +513,10 @@ export class QmBmSstDashboardComponent implements OnInit {
     list = this.worthyFilter(list, perspective, worthiness);
 
     if (keyword && keyword.trim()) {
-      const kwMatch = str => str && str.toLowerCase().includes(keyword.toLowerCase())
+      const kwMatch = str => str && str.toString().toLowerCase().includes(keyword.toLowerCase())
       let digits = keyword.replace(/[^a-zA-Z0-9]/g, '');
-      list = list.filter(({name, bname, address, baddress, channels, bchannels}) => {
-        return kwMatch(name) || kwMatch(bname) || kwMatch(address) || kwMatch(baddress)
+      list = list.filter(({_id, _bid, name, bname, address, baddress, channels, bchannels}) => {
+        return [_id, _bid, name, bname, address, baddress].some(x => kwMatch(x))
         || (digits && ((channels || []).some(p => p.type === 'Phone' && p.value.includes(digits)) || (bchannels || []).some(p => p.value.includes(digits))))
       })
     }
