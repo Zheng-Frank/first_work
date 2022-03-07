@@ -8,8 +8,8 @@
     <div class="d-flex align-items-center row">
       <span class="d-inline-flex align-items-center col-auto mb-3">
         <label for="qmSearchText" class="m-0 p-0">Search </label>
-        <input type="text" class="ml-2 form-control" [qDebounce]="500" (debounce)="filter()" placeholder="Search by RT name, address or phone" id="qmSearchText" [(ngModel)]="filters.keyword">
-        <i class="fa fa-info-circle ml-1" data-toggle="tooltip" title="You can search for a restaurant by name, address, or phone number." data-placement="top"></i>
+        <input type="text" class="ml-2 form-control" [qDebounce]="500" (debounce)="filter()" placeholder="Search by RT name, address, phone or ID" id="qmSearchText" [(ngModel)]="filters.keyword">
+        <i class="fa fa-info-circle ml-1" data-toggle="tooltip" title="You can search for a restaurant by name, address, phone or ID." data-placement="top"></i>
       </span>
       <div class="d-inline-flex align-items-center col-auto mb-3">
         <span class="mr-2">Filters: </span>
