@@ -258,6 +258,15 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     return template.replace(regex, (_, p1) => dataset[p1]);
   }
 
+  getOnlineServicesAgreementForSMS(){
+    return `
+    Qmenu online service agreement\n
+    %%AWS_QMENU_SERVICE_ONLINE_AGREEMENT_LINK_HERE%%\n
+    (html template as follow)\n
+    ${this.getOnlineServicesAgreement()}
+    `;
+  }
+
   getOnlineServicesAgreement() {
     let {serviceSettings} = this.restaurant;
     let qMenuCollect = (serviceSettings || []).some(ss => (ss.paymentMethods || []).includes('QMENU'));
@@ -478,7 +487,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
               apply: (tpl, value) => this.fillMessageTemplate(tpl, {"POSITION": value}, /%%(POSITION)%%/g)
             }
           ],
-          emailContent: this.getOnlineServicesAgreement()
+          emailContent: this.getOnlineServicesAgreement(),
+          smsContent: this.getOnlineServicesAgreementForSMS()
         });
       }
       if (this.earliestInvoiceDueDate) {

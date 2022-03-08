@@ -167,7 +167,7 @@ export class SendMessageComponent {
 
   send() {
     // fill inputs
-    let {inputs, smsContent, emailContent} = this.template;
+    let {inputs, smsContent, emailContent, title} = this.template;
     if (inputs) {
       inputs.forEach(field => {
         if (smsContent) {
@@ -178,6 +178,27 @@ export class SendMessageComponent {
         }
       });
     }
+    
+    // some rt use sms to receive agreement, and need to generate a mediaUrl using email html content
+    if(title === 'qMenu Online Service Agreement'){
+      let smsContentArr = smsContent.split('(html template as follow)\n');
+      let smsMediaContent = smsContentArr[0];
+      let serviceAgreementHtml = smsContentArr[1];
+      const loadParameters = {
+        'content-type': 'text/html; charset=utf-8',
+        body: serviceAgreementHtml,
+      };
+      try {
+        const smsHtmlUrl = `${environment.appApiUrl}events/echo?${Object.keys(loadParameters).map(k => `${k}=${encodeURIComponent(loadParameters[k])}`).join('&')}`;
+        let smsHtmlMediaUrl = `${environment.utilsApiUrl}render-url?url=${encodeURIComponent(smsHtmlUrl)}&format=pdf`;
+        smsMediaContent = smsMediaContent.replace(/%%AWS_QMENU_SERVICE_ONLINE_AGREEMENT_LINK_HERE%%/, smsHtmlMediaUrl);
+      } catch (error) {
+        console.log(error);
+        return this._global.publishAlert(AlertType.Danger, 'Generate sms content fail due to network error !');
+      }
+      smsContent = smsMediaContent;
+    }
+    
     let targets = this.useCustomTarget ? [{value: this.phoneNumber, type: 'SMS'}] : this.targets;
 
     const jobs = targets.map(target => {
