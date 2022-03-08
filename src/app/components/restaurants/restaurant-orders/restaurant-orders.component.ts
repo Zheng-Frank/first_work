@@ -35,6 +35,7 @@ export class RestaurantOrdersComponent implements OnInit {
   @ViewChild('notificationHistoryModal') notificationHistoryModal: ModalComponent;
   previousCanceledOrder: any; // previous canceled order object of one customer
   @ViewChild('changeOrderTypeModal') changeOrderTypeModal: ModalComponent;
+  @ViewChild('DBInfoModal') DBInfoModal: ModalComponent;
   @ViewChild('orderCard') orderCard: OrderCardComponent;
   cardSpecialOrder;
   onNewOrderReceived: EventEmitter<any> = new EventEmitter();
@@ -65,6 +66,11 @@ export class RestaurantOrdersComponent implements OnInit {
   showExplanation = false;
   notificationHistory = [];
   constructor(private _api: ApiService, private _global: GlobalService, private _ngZone: NgZone) {
+  }
+
+  handleOpenDBInfoModal(order){
+    this.orderForModal = order;
+    this.DBInfoModal.show();
   }
   /**
    * it is because that the changeordertypemodal has mass sort if it is in the card component.
@@ -253,7 +259,7 @@ export class RestaurantOrdersComponent implements OnInit {
       order.payment = order.paymentObj;
       order.id = order._id;
       order.customerNotice = order.customerNotice || '';
-      order.restaurantNotie = order.restaurantNotie || '';
+      order.restaurantNotice = order.restaurantNotice || '';
       // making it back-compatible to display bannedReasons
       order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
       return new Order(order);
@@ -398,7 +404,7 @@ export class RestaurantOrdersComponent implements OnInit {
       order.payment = order.paymentObj;
       order.id = order._id;
       order.customerNotice = order.customerNotice || '';
-      order.restaurantNotie = order.restaurantNotie || '';
+      order.restaurantNotice = order.restaurantNotice || '';
       // making it back-compatible to display bannedReasons
       order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
       return new Order(order);
@@ -450,7 +456,7 @@ export class RestaurantOrdersComponent implements OnInit {
       order.payment = order.paymentObj;
       order.id = order._id;
       order.customerNotice = order.customerNotice || '';
-      order.restaurantNotie = order.restaurantNotie || '';
+      order.restaurantNotice = order.restaurantNotice || '';
       // making it back-compatible to display bannedReasons
       order.customer.bannedReasons = (customerIdBannedReasonsDict[order.customerObj._id] || {}).reasons;
       return new Order(order);
