@@ -9,7 +9,7 @@ enum EmailContentModes {
   Origin, Preview
 }
 
-interface HtmlRenderParam {
+interface HtmlRenderParams {
   contentType: string;
   body: string;
   format: string;
@@ -22,7 +22,7 @@ interface MessageTemplate {
   emailContent?: string;
   inputs?: { label: string, type?: string, value: string, apply: (content: string, value: any) => string }[];
   smsPreview?: string;
-  uploadHtml?: (body: string) => HtmlRenderParam;
+  uploadHtml?: (body: string) => HtmlRenderParams;
 }
 
 const EmptyTemplate = { title: '', smsContent: '', subject: '', emailContent: '' };
