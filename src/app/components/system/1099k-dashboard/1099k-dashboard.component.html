@@ -109,8 +109,8 @@
           {{row.openOrNot?'Open':'Closed'}}
         </span>
       </div>
-      <div class="card-text row">
-        <span class="pl-3">
+      <div class="card-text d-flex justify-content-between">
+        <div>
           <div>
             <b>TIN: </b>
             <b class="text-danger" *ngIf="!row.rtTIN">Attribute Missing</b>
@@ -143,8 +143,8 @@
               {{hasCustomOfThisYear(row.form1099k || []) ? 'Edit Customizations' : 'Customize'}}
             </a>
           </div>
-        </span>
-        <span class="download-pos text-unwrap">
+        </div>
+        <div class="text-unwrap">
           <div *ngFor="let form of (row.form1099k  || [])">
             <ng-container *ngIf="form.required;else requiredBlock">
               {{form.year}} <span *ngIf="form.yearPeriodStart">(Customized Part
@@ -172,7 +172,7 @@
               </span>
             </ng-template>
           </div>
-        </span>
+        </div>
       </div>
     </div>
   </div>

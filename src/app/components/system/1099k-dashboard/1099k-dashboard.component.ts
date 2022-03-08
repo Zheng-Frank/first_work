@@ -172,8 +172,8 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
         let item = {
           tin: customizedForm.periodTin,
           payeeName: customizedForm.periodPayeeName,
-          tinType: customizedForm.periodTinType || enumTinTypes.EIN,// EIN is defalut value
-          fromDate: customizedForm.yearPeriodStart,//  e.g.: 2022-01-01
+          tinType: customizedForm.periodTinType || enumTinTypes.EIN, // EIN is defalut value
+          fromDate: customizedForm.yearPeriodStart, //  e.g.: 2022-01-01
           toDate: customizedForm.yearPeriodEnd,
           rt1099KData: customizedForm,
           transactionText: customizedForm.required ? `${customizedForm.transactions} transactions totaling \$${this.round(customizedForm.total)}` : `1099K won't be generated for this period since it's not needed.`
@@ -184,8 +184,8 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       let item = {
         tin: '',
         payeeName: '',
-        tinType: enumTinTypes.EIN,// EIN is defalut value
-        fromDate: `${this.taxYear}-01-01`,//  e.g.: 2022-01-01
+        tinType: enumTinTypes.EIN, // EIN is defalut value
+        fromDate: `${this.taxYear}-01-01`, //  e.g.: 2022-01-01
         toDate: ''
       };
       this.customize1099kList.push(item);
@@ -272,7 +272,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       tin: this.filteredRows[this.currRowIndex].rtTIN,
       payeeName: this.filteredRows[this.currRowIndex].payeeName,
       tinType: enumTinTypes.EIN,
-      fromDate: '',//  e.g.: 2022-01-01
+      fromDate: '', //  e.g.: 2022-01-01
       toDate: `${this.taxYear}-12-31` // e.g. 2021.12.31 date should cover one year
     }
     this.customize1099kList.push(item);
@@ -439,7 +439,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
 
   // has two function:
   // calculate tool of extra tool and customize 1099k
-  async calcTransactionByTime(fromDate, toDate, customizeItem) {
+  async calcTransactionByTime(fromDate, toDate, customizeItem?) {
     if (!fromDate || !toDate) {
       return this._global.publishAlert(AlertType.Danger, "Please input a correct from time date format!");
     }
