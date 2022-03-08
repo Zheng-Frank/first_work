@@ -103,7 +103,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     excludeAmex: 1,
     excludeDiscover: 1,
     feeSchedules: 1,
-    form1099ks: 1,
     gmbOrigin: 1,
     gmbOwnerHistory: 1,
     gmbSettings: 1,

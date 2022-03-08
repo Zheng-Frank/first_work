@@ -1,6 +1,6 @@
 .search-input {
-  max-width: 320px;
-  min-width: 320px;
+  max-width: 300px;
+  min-width: 300px;
 }
 
 .card-width {
@@ -12,47 +12,21 @@
   border: 1px solid #ced4da;
 }
 
-/* cloud tip info style */
-.talk {
+.close-btn-pos {
   position: absolute;
-  top: 55px;
-  left: 1505px;
-  border: 1px;
-  min-height: 45px;
-  background-color: #d8d4d4;
-  width: 250px;
-  background-image: -moz-linear-gradient(hsla(0, 0%, 100%, 0.6), hsla(0, 0%, 100%, 0) 30px);
-  background-image: -webkit-gradient(linear, 0 0, 0 30, from(hsla(0, 0%, 100%, 0.6)), to(hsla(0, 0%, 100%, 0)));
-  word-wrap: break-word;
-  z-index: 200;
-  -moz-box-shadow: 1px 1px 2px hsla(0, 0%, 0%, 0.3);
-  -webkit-box-shadow: 1px 1px 2px hsla(0, 0%, 0%, 0.3);
-  box-shadow: 1px 1px 2px hsla(0, 0%, 0%, 0.3);
+  right: 25px;
 }
 
-.talk p {
-  padding: 8px 8px 0px 8px;
-}
-
-.radius {
-  -webkit-border-radius: 10px;
-  -moz-border-radius: 10px;
-  border-radius: 10px;
-}
-
-.left:before {
+.download-pos {
   position: absolute;
-  content: "\00a0";
-  width: 0px;
-  height: 0px;
-  border-width: 8px 18px 8px 0;
-  border-style: solid;
-  border-color: transparent #d8d4d4 transparent transparent;
-  top: 15px;
-  left: -18px;
+  left: 1000px;
 }
 
-.left {
-  margin-right: 20px;
-  float: right;
+.custom-tintype-width {
+  min-width: 355px;
+}
+
+.text-unwrap {
+  word-break: keep-all;
+  white-space: nowrap;
 }
