@@ -13,6 +13,9 @@ export class RtsByProviderComponent implements OnInit {
 
   restaurants = [];
   providers = [];
+  gmbOwners = [];
+  gmbOwner = 'All';
+  hideDisabledRTs = false;
   minProviderCount = 1;
   checkedProviders = [];
   filteredRTs = [];
@@ -56,6 +59,8 @@ export class RtsByProviderComponent implements OnInit {
         {
           $project: {
             name: 1,
+            disabled: 1,
+            gmbOwner: {$arrayElemAt: ['$gmbOwnerHistory.gmbOwner', 0]},
             'googleAddress.timezone': 1,
             providers: {
               "$ifNull": [
@@ -80,14 +85,24 @@ export class RtsByProviderComponent implements OnInit {
         { $match: { 'providers.0': { $exists: true } } }
       ]
     }).toPromise();
+    this.gmbOwners = Array.from(new Set(this.restaurants.map(rt => rt.gmbOwner || ''))).sort((a: string, b: string) => a.localeCompare(b));
     this.providers = Array.from(new Set(this.restaurants.reduce((a, c) => [...a, ...c.providers], [])))
-      .sort((a, b) => a.toString().localeCompare(b.toString()));
+      .filter(x => !!x).sort((a: string, b: string) => a.localeCompare(b));
     this.filter();
   }
 
   filter() {
     this.minProviderCount = Math.max(1, this.minProviderCount || 1);
-    this.filteredRTs = this.restaurants.filter(rt => rt.providers.length >= this.minProviderCount && this.checkedProviders.every(p => rt.providers.includes(p)));
+    this.filteredRTs = this.restaurants.filter(({providers, gmbOwner, disabled}) => {
+      let matched = providers.length >= this.minProviderCount && this.checkedProviders.every(p => providers.includes(p));
+      if (this.gmbOwner !== 'All') {
+        matched = matched && ((gmbOwner || '') === this.gmbOwner);
+      }
+      if (this.hideDisabledRTs) {
+        matched = matched && !disabled
+      }
+      return  matched;
+    });
   }
 
 }
