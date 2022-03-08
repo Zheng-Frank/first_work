@@ -19,3 +19,7 @@
 .filter-input input.form-control {
   width: 10rem;
 }
+
+a.disabled{
+  text-decoration: line-through;
+}
