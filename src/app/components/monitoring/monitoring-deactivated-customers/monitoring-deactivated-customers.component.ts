@@ -15,7 +15,7 @@ export class MonitoringDeactivatedCustomersComponent implements OnInit {
   @ViewChild("reactivateModal") reactivateModal: ModalComponent;
   deactivatedCustomerRows = [];
   customers = [];
-  searchTypes = ['ID', 'Name', 'Phone', 'Email'];
+  searchTypes = ['ID', 'First Name', 'Phone', 'Email'];
   type = 'All'; //  concrete search type
   searchText;
   myColumnDescriptors = [
@@ -67,7 +67,7 @@ export class MonitoringDeactivatedCustomersComponent implements OnInit {
       }
       if (this.type == 'ID') {
         this.deactivatedCustomerRows = this.deactivatedCustomerRows.filter(c => c._id && c._id.indexOf(this.searchText) != -1);
-      } else if (this.type == 'Name') {
+      } else if (this.type == 'First Name') {
         this.deactivatedCustomerRows = this.deactivatedCustomerRows.filter(c => c.firstName && c.firstName.indexOf(this.searchText) != -1);
       } else if (this.type == 'Phone') {
         this.deactivatedCustomerRows = this.deactivatedCustomerRows.filter(c => c.phone && c.phone.indexOf(this.searchText) != -1);
