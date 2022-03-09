@@ -183,7 +183,7 @@ const routes: Routes = [
   { path: 'weird-data', component: WeirdDataComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'api-logs', component: ApiLogsDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
   { path: 'routines', component: RoutineDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETER_MANAGER', 'MARKETER', 'GMB', 'CSR', 'CSR_MANAGER', 'ACCOUNTANT', 'MENU_EDITOR', 'DRIVER', 'RATE_EDITOR'] } },
-  { path: 'routines-admin', component: RoutineAdminDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+  { path: 'routines-admin', component: RoutineAdminDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR_MANAGER'] } },
   { path: 'seo-tracking', component: SeoTrackingComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'clean-menus', component: CleanMenusComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'clean-insisted-link-rts', component: CleanInsistedLinksComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
