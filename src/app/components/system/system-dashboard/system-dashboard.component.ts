@@ -25,7 +25,7 @@ export class SystemDashboardComponent implements OnInit {
     { route: 'messaging', text: 'Messaging', adminOnly: true },
     { route: 'orders', text: 'Orders', adminOnly: true },
     { route: 'users', text: 'Users' },
-    { route: 'routines-admin', text: 'Routines Admin', adminOnly: true },
+    { route: 'routines-admin', text: 'Routines Admin' },
     { route: 'leads', text: 'Lead Funnels', adminOnly: true },
     { route: 'transactions', text: 'Transactions', adminOnly: true },
     { route: 'qm-bm-sst', text: 'BM/QM SST', adminOnly: true },

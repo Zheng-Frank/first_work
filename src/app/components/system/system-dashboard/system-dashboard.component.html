@@ -5,7 +5,7 @@
   </a>
 </ng-container>
 
-<app-db-scripts></app-db-scripts>
+<app-db-scripts *ngIf="isAdmin()"></app-db-scripts>
 <div *ngIf="system">
     <h1 class="text-center">System Settings</h1>
     <div class="my-4">
