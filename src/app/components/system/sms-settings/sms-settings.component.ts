@@ -19,9 +19,9 @@ export class SmsSettingsComponent implements OnInit {
 
   }
 
-  isAdmin() {
+  isAdminOrCsrManager() {
     let roles = this._global.user.roles || [];
-    return roles.includes('ADMIN');
+    return roles.includes('ADMIN') || roles.includes('CSR_MANAGER');
   }
 
   async setDefault(smsProvider) {

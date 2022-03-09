@@ -22,7 +22,7 @@ export class SystemDashboardComponent implements OnInit {
     // {route: 'payments', text: 'Payment Means', adminOnly: true},
     // {route: 'transaction', text: 'Transactions', adminOnly: true},
 
-    { route: 'messaging', text: 'Messaging' },
+    { route: 'messaging', text: 'Messaging', adminOnly: true },
     { route: 'orders', text: 'Orders', adminOnly: true },
     { route: 'users', text: 'Users' },
     { route: 'routines-admin', text: 'Routines Admin' },

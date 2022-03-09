@@ -20,7 +20,7 @@ export class RestaurantOthersComponent implements OnInit {
       "GMB Posts": ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER'],
       "Web Template": ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', "MARKETER"],
       "Yelp": ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
-      "API Logs": ['ADMIN', 'annie', 'judy'], // NOTE: temporarily solution for special user permission config
+      "API Logs": ['ADMIN', 'CSR_MANAGER'],
       "SEO Tracking": ['ADMIN', 'CSR', 'CSR_MANAGER'],
       "Stats": ['ADMIN', 'CSR', 'CSR_MANAGER'],
       "Poster": ['ADMIN', 'CSR', 'CSR_MANAGER', 'MARKETER'],
