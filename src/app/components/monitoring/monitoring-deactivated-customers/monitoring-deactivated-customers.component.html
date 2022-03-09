@@ -1,0 +1,90 @@
+<div class="card">
+  <h2 class="card-title m-3">
+    <h1 class="text-center">Deactivated Customers ({{deactivatedCustomerRows.length}})</h1>
+  </h2>
+  <div class="card-body">
+    <div>
+      <div class="row form-inline mb-2">
+        <label class="ml-3"> Search customer by:</label>
+        <select [(ngModel)]="type" class="form-control ml-2">
+          <option>All</option>
+          <option *ngFor="let type of searchTypes">{{type}}</option>
+        </select>
+        <input type="text" [(ngModel)]="searchText" class="form-control ml-2 input-width"
+          placeholder="ID, name, phone, email# ...">
+        <div>
+          <button class="btn btn-primary ml-2" style="width:200px;" (click)="filterRows()">
+            <i class="fas fa-search"></i> Search</button>
+        </div>
+        <input type="text" [(ngModel)]="deactivatedID" class="form-control ml-2 input-width" placeholder="ID">
+        <button class="btn btn-primary ml-2" (click)="openDeactivateModal(false)">
+          Deactivate
+        </button>
+      </div>
+    </div>
+    <q-table [rows]="deactivatedCustomerRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+      <tr *tableRowTemplate="let row;">
+        <td>{{deactivatedCustomerRows.indexOf(row) + 1}}</td>
+        <td>
+          <div>
+            {{(row?.firstName || '') +'  '+(row?.lastName || '')}}
+            <div class="text-muted">
+              <small>{{row._id}}</small>
+            </div>
+          </div>
+          <div>
+            <label>Phone:</label> {{row?.phone}}
+          </div>
+          <div>
+            <label>Email:</label> {{row?.email}}
+          </div>
+          <div>
+            <label>Social Login:</label> {{row?.socialProvider}}
+          </div>
+          <div>
+            <label>Created at:</label> {{row?.createdAt| date:'yyyy-MM-dd HH:MM:SS'}}
+          </div>
+        </td>
+        <td>
+          <button (click)="openReactivateModal(row)" class="btn btn-link">
+            Reactivate
+          </button>
+        </td>
+      </tr>
+    </q-table>
+  </div>
+  <!-- start with deactivate modal -->
+  <q-modal #deactivateModal style="margin-top: 160px;">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">Are you sure?</h4>
+    <hr>
+    <div class="container row">
+      <label class="ml-2">Are you sure you want to deactivate the account belonging to
+        {{(deactivatedCustomer?.firstName || '') +'  '+(deactivatedCustomer?.lastName || '')}}?</label>
+    </div>
+    <div class="d-flex justify-content-end p-4">
+      <button class="btn btn-secondary mr-2" (click)="closeDeactivateModal()">Cancel</button>
+      <button class="btn btn-primary" (click)="Deactivate()">Deactivate</button>
+    </div>
+  </q-modal>
+  <!-- end with deactivate modal -->
+  <!-- start with reactivate modal -->
+  <q-modal #reactivateModal style="margin-top: 160px;">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">Are you sure?</h4>
+    <hr>
+    <div class="container row">
+      <label class="ml-2">Are you sure you want to reactivate the account belonging to
+        {{(reactivatedCustomer?.firstName || '') +'  '+(reactivatedCustomer?.lastName || '')}}?</label>
+    </div>
+    <div class="d-flex justify-content-end p-4">
+      <button class="btn btn-secondary mr-2" (click)="closeReactivateModal()">Cancel</button>
+      <button class="btn btn-primary" (click)="Reactivate()">Reactivate</button>
+    </div>
+  </q-modal>
+  <!-- end with reactivate modal -->
+</div>

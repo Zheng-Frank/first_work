@@ -67,7 +67,6 @@
     {{ bulkFileOperation === '' ? '' : bulkFileOperation === bulkFileOperationTypes.Download? 'Bulk download functionality coming soon!' : ''}}
     <button class="btn btn-link" (click)="handleShowExtraTools()">
       {{!showExtraTools ? 'Show extra tools' : 'Hide extra tools'}}</button>
-    <button class="btn btn-primary recan-btn" (click)="rescan()"><i class="fas fa-sync"></i> Rescan</button>
   </div>
   <div class="form-inline mx-5 my-3" *ngIf="showExtraTools">
     <label class="mx-2">Calculate Tool</label>
