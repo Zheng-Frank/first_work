@@ -24,7 +24,7 @@ export class MonitoringDeactivatedCustomersComponent implements OnInit {
     },
     {
       label: 'Customer',
-      sort: (a, b) => a.customer.firstName > b.customer.firstName ? 1 : -1
+      sort: (a, b) => a.firstName > b.firstName ? 1 : -1
     },
     {
       label: 'Reactivate/Deactivate'
@@ -81,32 +81,37 @@ export class MonitoringDeactivatedCustomersComponent implements OnInit {
     if (!this.deactivatedID) {
       return this._global.publishAlert(AlertType.Danger, `Please input customer's id to deactivate him`);
     }
-    const [customer] = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'customer',
-      query: {
-        _id: {
-          $oid: this.deactivatedID
-        }
-      },
-      projection: {
-        phone: 1,
-        email: 1,
-        firstName: 1,
-        lastName: 1,
-        socialProvider: 1,
-        deactivated: 1,
-        createdAt: 1
-      },
-      limit: 1
-    }).toPromise();
-    if(!customer){
+    try {
+      const [customer] = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'customer',
+        query: {
+          _id: {
+            $oid: this.deactivatedID
+          }
+        },
+        projection: {
+          phone: 1,
+          email: 1,
+          firstName: 1,
+          lastName: 1,
+          socialProvider: 1,
+          deactivated: 1,
+          createdAt: 1
+        },
+        limit: 1
+      }).toPromise();
+      if(!customer){
+        return this._global.publishAlert(AlertType.Danger, `Customer not found !`);
+      }
+      if (customer.deactivated) {
+        return this._global.publishAlert(AlertType.Danger, `He is already a deactivated customer !`);
+      }
+      this.deactivatedCustomer = customer;
+      this.deactivateModal.show();
+    } catch (error) {
       return this._global.publishAlert(AlertType.Danger, `Customer not found !`);
     }
-    if (customer.deactivated) {
-      return this._global.publishAlert(AlertType.Danger, `He is already a deactivated customer !`);
-    }
-    this.deactivatedCustomer = customer;
-    this.deactivateModal.show();
+    
   }
 
   closeDeactivateModal() {
