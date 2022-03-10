@@ -155,77 +155,30 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
     notice that: anyone commission
    */
   async loadVIPRestaurants() {
-    /*
-    an invoice returned value example:
-    {
-      averageInvoice: 151.8291388888889
-      invoices: [{invoiceId: "5ed5065c475996f772bd6065", commission: 59.541000000000004},…]
-      _id: {restaurantId: "5eb85de709e2bf378e35187a"}
-    }
-    */
-    const invoices = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const avgAll = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'invoice',
+      aggregate: [
+        {$group: {_id: {restaurantId: '$restaurant.id'}, avgCommission: {$avg: '$commission'}}},
+        {$match: {avgCommission: {$gte: 150}}},
+        {$project: {rt: "$_id.restaurantId", _id: 0}}
+      ]
+    }).toPromise();
+    const avgLast3Months = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'invoice',
       aggregate: [
         {
-          $group: {
-            _id: {
-              restaurantId: '$restaurant.id'
-            },
-            invoices: {
-              $push: {
-                invoiceId: '$_id',
-                commission: '$commission',
-                createdAt: '$createdAt'
-              }
-            }
-          },
-        },
-        {
-          $project: {
-            _id: 1,
-            invoices: 1,
-            averageInvoice: {
-              $avg: '$invoices.commission'
-            },
-            lastThreeMonthsInvoices: {
-              $filter: {
-                input: '$invoices',
-                as: 'invoice',
-                cond: {
-                  $gte: ['$$invoice.createdAt', { $dateFromString: { dateString: new Date(new Date().valueOf() - 3 * 30 * 24 * 3600 * 1000) } }]
-                }
-              }
-            }
-          }
-        },
-        {
-          $project: {
-            _id: 1,
-            invoices: 1,
-            averageInvoice: 1,
-            averageLastInvoice: {
-              $avg: '$lastThreeMonthsInvoices.commission'
-            }
-          }
-        },
-        {
           $match: {
-            $or: [
-              {
-                averageInvoice: {
-                  $gte: 150
-                }
-              },
-              {
-                averageLastInvoice: {
-                  $gte: 150
-                }
-              }]
+            createdAt: {
+              $gte: {$date: new Date(new Date().valueOf() - 3 * 30 * 24 * 3600 * 1000)}
+            }
           }
-        }
+        },
+        {$group: {_id: {restaurantId: '$restaurant.id'}, avgCommission: {$avg: '$commission'}}},
+        {$match: {avgCommission: {$gte: 150}}},
+        {$project: {rt: "$_id.restaurantId", _id: 0}}
       ]
     }).toPromise();
-
+    const rts = new Set([...avgAll.map(x => x.rt), ...avgLast3Months.map(x => x.rt)]);
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       aggregate: [
@@ -256,9 +209,9 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
       ],
       limit: 20000
     }).toPromise();
-    this.vipRTs = restaurants.filter(restaurant => invoices.some(invoice => invoice._id.restaurantId === restaurant._id)).map(r => {
+    this.vipRTs = restaurants.filter(restaurant => rts.has(restaurant._id)).map(r => {
       let { logs } = r;
-      if (logs.length > 0) {
+      if (logs && logs.length > 0) {
         logs.sort((l1, l2) => new Date(l2.time).valueOf() - new Date(l1.time).valueOf());
         r.lastFollowUp = new Date(logs[0].time);
       }
