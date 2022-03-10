@@ -1,0 +1,9 @@
+.attach-img {
+  width: 60px;
+  height: auto;
+}
+
+.text-unwrap {
+  white-space: nowrap;
+  word-break: keep-all;
+}
