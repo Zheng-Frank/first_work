@@ -1,5 +1,6 @@
 <h2 class="text-center">GMB: Recent Lost Restaurants</h2>
-<div class="text-center">avg. {{averageLossesPerDay}} restaurant lost/day, {{numberOfRestaurant}} restaurant shown, for the past 30 days</div>
+<div class="text-center">avg. {{averageLossesPerDay}} restaurant lost/day, {{numberOfRestaurant}} restaurant shown, for
+  the past 30 days</div>
 <div class="text-center">
   <button class="btn btn-link" (click)="refresh()" [qLoading]="apiLoading">
     <i class="fas fa-sync-alt"></i> Reload</button>
@@ -7,19 +8,26 @@
 <!-- <div class="text-center">avg. {{averageRequestsPerDay}}/day</div> -->
 <!-- <div class="row">
   <div class="col-6 px-2"> -->
-<div class="clearfix mt-2">
-  <div class="float-left form-inline">
-    <input class="form-check-input" type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
-    <label class="form-check-label mr-5" for="paginationCheck">
-      Pagination
-    </label>
-    <label class="mr-2"> Task Status:</label>
-    <select class="mr-5 w-25" [(ngModel)]="selectedStatus" (change)="filter()">
-        <option *ngFor="let option of statusOptions">{{option}}</option>
-    </select>
-  </div>
+<!-- start with filter -->
+<div class="row form-inline ml-2 mb-2">
+  <input type="checkbox" [(ngModel)]="pagination" id="paginationCheck">
+  <label class="mr-3 ml-1" for="paginationCheck">
+    Pagination
+  </label>
+  <label class="mr-2"> Task Status:</label>
+  <select class="form-control mr-3 filter-select-width" [(ngModel)]="selectedStatus" (change)="filter()">
+    <option *ngFor="let option of statusOptions">{{option}}</option>
+  </select>
+  <!-- start with gmb owner filter -->
+  <label class="mr-2"> GMB Owner:</label>
+  <select class="form-control filter-select-width" [(ngModel)]="selectedGmbOwner" (change)="filter()">
+    <option *ngFor="let option of gmbOwnerOptions">{{option}}</option>
+  </select>
+  <!-- end with gmb owner filter -->
 </div>
-<q-table [rows]="filteredRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="pagination ? 100 : 100000">
+<!-- end with filter -->
+<q-table [rows]="filteredRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true"
+  [pageSize]="pagination ? 100 : 100000">
   <tr *tableRowTemplate="let r;">
     <td>{{filteredRows.indexOf(r) + 1}}</td>
     <td>
@@ -35,10 +43,14 @@
       <div class="row" *ngFor="let task of createAngularIndentifiableArray(r.tasks)">
         <!-- <div class="col-6 text-small text-nowrap px-0">{{task.date | date: 'short'}} <button class="btn btn-link py-0" (click)="showDetails(task.id)">{{task.id.slice(-4)}}</button> <app-gmb-account-hotlink *ngIf="task.email" [email]="task.email" [appealId]="task.appealId"></app-gmb-account-hotlink></div>
         <div class="col-6 text-small text-nowrap px-0">{{task.status}}</div> -->
-       
+
         <div class="col-3 text-small text-nowrap px-0">{{task.date | date: 'short'}}</div>
-        <div class="col-2 px-0"><button class="btn btn-link py-0" (click)="showDetails(task.id)">{{task.id.slice(-4)}}</button></div>
-        <div class="col-3 px-0"><app-gmb-account-hotlink *ngIf="task.email" [email]="task.email" [appealId]="task.appealId"></app-gmb-account-hotlink></div>
+        <div class="col-2 px-0"><button class="btn btn-link py-0"
+            (click)="showDetails(task.id)">{{task.id.slice(-4)}}</button></div>
+        <div class="col-3 px-0">
+          <app-gmb-account-hotlink *ngIf="task.email" [email]="task.email" [appealId]="task.appealId">
+          </app-gmb-account-hotlink>
+        </div>
         <div class="col-4 text-small px-0">{{task.status}}</div>
       </div>
     </td>
@@ -47,16 +59,18 @@
       <div *ngFor="let comment of createAngularIndentifiableArray(r.comments)">
         &#8226; {{comment.user}} on {{comment.date | adjustedDate : 'M/dd' : r.timezone}}: {{comment.content}}
       </div>
-      <table><tr>
-          <td><input type="text" class="form-control" placeholder="Add a new comment ..." [(ngModel)]="r.content" 
-            (keydown.enter)="addComment(r)"></td>
-          <td><button type="button" class="btn btn-outline-success btn-sm" (click)="addComment(r)">Submit</button></td>         
-      </tr></table>
+      <table>
+        <tr>
+          <td><input type="text" class="form-control" placeholder="Add a new comment ..." [(ngModel)]="r.content"
+              (keydown.enter)="addComment(r)"></td>
+          <td><button type="button" class="btn btn-outline-success btn-sm" (click)="addComment(r)">Submit</button></td>
+        </tr>
+      </table>
     </td>
     <!-- <td>{{r.eventId}}</td> -->
   </tr>
 </q-table>
-  <!-- </div>
+<!-- </div>
 </div> -->
 <q-modal #taskDetailsModal>
   <pre>

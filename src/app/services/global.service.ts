@@ -660,7 +660,7 @@ export class GlobalService {
           name: "System",
           href: "#/system",
           fa: "fas fa-cog",
-          accessibleRoles: ['ADMIN']
+          accessibleRoles: ['CSR_MANAGER', 'ADMIN']
         },
         // {
         //   name: "Transactions",

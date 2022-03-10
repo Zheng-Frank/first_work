@@ -18,6 +18,8 @@ export class GmbLostListComponent implements OnInit {
   pagination: boolean = true;
   statusOptions;
   selectedStatus = "All";
+  gmbOwnerOptions = [];
+  selectedGmbOwner = "All";
 
   averageLossesPerDay = 0;
   numberOfRestaurant = 0;
@@ -158,7 +160,7 @@ export class GmbLostListComponent implements OnInit {
               dict[index].comments = event.comments;
             }
           } else {  // If no event tied to the restaurant yet
-            dict.push({
+            let dictItem = {
               eventId: event._id,
               restaurantId: restaurant._id,
               name: restaurant.name,
@@ -166,17 +168,23 @@ export class GmbLostListComponent implements OnInit {
               address: restaurant.googleAddress.formatted_address,
               score: restaurant.score,
               lostDate: event.createdAt,
-              owner: ((restaurant.gmbOwnerHistory || [])[0] || {}).gmbOwner,
+              owner: ((restaurant.gmbOwnerHistory || [])[0] || {}).gmbOwner || 'unknown',
               comments: event.comments,
               tasks: [],
               timezone: restaurant.googleAddress.timezone,
               cid: restaurant.googleListing.cid
-            });
+            };
+            dict.push(dictItem);
+            // add gmb owner if it doesn't exist in gmbOwnerOptions array
+            if (this.gmbOwnerOptions.indexOf(dictItem.owner) === -1) {
+              this.gmbOwnerOptions.push(dictItem.owner);
+            }
           }
         }
       });
     });
-
+    this.gmbOwnerOptions.sort((a, b) => a.localeCompare(b));
+    this.gmbOwnerOptions.unshift("All");
     this.statusOptions = new Set();
     this.statusOptions.add("All");
     // Match up above with tasks
@@ -203,15 +211,17 @@ export class GmbLostListComponent implements OnInit {
     });
 
     // Sort and Update indicators
-    dict.map(entry => entry.lostDate = new Date(entry.lostDate));
-    dict.sort((r1, r2) => r2.lostDate.valueOf() - r1.lostDate.valueOf());
-    const firstLostDate = new Date(dict[dict.length - 1].lostDate);
-    const lastLostdate = new Date(dict[0].lostDate);
-    this.numberOfRestaurant = dict.length;
-    this.averageLossesPerDay = Math.ceil(this.numberOfRestaurant / (1 + (lastLostdate.valueOf() - firstLostDate.valueOf()) / (24 * 3600000)));
+    if (dict.length > 0) {
+      dict.map(entry => entry.lostDate = new Date(entry.lostDate));
+      dict.sort((r1, r2) => r2.lostDate.valueOf() - r1.lostDate.valueOf());
+      const firstLostDate = new Date(dict[dict.length - 1].lostDate);
+      const lastLostdate = new Date(dict[0].lostDate);
+      this.numberOfRestaurant = dict.length;
+      this.averageLossesPerDay = Math.ceil(this.numberOfRestaurant / (1 + (lastLostdate.valueOf() - firstLostDate.valueOf()) / (24 * 3600000)));
 
-    this.rows = dict.filter(r => !r.disabled);
-    this.filter();
+      this.rows = dict.filter(r => !r.disabled);
+      this.filter();
+    }
 
     this.apiLoading = false;
   }
@@ -232,7 +242,9 @@ export class GmbLostListComponent implements OnInit {
         return match;
       });
     }
-
+    if (this.selectedGmbOwner !== "All") {
+      this.filteredRows = this.filteredRows.filter(entry => entry.owner === this.selectedGmbOwner);
+    }
     // Update number of restaurants shown
     this.numberOfRestaurant = this.filteredRows.length;
   }

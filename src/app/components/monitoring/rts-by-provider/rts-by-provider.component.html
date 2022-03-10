@@ -13,22 +13,43 @@
         </label>
       </div>
     </div>
-    <div class="filter-input mb-3">
-      <label class="mr-3">Minimum providers: </label>
-      <input class="form-control mr-3" type="number" min="1" [max]="providers.length" [(ngModel)]="minProviderCount" />
+    <div class="filter-input mb-3 row">
+      <div class="col-auto">
+        <div class="input-group">
+          <label class="mr-3">Minimum providers: </label>
+          <input class="form-control mr-3" type="number" min="1" [max]="providers.length" [(ngModel)]="minProviderCount" />
+        </div>
+      </div>
+      <div class="col-auto">
+        <div class="input-group">
+          <label class="mr-3">GMB Owner</label>
+          <select class="form-control mr-3 custom-select" [(ngModel)]="gmbOwner">
+            <option value="All">All</option>
+            <option *ngFor="let owner of gmbOwners" [value]="owner">{{owner}}</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-auto">
+        <label class="form-control-plaintext">
+          <input type="checkbox" class="custom-checkbox" [(ngModel)]="hideDisabledRTs">
+          Hide disabled RTS
+        </label>
+      </div>
       <button class="btn btn-primary" (click)="filter()">Search</button>
     </div>
     <table class="table">
       <thead>
         <tr>
           <th>Restaurant</th>
+          <th>GMB Owner</th>
           <th>Timezone (as Offset to EST)</th>
           <th>Providers</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let rt of filteredRTs">
-          <td><a target="_blank" [routerLink]="'/restaurants/' + rt._id">{{rt.name}}</a></td>
+          <td><a [ngClass]="{'disabled': rt.disabled}" target="_blank" [routerLink]="'/restaurants/' + rt._id">{{rt.name}}</a></td>
+          <td>{{rt.gmbOwner}}</td>
           <td>
             <ng-container *ngIf="rt?.googleAddress && rt?.googleAddress?.timezone;else elseBlock;">
               {{getTimezoneCity(rt.googleAddress.timezone)}} ({{getTimeOffsetByTimezone(rt.googleAddress.timezone)}})
