@@ -1,46 +1,69 @@
 <!-- a list of quick links only visible to admins -->
 <ng-container *ngFor="let item of adminLinks">
   <a *ngIf="isAdmin() || !item.adminOnly" class="btn btn-link" href="/#/{{item.route}}">
-      {{item.text}}
+    {{item.text}}
   </a>
 </ng-container>
 
 <app-db-scripts *ngIf="isAdmin()"></app-db-scripts>
+
 <div *ngIf="system">
-    <h1 class="text-center">System Settings</h1>
-    <div class="my-4">
-        <div class="form-group form-check">
-            <input type="checkbox" class="form-check-input" id="severless-checkbox"
-                [(ngModel)]="system.useServerlessForNewOrder" [disabled]="true">
-            <label class="form-check-label" for="severless-checkbox">Use Serverless For New Order (SERVERLESS IS THE
-                ONLY OPTION)</label>
-        </div>
+  <h1 class="text-center">System Settings</h1>
+  <div class="my-4">
+    <div class="form-group form-check">
+      <input type="checkbox" class="form-check-input" id="severless-checkbox"
+        [(ngModel)]="system.useServerlessForNewOrder" [disabled]="true">
+      <label class="form-check-label" for="severless-checkbox">Use Serverless For New Order (SERVERLESS IS THE
+        ONLY OPTION)</label>
     </div>
+  </div>
+  <q-simple-radio [(ngModel)]="systemItem" [equalWidth]="true" [values]="items">
+  </q-simple-radio>
+  <!-- start with SMS providers -->
+  <ng-container *ngIf="systemItem === 'SMS Providers'">
     <div class="my-4 card card-body border-primary">
-        <h3 class="text-center">SMS Providers</h3>
-        <app-sms-settings [system]="system"></app-sms-settings>
+      <h3 class="text-center">SMS Providers</h3>
+      <app-sms-settings [system]="system"></app-sms-settings>
     </div>
+  </ng-container>
+  <!-- end with SMS providers -->
+  <!-- start with fax providers -->
+  <ng-container *ngIf="systemItem === 'Fax Providers'">
     <div class="my-4 card card-body border-primary">
-        <h3 class="text-center">Fax Providers</h3>
-        <app-fax-settings [system]="system"></app-fax-settings>
+      <h3 class="text-center">Fax Providers</h3>
+      <app-fax-settings [system]="system"></app-fax-settings>
     </div>
+  </ng-container>
+  <!-- end with fax providers -->
+  <!-- start with voice providers -->
+  <ng-container *ngIf="systemItem === 'Voice Providers'">
     <div class="my-4 card card-body border-primary">
-        <h3 class="text-center">Voice Providers</h3>
-        <app-voice-settings [system]="system"></app-voice-settings>
+      <h3 class="text-center">Voice Providers</h3>
+      <app-voice-settings [system]="system"></app-voice-settings>
     </div>
-    <div class="my-4 card card-body border-primary" *ngIf="isAdmin()">
-        <h3 class="text-center">Credit Card Processors</h3>
-        <app-cc-processor-settings [system]="system"></app-cc-processor-settings>
+  </ng-container>
+  <!-- end with voice providers -->
+  <!-- start with credit card processors -->
+  <ng-container *ngIf="systemItem === 'Credit Card Processors'">
+    <div class="my-4 card card-body border-primary">
+      <h3 class="text-center">Credit Card Processors</h3>
+      <app-cc-processor-settings [system]="system"></app-cc-processor-settings>
     </div>
-</div>
-
-
-<div class="my-4" *ngIf="isAdmin()">
-    <h1 class="text-center">Stats</h1>
-    <button class="btn btn-primary" (click)="getPhoneNumberStat()">Phone Number Stats</button>
-    <button class="btn btn-primary" (click)="getStates()">States</button>
-    <button class="btn btn-primary" (click)="getRestaurantLocations()">Restaurant Locations</button>
-    <button class="btn btn-primary" (click)="removePhone()">Remove Phone from Restaurant</button>
+  </ng-container>
+  <!-- end with credit card processors -->
+  <!-- start with stats -->
+  <ng-container *ngIf="systemItem === 'Stats'">
+    <div class="my-4 card card-body border-primary">
+      <h1 class="text-center">Stats</h1>
+      <div>
+        <button class="btn btn-primary" (click)="getPhoneNumberStat()">Phone Number Stats</button>
+        <button class="btn btn-primary" (click)="getStates()">States</button>
+        <button class="btn btn-primary" (click)="getRestaurantLocations()">Restaurant Locations</button>
+        <button class="btn btn-primary" (click)="removePhone()">Remove Phone from Restaurant</button>
+      </div>
+    </div>
+  </ng-container>
+  <!-- end with stats -->
 </div>
 
 <pre>
