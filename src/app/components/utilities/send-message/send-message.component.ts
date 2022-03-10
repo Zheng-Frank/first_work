@@ -174,10 +174,12 @@ export class SendMessageComponent {
     return this.sanitizer.bypassSecurityTrustHtml(origin);
   }
 
-  generateFormatHtml(loadParameters, formatParams, htmlContent) {
+  async generateFormatHtml(loadParameters, formatParams, htmlContent) {
     try {
       const smsHtmlUrl = `${environment.appApiUrl}events/echo?${Object.keys(loadParameters).map(k => `${k}=${encodeURIComponent(loadParameters[k])}`).join('&')}`;
       let smsHtmlMediaUrl = `${environment.utilsApiUrl}render-url?url=${encodeURIComponent(smsHtmlUrl)}&format=${formatParams}`;
+      let shortUrlObj = await this._api.post(environment.appApiUrl + 'utils/shorten-url', { longUrl: smsHtmlMediaUrl }).toPromise();
+      smsHtmlMediaUrl = `${environment.shortUrlBase}${shortUrlObj.code}`
       htmlContent = htmlContent.replace(/%%AWS_QMENU_SERVICE_ONLINE_AGREEMENT_LINK_HERE%%/, smsHtmlMediaUrl);
     } catch (error) {
       console.log(error);
@@ -186,7 +188,7 @@ export class SendMessageComponent {
     return htmlContent;
   }
 
-  send() {
+  async send() {
     // fill inputs
     let { inputs, smsContent, emailContent, smsPreview, uploadHtml } = this.template;
     if (inputs) {
@@ -210,7 +212,8 @@ export class SendMessageComponent {
         body: uploadParams.body
       };
       const formatParams = uploadParams.format;
-      smsContent = this.generateFormatHtml(loadParameters, formatParams, smsContent);
+      smsContent = await this.generateFormatHtml(loadParameters, formatParams, smsContent);
+      
       if (!smsContent) {
         return this._global.publishAlert(AlertType.Danger, 'Generate sms content fail due to network error !')
       }
