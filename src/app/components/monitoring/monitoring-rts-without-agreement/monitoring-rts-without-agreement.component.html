@@ -76,8 +76,12 @@
       <tr *tableRowTemplate="let r">
         <td>{{list.indexOf(r) + 1}}</td>
         <td>
-          <a routerLink="/restaurants/{{r['_id']}}">{{r.name}} </a><br>
-          <span>{{r._id}}</span>
+          <div>
+            <a class="mr-2" routerLink="/restaurants/{{r['_id']}}">{{r.name}}</a>
+            <span class="text-danger" *ngIf="r.gmbRecentLost">RL</span>
+            <span class="text-warning" *ngIf="r.gmbUnderAttack">UA</span>
+          </div>
+          <div>{{r._id}}</div>
         </td>
         <td>{{r.agent}}</td>
         <td>{{r.salesperson}}</td>
@@ -93,7 +97,7 @@
           </ng-template>
         </td>
         <td>
-          <img class="attach-img mb-1 mr-1" *ngFor="let att of (r.otherAttachments || [])" [src]="att.url" />
+          <img (click)="preview(att.url)" class="attach-img mb-1 mr-1" *ngFor="let att of (r.otherAttachments || [])" [src]="att.url" />
         </td>
         <td>
           <table class="table table-sm">
@@ -122,4 +126,10 @@
 <q-modal #logEditingModal>
   <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="[]" [log]="logInEditing"
                   (success)="onSuccessAddLog($event)" (remove)="onCancelAddLog()" (cancel)="onCancelAddLog()"></app-log-editor>
+</q-modal>
+
+<q-modal #previewModal size="lg" (close)="preview()">
+  <div class="preview-div">
+    <img class="preview-img" [src]="attachment">
+  </div>
 </q-modal>

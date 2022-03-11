@@ -7,3 +7,12 @@
   white-space: nowrap;
   word-break: keep-all;
 }
+
+.preview-div {
+  width: 100%;
+  text-align: center;
+}
+.preview-img {
+  width: auto;
+  max-width: 100%;
+}

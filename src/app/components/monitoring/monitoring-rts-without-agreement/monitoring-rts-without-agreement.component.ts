@@ -46,10 +46,11 @@ const bool_numeric = (a, b) => Number(!!a) - Number(!!b);
 })
 export class MonitoringRtsWithoutAgreementComponent implements OnInit {
   @ViewChild('logEditingModal') logEditingModal;
+  @ViewChild('previewModal') previewModal;
   restaurants = [];
   jobs = [];
   list = [];
-  fixedProviders = ['qmenu', 'beyondmenu', 'chinesemenuonline']
+  fixedProviders = ['qmenu', 'beyondmenu', 'chinesemenuonline'];
   providers = [];
   showAllProviders = false;
   restaurantsColumnDescriptors = [
@@ -86,6 +87,7 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
   underAttackingCids = new Set();
   logInEditing: Log = new Log({type: 'online-agreement', time: new Date()});
   restaurant;
+  attachment;
 
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) {
   }
@@ -114,7 +116,7 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
   }
 
   providerChecked(provider) {
-    return this.filters.checkedProviders.includes(provider)
+    return this.filters.checkedProviders.includes(provider);
   }
 
   async query() {
@@ -269,11 +271,15 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
       if (rt.salesperson === 'N/A') {
         rt.salesperson = '';
       }
+      if (rt.googleListing) {
+        rt.gmbRecentLost = this.recentLostCids.has(rt.googleListing.cid);
+        rt.gmbUnderAttack = this.underAttackingCids.has(rt.googleListing.cid);
+      }
       if (rt.salesperson && !this.salesPeople.includes(rt.salesperson)) {
         this.salesPeople.push(rt.salesperson);
       }
       rt.logs = (rt.logs || []).sort((b, a) => new Date(a.time).valueOf() - new Date(b.time).valueOf());
-      rt.agent = rt.logs.length ? rt.logs[0].username : ''
+      rt.agent = rt.logs.length ? rt.logs[0].username : '';
       if (rt.agent && !this.agents.includes(rt.agent)) {
         this.agents.push(rt.agent);
       }
@@ -291,12 +297,12 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
 
       (rt.providers || []).forEach(p => {
         if (p && !this.fixedProviders.includes(p) && !this.providers.includes(p)) {
-          this.providers.push(p)
+          this.providers.push(p);
         }
-      })
+      });
     });
     this.agents.sort(alphabet);
-    this.salesPeople.sort(alphabet)
+    this.salesPeople.sort(alphabet);
     this.gmbOwners.sort(alphabet);
     this.providers.sort(alphabet);
     this.filterRTs();
@@ -334,10 +340,10 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
 
     switch (gmbChanges) {
       case GmbChangeModes.RecentLost:
-        list = list.filter(({googleListing}) => googleListing && this.recentLostCids.has(googleListing.cid));
+        list = list.filter(rt => rt.gmbRecentLost);
         break;
       case GmbChangeModes.UnderAttack:
-        list = list.filter(({googleListing}) => googleListing && this.underAttackingCids.has(googleListing.cid));
+        list = list.filter(rt => rt.gmbUnderAttack);
         break;
     }
 
@@ -396,7 +402,7 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
     event.log.time = event.log.time ? event.log.time : new Date();
     let username = event.log.username ? event.log.username : this._global.user.username;
     event.log.username = username;
-    let logs = [...this.restaurant.logs, event.log]
+    let logs = [...this.restaurant.logs, event.log];
 
     const newRestaurant = {_id: this.restaurant._id, logs: logs};
 
@@ -407,10 +413,10 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
       }]).subscribe(result => {
         this.restaurant.logs = logs;
         this.restaurant.agent = username;
-      if (!this.agents.includes(username)) {
-        this.agents.push(username);
-        this.agents.sort(alphabet);
-      }
+        if (!this.agents.includes(username)) {
+          this.agents.push(username);
+          this.agents.sort(alphabet);
+        }
         this._global.publishAlert(AlertType.Success, 'Log added successfully');
         event.formEvent.acknowledge(null);
         this.restaurant = undefined;
@@ -428,4 +434,13 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
     this.logEditingModal.hide();
   }
 
+  preview(url?) {
+    if (url) {
+      this.attachment = url;
+      this.previewModal.show();
+    } else {
+      this.attachment = '';
+      this.previewModal.hide();
+    }
+  }
 }
