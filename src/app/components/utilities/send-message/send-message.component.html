@@ -4,8 +4,8 @@
   <ng-container *ngIf="!useCustomTarget">
     <div class="text-targets" *ngIf="channels.length > 0">
       <label *ngFor="let channel of sortedChannels">
-        <input type="checkbox" (change)="selectTarget($event, channel)"
-               [value]="channel.value" [checked]="targets.includes(channel)">
+        <input type="checkbox" (change)="selectTarget($event, channel)" [value]="channel.value"
+          [checked]="targets.includes(channel)">
         <i class="fas fa-{{channelIcon(channel.type)}}"></i>
         {{channel.value}}
         <ng-container *ngIf="channel.notifications?.length">({{channel.notifications?.join("/")}})</ng-container>
@@ -25,7 +25,8 @@
   </div>
   <select *ngIf="templates[templateType]" (change)="changeTpl($event)" class="form-control">
     <option *ngIf="!template?.title" hidden></option>
-    <option *ngFor="let item of templates[templateType]" [value]="item.title" [selected]="item.title === template.title">
+    <option *ngFor="let item of templates[templateType]" [value]="item.title"
+      [selected]="item.title === template.title">
       {{item.title}}
     </option>
   </select>
@@ -34,17 +35,30 @@
   </div>
 </div>
 <div class="mt-3" *ngFor="let field of template?.inputs">
-    <label>{{field.label}}: </label>
-    <input class="form-control" type="{{field.type || 'text'}}" [(ngModel)]="field.value">
+  <label>{{field.label}}: </label>
+  <input class="form-control" type="{{field.type || 'text'}}" [(ngModel)]="field.value">
 </div>
-<div class="mt-3" *ngIf="hasSMS()">
-  <label>SMS Content:</label>
-  <textarea [disabled]="!canEdit()" rows="10" class="form-control" [(ngModel)]="template.smsContent"></textarea>
-</div>
+<ng-container *ngIf="hasSMS()">
+  <div class="mt-3">
+    <label>SMS Content:</label>
+    <textarea [disabled]="!canEdit()" rows="10" class="form-control" [(ngModel)]="template.smsContent"></textarea>
+  </div>
+  <ng-container *ngIf="template.smsPreview">
+    <div class="mt-3" *ngIf="smsContentMode === emailContentModes.Origin">
+      <label>SMS HTML: <a (click)="smsContentMode = emailContentModes.Preview" class="btn-link">Preview</a></label>
+      <textarea [disabled]="!canEdit()" rows="10" class="form-control" [(ngModel)]="template.smsPreview"></textarea>
+    </div>
+    <div class="mt-3" *ngIf="smsContentMode === emailContentModes.Preview">
+      <label>SMS HTML: <a (click)="smsContentMode = emailContentModes.Origin" class="btn-link">Origin</a></label>
+      <div class="msg-content" [innerHTML]="sanitized(template.smsPreview)"></div>
+    </div>
+  </ng-container>
+</ng-container>
+
 <ng-container *ngIf="hasEmail()">
   <div class="mt-3">
     <label>Email Subject:</label>
-    <input [disabled]="!canEdit()" class="form-control" type="text" [(ngModel)]="template.subject" >
+    <input [disabled]="!canEdit()" class="form-control" type="text" [(ngModel)]="template.subject">
   </div>
   <div class="mt-3" *ngIf="emailContentMode === emailContentModes.Origin">
     <label>Email Content: <a (click)="emailContentMode = emailContentModes.Preview" class="btn-link">Preview</a></label>
