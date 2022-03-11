@@ -3,14 +3,24 @@
     <h1 class="text-center">RTs Service Agreement ({{list.length}})</h1>
   </h2>
   <div class="card-body">
-    <div class="d-flex justify-content-between mb-3">
-      <label class="text-unwrap mr-3 mb-1">Has at least these providers:</label>
-      <div class="form-check">
-        <label class="form-check-inline" *ngFor="let provider of providers">
+    <div class="mb-3">
+      <div>
+        <label class="text-unwrap mr-3">Has at least these providers:</label>
+        <a (click)="showAllProviders = !showAllProviders" class="btn-link">{{showAllProviders ? 'Hide' : 'Show'}} more...</a>
+      </div>
+      <div>
+        <label class="form-check-inline" *ngFor="let provider of fixedProviders">
           <input class="form-check-input" type="checkbox" [value]="provider"
-                 [checked]="filters.checkedProviders.includes(provider)" (change)="checkProvider($event, provider)">
-          {{provider}}
+                 [checked]="providerChecked(provider)" (change)="checkProvider($event, provider)">
+        {{provider}}
         </label>
+        <ng-container *ngFor="let provider of providers">
+          <label class="form-check-inline" *ngIf="showAllProviders || providerChecked(provider)">
+            <input class="form-check-input" type="checkbox" [value]="provider"
+                   [checked]="providerChecked(provider)" (change)="checkProvider($event, provider)">
+            {{provider}}
+          </label>
+        </ng-container>
       </div>
     </div>
     <div class="row">
@@ -70,8 +80,9 @@
           <span>{{r._id}}</span>
         </td>
         <td>{{r.agent}}</td>
+        <td>{{r.salesperson}}</td>
         <td>{{r.googleAddress?.timezone}}({{r.timezoneOffset}})</td>
-        <td>{{r.createdAt | dateTz: 'MMM d, yyyy' : r.googleAddress?.timezone }}</td>
+        <td class="text-unwrap">{{r.createdAt | dateTz: 'MMM d, yyyy' : r.googleAddress?.timezone }}</td>
         <td>{{r.gmbOwner}}</td>
         <td>
           <ng-container *ngIf="!r.sent;else elseBlock">
@@ -85,9 +96,30 @@
           <img class="attach-img mb-1 mr-1" *ngFor="let att of (r.otherAttachments || [])" [src]="att.url" />
         </td>
         <td>
-          <div *ngFor="let log of (r.logs || [])">{{log.username}} {{log.time}}</div>
+          <table class="table table-sm">
+              <tr>
+                <th>User</th>
+                <th>Time</th>
+                <th>Problem</th>
+                <th>Response</th>
+              </tr>
+              <tr *ngFor="let log of r.logs">
+                <td>{{log.username}}</td>
+                <td>{{log.time | adjustedDate : 'MMM d h:mm a' : r.googleAddress.timezone}}</td>
+                <td>{{log.problem}}</td>
+                <td>{{log.response}}</td>
+              </tr>
+            </table>
+          <div>
+            <button class="btn btn-primary btn-sm" (click)="addLog(r)"><i class="fas fa-plus"></i>Add Log</button>
+          </div>
         </td>
       </tr>
     </q-table>
   </div>
 </div>
+
+<q-modal #logEditingModal>
+  <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="[]" [log]="logInEditing"
+                  (success)="onSuccessAddLog($event)" (remove)="onCancelAddLog()" (cancel)="onCancelAddLog()"></app-log-editor>
+</q-modal>
