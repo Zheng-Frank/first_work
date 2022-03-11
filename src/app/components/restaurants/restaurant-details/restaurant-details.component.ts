@@ -258,10 +258,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   }
 
   getOnlineServicesAgreementForSMS() {
-    return `
-    Qmenu online service agreement\n
-    %%AWS_QMENU_SERVICE_ONLINE_AGREEMENT_LINK_HERE%%
-    `;
+    return `Qmenu online service agreement: %%AWS_QMENU_SERVICE_ONLINE_AGREEMENT_LINK_HERE%%`;
   }
 
   getOnlineServicesAgreement() {
