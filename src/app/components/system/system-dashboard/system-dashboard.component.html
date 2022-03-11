@@ -5,10 +5,7 @@
   </a>
 </ng-container>
 
-<app-db-scripts *ngIf="isAdmin()"></app-db-scripts>
-
-<div *ngIf="system">
-  <h1 class="text-center">System Settings</h1>
+<div>
   <div class="my-4">
     <div class="form-group form-check">
       <input type="checkbox" class="form-check-input" id="severless-checkbox"
@@ -19,8 +16,16 @@
   </div>
   <q-simple-radio [(ngModel)]="systemItem" [equalWidth]="true" [values]="items">
   </q-simple-radio>
+  <!-- start with db scripts -->
+  <ng-container *ngIf="systemItem === 'DB Scripts'">
+    <div class="my-4 card card-body border-primary">
+      <h3 class="text-center">DB Scripts</h3>
+      <app-db-scripts></app-db-scripts>
+    </div>
+  </ng-container>
+  <!-- end with db scripts -->
   <!-- start with SMS providers -->
-  <ng-container *ngIf="systemItem === 'SMS Providers'">
+  <ng-container *ngIf="system && systemItem === 'SMS Providers'">
     <div class="my-4 card card-body border-primary">
       <h3 class="text-center">SMS Providers</h3>
       <app-sms-settings [system]="system"></app-sms-settings>
@@ -28,7 +33,7 @@
   </ng-container>
   <!-- end with SMS providers -->
   <!-- start with fax providers -->
-  <ng-container *ngIf="systemItem === 'Fax Providers'">
+  <ng-container *ngIf="system && systemItem === 'Fax Providers'">
     <div class="my-4 card card-body border-primary">
       <h3 class="text-center">Fax Providers</h3>
       <app-fax-settings [system]="system"></app-fax-settings>
@@ -36,7 +41,7 @@
   </ng-container>
   <!-- end with fax providers -->
   <!-- start with voice providers -->
-  <ng-container *ngIf="systemItem === 'Voice Providers'">
+  <ng-container *ngIf="system && systemItem === 'Voice Providers'">
     <div class="my-4 card card-body border-primary">
       <h3 class="text-center">Voice Providers</h3>
       <app-voice-settings [system]="system"></app-voice-settings>
@@ -44,7 +49,7 @@
   </ng-container>
   <!-- end with voice providers -->
   <!-- start with credit card processors -->
-  <ng-container *ngIf="systemItem === 'Credit Card Processors'">
+  <ng-container *ngIf="system && systemItem === 'Credit Card Processors'">
     <div class="my-4 card card-body border-primary">
       <h3 class="text-center">Credit Card Processors</h3>
       <app-cc-processor-settings [system]="system"></app-cc-processor-settings>
