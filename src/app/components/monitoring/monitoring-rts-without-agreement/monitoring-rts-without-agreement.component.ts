@@ -54,19 +54,19 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
   providers = [];
   showAllProviders = false;
   restaurantsColumnDescriptors = [
-    {label: 'Number'},
+    {label: '#'},
     {label: 'Restaurant', paths: ['name'], sort: alphabet},
     {label: 'Agent', paths: ['agent'], sort: alphabet},
     {label: 'Salesperson', paths: ['salesperson'], sort: alphabet},
-    {label: 'Timezone(offset)', paths: ['timezoneOffset'], sort: (a, b) => Number(a) - Number(b)},
+    {label: 'Timezone', paths: ['timezoneOffset'], sort: (a, b) => Number(a) - Number(b)},
     {
       label: 'CreatedAt',
       paths: ['createdAt'],
       sort: (a, b) => new Date(a || 0).valueOf() - new Date(b || 0).valueOf()
     },
     {label: 'GMB ownership', paths: ['gmbOwner'], sort: alphabet},
-    {label: 'Agreement Sent', paths: ['agreementSent'], sort: bool_numeric},
-    {label: 'Other attachments', paths: ['otherAttachments'], sort: bool_numeric},
+    {label: 'Agreement', paths: ['agreementSent'], sort: bool_numeric},
+    {label: 'Other attch.', paths: ['otherAttachments'], sort: bool_numeric},
     {label: 'Logs', paths: ['logs'], sort: bool_numeric}
   ];
   filters = {
@@ -208,8 +208,8 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
   }
 
   async gmbQuery() {
-    const tenDaysAgo = new Date();
-    tenDaysAgo.setDate(tenDaysAgo.getDate() - 30);
+    const gmbRecentLostStart = new Date();
+    gmbRecentLostStart.setDate(gmbRecentLostStart.getDate() - 30);
 
     // Getting data from tables
     const events = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
@@ -217,21 +217,21 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
       query: {
         name: 'gmb-lost',
         'params.cid': {$exists: true},
-        createdAt: {$gte: tenDaysAgo.valueOf()}
+        createdAt: {$gte: gmbRecentLostStart.valueOf()}
       },
       projection: {_id: 1, 'params.cid': 1, createdAt: 1}
     }, 10000);
 
 
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 45);
+    const gmbUnderAttackStart = new Date();
+    gmbUnderAttackStart.setDate(gmbUnderAttackStart.getDate() - 45);
 
     // Get Attacking Requests
     const requests = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbRequest',
       query: {
         isReminder: false,
-        date: {$gte: {$date: sevenDaysAgo}},
+        date: {$gte: {$date: gmbUnderAttackStart}},
         handledDate: {$exists: false}
       },
       projection: {cid: 1, email: 1},

@@ -6,7 +6,7 @@
     <div class="mb-3">
       <div>
         <label class="text-unwrap mr-3">Has at least these providers:</label>
-        <a (click)="showAllProviders = !showAllProviders" class="btn-link">{{showAllProviders ? 'Hide' : 'Show'}} more...</a>
+        <a (click)="showAllProviders = !showAllProviders" class="btn-link">Show {{showAllProviders ? 'less': 'more'}}...</a>
       </div>
       <div>
         <label class="form-check-inline" *ngFor="let provider of fixedProviders">
@@ -34,6 +34,12 @@
         <select [(ngModel)]="filters.agent" class="form-control" (change)="filterRTs()">
           <option value="">Agent?</option>
           <option *ngFor="let a of agents" [value]="a">{{a}}</option>
+        </select>
+      </div>
+      <div class="col-auto mb-3">
+        <select [(ngModel)]="filters.salesperson" class="form-control" (change)="filterRTs()">
+          <option value="">Salesperson?</option>
+          <option *ngFor="let a of salesPeople" [value]="a">{{a}}</option>
         </select>
       </div>
       <div class="col-auto mb-3">
@@ -90,17 +96,17 @@
         <td>{{r.gmbOwner}}</td>
         <td>
           <ng-container *ngIf="!r.sent;else elseBlock">
-            <span class="text-danger">AGREEMENT NOT SENT</span>
+            <span class="text-danger">NOT SENT</span>
           </ng-container>
           <ng-template #elseBlock>
-            <span class="text-success">Agreement Sent: {{r.agreementSentAt| dateTz: 'MMM d, yyyy' : r.googleAddress?.timezone }} ({{r.sentDays}} days after signup)</span>
+            <span class="text-success">{{r.agreementSentAt| dateTz: 'MMM d, yyyy' : r.googleAddress?.timezone }} ({{r.sentDays}}d)</span>
           </ng-template>
         </td>
         <td>
           <img (click)="preview(att.url)" class="attach-img mb-1 mr-1" *ngFor="let att of (r.otherAttachments || [])" [src]="att.url" />
         </td>
         <td>
-          <table class="table table-sm">
+          <table class="table table-sm table-log">
               <tr>
                 <th>User</th>
                 <th>Time</th>

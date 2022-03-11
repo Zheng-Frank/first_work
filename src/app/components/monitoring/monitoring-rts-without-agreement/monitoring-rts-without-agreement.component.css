@@ -16,3 +16,7 @@
   width: auto;
   max-width: 100%;
 }
+
+.table-log td {
+  white-space: pre-line;
+}
