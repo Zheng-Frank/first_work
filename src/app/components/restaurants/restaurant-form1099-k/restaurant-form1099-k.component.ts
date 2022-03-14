@@ -55,6 +55,10 @@ export class Form1099KComponent implements OnInit {
     this.populateFormLinks();
     this.populateEmails();
   }
+  // send button will be disabled when no invoice type emails
+  disableSendBtn() {
+    return this.emails.length === 0;
+  }
 
   /*
   Add ability to calculate, separate, and save separately, 
@@ -551,10 +555,9 @@ export class Form1099KComponent implements OnInit {
   }
 
   allAttributesPresent() {
-    const emailExists = this.emails.length > 0;
     const payeeNameExists = (this.restaurant.payeeName || "").length > 0;
     const tinExists = (this.restaurant.tin || "").length > 0;
-    return emailExists && payeeNameExists && tinExists;
+    return payeeNameExists && tinExists;
   }
 
   async onEdit(event, field: string) {
