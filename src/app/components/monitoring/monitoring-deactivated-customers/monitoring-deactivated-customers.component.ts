@@ -102,7 +102,7 @@ export class MonitoringDeactivatedCustomersComponent implements OnInit {
           firstName: 1,
           lastName: 1,
           socialProvider: 1,
-          deactivated: 1,
+          deactivatedAt: 1,
           createdAt: 1
         },
         limit: 1
@@ -110,7 +110,7 @@ export class MonitoringDeactivatedCustomersComponent implements OnInit {
       if(!customer){
         return this._global.publishAlert(AlertType.Danger, `Customer not found !`);
       }
-      if (customer.deactivated) {
+      if (customer.deactivatedAt) {
         return this._global.publishAlert(AlertType.Danger, `He is already a deactivated customer !`);
       }
       this.deactivatedCustomer = customer;
@@ -149,7 +149,7 @@ export class MonitoringDeactivatedCustomersComponent implements OnInit {
       }
     ]).toPromise();
     // update origin data
-    this.deactivatedCustomer.deactivated = newObj.deactivatedAt;
+    this.deactivatedCustomer.deactivatedAt = newObj.deactivatedAt;
     this.customers.unshift({
       ...this.deactivatedCustomer
     });
