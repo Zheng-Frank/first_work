@@ -148,7 +148,7 @@ export class MyRestaurantComponent implements OnInit {
   }
 
   isSuperUser() {
-    return ['gary', 'chris', 'mo', 'dixon.adair', 'maceo.cozier'].includes(this._global.user.username);
+    return ['gary', 'chris', 'mo', 'dixon.adair'].includes(this._global.user.username);
   }
 
   isMarketerManagerWithTeam() {
