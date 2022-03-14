@@ -60,8 +60,6 @@ export class MenusComponent implements OnInit {
   allMenuName = 'ALL MENUS';
   menuName;
 
-  overwriteExistImgs = false;
-
   constructor(private _api: ApiService, private _prunedPatch: PrunedPatchService, private _global: GlobalService) {
   }
 
@@ -658,7 +656,6 @@ export class MenusComponent implements OnInit {
     this.menuNames = (this.restaurant.menus || []).map(menu => menu.name);
     this.menuNames.unshift(this.allMenuName);
     this.menuName = this.menuNames[0];
-    this.overwriteExistImgs = false;
     this.injectImagesModal.show();
   }
 
@@ -679,26 +676,19 @@ export class MenusComponent implements OnInit {
               only inject image when no existing image with origin as "CSR", "RESTAURANT", or overwrite images with origin as "IMAGE-PICKER"
           */
           try {
-            // only inject if there is NO image if overwriteExistImgs is false
-            let matchingAlias = undefined;
-            if (!this.overwriteExistImgs) {
-              if (mi && !mi.SkipImageInjection && (!mi.imageObjs || mi.imageObjs.length === 0)) {// !(mi.imageObjs.some(each => each.origin === 'CSR' || each.origin === 'RESTAURANT'))) {
-                // 9/29/2021 use newer algorithm
-                matchingAlias = images.find(i => i.images && i.images.length > 0 && i.aliases.some(a => ImageItem.areAliasesSame(a, mi.name)));
+            // only inject if there is NO image
+            if (mi && !mi.SkipImageInjection && (!mi.imageObjs || mi.imageObjs.length === 0)) {// !(mi.imageObjs.some(each => each.origin === 'CSR' || each.origin === 'RESTAURANT'))) {
+              // 9/29/2021 use newer algorithm
+              const matchingAlias = images.find(i => i.images && i.images.length > 0 && i.aliases.some(a => ImageItem.areAliasesSame(a, mi.name)));
+              if (matchingAlias) {
+                totalMatched++;
+                mi.imageObjs = matchingAlias.images.map(each => ({
+                  originalUrl: each.url,
+                  thumbnailUrl: each.url192,
+                  normalUrl: each.url768,
+                  origin: 'IMAGE-PICKER'
+                }));
               }
-            } else {
-              if(mi){
-                matchingAlias = images.find(i => i.images && i.images.length > 0 && i.aliases.some(a => ImageItem.areAliasesSame(a, mi.name)));
-              }
-            }
-            if (matchingAlias) {
-              totalMatched++;
-              mi.imageObjs = matchingAlias.images.map(each => ({
-                originalUrl: each.url,
-                thumbnailUrl: each.url192,
-                normalUrl: each.url768,
-                origin: 'IMAGE-PICKER'
-              }));
             }
           } catch (e) {
             console.log('mi', JSON.stringify(mi));
@@ -723,6 +713,7 @@ export class MenusComponent implements OnInit {
     } else {
       this._global.publishAlert(AlertType.Info, `No update because ${totalMatched} matched!`);
     }
+    this.injectImagesModal.hide();
   }
 
   async deleteImages() {
