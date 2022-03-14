@@ -27,6 +27,11 @@ export class MonitoringDeactivatedCustomersComponent implements OnInit {
       sort: (a, b) => a.firstName > b.firstName ? 1 : -1
     },
     {
+      label: 'Deactivated At',
+      paths: ['deactivatedAt'],
+      sort: (a, b) => new Date(a || 0).valueOf() - new Date(b || 0).valueOf()
+    },
+    {
       label: 'Reactivate/Deactivate'
     }
   ];
@@ -43,7 +48,9 @@ export class MonitoringDeactivatedCustomersComponent implements OnInit {
     this.customers = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'customer',
       query: {
-        deactivated: true
+        deactivatedAt: {
+          $exists: true
+        }
       },
       projection: {
         phone: 1,
@@ -51,7 +58,7 @@ export class MonitoringDeactivatedCustomersComponent implements OnInit {
         firstName: 1,
         lastName: 1,
         socialProvider: 1,
-        deactivated: 1,
+        deactivatedAt: 1,
         createdAt: 1
       },
       limit: 100000
@@ -132,16 +139,17 @@ export class MonitoringDeactivatedCustomersComponent implements OnInit {
 
   // click deactivated button and deactives customer
   async Deactivate() {
+    let newObj = {
+      _id: this.deactivatedCustomer._id, deactivatedAt: new Date()
+    }
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=customer', [
       {
         old: { _id: this.deactivatedCustomer._id },
-        new: {
-          _id: this.deactivatedCustomer._id, deactivated: true
-        }
+        new: newObj
       }
     ]).toPromise();
     // update origin data
-    this.deactivatedCustomer.deactivated = true;
+    this.deactivatedCustomer.deactivated = newObj.deactivatedAt;
     this.customers.unshift({
       ...this.deactivatedCustomer
     });
@@ -154,7 +162,7 @@ export class MonitoringDeactivatedCustomersComponent implements OnInit {
   async Reactivate() {
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=customer', [
       {
-        old: { _id: this.reactivatedCustomer._id, deactivated: true },
+        old: { _id: this.reactivatedCustomer._id, deactivatedAt: this.reactivatedCustomer.deactivatedAt },
         new: {
           _id: this.reactivatedCustomer._id
         }

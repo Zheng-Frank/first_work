@@ -50,6 +50,9 @@
           </div>
         </td>
         <td>
+          {{row?.deactivatedAt| date:'yyyy-MM-dd HH:MM:SS'}}
+        </td>
+        <td>
           <button (click)="openReactivateModal(row)" class="btn btn-link">
             Reactivate
           </button>
