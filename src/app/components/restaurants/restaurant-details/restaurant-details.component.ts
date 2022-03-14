@@ -19,7 +19,7 @@ import { AlertType } from '../../../classes/alert-type';
 import { RestaurantProfileComponent } from '../restaurant-profile/restaurant-profile.component';
 import { Helper } from '../../../classes/helper';
 import { SendMessageComponent } from '../../utilities/send-message/send-message.component';
-import {RevisedOnlineServicesAgreement, FirstDelinquentNotice, SecondDelinquentNotice} from './html-message-templates';
+import { RevisedOnlineServicesAgreement, FirstDelinquentNotice, SecondDelinquentNotice } from './html-message-templates';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { RestaurantSetupEntryComponent } from '../restaurant-setup/restaurant-setup-entry/restaurant-setup-entry.component';
 declare var $: any;
@@ -249,7 +249,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     return {
       "RT_NAME": name,
       "RT_STREET": street_number + " " + route,
-      "RT_CITY": locality + ", " + administrative_area_level_1 +  " " + postal_code
+      "RT_CITY": locality + ", " + administrative_area_level_1 + " " + postal_code
     };
   }
 
@@ -257,8 +257,12 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     return template.replace(regex, (_, p1) => dataset[p1]);
   }
 
+  getOnlineServicesAgreementForSMS() {
+    return `Qmenu online service agreement: %%AWS_QMENU_SERVICE_ONLINE_AGREEMENT_LINK_HERE%%`;
+  }
+
   getOnlineServicesAgreement() {
-    let {serviceSettings} = this.restaurant;
+    let { serviceSettings } = this.restaurant;
     let qMenuCollect = (serviceSettings || []).some(ss => (ss.paymentMethods || []).includes('QMENU'));
     let map = {
       ...this.getRtInfoMap(),
@@ -273,23 +277,23 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     const [firstOrder] = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "order",
       aggregate: [
-        {$match: {"restaurant": {$oid: rtId}}},
-        {$project: {'createdAt': 1}},
-        {$sort: {_id: 1}},
-        {$limit: 1},
+        { $match: { "restaurant": { $oid: rtId } } },
+        { $project: { 'createdAt': 1 } },
+        { $sort: { _id: 1 } },
+        { $limit: 1 },
       ],
     }).toPromise();
     let date = firstOrder ? firstOrder.createdAt : this.restaurant.createdAt;
-    this.openDate = new Date(date).toLocaleString('en-US', {timeZone: this.restaurant.googleAddress.timezone});
+    this.openDate = new Date(date).toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone });
 
     // 1. get latest completed invoice date
     const [latestCompleted] = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "invoice",
       aggregate: [
-        {$match: {"restaurant.id": rtId, isPaymentCompleted: true}},
-        {$project: {'createdAt': 1}}, // project stage go first to make dataset minimum for sorting.
-        {$sort: {_id: -1}},
-        {$limit: 1}
+        { $match: { "restaurant.id": rtId, isPaymentCompleted: true } },
+        { $project: { 'createdAt': 1 } }, // project stage go first to make dataset minimum for sorting.
+        { $sort: { _id: -1 } },
+        { $limit: 1 }
       ]
     }).toPromise();
     let latestCompletedDate = new Date(0);
@@ -302,20 +306,20 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       aggregate: [
         {
           $match: {
-            "restaurant.id": rtId, isCanceled: {$ne: true},
-            createdAt: {$gt: {$date: latestCompletedDate}}
+            "restaurant.id": rtId, isCanceled: { $ne: true },
+            createdAt: { $gt: { $date: latestCompletedDate } }
           }
         },
-        {$project: {toDate: 1, createdAt: 1}},
-        {$sort: {_id: 1}},
-        {$limit: 1}
+        { $project: { toDate: 1, createdAt: 1 } },
+        { $sort: { _id: 1 } },
+        { $limit: 1 }
       ]
     }).toPromise();
     if (unpaid) {
       // 10 days from last day of invoice period
       date = new Date(Math.max(new Date(unpaid.toDate).valueOf(), new Date(unpaid.createdAt).valueOf()));
       date.setDate(date.getDate() + 10);
-      this.earliestInvoiceDueDate = date.toLocaleString('en-US', {timeZone: this.restaurant.googleAddress.timezone});
+      this.earliestInvoiceDueDate = date.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone });
     }
   }
 
@@ -328,13 +332,13 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       ...this.getRtInfoMap(),
       "RT_OPEN_DATE": this.openDate,
       "EARLIEST_UNPAID_INVOICE_DUE_DATE": this.earliestInvoiceDueDate,
-      "NOTICE_DUE_DATE": date.toLocaleString('en-US', {timeZone: this.restaurant.googleAddress.timezone})
+      "NOTICE_DUE_DATE": date.toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone })
     };
 
     return this.fillMessageTemplate(delinquent, dataset);
   }
 
-  get messageTemplates () {
+  get messageTemplates() {
     let templates = {
       'Owner APP': [
         {
@@ -466,26 +470,35 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           inputs: [
             {
               label: "Signature", value: '',
-              apply: (tpl, value) => this.fillMessageTemplate(tpl, {"SIGNATURE": value}, /%%(SIGNATURE)%%/g)
+              apply: (tpl, value) => this.fillMessageTemplate(tpl, { "SIGNATURE": value }, /%%(SIGNATURE)%%/g)
             },
             {
               label: "Full Name", value: '',
-              apply: (tpl, value) => this.fillMessageTemplate(tpl, {"FULL_NAME": value}, /%%(FULL_NAME)%%/g)
+              apply: (tpl, value) => this.fillMessageTemplate(tpl, { "FULL_NAME": value }, /%%(FULL_NAME)%%/g)
             },
             {
               label: "Title", value: '',
-              apply: (tpl, value) => this.fillMessageTemplate(tpl, {"POSITION": value}, /%%(POSITION)%%/g)
+              apply: (tpl, value) => this.fillMessageTemplate(tpl, { "POSITION": value }, /%%(POSITION)%%/g)
             }
           ],
-          emailContent: this.getOnlineServicesAgreement()
+          emailContent: this.getOnlineServicesAgreement(),
+          smsContent: this.getOnlineServicesAgreementForSMS(),
+          smsPreview: this.getOnlineServicesAgreement(),
+          uploadHtml: (body) => {
+            return {
+              contentType: 'text/html; charset=utf-8',
+              body: body,
+              format: 'pdf'
+            };
+          }
         });
       }
       if (this.earliestInvoiceDueDate) {
         templates['Other'].push({
-            title: "First Delinquent Notice",
-            subject: "First Delinquent Notice",
-            emailContent: this.getDelinquentNotice(FirstDelinquentNotice)
-          },
+          title: "First Delinquent Notice",
+          subject: "First Delinquent Notice",
+          emailContent: this.getDelinquentNotice(FirstDelinquentNotice)
+        },
           {
             title: "Second Delinquent Message",
             subject: "Second Delinquent Message",
@@ -493,8 +506,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
               {
                 label: "First Delinquent Notice Sent on", type: 'date', value: '',
                 apply: (tpl, value) => {
-                  value = new Date(value).toLocaleString('en-US', {timeZone: this.restaurant.googleAddress.timezone});
-                  return this.fillMessageTemplate(tpl, {"FIRST_DELINQUENT_NOTICE_SENT_ON": value}, /%%([A-Z_]+)%%/g);
+                  value = new Date(value).toLocaleString('en-US', { timeZone: this.restaurant.googleAddress.timezone });
+                  return this.fillMessageTemplate(tpl, { "FIRST_DELINQUENT_NOTICE_SENT_ON": value }, /%%([A-Z_]+)%%/g);
                 }
               },
             ],
@@ -518,7 +531,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           { place_id: (this.restaurant.googleListing || {}).place_id || "junk place id" },
         ]
       },
-      projection: {cid: 1, gmbOwner: 1},
+      projection: { cid: 1, gmbOwner: 1 },
       limit: 10
     }).toPromise());
 
