@@ -5,50 +5,52 @@
     <div class="text-center text-danger">({{filterRows.length}} items, {{getItemWithImageCount()}} with images)</div>
   </h2>
   <div class="card-body">
-    <div class="row pb-2">
-      <div class="col-7 text-left form-inline">
-        <label class="form-check-label mr-2 ml-3">Cuisine Type
-          <select [(ngModel)]="cuisineType" class="form-control ml-2 limit-select-width" (change)="filter()">
-            <option *ngFor="let type of cuisineTypes">{{type}}</option>
-          </select>
-        </label>
-        <label class="form-check-label mr-2 ml-3">Order By
-          <select [(ngModel)]="orderBy" class="form-control ml-2" (change)="filter()">
-            <option *ngFor="let type of orderBys">{{type}}</option>
-          </select>
-        </label>
-
-        <!-- start with show no image items -->
-        <label class="form-check-label ml-3">Show
-          <select [(ngModel)]="noImagesFlag" class="form-control ml-2" (change)="filter()">
-            <option *ngFor="let type of showImagesItemsTypes">{{type}}</option>
-          </select>
-        </label>
-        <!-- end with show no image items -->
+    <div class="row">
+      <div class="col-auto">
+        <select [(ngModel)]="manageMode" class="form-control" (change)="filter()">
+          <option *ngFor="let type of getManageModes()">{{type}}</option>
+        </select>
       </div>
-      <div class="col-5 text-right">
-        <button class="btn btn-link" (click)="mergeDuplicates()" [qLoading]="merging">Merge Duplicates</button>
-        <button class="btn btn-link" (click)="normalizeAliases()" [qLoading]="normalizing">Normalize Aliases</button>
-        <button class="btn btn-link" (click)="removeImagelessItems()" [qLoading]="removing">Remove Imageless Items</button>
-        <button class="btn btn-link" (click)="syncFromMenuItems()" [qLoading]="syncing">Sync from Latest
-          Menu Items</button>
-        <button class="btn btn-primary" (click)="openAddRecordsModal()">+ Add New</button>
-
+      <ng-container *ngIf="manageMode === manageModes.Common">
+        <div class="col-auto">
+          <select [(ngModel)]="keywordType">
+            <option *ngFor="let type of getKeywordTypes()">{{type}}</option>
+          </select>
+        </div>
+        <div class="col-auto">
+          <input type="text" class="form-control" >
+        </div>
+        <div class="col-auto">
+          <button class="btn btn-primary" [(ngModel)]="keyword" (click)="filter()">Search</button>
+        </div>
+      </ng-container>
+      <div class="col-auto" *ngIf="manageMode === manageModes.Standard">
+        <select [(ngModel)]="cuisineType" class="form-control" (change)="filter()">
+          <option value="">Cuisine type?</option>
+          <option *ngFor="let type of cuisineTypes">{{type}}</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <select [(ngModel)]="orderBy" class="form-control" (change)="filter()">
+          <option *ngFor="let type of orderBys">{{type}}</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <select [(ngModel)]="hasImageMode" class="form-control" (change)="filter()">
+          <option *ngFor="let type of hasImageModes">{{type}}</option>
+        </select>
       </div>
     </div>
-    <table class="table table-striped">
-      <tr>
-        <th></th>
-        <th>
-          Menu Names
-        </th>
-        <th>
-          Images
-        </th>
-        <th>
-          Delete
-        </th>
-      </tr>
+    <div class="mt-2 mb-2 text-right">
+      <button class="btn btn-link" (click)="mergeDuplicates()" [qLoading]="merging">Merge Duplicates</button>
+      <button class="btn btn-link" (click)="normalizeAliases()" [qLoading]="normalizing">Normalize Aliases</button>
+      <button class="btn btn-link" (click)="removeImagelessItems()" [qLoading]="removing">Remove Imageless Items</button>
+      <button class="btn btn-link" (click)="syncFromMenuItems()" [qLoading]="syncing">Sync from Latest
+        Menu Items</button>
+      <button class="btn btn-primary" (click)="openAddRecordsModal()">+ Add New</button>
+    </div>
+    <table *ngIf="manageMode === manageModes.Standard" class="table table-striped">
+      <tr><th></th><th>Menu Names</th><th>Images</th><th>Delete</th></tr>
       <tr *ngFor="let row of filterRows; let i = index">
         <td>
           {{i+1}}
@@ -94,6 +96,22 @@
       </tr>
 
     </table>
+
+    <ul class="image-list">
+      <li class="image-item" *ngFor="let row of filterRows">
+        <div>RT: {{row.name}}</div>
+        <div><a [routerLink]="'/restaurants/' + row._id">{{row._id}}</a></div>
+        <div></div>
+        Item createdAt:
+        <img />
+        <div>
+          Frequency: (for this iten name), (overall)
+        </div>
+        <div>
+          <a>Edit Item</a><a>Remove Image</a>
+        </div>
+      </li>
+    </ul>
 
     <q-modal #modalZoom *ngIf="clickedMi">
       <div class="modal-header" data-dismiss="modal">

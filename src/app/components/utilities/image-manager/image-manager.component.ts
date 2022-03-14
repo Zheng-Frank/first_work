@@ -9,17 +9,28 @@ import { Helper } from '../../../classes/helper';
 import { HttpClient } from '@angular/common/http';
 import { ImageItem } from 'src/app/classes/image-item';
 
-enum orderByTypes {
-  NAME = 'Name',
+enum OrderByTypes {
+  None = 'Order by?',
+  Name = 'Name',
   menuFrequency = 'Menu frequency',
   orderFrequency = 'Order frequency',
   numberAliases = 'Number of aliases',
   numberImages = 'Number of images'
 }
-enum hasImagesTypes {
-  All = 'All',
+enum HasImageModes {
+  All = 'Has Image?',
   WithImage = 'with image',
   WithoutImage = 'without images'
+}
+
+enum ManageModes {
+  Standard = 'Standard Images',
+  Common = 'Common Images'
+}
+
+enum KeywordTypes {
+  ItemName = 'Search by Item Name',
+  ImageUrl = 'Search by Image URL',
 }
 
 @Component({
@@ -40,22 +51,55 @@ export class ImageManagerComponent implements OnInit {
   images = [];
   cuisineTypes = [];
   cuisineType = '';
-  orderBys = [orderByTypes.NAME, orderByTypes.menuFrequency, orderByTypes.orderFrequency, orderByTypes.numberAliases, orderByTypes.numberImages];
-  orderBy = orderByTypes.NAME;
-  showImagesItemsTypes = [hasImagesTypes.All, hasImagesTypes.WithImage, hasImagesTypes.WithoutImage];
-  noImagesFlag = hasImagesTypes.All;// control whether show no image items. 
+  orderBys = [OrderByTypes.None, OrderByTypes.Name, OrderByTypes.menuFrequency, OrderByTypes.orderFrequency, OrderByTypes.numberAliases, OrderByTypes.numberImages];
+  orderBy = OrderByTypes.None;
+  hasImageModes = [HasImageModes.All, HasImageModes.WithImage, HasImageModes.WithoutImage];
+  hasImageMode = HasImageModes.All; // control whether show no image items.
 
   newImages = [];
   calculatingStats = false; // control progress bar actions.
-
+  manageMode = ManageModes.Standard;
+  keyword = KeywordTypes.ItemName;
+  keywordType = KeywordTypes.ItemName;
   merging = false;
   normalizing = false;
   syncing = false;
   removing = false;
+  restaurants = [];
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) { }
 
   async ngOnInit() {
+    await this.getRtsWithMenuName();
     await this.reload();
+  }
+
+  get manageModes() {
+    return ManageModes;
+  }
+  getManageModes() {
+    return Object.values(ManageModes);
+  }
+
+  getKeywordTypes() {
+    if (this.hasImageMode === HasImageModes.WithoutImage) {
+      this.keywordType = KeywordTypes.ItemName;
+      return [KeywordTypes.ItemName]
+    }
+    return Object.values(KeywordTypes);
+  }
+
+  async getRtsWithMenuName() {
+    this.restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: {
+        name: 1,
+        'menus.name': 1,
+        'menus.mcs.name': 1,
+        'menus.mcs.mis.name': 1,
+        'menus.mcs.mis.imageObjs.originalUrl': 1
+      },
+      limit: 2000
+    }).toPromise();
   }
 
   async removeImagelessItems() {
@@ -113,7 +157,7 @@ export class ImageManagerComponent implements OnInit {
     imageItems.forEach(item => {
       const aliases = item.aliases || [];
       const reorged = [];
-      aliases.forEach(a => reorged.push(...(ImageItem.extractAliases(a).map(a => a.alias))));
+      aliases.forEach(a => reorged.push(...(ImageItem.extractAliases(a).map(x => x.alias))));
       const newAliases = [... new Set(reorged)];
       const areTheSame = aliases.length === newAliases.length && aliases.every(a => newAliases.indexOf(a) >= 0);
       if (!areTheSame) {
@@ -249,10 +293,10 @@ export class ImageManagerComponent implements OnInit {
       // now sort them!
       const sortedEntries = Object.entries(clusters).sort((b, a) => a[1][a[0]] - b[1][b[0]]);
 
-      sortedEntries.forEach(entry => {
+      sortedEntries.forEach(item => {
         // detect if it's existed!
-        const root = entry[0];
-        const aliasCounts = entry[1];
+        const root = item[0];
+        const aliasCounts = item[1];
         const rootCount = aliasCounts[root];
         const threshold = Math.ceil(rootCount * 0.05) + 4;
         const filteredAliases = Object.keys(aliasCounts).filter(key => aliasCounts[key] >= threshold);
@@ -290,7 +334,7 @@ export class ImageManagerComponent implements OnInit {
       }
     }));
 
-    // now we need to either 
+    // now we need to either
     // a. merge with existing image items, or
     // b. create new image item
     const imageItems: ImageItem[] = await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -351,15 +395,14 @@ export class ImageManagerComponent implements OnInit {
 
 
   onChangeShowNoImageItems() {
-    switch (this.noImagesFlag) {
-      case hasImagesTypes.All:
-        this.filterRows = this.filterRows;
+    switch (this.hasImageMode) {
+      case HasImageModes.All:
         break;
-      case hasImagesTypes.WithImage:
+      case HasImageModes.WithImage:
         this.filterRows = this.filterRows.filter(item => item.images && item.images.length > 0 &&
           item.images.filter(image => Object.values(image).some(url => url !== "") && image.url192).length > 0);
         break;
-      case hasImagesTypes.WithoutImage:
+      case HasImageModes.WithoutImage:
         this.filterRows = this.filterRows.filter(item => !(item.images && item.images.length > 0 &&
           item.images.filter(image => Object.values(image).some(url => url !== "") && image.url192).length > 0));
         break;
@@ -395,19 +438,19 @@ export class ImageManagerComponent implements OnInit {
   // change order by select value toggle this method.
   onChangeOrderBy() {
     switch (this.orderBy) {
-      case orderByTypes.NAME:
+      case OrderByTypes.Name:
         this.filterRows.sort((a, b) => ((a.aliases || [])[0]) > ((b.aliases || [])[0]) ? 1 : ((a.aliases || [])[0] < (b.aliases || [])[0] ? -1 : 0));
         break;
-      case orderByTypes.menuFrequency:
+      case OrderByTypes.menuFrequency:
         this.filterRows.sort((a, b) => (b.menuCount || 0) - (a.menuCount || 0));
         break;
-      case orderByTypes.orderFrequency:
+      case OrderByTypes.orderFrequency:
         this.filterRows.sort((a, b) => (b.orderCount || 0) - (a.orderCount || 0));
         break;
-      case orderByTypes.numberAliases:
+      case OrderByTypes.numberAliases:
         this.filterRows.sort((a, b) => (b.aliases || []).length - (a.aliases || []).length);
         break;
-      case orderByTypes.numberImages:
+      case OrderByTypes.numberImages:
         this.filterRows.sort((a, b) => (b.images && a.images) ? b.images.filter(image => image.url192).length - a.images.filter(image => image.url192).length :
          (b.images && !a.images) ? 1 : (!b.images && a.images) ? -1 : 0);
         break;
@@ -452,7 +495,7 @@ export class ImageManagerComponent implements OnInit {
           console.log(e);
         });
       let cloneRow = JSON.parse(JSON.stringify(row));
-      this.filterRows = this.rows = this.rows.filter(row => !Helper.areObjectsEqual(row, cloneRow));
+      this.filterRows = this.rows = this.rows.filter(x => !Helper.areObjectsEqual(x, cloneRow));
       this.filter();
     }
   }
@@ -542,7 +585,7 @@ export class ImageManagerComponent implements OnInit {
 
   async updateAliases(row) {
     let others = this.rows.filter(x => x._id !== row._id);
-    let repeated = [];// this.hasRepeatAlias([row], others); temp disable to allow editing
+    let repeated = []; // this.hasRepeatAlias([row], others); temp disable to allow editing
 
     if (repeated.length > 0) {
       return this._global.publishAlert(AlertType.Danger, `Aliases ${repeated.join(',')} repeat!`);
