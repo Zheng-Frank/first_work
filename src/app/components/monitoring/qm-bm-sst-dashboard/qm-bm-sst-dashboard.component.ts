@@ -98,6 +98,9 @@ export class QmBmSstDashboardComponent implements OnInit {
     worthiness: ''
   }
 
+  sumBmActiveOnly = true;
+  sumQmActiveOnly = true;
+
   summary = {
     overall: [],
     both: [],
@@ -140,8 +143,8 @@ export class QmBmSstDashboardComponent implements OnInit {
     this.summary.both = this.filteredRows.filter(({_id, _bid}) => _id && _bid);
     this.summary.qmOnly = this.filteredRows.filter(({_id, place_id}) => _id && !this.bmRTsPlaceDict[place_id])
     this.summary.bmOnly = this.filteredRows.filter(({_bid, bplace_id}) => _bid && !this.qmRTsPlaceDict[bplace_id])
-    this.summary.qmAll = this.filteredRows.filter(({_id}) => !!_id)
-    this.summary.bmAll = this.filteredRows.filter(({_bid}) => !!_bid)
+    this.summary.qmAll = this.filteredRows.filter(({_id, disabled}) => !!_id && (!this.sumQmActiveOnly || !disabled))
+    this.summary.bmAll = this.filteredRows.filter(({_bid, bdisabled}) => !!_bid && (!this.sumBmActiveOnly || !bdisabled))
   }
 
   paginate(index) {
@@ -216,7 +219,7 @@ export class QmBmSstDashboardComponent implements OnInit {
         } else {
           rt.hasGmb = false
         }
-        rt.hasGMBWebsite = !!gmbWebsiteOwnerDict[rt.place_id + rt.cid]
+        rt.hasGMBWebsite = gmbWebsiteOwnerDict[rt.place_id + rt.cid] === 'qmenu'
         rt.postmatesAvailable = this.postmatesAvailable(rt)
       })
       // --- BeyondMenu restaurants
@@ -319,13 +322,20 @@ export class QmBmSstDashboardComponent implements OnInit {
   getTier(score) {
     if (!score) {
       return 0;
-    } else if (score >= 0 && score <= 4) {
-      return 3;
-    } else if (score > 4 && score <= 40) {
-      return 2;
-    } else {
+    }
+    // 30.2: avg days per month, 0.7: discount factor
+    let value = score * 30.2 * 0.7;
+
+    if (value > 40) {
       return 1;
     }
+    if (value > 4) {
+      return 2;
+    }
+    if (value > 0) {
+      return 3;
+    }
+    return 0;
   }
 
   getTierColor(tier = 0, btier = 0) {
@@ -503,10 +513,10 @@ export class QmBmSstDashboardComponent implements OnInit {
     list = this.worthyFilter(list, perspective, worthiness);
 
     if (keyword && keyword.trim()) {
-      const kwMatch = str => str && str.toLowerCase().includes(keyword.toLowerCase())
+      const kwMatch = str => str && str.toString().toLowerCase().includes(keyword.toLowerCase())
       let digits = keyword.replace(/[^a-zA-Z0-9]/g, '');
-      list = list.filter(({name, bname, address, baddress, channels, bchannels}) => {
-        return kwMatch(name) || kwMatch(bname) || kwMatch(address) || kwMatch(baddress)
+      list = list.filter(({_id, _bid, name, bname, address, baddress, channels, bchannels}) => {
+        return [_id, _bid, name, bname, address, baddress].some(x => kwMatch(x))
         || (digits && ((channels || []).some(p => p.type === 'Phone' && p.value.includes(digits)) || (bchannels || []).some(p => p.value.includes(digits))))
       })
     }

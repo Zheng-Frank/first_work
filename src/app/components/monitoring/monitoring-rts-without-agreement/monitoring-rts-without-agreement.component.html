@@ -1,64 +1,141 @@
 <div class="card">
   <h2 class="card-title m-3">
-    <h1 class="text-center">RTs Service Agreement ({{filterAgreementRTs.length || 0}})</h1>
+    <h1 class="text-center">RTs Service Agreement ({{list.length}})</h1>
   </h2>
   <div class="card-body">
-    <!-- start with filter control -->
+    <div class="mb-3">
+      <div>
+        <label class="text-unwrap mr-3">Has at least these providers:</label>
+        <a (click)="showAllProviders = !showAllProviders" class="btn-link">Show {{showAllProviders ? 'less': 'more'}}...</a>
+      </div>
+      <div>
+        <label class="form-check-inline" *ngFor="let provider of fixedProviders">
+          <input class="form-check-input" type="checkbox" [value]="provider"
+                 [checked]="providerChecked(provider)" (change)="checkProvider($event, provider)">
+        {{provider}}
+        </label>
+        <ng-container *ngFor="let provider of providers">
+          <label class="form-check-inline" *ngIf="showAllProviders || providerChecked(provider)">
+            <input class="form-check-input" type="checkbox" [value]="provider"
+                   [checked]="providerChecked(provider)" (change)="checkProvider($event, provider)">
+            {{provider}}
+          </label>
+        </ng-container>
+      </div>
+    </div>
     <div class="row">
-      <div class="col-10 form-inline form-group">
-        <!-- start with date filter -->
-        <label class="text-center ml-1">RTs Created after</label>
-        <input class="form-control ml-1" type="date" [(ngModel)]="fromDate" (change)="filterRTs()">
-        <!-- end with date filter -->
-        <!-- start with agent filter -->
-        <label class="text-center ml-3">Salesperson</label>
-        <select [(ngModel)]="agent" class="form-control ml-1" (change)="filterRTs()">
+      <div class="col-auto mb-3">
+        <div class="input-group d-flex align-items-center">
+          <label class="mr-2">RTs Created after</label>
+          <input class="form-control" type="date" [(ngModel)]="filters.createdAfter" (change)="filterRTs()">
+        </div>
+      </div>
+      <div class="col-auto mb-3">
+        <select [(ngModel)]="filters.agent" class="form-control" (change)="filterRTs()">
+          <option value="">Agent?</option>
           <option *ngFor="let a of agents" [value]="a">{{a}}</option>
         </select>
-        <!-- end with agent filter -->
-        <!-- start with agreement sent condition filter -->
-        <label class="text-center ml-3">Agreement Sent</label>
-        <select [(ngModel)]="agreementView" class="form-control ml-1" (change)="filterRTs()">
-          <option *ngFor="let view of agreementViews" [value]="view">{{view}}</option>
+      </div>
+      <div class="col-auto mb-3">
+        <select [(ngModel)]="filters.salesperson" class="form-control" (change)="filterRTs()">
+          <option value="">Salesperson?</option>
+          <option *ngFor="let a of salesPeople" [value]="a">{{a}}</option>
         </select>
-        <!-- end with agreement sent condition filter -->
-        <!-- start with Gmb owner filter -->
-        <label class="text-center ml-3">Gmb Owner by</label>
-        <select [(ngModel)]="gmbOwner" class="form-control ml-1" (change)="filterRTs()">
+      </div>
+      <div class="col-auto mb-3">
+        <select [(ngModel)]="filters.agreementSent" class="form-control ml-1" (change)="filterRTs()">
+          <option value="">Agreement Sent?</option>
+          <option *ngFor="let view of dropdowns('agreementSent')" [value]="view">{{view}}</option>
+        </select>
+      </div>
+      <div class="col-auto mb-3">
+        <select [(ngModel)]="filters.gmbOwner" class="form-control ml-1" (change)="filterRTs()">
+          <option *ngFor="let opt of dropdowns('gmbOwner')" [value]="opt">{{opt}}</option>
           <option *ngFor="let owner of gmbOwners" [value]="owner">{{owner}}</option>
         </select>
       </div>
-      <div class="col-2 text-right form-group">
-        <button class="btn btn-primary" (click)="loadDatas()"><i class="fas fa-sync"></i> Reload</button>
+      <div class="col-auto mb-3">
+        <select [(ngModel)]="filters.hasLogs" class="form-control ml-1" (change)="filterRTs()">
+          <option value="">Has logs?</option>
+          <option *ngFor="let opt of dropdowns('hasLogs')" [value]="opt">{{opt}}</option>
+        </select>
+      </div>
+      <div class="col-auto mb-3">
+        <select [(ngModel)]="filters.gmbChanges" class="form-control ml-1" (change)="filterRTs()">
+          <option value="">GMB change?</option>
+          <option *ngFor="let opt of dropdowns('gmbChanges')" [value]="opt">{{opt}}</option>
+        </select>
+      </div>
+      <div class="col-auto mb-3">
+        <select [(ngModel)]="filters.hasAttachment" class="form-control ml-1" (change)="filterRTs()">
+          <option value="">Has attachment?</option>
+          <option *ngFor="let opt of dropdowns('hasAttachment')" [value]="opt">{{opt}}</option>
+        </select>
+      </div>
+      <div class="col-auto mb-3">
+        <button class="btn btn-primary" (click)="query()"><i class="fas fa-sync"></i> Reload</button>
       </div>
     </div>
-    <!-- end with filter control -->
 
-    <q-table [rows]="filterAgreementRTs" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
+    <q-table [rows]="list" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
       [pageSize]="100000">
-      <tr *tableRowTemplate="let r;">
-        <td>{{filterAgreementRTs.indexOf(r) + 1}}</td>
+      <tr *tableRowTemplate="let r">
+        <td>{{list.indexOf(r) + 1}}</td>
         <td>
-          <a routerLink="/restaurants/{{r['_id']}}">{{r.name}} </a><br>
-          <span>{{r._id}}</span>
+          <div>
+            <a class="mr-2" routerLink="/restaurants/{{r['_id']}}">{{r.name}}</a>
+            <span class="text-danger" *ngIf="r.gmbRecentLost">RL</span>
+            <span class="text-warning" *ngIf="r.gmbUnderAttack">UA</span>
+          </div>
+          <div>{{r._id}}</div>
         </td>
-        <td>
-          {{r.agent}}
-        </td>
-        <td>
-          {{r.createdAt | dateTz: 'MMM d, yyyy' : r.googleAddress?.timezone }}
-        </td>
-        <td>
-          {{r.gmbOwner}}
-        </td>
+        <td>{{r.agent}}</td>
+        <td>{{r.salesperson}}</td>
+        <td>{{r.googleAddress?.timezone}}({{r.timezoneOffset}})</td>
+        <td class="text-unwrap">{{r.createdAt | dateTz: 'MMM d, yyyy' : r.googleAddress?.timezone }}</td>
+        <td>{{r.gmbOwner}}</td>
         <td>
           <ng-container *ngIf="!r.sent;else elseBlock">
-            <span class="text-danger">AGREEMENT NOT SENT</span>
+            <span class="text-danger">NOT SENT</span>
           </ng-container>
           <ng-template #elseBlock>
-            <span class="text-success">Agreement Sent: {{r.agreementSentAt| dateTz: 'MMM d, yyyy' : r.googleAddress?.timezone }} ({{r.sentDays}} days after signup)</span>
+            <span class="text-success">{{r.agreementSentAt| dateTz: 'MMM d, yyyy' : r.googleAddress?.timezone }} ({{r.sentDays}}d)</span>
           </ng-template>
         </td>
+        <td>
+          <img (click)="preview(att.url)" class="attach-img mb-1 mr-1" *ngFor="let att of (r.otherAttachments || [])" [src]="att.url" />
+        </td>
+        <td>
+          <table class="table table-sm table-log">
+              <tr>
+                <th>User</th>
+                <th>Time</th>
+                <th>Problem</th>
+                <th>Response</th>
+              </tr>
+              <tr *ngFor="let log of r.logs">
+                <td>{{log.username}}</td>
+                <td>{{log.time | adjustedDate : 'MMM d h:mm a' : r.googleAddress.timezone}}</td>
+                <td>{{log.problem}}</td>
+                <td>{{log.response}}</td>
+              </tr>
+            </table>
+          <div>
+            <button class="btn btn-primary btn-sm" (click)="addLog(r)"><i class="fas fa-plus"></i>Add Log</button>
+          </div>
+        </td>
+      </tr>
     </q-table>
   </div>
 </div>
+
+<q-modal #logEditingModal>
+  <app-log-editor #myLogEditor [restaurant]="restaurant" [restaurantList]="[]" [log]="logInEditing"
+                  (success)="onSuccessAddLog($event)" (remove)="onCancelAddLog()" (cancel)="onCancelAddLog()"></app-log-editor>
+</q-modal>
+
+<q-modal #previewModal size="lg" (close)="preview()">
+  <div class="preview-div">
+    <img class="preview-img" [src]="attachment">
+  </div>
+</q-modal>

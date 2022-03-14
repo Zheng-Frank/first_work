@@ -25,7 +25,7 @@ export class SystemDashboardComponent implements OnInit {
     { route: 'messaging', text: 'Messaging', adminOnly: true },
     { route: 'orders', text: 'Orders', adminOnly: true },
     { route: 'users', text: 'Users' },
-    { route: 'routines-admin', text: 'Routines Admin', adminOnly: true },
+    { route: 'routines-admin', text: 'Routines Admin' },
     { route: 'leads', text: 'Lead Funnels', adminOnly: true },
     { route: 'transactions', text: 'Transactions', adminOnly: true },
     { route: 'qm-bm-sst', text: 'BM/QM SST', adminOnly: true },
@@ -33,12 +33,21 @@ export class SystemDashboardComponent implements OnInit {
   ];
 
   system: any;
-
+  items = [];
+  systemItem = 'SMS Providers';
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
     this.system = (await this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'system' }).toPromise())[0];
-
+    const roleMap = {
+      "SMS Providers": ["ADMIN", "CSR_MANAGER"],
+      "Fax Providers": ["ADMIN", "CSR_MANAGER"],
+      "Voice Providers": ["ADMIN", "CSR_MANAGER"],
+      "Credit Card Processors": ["ADMIN"],
+      "Stats": ["ADMIN"]
+    };
+    const myRoles = this._global.user.roles;
+    this.items = Object.keys(roleMap).filter(k => roleMap[k].some(role => myRoles.indexOf(role) >= 0));
   }
 
   isAdmin() {

@@ -1,12 +1,18 @@
-import {AlertType} from '../../../classes/alert-type';
-import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {GlobalService} from 'src/app/services/global.service';
-import {ApiService} from 'src/app/services/api.service';
-import {environment} from '../../../../environments/environment';
-import {DomSanitizer} from '@angular/platform-browser';
+import { AlertType } from '../../../classes/alert-type';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { GlobalService } from 'src/app/services/global.service';
+import { ApiService } from 'src/app/services/api.service';
+import { environment } from '../../../../environments/environment';
+import { DomSanitizer } from '@angular/platform-browser';
 
 enum EmailContentModes {
   Origin, Preview
+}
+
+interface HtmlRenderParams {
+  contentType: string;
+  body: string;
+  format: string;
 }
 
 interface MessageTemplate {
@@ -15,9 +21,11 @@ interface MessageTemplate {
   smsContent?: string;
   emailContent?: string;
   inputs?: { label: string, type?: string, value: string, apply: (content: string, value: any) => string }[];
+  smsPreview?: string;
+  uploadHtml?: (body: string) => HtmlRenderParams;
 }
 
-const EmptyTemplate = {title: '', smsContent: '', subject: '', emailContent: ''};
+const EmptyTemplate = { title: '', smsContent: '', subject: '', emailContent: '' };
 
 @Component({
   selector: 'app-send-message',
@@ -32,10 +40,11 @@ export class SendMessageComponent {
   @Output() success = new EventEmitter();
   targets = [];
   phoneNumber = '';
-  template: MessageTemplate = {...EmptyTemplate};
+  template: MessageTemplate = { ...EmptyTemplate };
   templateType = '';
   emailContentMode = EmailContentModes.Origin;
-  customTemplate: MessageTemplate = {title: 'Custom', smsContent: '', subject: '', emailContent: ''};
+  smsContentMode = EmailContentModes.Origin;
+  customTemplate: MessageTemplate = { title: 'Custom', smsContent: '', subject: '', emailContent: '' };
 
   constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer) {
   }
@@ -51,7 +60,7 @@ export class SendMessageComponent {
   changeTplType(type) {
     this.templateType = type;
     if (type === 'Custom') {
-      this.template = {...this.customTemplate};
+      this.template = { ...this.customTemplate };
     } else {
       this.template = this.templates[type][0];
       this.refreshTargets();
@@ -77,11 +86,11 @@ export class SendMessageComponent {
 
   cleanup() {
     this.targets = [];
-    this.template = {...EmptyTemplate};
+    this.template = { ...EmptyTemplate };
     this.phoneNumber = '';
     if (this.allowCustomTemplate) {
       this.templateType = 'Custom';
-      this.template = {...this.customTemplate};
+      this.template = { ...this.customTemplate };
     }
     this.emailContentMode = EmailContentModes.Origin;
   }
@@ -109,7 +118,7 @@ export class SendMessageComponent {
     if ((this.targets.length <= 0 && !this.isPhoneValid()) || !this.template) {
       return false;
     }
-    let {subject, emailContent, smsContent, inputs} = this.template;
+    let { subject, emailContent, smsContent, inputs } = this.template;
     if (this.hasEmail() && (!emailContent || !subject)) {
       return false;
     }
@@ -125,7 +134,7 @@ export class SendMessageComponent {
   }
 
   channelIcon(type) {
-    return ({'Email': 'envelope-square'}[type] || type).toLowerCase();
+    return ({ 'Email': 'envelope-square' }[type] || type).toLowerCase();
   }
 
   get sortedChannels() {
@@ -165,9 +174,23 @@ export class SendMessageComponent {
     return this.sanitizer.bypassSecurityTrustHtml(origin);
   }
 
-  send() {
+  async generateFormatHtml(loadParameters, formatParams, htmlContent) {
+    try {
+      const smsHtmlUrl = `${environment.appApiUrl}events/echo?${Object.keys(loadParameters).map(k => `${k}=${encodeURIComponent(loadParameters[k])}`).join('&')}`;
+      let smsHtmlMediaUrl = `${environment.utilsApiUrl}render-url?url=${encodeURIComponent(smsHtmlUrl)}&format=${formatParams}`;
+      let shortUrlObj = await this._api.post(environment.appApiUrl + 'utils/shorten-url', { longUrl: smsHtmlMediaUrl }).toPromise();
+      smsHtmlMediaUrl = `${environment.shortUrlBase}${shortUrlObj.code}`
+      htmlContent = htmlContent.replace(/%%AWS_QMENU_SERVICE_ONLINE_AGREEMENT_LINK_HERE%%/, smsHtmlMediaUrl);
+    } catch (error) {
+      console.log(error);
+      return '';
+    }
+    return htmlContent;
+  }
+
+  async send() {
     // fill inputs
-    let {inputs, smsContent, emailContent} = this.template;
+    let { inputs, smsContent, emailContent, smsPreview, uploadHtml } = this.template;
     if (inputs) {
       inputs.forEach(field => {
         if (smsContent) {
@@ -176,9 +199,27 @@ export class SendMessageComponent {
         if (emailContent) {
           emailContent = field.apply(emailContent, field.value);
         }
+        if (smsPreview) {
+          smsPreview = field.apply(emailContent, field.value);
+        }
       });
     }
-    let targets = this.useCustomTarget ? [{value: this.phoneNumber, type: 'SMS'}] : this.targets;
+    let uploadParams = uploadHtml(smsPreview);
+    // some rt use sms to receive agreement, and need to generate a mediaUrl using email html content
+    if (uploadParams) {
+      const loadParameters = {
+        'content-type': uploadParams.contentType,
+        body: uploadParams.body
+      };
+      const formatParams = uploadParams.format;
+      smsContent = await this.generateFormatHtml(loadParameters, formatParams, smsContent);
+      
+      if (!smsContent) {
+        return this._global.publishAlert(AlertType.Danger, 'Generate sms content fail due to network error !')
+      }
+    }
+
+    let targets = this.useCustomTarget ? [{ value: this.phoneNumber, type: 'SMS' }] : this.targets;
 
     const jobs = targets.map(target => {
       return {

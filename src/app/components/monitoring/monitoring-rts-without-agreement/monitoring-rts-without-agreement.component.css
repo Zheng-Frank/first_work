@@ -1,0 +1,22 @@
+.attach-img {
+  width: 60px;
+  height: auto;
+}
+
+.text-unwrap {
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+.preview-div {
+  width: 100%;
+  text-align: center;
+}
+.preview-img {
+  width: auto;
+  max-width: 100%;
+}
+
+.table-log td {
+  white-space: pre-line;
+}

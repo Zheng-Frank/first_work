@@ -11,6 +11,8 @@ import { CurrencyPipe } from '@angular/common';
 import { environment } from 'src/environments/environment';
 import { Helper } from '../../../classes/helper';
 
+const FeeNames = ["service fee", "credit card fee", "monthly fee", "commission"];
+
 @Component({
   selector: 'app-restaurant-fee-schedules',
   templateUrl: './restaurant-fee-schedules.component.html',
@@ -53,10 +55,8 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     required: true,
     inputType: "single-select",
     items: [
-      { object: "service fee", text: "service fee", selected: false },
-      { object: "credit card fee", text: "credit card fee", selected: false },
-      { object: "monthly fee", text: "monthly fee", selected: false },
-      { object: "commission", text: "commission", selected: false }
+      ...FeeNames.map(name => ({object: name, text: name, selected: false})),
+      { object: "custom", text: "custom", selected: false }
     ]
   };
 
@@ -69,6 +69,14 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
       { object: "CUSTOMER", text: "customer", selected: false },
       { object: "RESTAURANT", text: "restaurant", selected: false },
     ]
+  };
+
+  customNameDescriptor = {
+    field: 'customName',
+    label: "Custom Name (自定义名称)",
+    required: true,
+    inputType: 'text',
+    validate: value => !FeeNames.includes(value)
   };
 
   payerQmenu = { object: "QMENU", text: "qmenu", selected: false };
@@ -277,6 +285,16 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     );
 
     this.togglePayerView();
+    if (this.feeScheduleInEditing.name === 'custom') {
+      if (!this.fieldDescriptors.includes(this.customNameDescriptor)) {
+        this.fieldDescriptors.splice(1, 0, this.customNameDescriptor)
+      }
+    } else {
+      if (this.fieldDescriptors.includes(this.customNameDescriptor)) {
+        this.fieldDescriptors.splice(1, 1)
+        delete this.feeScheduleInEditing.customName
+      }
+    }
 
     if (!this.feeScheduleInEditing.payer) {
       return;
@@ -291,7 +309,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     );
 
     const agents = this.getSalesAgents();
-    console.log(agents);
+
 
     switch (this.feeScheduleInEditing.payer) {
       case 'CUSTOMER':
@@ -300,6 +318,15 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
         this.payeeDescriptor.items = [this.payeeRestaurant, this.payeeQmenu];
         // only possible charge basis:
         this.chargeBasisDescriptor.items = [this.chargeBasisSubtotal, this.chargeBasisPreTotal];
+        if (this.feeScheduleInEditing.name === 'credit card fee') {
+          // cc fees should only have OrderPreTotal
+          this.chargeBasisDescriptor.items = [this.chargeBasisPreTotal];
+          this.feeScheduleInEditing.chargeBasis = ChargeBasis.OrderPreTotal;
+        } else {
+          // non-cc fees should only have OrderSubtotal
+          this.chargeBasisDescriptor.items = [this.chargeBasisSubtotal];
+          this.feeScheduleInEditing.chargeBasis = ChargeBasis.OrderSubtotal;
+        }
         break;
       case 'RESTAURANT':
         this.feeScheduleInEditing.payee = this.payeeQmenu.object;
@@ -363,6 +390,11 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   edit(feeSchedule?: FeeSchedule) {
 
     this.feeScheduleInEditing = new FeeSchedule(feeSchedule);
+    let { name } = this.feeScheduleInEditing;
+    if (name && !FeeNames.includes(name)) {
+      this.feeScheduleInEditing.customName = name;
+      this.feeScheduleInEditing.name = 'custom';
+    }
 
     // the following will condition the editor
     // when in editing, we need "2020-08-19" type of format, usibng fr-CA to do so
@@ -383,6 +415,10 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   async submit(event) {
     this.modalFeeSchedule.hide();
 
+    if (this.feeScheduleInEditing.name === 'custom') {
+      this.feeScheduleInEditing.name = this.feeScheduleInEditing.customName;
+    }
+    delete this.feeScheduleInEditing.customName
     const myFs = new FeeSchedule(this.feeScheduleInEditing);
     // making sure data type are correct! sometimes after binding values become strings
     myFs.amount = +myFs.amount || 0;

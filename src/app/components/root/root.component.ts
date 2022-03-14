@@ -5,9 +5,9 @@ import { ApiService } from '../../services/api.service';
 import { Router } from '@angular/router';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { AmazonConnectService } from 'src/app/services/amazon-connect.service';
-import {interval} from 'rxjs';
-import {TimezoneHelper} from '@qmenu/ui';
-import {Helper} from '../../classes/helper';
+import { interval } from 'rxjs';
+import { TimezoneHelper } from '@qmenu/ui';
+import { Helper } from '../../classes/helper';
 
 declare function require(moduleName: string): any;
 const { version: appVersion } = require('../../../../package.json');
@@ -34,7 +34,7 @@ export class RootComponent implements OnInit, OnDestroy {
   fraudOrderIds = new Set();
   fraudDetectionSubscription = null;
   constructor(private _api: ApiService, private _global: GlobalService, private ref: ChangeDetectorRef,
-              private _router: Router, private _connect: AmazonConnectService) {
+    private _router: Router, private _connect: AmazonConnectService) {
     _api.onApiError.subscribe(error => {
       if (error && error.error && error.error.status === 401) {
         this._global.logout();
@@ -64,11 +64,16 @@ export class RootComponent implements OnInit, OnDestroy {
         });
       }
     });
+    // user should be redirected login when it doesn't exist
+    if (!this._global.user) {
+      this._router.navigate(['login']);
+      return;
+    }
     console.log(this._global.user.username, this._global.user.roles)
     // auto check fraud order for user xxx, temporary solution
     if (this._global.user && this._global.user.roles && this._global.user.roles.includes('FRAUD_TRACKER')) {
       // when storage changed, check the new detected order count and update fraud notice state
-      window.addEventListener('storage',  ({key, newValue}) => {
+      window.addEventListener('storage', ({ key, newValue }) => {
         try {
           if (key === FraudDetectionStorageKey) {
             let data = JSON.parse(newValue);
@@ -96,12 +101,12 @@ export class RootComponent implements OnInit, OnDestroy {
     const customers = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'order',
       aggregate: [
-        {$match: {createdAt: {$gte: {$date: start}}}},
-        {$project: {customerObj: 1}}
+        { $match: { createdAt: { $gte: { $date: start } } } },
+        { $project: { customerObj: 1 } }
       ]
     }).toPromise();
     let customerOrderCount = {};
-    customers.forEach(({customerObj: {_id}}) => {
+    customers.forEach(({ customerObj: { _id } }) => {
       customerOrderCount[_id] = (customerOrderCount[_id] || 0) + 1;
     });
     return Object.entries(customerOrderCount).filter(([, count]) => count > 1).map(([customerId]) => customerId);
@@ -117,28 +122,28 @@ export class RootComponent implements OnInit, OnDestroy {
       aggregate: [
         {
           $match: {
-            'paymentObj.method': {$nin: ['KEY_IN', 'IN_PERSON']},
+            'paymentObj.method': { $nin: ['KEY_IN', 'IN_PERSON'] },
             $and: [
-              {createdAt: {$gte: {$date: start}}},
-              {createdAt: {$lte: {$date: end}}}
+              { createdAt: { $gte: { $date: start } } },
+              { createdAt: { $lte: { $date: end } } }
             ],
           }
         },
-        {$project: {logs: 0}},
+        { $project: { logs: 0 } },
         {
           $match: {
             $or: [
-              {'ccAddress.distanceToStore': {$gt: 200}},
-              {'computed.total': {$gte: 400}},
-              {'customerObj._id': {$in: (await this.getOrderedCustomersToday())}}
+              { 'ccAddress.distanceToStore': { $gt: 200 } },
+              { 'computed.total': { $gte: 400 } },
+              { 'customerObj._id': { $in: (await this.getOrderedCustomersToday()) } }
             ]
           }
         },
-        {$sort: {_id: -1}},
-        {$project: {_id: 1}}
+        { $sort: { _id: -1 } },
+        { $project: { _id: 1 } }
       ]
     }).toPromise();
-    let result  = {time, orderIds: orders.map(x => x._id)};
+    let result = { time, orderIds: orders.map(x => x._id) };
     window.localStorage.setItem(FraudDetectionStorageKey, JSON.stringify(result));
     // window storage event not trigger in current tab, need to update data manually
     result.orderIds.forEach(id => this.fraudOrderIds.add(id))
@@ -156,7 +161,7 @@ export class RootComponent implements OnInit, OnDestroy {
           return;
         }
       }
-      window.localStorage.setItem(FraudDetectionStorageKey, JSON.stringify({time, orderIds: []}));
+      window.localStorage.setItem(FraudDetectionStorageKey, JSON.stringify({ time, orderIds: [] }));
       await this.queryFraudOrder(time);
     } catch (e) {
       console.log('check fraud order error...', e);

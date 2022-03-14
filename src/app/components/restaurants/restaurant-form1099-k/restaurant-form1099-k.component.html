@@ -11,7 +11,7 @@
   </p>
   <hr>
   <!-- start with Payee/TIN/Email Attributes -->
-  <div class="row ml-2">
+  <div class="row ml-2 form-inline">
     <div>
       <b>TIN: </b>
       <b class="text-danger" *ngIf="!restaurant.tin">Attribute Missing</b>
@@ -33,6 +33,23 @@
         </q-edit-label>
       </ng-template>
     </div>
+    <div class="mx-2">
+      <b>Tin Type: </b>
+      <b class="text-danger" *ngIf="!restaurant.tinType">Attribute Missing</b>
+      <span>{{restaurant.tinType}}</span>
+      <a class="btn-link ml-2" (click)="openTinTypeModal()">Edit</a>
+    </div>
+    <!-- start with tax year filter -->
+    <select class="form-control mx-2" [(ngModel)]="taxYear">
+      <option value="" disabled selectedtml> Choose an option... </option>
+      <option *ngFor="let entry of taxYearOptions"> {{entry}} </option>
+    </select>
+    <!-- end with tax year filter -->
+    <!-- start with customized btn -->
+    <a class="btn-link" (click)="openCustomize1099kModal()" *ngIf="taxYear">
+      {{hasCustomOfThisYear(restaurant.form1099k || []) ? 'Edit Customizations' : 'Customize'}}
+    </a>
+    <!-- end with customized btn -->
   </div>
   <!-- end with Payee/TIN/Email Attributes -->
   <p><br> Please be patient. Downloading may take some time. </p>
@@ -41,13 +58,14 @@
     <ng-container *ngFor="let linkEntry of formLinks">
       <li *ngIf="linkEntry[0]; else elseBlock" class="py-2">
         <ng-container *ngIf="linkEntry[0].required; else requiredBlock">
-          {{linkEntry[1]}} - 
+          {{linkEntry[1]}} <span *ngIf="linkEntry[0].yearPeriodStart">(Customized Part
+            {{getCustomizedNum(linkEntry[0])}})</span> -
           <ng-container *ngIf="allAttributesPresent(); else missingAttributesBlock">
-            <a class="btn-link" (click)="renderPDFForm('qmenu',linkEntry[1])"> for qMenu
+            <a class="btn-link" (click)="renderPDFForm('qmenu',linkEntry)"> for qMenu
               <i class="fa fa-download"></i></a>
-            <a class="btn-link ml-2" (click)="renderPDFForm('restaurant',linkEntry[1])"> for Restaurant
+            <a class="btn-link ml-2" (click)="renderPDFForm('restaurant',linkEntry)"> for Restaurant
               <i class="fa fa-download"></i></a>
-            <a class="btn-link ml-2" (click)="openSendEmailModal(linkEntry[1])">Send</a>
+            <a class="btn-link ml-2" (click)="openSendEmailModal(linkEntry)">Send</a>
             <span *ngIf="linkEntry[0].sent" class="text-success">
               (Sent)
             </span>
@@ -59,13 +77,15 @@
           </ng-template>
         </ng-container>
         <ng-template #requiredBlock>
-          {{linkEntry[1]}} - No Form Required for this year
+          {{linkEntry[1]}} <span *ngIf="linkEntry[0].yearPeriodStart">(Customized Part
+            {{getCustomizedNum(linkEntry[0])}})</span> - No Form Required for this year
         </ng-template>
       </li>
       <ng-template #elseBlock>
         <li>
-          <a class="btn-link disabled" *ngIf="disbleCalBtn(linkEntry[1])">Calculate 1099K</a>
-          <a class="btn-link" *ngIf="!disbleCalBtn(linkEntry[1])" (click)="calculateForm1099k(linkEntry[1])">Calculate 1099K</a>
+          <a class="btn-link disabled" *ngIf="disbleCalBtn(linkEntry)">Calculate 1099K</a>
+          <a class="btn-link"  *ngIf="!disbleCalBtn(linkEntry)" (click)="calculateForm1099k(linkEntry)">Calculate
+            1099K</a>
         </li>
       </ng-template>
     </ng-container>
@@ -100,10 +120,97 @@
       </div>
       <div class="msg-content mt-2" [innerHTML]="sanitized(template.html)"></div>
     </div>
+    <!--start with mark only checkbox-->
+    <div class="mt-3">
+      <input type="checkbox" [(ngModel)]="markSentFlag"> Only Mark as Sent
+      <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="If you've already sent the 1099K form(s) to the restaurant outside of this tool,
+         you can mark the status as 'Sent' by checking this box and clicking 'Send', and it'll update the status to 'Sent' without actually sending the form(s) again.
+        (如果您已经将1099K表格发送到该工具之外的餐厅，您可以通过选中此框并单击“发送”将状态标记为“已发送”，它会将状态更新为“已发送”，而不会再次实际发送表格。)"></i>
+    </div>
+    <!-- end with mark only checkbox -->
     <div class="d-flex justify-content-end p-4">
       <button class="btn btn-secondary mr-2" (click)="sendEmailModal.hide()">Cancel</button>
       <button class="btn btn-primary" (click)="sendPDFFormToRT()" [qLoading]="sendLoading">Send</button>
     </div>
   </q-modal>
   <!-- end with send email modal -->
+  <!-- start with tin type modal -->
+  <q-modal #tinTypeModal>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">Tin Type</h4>
+    <hr>
+    <div class="row my-3">
+      <select class="form-control mx-2" [(ngModel)]="tinType">
+        <option *ngFor="let type of tinTypes"> {{type}} </option>
+      </select>
+    </div>
+    <div class="d-flex justify-content-end p-4">
+      <button class="btn btn-secondary mr-2" (click)="tinTypeModal.hide()">Cancel</button>
+      <button class="btn btn-primary" (click)="patchTinType()">Submit</button>
+    </div>
+  </q-modal>
+  <!-- end with tin type modal -->
+  <!-- start with customize 1099k modal -->
+  <q-modal #customize1099kModal [size]="'600px'">
+    <button type="button" class="close" (click)="closeCustomize1099kModal()">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">Customize 1099k</h4>
+    <hr>
+    <div class="container">
+      <div class="my-3" *ngFor="let item of customize1099kList;let i = index;">
+        <div>
+          <div class="row">
+            <label>Tax Year {{taxYear}} (Part {{i+1}})</label>
+            <a class="btn-link close-btn-pos" *ngIf="i > 0" (click)="deleteCustomNewLine(i)">
+              <i class="fa fa-times"></i>
+            </a>
+          </div>
+          <div class="row form-inline">
+            <input class="form-control" (change)="changeCustomItem(item)" type="text" [(ngModel)]="item.tin"
+              placeholder="Period TIN">
+            <select class="form-control ml-2 custom-tintype-width" [(ngModel)]="item.tinType"
+              (change)="changeCustomItem(item)">
+              <option *ngFor="let type of customizeTinTypes"> {{type}} </option>
+            </select>
+          </div>
+          <div class="row">
+            <input class="form-control mt-2" type="text" (change)="changeCustomItem(item)" [(ngModel)]="item.payeeName"
+              placeholder="Period Payee Name">
+          </div>
+        </div>
+        <div class="row form-inline mt-2">
+          <label>From:</label>
+          <input class="form-control ml-1" type="date" (change)="changeCustomItem(item)" [(ngModel)]="item.fromDate">
+          <label class="ml-2">To:</label>
+          <input class="form-control ml-1" type="date" (change)="changeCustomItem(item)" [(ngModel)]="item.toDate">
+          <button class="btn btn-primary ml-2" [disabled]="hasCustomItemErr(i)"
+            (click)="calcTransactionByTime(item.fromDate, item.toDate, item)">
+            <i class="fa fa-calculator"></i>
+            Calculate
+          </button>
+        </div>
+        <div class="row text-muted" *ngIf="item.rt1099KData">
+          {{item.transactionText}}
+        </div>
+        <div class="row" *ngIf="hasCustomItemErr(item)">
+          <span class="text-danger">{{hasCustomItemErr(i)}}</span>
+        </div>
+        <hr *ngIf="i < customize1099kList.length - 1" />
+      </div>
+      <div class="row">
+        <button class="btn btn-primary" (click)="addCustomNewLine()" *ngIf="customize1099kList.length >= 1"><i
+            class="fa fa-plus"></i>
+          Add new portion
+        </button>
+      </div>
+    </div>
+    <div class="d-flex justify-content-end p-4">
+      <button class="btn btn-secondary mr-2" (click)="closeCustomize1099kModal()">Cancel</button>
+      <button class="btn btn-primary" (click)="patchCustom1099k()" [disabled]="hasCustomize1099kError()">Submit</button>
+    </div>
+  </q-modal>
+  <!-- end with custom 1099k modal -->
 </div>

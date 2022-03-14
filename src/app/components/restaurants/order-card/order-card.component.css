@@ -8,10 +8,12 @@
   display: inline-block;
   width: 7rem;
 }
+
 .value {
   display: inline-block;
   font-weight: bold;
 }
+
 .highlight {
   text-align: center;
   background-color: black;
@@ -19,6 +21,7 @@
   padding: 5px;
   border-radius: 2px;
 }
+
 .card {
   position: relative;
   display: block;
@@ -55,16 +58,16 @@
   text-decoration: none;
 }
 
-.card-link + .card-link {
+.card-link+.card-link {
   margin-left: 1.25rem;
 }
 
-.card > .list-group:first-child .list-group-item:first-child {
+.card>.list-group:first-child .list-group-item:first-child {
   border-top-right-radius: 0.25rem;
   border-top-left-radius: 0.25rem;
 }
 
-.card > .list-group:last-child .list-group-item:last-child {
+.card>.list-group:last-child .list-group-item:last-child {
   border-bottom-right-radius: 0.25rem;
   border-bottom-left-radius: 0.25rem;
 }
@@ -269,34 +272,36 @@
   opacity: 0.75;
 }
 
-.order-from-row{
+.order-from-row {
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
 }
-.order-from-span{
-  font-size:0.5rem;
+
+.order-from-span {
+  font-size: 0.5rem;
 }
 
-.order-from-border{
-  border:1px solid gray;
+.order-from-border {
+  border: 1px solid gray;
   border-radius: 4px;
   padding: 2px 5px;
 }
-.order-from-border-active{
-  border:1px solid #32909f;
+
+.order-from-border-active {
+  border: 1px solid #32909f;
   border-radius: 4px;
   padding: 2px 5px;
   box-shadow: 0px 0px 5px #329095;
 }
 
-.qr-layout{
-  display:flex;
+.qr-layout {
+  display: flex;
   align-items: center;
   font-size: 150%;
 }
 
-
-
-
+.db-icon-cursor {
+  cursor: pointer;
+}

@@ -53,7 +53,7 @@ export class TaskDashboardComponent {
         isDirectSignUp: 1,
         gmbOwner: 1
       },
-    }, 10000);
+    }, 5000);
 
     const loadRestaurants = this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: "restaurant",
@@ -63,7 +63,7 @@ export class TaskDashboardComponent {
         "web.agreeToCorporate": 1,
         "web.qmenuExclusive": 1,
       },
-    }, 10000);
+    }, 5000);
 
 
     const results = await Promise.all([loadTasks, loadGmbBiz, loadRestaurants]);
@@ -172,7 +172,7 @@ export class TaskDashboardComponent {
           score: 1,
           "googleAddress.formatted_address": 1
         }
-      }, 100000)
+      }, 5000)
     }
   }
 

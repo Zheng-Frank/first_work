@@ -33,13 +33,12 @@ export class PhoneOrderingDashboardComponent implements OnInit {
       this.phoneRestaurantsMap[po.restaurantNumber] = restaurantList.filter(rt => (rt.channels || []).some(c => c.value === po.restaurantNumber));
     });
 
-    // load recent call logs
-    const callLogs = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "call-log",
+    // load recent call records and see how many times called
+    const callRecords = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "call-record",
       projection: {
-        From: 1,
-        To: 1,
-        CallStatus: 1
+        from: 1,
+        to: 1,
       },
       limit: 1000000,
       sort: {
@@ -48,11 +47,10 @@ export class PhoneOrderingDashboardComponent implements OnInit {
     }).toPromise();
 
     // match and count!
-    callLogs.map(log => {
-      const to = log.To.slice(1);
-      const matched = this.phoneOrderingConfigs.find(p => log.CallStatus === 'ringing' && p.proxyNumber === to);
+    callRecords.map(log => {
+      const matched = this.phoneOrderingConfigs.find(p => p.proxyNumber === log.to);
       if (matched) {
-        this.proxyCounterMap[to] = (this.proxyCounterMap[to] || 0) + 1;
+        this.proxyCounterMap[log.to] = (this.proxyCounterMap[log.to] || 0) + 1;
       }
     });
   }

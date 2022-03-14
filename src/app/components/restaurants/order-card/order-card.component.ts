@@ -28,6 +28,7 @@ export class OrderCardComponent implements OnInit {
   @Output() onOpenChangeOrderTypesModal = new EventEmitter();
   @Output() onOpenPreviousCanceledOrderModal = new EventEmitter();
   @Output() onViewNotificationHistory = new EventEmitter();
+  @Output() onOpenDBInfoModal = new EventEmitter();
 
   @ViewChild('toggleButton') toggleButton;
   @ViewChild('confirmModal') confirmModal: ConfirmComponent;
@@ -43,6 +44,10 @@ export class OrderCardComponent implements OnInit {
   }
 
   ngOnInit() {
+  }
+  // the modal will show order id, rt id, customer id
+  openDBInfoModal(order) {
+    this.onOpenDBInfoModal.emit(order);
   }
 
   showAllInfo() {
@@ -215,7 +220,7 @@ export class OrderCardComponent implements OnInit {
   canShowCreditCard(order: Order) {
     // 1000 * 3600 * 24 * 10, 10 days
     //return true;
-    return order.payment.paymentType === 'CREDITCARD' && this.isAdmin();
+    return order.payment.paymentType === 'CREDITCARD' && this.isAdminOrManager();
   }
 
   canSendEmail(order: Order) {
@@ -225,7 +230,7 @@ export class OrderCardComponent implements OnInit {
   canCancel(order: Order) {
     // status are not completed, not canceled, and time is not over 3 days
     // if admin and not qmenu collect
-    return (!(order.statusEqual('CANCELED')) && (new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 90 * 24 * 3600 * 1000)) || (this.isAdmin() && order.payment.method !== 'QMENU');
+    return (!(order.statusEqual('CANCELED')) && (new Date().valueOf() - new Date(order.timeToDeliver || order.createdAt).valueOf() < 90 * 24 * 3600 * 1000)) || (this.isAdminOrManager() && order.payment.method !== 'QMENU');
   }
 
   /**
@@ -590,12 +595,12 @@ export class OrderCardComponent implements OnInit {
     return order.statusEqual('CANCELED');
   }
 
-  isAdmin() {
-    return this._global.user.roles.some(r => r === 'ADMIN');
+  isAdminOrManager() {
+    return this._global.user.roles.some(r => r === 'ADMIN' || r === 'CSR_MANAGER');
   }
 
   isViewable(order: Order) {
-    return this.isAdmin() || !(order.payment.paymentType === 'CREDITCARD' && order.payment.method === 'KEY_IN')
+    return this.isAdminOrManager() || !(order.payment.paymentType === 'CREDITCARD' && order.payment.method === 'KEY_IN')
   }
 
   getUpdatedStatuses() {

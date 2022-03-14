@@ -1,4 +1,4 @@
-import { Component, OnInit, EventEmitter, Output, Input, ViewChild, SimpleChanges } from '@angular/core';
+import {Component, OnInit, EventEmitter, Output, Input, ViewChild, SimpleChanges, OnChanges} from '@angular/core';
 import { FormEvent } from '../../../classes/form-event';
 import { Restaurant } from '@qmenu/ui';
 import { Log } from '../../../classes/log';
@@ -12,7 +12,7 @@ import { Task } from 'src/app/classes/tasks/task';
   templateUrl: './log-editor.component.html',
   styleUrls: ['./log-editor.component.css']
 })
-export class LogEditorComponent implements OnInit {
+export class LogEditorComponent implements OnInit, OnChanges {
   @Output() cancel = new EventEmitter();
   @Output() remove = new EventEmitter<any>();
   @Output() success = new EventEmitter<any>();
@@ -20,10 +20,11 @@ export class LogEditorComponent implements OnInit {
   @Input() log = {} as Log;
   @Input() restaurant;
   @Input() restaurantList;
-
+  @ViewChild('myRestaurantPicker') set picker(picker) {
+    this.myRestaurantPicker = picker;
+  }
   hasAdjustment;
   hasTask;
-  hasGMBCall;
   selectedTaskTemplate;
   scheduledAt;
   assignee;
@@ -31,9 +32,21 @@ export class LogEditorComponent implements OnInit {
   qmenuExclusive;
   predefinedTasks = Task.predefinedTasks;
   hoursOfOperation;
-  @ViewChild('myRestaurantPicker') set picker(picker) {
-    this.myRestaurantPicker = picker;
-  }
+  normalTypes = [
+    {value: 'force-qmenu-collect', label: 'Force qMenu Collect'},
+    {value: 'gmb-call', label: 'GMB Calls'},
+    {value: 'hours-of-operation', label: 'Hours Of Operation'}
+  ]
+  specializedTypes = [
+    {value: 'qr-dine-in', label: 'QR Dine-In'},
+    {value: 'weird-data-cleanup', label: 'Weird Data Cleanup'},
+    {value: 'cleanup-insisted', label: 'Insisted Link Cleanup'},
+    {value: 'vip-follow-up', label: 'VIP Followup'},
+    {value: 'online-agreement', label: 'Online Agreement'},
+    {value: 'menu-setup', label: 'Menu Setup'},
+    {value: 'payment-pickup-setup', label: 'Payment (Pickup order)'},
+    {value: 'payment-delivery-setup', label: 'Payment (Delivery order)'}
+  ];
   myRestaurantPicker;
   assigneeList;
 
@@ -147,11 +160,9 @@ export class LogEditorComponent implements OnInit {
       if (this.hasTask) {
         if (!this.selectedTaskTemplate) {
           return event.acknowledge('Please choose a task template');
-        }
-        else if (!this.assignee) {
+        } else if (!this.assignee) {
           return event.acknowledge('Please select assignee.');
-        }
-        else {
+        } else {
           // create a task!
           let task = {
             comments: '<a target="_blank" href="#/restaurants/' + this.restaurant._id + '">' + this.restaurant.name + '</a>' + '\nProblem: ' + this.log.problem + '\nResponse: ' + this.log.response + '\nCreated By: ' + this._global.user.username,
@@ -215,49 +226,13 @@ export class LogEditorComponent implements OnInit {
   toggleAdjustmentType() {
     this.log.adjustmentType === 'TRANSACTION' ? this.log.adjustmentType = undefined : this.log.adjustmentType = 'TRANSACTION';
   }
-  toggleIsCollection() {
-    this.log.type === 'collection' ? this.log.type = undefined : this.log.type = 'collection';
-  }
-  toggleIsGooglePIN() {
-    this.log.type === 'google-pin' ? this.log.type = undefined : this.log.type = 'google-pin';
-  }
 
-  toggleForceQmenuCollect() {
-    this.log.type === 'force-qmenu-collect' ? this.log.type = undefined : this.log.type = 'force-qmenu-collect';
-  }
-
-  toggleGMBCalls() {
-    this.log.type === 'gmb-call' ? this.log.type = undefined : this.log.type = 'gmb-call';
-  }
-  toggleHoursOfOperation(){
-    this.log.type === 'hours-of-operation' ? this.log.type = undefined : this.log.type = 'hours-of-operation';
-  }
-  toggleQRDineIn(){
-    this.log.type === 'qr-dine-in' ? this.log.type = undefined : this.log.type = 'qr-dine-in';
-  }
-
-  toggleInsistedLink() {
-    this.log.type === 'cleanup-insisted' ? this.log.type = undefined : this.log.type = 'cleanup-insisted';
-  }
-
-  toggleWeirdDataCleanUp(){
-    this.log.type === 'weird-data-cleanup' ? this.log.type = undefined : this.log.type = 'weird-data-cleanup';
-  }
-
-  toggleVIPFollowup(){
-    this.log.type === 'vip-follow-up' ? this.log.type = undefined : this.log.type = 'vip-follow-up';
-  }
-
-  toggleMenuSetup(){
-    this.log.type === 'menu-setup' ? this.log.type = undefined : this.log.type = 'menu-setup';
-  }
-
-  togglePaymentPickup(){
-    this.log.type === 'payment-pickup-setup' ? this.log.type = undefined : this.log.type = 'payment-pickup-setup';
-  }
-
-  togglePaymentDelivery(){
-    this.log.type === 'payment-delivery-setup' ? this.log.type = undefined : this.log.type = 'payment-delivery-setup';
+  toggleType(type) {
+    if (this.log.type === type) {
+      this.log.type = undefined;
+    } else {
+      this.log.type = type;
+    }
   }
 
 }

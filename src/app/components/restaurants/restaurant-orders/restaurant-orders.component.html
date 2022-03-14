@@ -56,11 +56,34 @@
         (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)"
         (onOpenPreviousCanceledOrderModal)="handleOnOpenPreviousCanceledOrderModal($event)"
         (onOpenChangeOrderTypesModal)="handleOpenChangeOrderTypesModal($event)"
-        (onAdjustInvoice)="handleOnAdjustInvoice($event)" (onViewNotificationHistory)="showNotificationHistory($event)">
+        (onAdjustInvoice)="handleOnAdjustInvoice($event)" (onViewNotificationHistory)="showNotificationHistory($event)"
+        (onOpenDBInfoModal)="handleOpenDBInfoModal($event)">
       </app-order-card>
     </div>
   </div>
-
+  <!-- start with db info modal -->
+  <q-modal #DBInfoModal style="margin-top: 160px;">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">DB Info</h4>
+    <hr>
+    <div class="container ml-5">
+      <div class="row">
+        <label class="ml-4">Order ID:</label>
+        <strong class="text-muted ml-2">{{orderForModal.id}}</strong>
+      </div>
+      <div class="row">
+        <label >Customer ID:</label>
+        <strong class="text-muted ml-1">{{orderForModal.customer?._id}}</strong>
+      </div>
+      <div class="row">
+        <label class="ml-5">RT ID:</label>
+        <strong class="text-muted ml-1">{{orderForModal?.restaurant}}</strong>
+      </div>
+    </div>
+  </q-modal>
+  <!-- end with db info modal -->
   <!-- change order type q-modal to select two type of order type -->
   <q-modal #changeOrderTypeModal style="margin-top: 160px;">
     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -106,7 +129,8 @@
       (onUndoReject)="handleOnUndoReject($event)" (onBan)="handleOnBan($event)"
       (onDisplayCreditCard)="handleOnDisplayCreditCard($event)" (onAdjust)="handleOnAdjust($event)"
       (onOpenChangeOrderTypesModal)="handleOpenChangeOrderTypesModal($event)"
-      (onAdjustInvoice)="handleOnAdjustInvoice($event)">
+      (onAdjustInvoice)="handleOnAdjustInvoice($event)"
+      (onOpenDBInfoModal)="handleOpenDBInfoModal($event)">
 
     </app-order-card>
   </q-modal>
