@@ -49,6 +49,12 @@
     <a class="btn-link" (click)="openCustomize1099kModal()" *ngIf="taxYear">
       {{hasCustomOfThisYear(restaurant.form1099k || []) ? 'Edit Customizations' : 'Customize'}}
     </a>
+    <div>
+      <label class="form-check-label">
+        Skip auto invoicing
+        <input type="checkbox" [(ngModel)]="skipAutoInvoicing" (change)="updateSkipAutoInvoicing()" />
+      </label>
+    </div>
     <!-- end with customized btn -->
   </div>
   <!-- end with Payee/TIN/Email Attributes -->
