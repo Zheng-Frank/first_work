@@ -19,7 +19,7 @@ import { AlertType } from '../../../classes/alert-type';
 import { RestaurantProfileComponent } from '../restaurant-profile/restaurant-profile.component';
 import { Helper } from '../../../classes/helper';
 import { SendMessageComponent } from '../../utilities/send-message/send-message.component';
-import { RevisedOnlineServicesAgreement, FirstDelinquentNotice, SecondDelinquentNotice } from './html-message-templates';
+import { EnglishRevisedOnlineServicesAgreement, FirstDelinquentNotice, SecondDelinquentNotice, ChineseRevisedOnlineServicesAgreement } from './html-message-templates';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { RestaurantSetupEntryComponent } from '../restaurant-setup/restaurant-setup-entry/restaurant-setup-entry.component';
 declare var $: any;
@@ -257,11 +257,15 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     return template.replace(regex, (_, p1) => dataset[p1]);
   }
 
-  getOnlineServicesAgreementForSMS() {
+  getEnglishOnlineServicesAgreementForSMS() {
     return `Qmenu online service agreement: %%AWS_QMENU_SERVICE_ONLINE_AGREEMENT_LINK_HERE%%`;
   }
 
-  getOnlineServicesAgreement() {
+  getChineseOnlineServicesAgreementForSMS() {
+    return `Qmenu在线服务协议: %%AWS_QMENU_SERVICE_ONLINE_AGREEMENT_LINK_HERE%%`;
+  }
+
+  getEnglishOnlineServicesAgreement() {
     let { serviceSettings } = this.restaurant;
     let qMenuCollect = (serviceSettings || []).some(ss => (ss.paymentMethods || []).includes('QMENU'));
     let map = {
@@ -269,7 +273,18 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       'OPTION_ONE_CHECK': qMenuCollect ? '&#9744;' : '&#9745;',
       'OPTION_TWO_CHECK': qMenuCollect ? '&#9745;' : '&#9744;'
     };
-    return this.fillMessageTemplate(RevisedOnlineServicesAgreement, map);
+    return this.fillMessageTemplate(EnglishRevisedOnlineServicesAgreement, map);
+  }
+
+  getChineseOnlineServicesAgreement() {
+    let { serviceSettings } = this.restaurant;
+    let qMenuCollect = (serviceSettings || []).some(ss => (ss.paymentMethods || []).includes('QMENU'));
+    let map = {
+      ...this.getRtInfoMap(),
+      'OPTION_ONE_CHECK': qMenuCollect ? '&#9744;' : '&#9745;',
+      'OPTION_TWO_CHECK': qMenuCollect ? '&#9745;' : '&#9744;'
+    };
+    return this.fillMessageTemplate(ChineseRevisedOnlineServicesAgreement, map);
   }
 
   async getDelinquentDates() {
@@ -465,8 +480,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       templates["Other"] = [];
       if (this.openDate) {
         templates["Other"].push({
-          title: "qMenu Online Service Agreement",
-          subject: "qMenu Online Service Agreement",
+          title: "qMenu Online Service Agreement (Eng)",
+          subject: "qMenu Online Service Agreement (Eng)",
           inputs: [
             {
               label: "Signature", value: '',
@@ -481,9 +496,9 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
               apply: (tpl, value) => this.fillMessageTemplate(tpl, { "POSITION": value }, /%%(POSITION)%%/g)
             }
           ],
-          emailContent: this.getOnlineServicesAgreement(),
-          smsContent: this.getOnlineServicesAgreementForSMS(),
-          smsPreview: this.getOnlineServicesAgreement(),
+          emailContent: this.getEnglishOnlineServicesAgreement(),
+          smsContent: this.getEnglishOnlineServicesAgreementForSMS(),
+          smsPreview: this.getEnglishOnlineServicesAgreement(),
           uploadHtml: (body) => {
             return {
               contentType: 'text/html; charset=utf-8',
@@ -491,7 +506,36 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
               format: 'pdf'
             };
           }
-        });
+        },
+        {
+          title: "qMenu Online Service Agreement (中文)",
+          subject: "qMenu Online Service Agreement (中文)",
+          inputs: [
+            {
+              label: "Signature", value: '',
+              apply: (tpl, value) => this.fillMessageTemplate(tpl, { "SIGNATURE": value }, /%%(SIGNATURE)%%/g)
+            },
+            {
+              label: "Full Name", value: '',
+              apply: (tpl, value) => this.fillMessageTemplate(tpl, { "FULL_NAME": value }, /%%(FULL_NAME)%%/g)
+            },
+            {
+              label: "Title", value: '',
+              apply: (tpl, value) => this.fillMessageTemplate(tpl, { "POSITION": value }, /%%(POSITION)%%/g)
+            }
+          ],
+          emailContent: this.getChineseOnlineServicesAgreement(),
+          smsContent: this.getChineseOnlineServicesAgreementForSMS(),
+          smsPreview: this.getChineseOnlineServicesAgreement(),
+          uploadHtml: (body) => {
+            return {
+              contentType: 'text/html; charset=utf-8',
+              body: body,
+              format: 'pdf'
+            };
+          }
+        }
+        );
       }
       if (this.earliestInvoiceDueDate) {
         templates['Other'].push({
