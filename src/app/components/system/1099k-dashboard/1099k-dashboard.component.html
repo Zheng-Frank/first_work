@@ -171,6 +171,10 @@
                   {{getCustomizedNum(form, row.form1099k)}})</span> - No Form Required for this year
               </span>
             </ng-template>
+            <div>
+                <label for="">Refuse form</label>
+                <input type="checkbox" [(ngModel)]="form.refuseForm" (change)="onChangeRefuseform(row, form)">
+            </div>
           </div>
         </div>
       </div>
