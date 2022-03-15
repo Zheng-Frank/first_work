@@ -16,21 +16,20 @@
 
 <q-table [rows]="rows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true" [pageSize]="100000">
   <tr *tableRowTemplate="let row;">
-    <td style="width: 10%">
+    <td>
       <div class="d-flex flex-column">
         <a href="/#/restaurants/{{row._id}}">{{row.name}}</a>
         <small class="text-muted">Id: {{row._id}}</small>
       </div>
     </td>
-    <td style="width: 12%;">
+    <td>
       {{getTimezoneCity(row.googleAddress?.timezone)}} ({{getTimeOffsetByTimezone(row.googleAddress?.timezone)}})
     </td>
-    <td style="width: 8%">
+    <td>
       <div *ngIf="row.hasGmbOwnership" class="text-success">&#10004;</div>
       <div *ngIf="!row.hasGmbOwnership" class="text-danger">&#10008;</div>
     </td>
-
-    <td class="width:30%;">
+    <td>
       <div class="form-inline">
         <label class="pr-1">QM Domain</label>
         <q-edit-label [value]="row.web?.qmenuWebsite" class="q-label-layout"
@@ -79,7 +78,7 @@
       </ng-container>
     </td>
 
-    <td style="width: 40%;">
+    <td>
       <ng-container>
         <table class="table table-sm">
           <tr>
