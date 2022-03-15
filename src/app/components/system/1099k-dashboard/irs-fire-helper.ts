@@ -345,7 +345,7 @@ class Renderer {
     let sequence = 3, states = {}, rows = [], errors = [];
     let sum = {type: 'C', GrossAmount: 0, CardNotPresentTransactions: 0, NumberOfPayees: 0};
     list.forEach(item => {
-      item.form1099k.filter(x => x.required && x.year === Number(year))
+      item.form1099k.filter(x => x.required && !x.refuseForm && x.year === Number(year))
         .forEach(form => {
           // verify data
           let tin = form.periodTin || item.rtTIN,
