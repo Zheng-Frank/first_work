@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { Mi, MenuOption, Menu, Restaurant} from '@qmenu/ui';
+import { Mi, MenuOption, Menu, Restaurant } from '@qmenu/ui';
 
 @Component({
   selector: 'app-menu-item',
@@ -26,7 +26,8 @@ export class MenuItemComponent implements OnInit {
   getMiImageUrl(mi: Mi) {
     // let's just retrieve the last uploaded'
     if (mi.imageObjs && mi.imageObjs.length > 0) {
-      return mi.imageObjs[mi.imageObjs.length - 1].thumbnailUrl;
+      let thumbnailUrlObj = mi.imageObjs.find(imageObj => imageObj.thumbnailUrl);
+      return (thumbnailUrlObj || {}).thumbnailUrl;
     }
     return '';
   }
