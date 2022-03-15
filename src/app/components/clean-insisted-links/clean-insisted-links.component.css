@@ -2,3 +2,8 @@
   max-width: 100%;
   word-break: break-all;
 }
+
+td .table-sm td {
+  white-space: pre-wrap;
+  word-break: break-all;
+}

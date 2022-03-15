@@ -34,12 +34,13 @@ export class SystemDashboardComponent implements OnInit {
 
   system: any;
   items = [];
-  systemItem = 'SMS Providers';
+  systemItem = 'DB Scripts';
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
     this.system = (await this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'system' }).toPromise())[0];
     const roleMap = {
+      "DB Scripts": ["ADMIN"],
       "SMS Providers": ["ADMIN", "CSR_MANAGER"],
       "Fax Providers": ["ADMIN", "CSR_MANAGER"],
       "Voice Providers": ["ADMIN", "CSR_MANAGER"],

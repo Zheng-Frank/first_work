@@ -783,7 +783,9 @@ export class MyRestaurantComponent implements OnInit {
     row.commission = latest.commission || 0;
     row.invoices.forEach(invoice => {
       const commissionAdjustment = invoice.adjustment - invoice.transactionAdjustment;
-      let temp = invoice.commission - commissionAdjustment;
+      // need to calculate feesForQmenu
+      let invoiceCommission = invoice.commission > 0 ? invoice.commission : invoice.commission + invoice.feesForQmenu;
+      let temp = invoiceCommission - commissionAdjustment;
       let period = periods.find(p => {
         return Helper.getTimezoneDate('start', timezone, `${p.period}-01`).valueOf() <= invoice.fromDate.valueOf();
       });
