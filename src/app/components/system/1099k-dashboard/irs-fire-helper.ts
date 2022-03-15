@@ -7,6 +7,8 @@ const Constants = {
   REPORT_AMOUNTCODES: "1256789ABCDEFG",
   TIN_TYPE_EIN: "1",
   TIN_TYPE_SSN: "2",
+  PSE_NAME: "Stripe",
+  PSE_PHONE: "6504891649",
   MERCHANT_CATEGORY_CODE: "5812"
 }
 
@@ -366,7 +368,8 @@ class Renderer {
             PayeeZipcode: item.zipCode, RecordSequenceNumber: sequence++,
             SecondTINNotice: '', TypeOfFiler: '2', TypeOfPayment: '2',
             NumberOfTransactions: Number(form.transactions || 0),
-            PSENameAndPhone: '', MerchantCategoryCode: Constants.MERCHANT_CATEGORY_CODE,
+            PSENameAndPhone: Constants.PSE_NAME + ' ' + Constants.PSE_PHONE,
+            MerchantCategoryCode: Constants.MERCHANT_CATEGORY_CODE,
             CFSCCode: StateCodes[item.state]
           };
           sum.GrossAmount += data.GrossAmount;
