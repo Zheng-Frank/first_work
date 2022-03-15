@@ -65,7 +65,7 @@
               <i class="fa fa-download"></i></a>
             <a class="btn-link ml-2" (click)="renderPDFForm('restaurant',linkEntry)"> for Restaurant
               <i class="fa fa-download"></i></a>
-            <a class="btn-link ml-2" (click)="openSendEmailModal(linkEntry)">Send</a>
+            <a class="btn-link ml-2 {{!disableSendBtn() ? '': 'disabled'}}" (click)="openSendEmailModal(linkEntry)">Send</a>
             <span *ngIf="linkEntry[0].sent" class="text-success">
               (Sent)
             </span>

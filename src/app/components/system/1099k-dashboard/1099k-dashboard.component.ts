@@ -149,6 +149,11 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     this.filterRows();
   }
 
+  // disable send button when the row has not emails
+  disableSendBtn(row){
+    return (row.email || []).length === 0;
+  }
+
   // title of page has a number that should show all 1099k count instead of rt count
   getAllFiltered1099kCount() {
     return (this.filteredRows || []).reduce((prev, curr) => prev + (curr.form1099k || []).length, 0);
@@ -1025,10 +1030,9 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   }
 
   allAttributesPresent(row) {
-    const emailExists = (row.email || []).length > 0;
     const payeeNameExists = (row.payeeName || "").length > 0;
     const tinExists = (row.rtTIN || "").length > 0;
-    return emailExists && payeeNameExists && tinExists;
+    return payeeNameExists && tinExists;
   }
 
   filterRows() {
