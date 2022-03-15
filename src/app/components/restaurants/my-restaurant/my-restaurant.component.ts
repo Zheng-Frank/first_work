@@ -147,6 +147,17 @@ export class MyRestaurantComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
+  /** 
+   * 1. Gary, Chris, Mo, Dixon,: Can see ALL info on Me page for ALL people,.
+     2. Each person can see ALL info about THEMSELVES
+     3. ADMIN, CSR_MANAGER can see ALL NON-DOLLAR info about ALL people
+    4. MARKETER_MANAGER can see ALL info about people who they supervised.
+   * 
+  */
+  canSeeMoneySection(){
+    return this.username === this._global.user.username || this.isSuperUser() || this.isMarketerManagerWithTeam();
+  }
+
   isSuperUser() {
     return ['gary', 'chris', 'mo', 'dixon.adair'].includes(this._global.user.username);
   }

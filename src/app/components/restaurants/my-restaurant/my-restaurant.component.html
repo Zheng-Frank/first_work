@@ -3,7 +3,7 @@
   <select class="form-control mr-4" [(ngModel)]="username" (change)="changeUser()">
     <option *ngFor="let username of usernames">{{username}}</option>
   </select>
-  <div class="pt-1" *ngIf="isSuperUser()">
+  <div class="pt-1" *ngIf="canSeeMoneySection()">
     <button class="btn btn-primary" (click)="computeBonus()">Compute Bonus</button>
   </div>
 </div>
@@ -11,7 +11,7 @@
 <h1 class="text-center">My Restaurants (total: {{rows.length}}, disabled: {{disabledTotal}})</h1>
 
 <div class="card-group mb-2">
-  <div class="card" *ngIf="isSuperUser()">
+  <div class="card" *ngIf="canSeeMoneySection()">
     <div class="card-body">
       <table class="table-boarderless card card-body mb-4">
         <tr>
