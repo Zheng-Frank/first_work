@@ -66,6 +66,7 @@ export class ImageManagerComponent implements OnInit {
   syncing = false;
   removing = false;
   restaurants = [];
+  mis = [];
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) { }
 
   async ngOnInit() {
@@ -89,17 +90,37 @@ export class ImageManagerComponent implements OnInit {
   }
 
   async getRtsWithMenuName() {
-    this.restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    this.restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      projection: {
-        name: 1,
-        'menus.name': 1,
-        'menus.mcs.name': 1,
-        'menus.mcs.mis.name': 1,
-        'menus.mcs.mis.imageObjs.originalUrl': 1
-      },
-      limit: 2000
-    }).toPromise();
+      aggregate: [
+        {$match: {'menus.mcs.mis.imageObjs.originalUrl': {$exists: true}}},
+        {
+          $project: {
+            name: 1,
+            'menus.name': 1,
+            'menus.mcs.name': 1,
+            'menus.mcs.mis.name': 1,
+            'menus.mcs.mis.imageObjs.originalUrl': 1,
+          }
+        },
+      ],
+    }, 250);
+    console.log(this.restaurants);
+    this.mis = [];
+    this.restaurants.forEach(rt => {
+      rt.menus.forEach(menu => {
+        menu.parent = rt;
+        menu.mcs.forEach(mc => {
+          mc.parent = menu;
+          mc.mis.forEach(mi => {
+            mi.parent = mc;
+            console.log('mi...', rt._id)
+            this.mis.push(mi)
+          })
+        })
+      })
+    })
+    console.log(this.mis)
   }
 
   async removeImagelessItems() {
@@ -481,6 +502,15 @@ export class ImageManagerComponent implements OnInit {
     this.cuisineTypes = [...cuisineTypes].sort((a, b) => a.localeCompare(b));
     this.cuisineTypes.unshift('');
 
+    let dict = {}
+    this.rows.forEach(r => {
+      dict[r.url192] = r;
+    })
+    this.mis.forEach(mi => {
+      mi.imageObjs.forEach(img => {
+        img.obj = dict[img.originalUrl] || {}
+      })
+    })
   }
 
   async deleteRow(row) {

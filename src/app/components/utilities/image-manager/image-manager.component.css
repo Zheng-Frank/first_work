@@ -14,15 +14,24 @@
     opacity: 0.7;
 }
 
-.limit-select-width {
-    min-width: 200px;
-    max-width: 200px;
-}
-
 .my-text-small {
     font-size: 75%;
     opacity: 0.7;
 }
 .my-text-big {
     font-size: 150%;
+}
+
+.image-list {
+  list-style: none;
+  margin: 0;
+
+
+}
+
+.image-list .image-item{
+  float: left;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  background: #FFFFFF;
 }

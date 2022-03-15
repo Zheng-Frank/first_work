@@ -41,7 +41,7 @@
         </select>
       </div>
     </div>
-    <div class="mt-2 mb-2 text-right">
+    <div *ngIf="manageMode === manageModes.Standard" class="mt-2 mb-2 text-right">
       <button class="btn btn-link" (click)="mergeDuplicates()" [qLoading]="merging">Merge Duplicates</button>
       <button class="btn btn-link" (click)="normalizeAliases()" [qLoading]="normalizing">Normalize Aliases</button>
       <button class="btn btn-link" (click)="removeImagelessItems()" [qLoading]="removing">Remove Imageless Items</button>
@@ -98,14 +98,14 @@
     </table>
 
     <ul class="image-list">
-      <li class="image-item" *ngFor="let row of filterRows">
-        <div>RT: {{row.name}}</div>
-        <div><a [routerLink]="'/restaurants/' + row._id">{{row._id}}</a></div>
+      <li class="image-item" *ngFor="let mi of mis">
+        <div>RT: {{mi.parent.parent.parent.name}}</div>
+        <div><a [routerLink]="'/restaurants/' + mi.parent.parent.parent._id">{{mi.parent.parent.parent._id}}</a></div>
         <div></div>
-        Item createdAt:
-        <img />
+        Item createdAt: {{mi.imageObjs[0].obj.createdAt}}
+        <img [src]="mi.imageObjs[0].originalUrl" />
         <div>
-          Frequency: (for this iten name), (overall)
+          Frequency:  (for this item name), {{mi.imageObjs[0].obj.menuCount}} (overall)
         </div>
         <div>
           <a>Edit Item</a><a>Remove Image</a>
