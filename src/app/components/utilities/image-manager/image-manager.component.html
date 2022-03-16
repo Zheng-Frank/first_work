@@ -2,44 +2,58 @@
   <h2 class="card-title m-3">
     <!-- <i [routerLink]="['/home']"><i class="fa fa-arrow-left"> Back </i></a> -->
     <h1 class="text-center">Manage Images</h1>
-    <div class="text-center text-danger">({{filterRows.length}} items, {{getItemWithImageCount()}} with images)</div>
+    <div class="text-center text-danger">
+      <ng-container *ngIf="manageMode === manageModes.Standard">
+        ({{filterRows.length}} items, {{getItemWithImageCount()}} with images)
+      </ng-container>
+      <ng-container *ngIf="manageMode === manageModes.Common">
+        ({{filteredMis.length}} items, {{countMiWithImage()}} with images)
+      </ng-container>
+    </div>
   </h2>
   <div class="card-body">
     <div class="row">
-      <div class="col-auto">
-        <select [(ngModel)]="manageMode" class="form-control" (change)="filter()">
+      <div class="col-auto mb-2">
+        <select [(ngModel)]="manageMode" class="form-control">
           <option *ngFor="let type of getManageModes()">{{type}}</option>
         </select>
       </div>
       <ng-container *ngIf="manageMode === manageModes.Common">
-        <div class="col-auto">
-          <select [(ngModel)]="keywordType">
+        <div class="col-auto mb-2">
+          <select class="form-control" [(ngModel)]="keywordType">
             <option *ngFor="let type of getKeywordTypes()">{{type}}</option>
           </select>
         </div>
-        <div class="col-auto">
-          <input type="text" class="form-control" >
+        <div class="col-auto mb-2">
+          <input type="text" class="form-control" [(ngModel)]="keyword" >
         </div>
-        <div class="col-auto">
-          <button class="btn btn-primary" [(ngModel)]="keyword" (click)="filter()">Search</button>
-        </div>
-      </ng-container>
-      <div class="col-auto" *ngIf="manageMode === manageModes.Standard">
-        <select [(ngModel)]="cuisineType" class="form-control" (change)="filter()">
-          <option value="">Cuisine type?</option>
-          <option *ngFor="let type of cuisineTypes">{{type}}</option>
+        <div class="col-auto mb-2">
+        <select [(ngModel)]="commonOrderBy" class="form-control">
+          <option *ngFor="let type of commonOrderBys">{{type}}</option>
         </select>
       </div>
-      <div class="col-auto">
-        <select [(ngModel)]="orderBy" class="form-control" (change)="filter()">
-          <option *ngFor="let type of orderBys">{{type}}</option>
-        </select>
-      </div>
-      <div class="col-auto">
-        <select [(ngModel)]="hasImageMode" class="form-control" (change)="filter()">
+        <div class="col-auto mb-2">
+        <select [(ngModel)]="hasImageMode" class="form-control">
           <option *ngFor="let type of hasImageModes">{{type}}</option>
         </select>
       </div>
+        <div class="col-auto mb-2">
+          <button class="btn btn-primary" (click)="filterMi()">Search</button>
+        </div>
+      </ng-container>
+      <ng-container *ngIf="manageMode === manageModes.Standard">
+        <div class="col-auto mb-2">
+          <select [(ngModel)]="cuisineType" class="form-control" (change)="filter()">
+            <option value="">Cuisine type?</option>
+            <option *ngFor="let type of cuisineTypes">{{type}}</option>
+          </select>
+        </div>
+        <div class="col-auto mb-2">
+          <select [(ngModel)]="orderBy" class="form-control" (change)="filter()">
+            <option *ngFor="let type of orderBys">{{type}}</option>
+          </select>
+        </div>
+      </ng-container>
     </div>
     <div *ngIf="manageMode === manageModes.Standard" class="mt-2 mb-2 text-right">
       <button class="btn btn-link" (click)="mergeDuplicates()" [qLoading]="merging">Merge Duplicates</button>
@@ -97,21 +111,45 @@
 
     </table>
 
-    <ul class="image-list">
-      <li class="image-item" *ngFor="let mi of mis">
-        <div>RT: {{mi.parent.parent.parent.name}}</div>
-        <div><a [routerLink]="'/restaurants/' + mi.parent.parent.parent._id">{{mi.parent.parent.parent._id}}</a></div>
-        <div></div>
-        Item createdAt: {{mi.imageObjs[0].obj.createdAt}}
-        <img [src]="mi.imageObjs[0].originalUrl" />
-        <div>
-          Frequency:  (for this item name), {{mi.imageObjs[0].obj.menuCount}} (overall)
+    <ng-container *ngIf="manageMode === manageModes.Common">
+      <div class="mb-2 mt-2 col">
+        <q-pager #myPager1 [numberOfRows]="filteredMis.length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
+      </div>
+      <div class="row">
+        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-4" *ngFor="let item of paged()">
+          <div class="image-item">
+            <div class="title">RT: {{item.rt.name}}</div>
+            <div><a target="_blank" [routerLink]="'/restaurants/' + item.rt._id">{{item.rt._id}}</a></div>
+            <div>{{item.menu.name}} > {{item.mc.name}} > {{item.mi.name}}</div>
+            <ng-container *ngIf="item.image">
+              <div>
+                Item createdAt: {{item.image.createdAt | adjustedDate:'yyyy/MM/dd HH:mm:ss':'America/New_York'}}
+              </div>
+              <div>
+                <img [src]="item.image.url" />
+              </div>
+              <div>{{item.image.url}}</div>
+              <div>
+                Frequency: {{item.image.nameCount}} (for this item name), {{item.image.allCount}} (overall)
+              </div>
+            </ng-container>
+            <ng-container *ngIf="!item.image && item.mi.imageObjs && item.mi.imageObjs[0]">
+              <div>
+                <img [src]="item.mi.imageObjs[0].originalUrl" />
+              </div>
+              <div>{{item.mi.imageObjs[0].originalUrl}}</div>
+            </ng-container>
+            <div class="footer">
+              <a class="btn-link" (click)="editMi(item)">Edit Item</a>
+              <a *ngIf="item.image" class="btn-link" (click)="removeMiImage(item)">Remove Image</a>
+            </div>
+          </div>
         </div>
-        <div>
-          <a>Edit Item</a><a>Remove Image</a>
-        </div>
-      </li>
-    </ul>
+      </div>
+      <div class="mt-2 col">
+        '<q-pager #myPager2 [numberOfRows]="filteredMis.length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
+      </div>
+    </ng-container>
 
     <q-modal #modalZoom *ngIf="clickedMi">
       <div class="modal-header" data-dismiss="modal">
@@ -170,5 +208,10 @@
       </div>
     </q-modal>
     <!-- end with add new record modal -->
+
+    <q-modal #miModal>
+    <!--size names: if use get method, it keeps changing detection-->
+      <app-menu-item-editor #miEditor (onDone)="miDone($event)" (onCancel)="miCancel($event)" (onDelete)="miDelete($event)"></app-menu-item-editor>
+    </q-modal>
   </div>
 </div>

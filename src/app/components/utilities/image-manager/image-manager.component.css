@@ -22,16 +22,32 @@
     font-size: 150%;
 }
 
-.image-list {
-  list-style: none;
-  margin: 0;
-
-
+.image-item{
+  font-size: 12px;
+  margin: 0 -10px;
+  background: #FFFFFF;
+  padding: 10px;
+  height: auto;
+  border: 1px solid #555555;
 }
 
-.image-list .image-item{
-  float: left;
-  margin-right: 10px;
-  margin-bottom: 10px;
-  background: #FFFFFF;
+.image-item > div {
+  padding: 5px 0;
+}
+
+.image-item .title {
+  font-size: medium;
+}
+
+.image-item img {
+  width: 100%;
+}
+
+.image-item .footer {
+  display: flex;
+  justify-content: space-between;
+}
+
+.image-item .footer a {
+  cursor: pointer;
 }
