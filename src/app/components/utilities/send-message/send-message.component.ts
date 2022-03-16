@@ -94,6 +94,7 @@ export class SendMessageComponent {
       this.template = { ...this.customTemplate };
     }
     this.emailContentMode = EmailContentModes.Origin;
+    this.markSentFlag = false;
     this.tooltip();
   }
 
