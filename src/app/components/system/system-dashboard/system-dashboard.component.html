@@ -6,7 +6,7 @@
 </ng-container>
 
 <div>
-  <div class="my-4">
+  <div class="my-4" *ngIf="system">
     <div class="form-group form-check">
       <input type="checkbox" class="form-check-input" id="severless-checkbox"
         [(ngModel)]="system.useServerlessForNewOrder" [disabled]="true">

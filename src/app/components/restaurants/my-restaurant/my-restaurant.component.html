@@ -1,4 +1,4 @@
-<div *ngIf="isSuperUser() || isMarketerManagerWithTeam()">
+<div *ngIf="isSuperUser() || isMarketerManagerWithTeam() || isAdminCSRManagerWithTeam()">
   <label>Impersonate:</label>
   <select class="form-control mr-4" [(ngModel)]="username" (change)="changeUser()">
     <option *ngFor="let username of usernames">{{username}}</option>
