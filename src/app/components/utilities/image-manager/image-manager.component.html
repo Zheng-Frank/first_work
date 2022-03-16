@@ -122,22 +122,9 @@
             <div><a target="_blank" [routerLink]="'/restaurants/' + item.rt._id">{{item.rt._id}}</a></div>
             <div>{{item.menu.name}} > {{item.mc.name}} > {{item.mi.name}}</div>
             <ng-container *ngIf="item.image">
-              <div>
-                Item createdAt: {{item.image.createdAt | adjustedDate:'yyyy/MM/dd HH:mm:ss':'America/New_York'}}
-              </div>
-              <div>
-                <img [src]="item.image.url" />
-              </div>
+              <div><img [src]="item.image.url" /></div>
               <div>{{item.image.url}}</div>
-              <div>
-                Frequency: {{item.image.nameCount}} (for this item name), {{item.image.allCount}} (overall)
-              </div>
-            </ng-container>
-            <ng-container *ngIf="!item.image && item.mi.imageObjs && item.mi.imageObjs[0]">
-              <div>
-                <img [src]="item.mi.imageObjs[0].originalUrl" />
-              </div>
-              <div>{{item.mi.imageObjs[0].originalUrl}}</div>
+              <div>Frequency: {{item.image.nameCount}} (for this item name), {{item.image.allCount}} (overall)</div>
             </ng-container>
             <div class="footer">
               <a class="btn-link" (click)="editMi(item)">Edit Item</a>

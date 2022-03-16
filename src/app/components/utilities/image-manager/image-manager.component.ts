@@ -126,7 +126,7 @@ export class ImageManagerComponent implements OnInit {
     if (this.commonOrderBy !== CommonOrderByModes.None) {
       this.filteredMis.sort((b, a) => {
         if (a.image && b.image) {
-          if (this.commonOrderBy === CommonOrderByModes.MostFrequentOverAll) {
+          if (this.commonOrderBy === CommonOrderByModes.MostFrequentForItem) {
             return a.image.nameCount - b.image.nameCount;
           } else {
             return a.image.allCount - b.image.allCount
@@ -159,7 +159,7 @@ export class ImageManagerComponent implements OnInit {
           }
         },
       ],
-    }, 300);
+    }, 250);
   }
 
   async removeImagelessItems() {
@@ -707,12 +707,6 @@ export class ImageManagerComponent implements OnInit {
   }
 
   miCount() {
-    let dict = {}
-    this.rows.forEach(r => {
-      (r.images || []).forEach(i => {
-        dict[i.url] = r;
-      })
-    })
     this.mis = [];
     let countName = {}, countAll = {};
     this.restaurants.forEach(rt => {
@@ -722,13 +716,10 @@ export class ImageManagerComponent implements OnInit {
             let item = {mi, rt, menu, mc} as any;
             if (mi.imageObjs && mi.imageObjs[0]) {
               let url = mi.imageObjs[0].originalUrl;
-              let image = dict[url]
-              if (image) {
-                item.image = {...image, url}
-                let key = mi.name.toLowerCase() + '-' + url;
-                countName[key] = (countName[key] || 0) + 1;
-                countAll[url] = (countAll[url] || 0) + 1
-              }
+              item.image = {url}
+              let key = mi.name.toLowerCase() + '-' + url;
+              countName[key] = (countName[key] || 0) + 1;
+              countAll[url] = (countAll[url] || 0) + 1
             }
             this.mis.push(item)
           })
@@ -755,7 +746,6 @@ export class ImageManagerComponent implements OnInit {
   }
 
   async editMi(item) {
-    console.log(item)
     this.miItem = item;
     if (!this.restaurant || this.restaurant._id !== item.rt._id) {
       const [ rt ] = await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -793,16 +783,32 @@ export class ImageManagerComponent implements OnInit {
 
   async removeMiImage(item) {
     if (confirm('Are you sure to delete image on this menu item?')) {
-      const {rtIndex, i, j, k} = this.getMenuIndices(item.mi);
+      if (!this.restaurant || this.restaurant._id !== item.rt._id) {
+        const [ rt ] = await this._api.get(environment.qmenuApiUrl + 'generic', {
+          resource: 'restaurant',
+          query: {_id: {$oid: item.rt._id}},
+          projection: {menus: 1},
+          limit: 1
+        }).toPromise();
+        if (rt) {
+          this.restaurant = rt;
+        }
+      }
+      if (!this.restaurant) {
+        this._global.publishAlert(AlertType.Danger, 'restaurant not found.');
+        return;
+      }
+      const {rtIndex, i, j, k} = this.getMenuIndices(item.mi, item);
+      let { menus } = this.restaurant;
+      const newMenus = JSON.parse(JSON.stringify(menus));
+      newMenus[i].mcs[j].mis[k].imageObjs = [];
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: { _id: item.rt._id },
-        new: { _id: item.rt._id, [`menus[${i}].mcs[${j}].mis[${k}].imageObjs`]: [] }
+        new: { _id: item.rt._id, menus: newMenus }
       }]).toPromise();
       this._global.publishAlert(AlertType.Success, 'Image removed successfully');
       this.restaurants[rtIndex].menus[i].mcs[j].mis[k].imageObjs = [];
-      if (this.restaurant && this.restaurant._id === item.rt._id) {
-        this.restaurant.menus[i].mcs[j].mis[k].imageObjs = [];
-      }
+      this.restaurant.menus[i].mcs[j].mis[k].imageObjs = [];
       this.miCount();
     }
   }
@@ -860,10 +866,11 @@ export class ImageManagerComponent implements OnInit {
     this.miModal.hide();
   }
 
-  getMenuIndices(mii) {
-    let rtIndex = this.restaurants.findIndex(x => x._id === this.miItem.rt._id)
-    let i = this.restaurants[rtIndex].menus.findIndex(m => m.id === this.miItem.menu.id);
-    let j = this.restaurants[rtIndex].menus[i].mcs.findIndex(mc => mc.id === this.miItem.mc.id);
+  getMenuIndices(mii, item?) {
+    item = item || this.miItem;
+    let rtIndex = this.restaurants.findIndex(x => x._id === item.rt._id)
+    let i = this.restaurants[rtIndex].menus.findIndex(m => m.id === item.menu.id);
+    let j = this.restaurants[rtIndex].menus[i].mcs.findIndex(mc => mc.id === item.mc.id);
     let k = this.restaurants[rtIndex].menus[i].mcs[j].mis.findIndex(mi => mi.id === mii.id);
     return {rtIndex, i, j, k};
   }
