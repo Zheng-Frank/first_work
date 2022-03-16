@@ -1,11 +1,11 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
-import {ApiService} from '../../../services/api.service';
-import {environment} from '../../../../environments/environment';
-import {GlobalService} from '../../../services/global.service';
-import {Helper} from '../../../classes/helper';
-import {AlertType} from '../../../classes/alert-type';
-import {Log} from '../../../classes/log';
-import {PrunedPatchService} from '../../../services/prunedPatch.service';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { ApiService } from '../../../services/api.service';
+import { environment } from '../../../../environments/environment';
+import { GlobalService } from '../../../services/global.service';
+import { Helper } from '../../../classes/helper';
+import { AlertType } from '../../../classes/alert-type';
+import { Log } from '../../../classes/log';
+import { PrunedPatchService } from '../../../services/prunedPatch.service';
 
 enum AgreementSentModes {
   Sent = 'Agreement Sent',
@@ -54,20 +54,20 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
   providers = [];
   showAllProviders = false;
   restaurantsColumnDescriptors = [
-    {label: '#'},
-    {label: 'Restaurant', paths: ['name'], sort: alphabet},
-    {label: 'Agent', paths: ['agent'], sort: alphabet},
-    {label: 'Salesperson', paths: ['salesperson'], sort: alphabet},
-    {label: 'Timezone', paths: ['timezoneOffset'], sort: (a, b) => Number(a) - Number(b)},
+    { label: '#' },
+    { label: 'Restaurant', paths: ['name'], sort: alphabet },
+    { label: 'Agent', paths: ['agent'], sort: alphabet },
+    { label: 'Salesperson', paths: ['salesperson'], sort: alphabet },
+    { label: 'Timezone', paths: ['timezoneOffset'], sort: (a, b) => Number(a) - Number(b) },
     {
       label: 'CreatedAt',
       paths: ['createdAt'],
       sort: (a, b) => new Date(a || 0).valueOf() - new Date(b || 0).valueOf()
     },
-    {label: 'GMB ownership', paths: ['gmbOwner'], sort: alphabet},
-    {label: 'Agreement', paths: ['agreementSent'], sort: bool_numeric},
-    {label: 'Other attch.', paths: ['otherAttachments'], sort: bool_numeric},
-    {label: 'Logs', paths: ['logs'], sort: bool_numeric}
+    { label: 'GMB ownership', paths: ['gmbOwner'], sort: alphabet },
+    { label: 'Agreement', paths: ['agreementSent'], sort: bool_numeric },
+    { label: 'Other attch.', paths: ['otherAttachments'], sort: bool_numeric },
+    { label: 'Logs', paths: ['logs'], sort: bool_numeric }
   ];
   filters = {
     createdAfter: '',
@@ -85,7 +85,7 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
   gmbOwners = [];
   recentLostCids = new Set();
   underAttackingCids = new Set();
-  logInEditing: Log = new Log({type: 'online-agreement', time: new Date()});
+  logInEditing: Log = new Log({ type: 'online-agreement', time: new Date() });
   restaurant;
   attachment;
 
@@ -123,7 +123,7 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
     this.restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       aggregate: [
-        {$match: {disabled: {$ne: true}}},
+        { $match: { disabled: { $ne: true } } },
         {
           $project: {
             name: 1,
@@ -136,7 +136,7 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
               $filter: {
                 input: '$logs',
                 as: 'log',
-                cond: {$eq: ['$$log.type', 'online-agreement']},
+                cond: { $eq: ['$$log.type', 'online-agreement'] },
               }
             },
             channels: {
@@ -147,14 +147,14 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
                     as: 'ch',
                     cond: {
                       $or: [
-                        {$eq: ['$$ch.type', 'SMS']},
-                        {$eq: ['$$ch.type', 'Email']},
+                        { $eq: ['$$ch.type', 'SMS'] },
+                        { $eq: ['$$ch.type', 'Email'] },
                       ]
                     }
                   }
                 },
                 as: 'item',
-                in: {$trim: {input: '$$item.value'}}
+                in: { $trim: { input: '$$item.value' } }
               }
             },
             createdAt: 1,
@@ -170,14 +170,14 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
                       }
                     },
                     as: 'item',
-                    cond: {$ne: ['$$item', null]}
+                    cond: { $ne: ['$$item', null] }
                   }
                 },
                 []
               ]
             },
             gmbOwner: {
-              $ifNull: [{$arrayElemAt: ['$gmbOwnerHistory.gmbOwner', 0]}, '']
+              $ifNull: [{ $arrayElemAt: ['$gmbOwnerHistory.gmbOwner', 0] }, '']
             },
           }
         }
@@ -192,11 +192,21 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
       aggregate: [
         {
           $match: {
-            'name': {$eq: 'send-email'},
-            'params.subject': {$eq: 'qMenu Online Service Agreement'}
+            'name': { $eq: 'send-email' },
+            '$or': [
+              {
+                'params.subject': { $eq: 'qMenu Online Service Agreement' }
+              },
+              {
+                'params.subject': { $eq: 'qMenu Online Service Agreement (Eng)' }
+              },
+              {
+                'params.subject': { $eq: 'qMenu Online Service Agreement (中文)' }
+              }
+            ]
           }
         },
-        {$project: {'paramsTo': '$params.to', createdAt: 1}}
+        { $project: { 'paramsTo': '$params.to', createdAt: 1 } }
       ],
       limit: 100000
     }).toPromise();
@@ -216,10 +226,10 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
       resource: 'event',
       query: {
         name: 'gmb-lost',
-        'params.cid': {$exists: true},
-        createdAt: {$gte: gmbRecentLostStart.valueOf()}
+        'params.cid': { $exists: true },
+        createdAt: { $gte: gmbRecentLostStart.valueOf() }
       },
-      projection: {_id: 1, 'params.cid': 1, createdAt: 1}
+      projection: { _id: 1, 'params.cid': 1, createdAt: 1 }
     }, 10000);
 
 
@@ -231,10 +241,10 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
       resource: 'gmbRequest',
       query: {
         isReminder: false,
-        date: {$gte: {$date: gmbUnderAttackStart}},
-        handledDate: {$exists: false}
+        date: { $gte: { $date: gmbUnderAttackStart } },
+        handledDate: { $exists: false }
       },
-      projection: {cid: 1, email: 1},
+      projection: { cid: 1, email: 1 },
     }, 10000);
 
     const gmbAccounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
@@ -311,7 +321,7 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
   filterRTs() {
 
     let list = this.restaurants;
-    const {createdAfter, agreementSent, checkedProviders, gmbChanges, gmbOwner, hasAttachment, hasLogs, salesperson, agent} = this.filters;
+    const { createdAfter, agreementSent, checkedProviders, gmbChanges, gmbOwner, hasAttachment, hasLogs, salesperson, agent } = this.filters;
 
     if (createdAfter) {
       list = list.filter(x => (x.createdAt.valueOf() >= new Date(createdAfter + 'T00:00:00.000Z').valueOf()));
@@ -349,19 +359,19 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
 
     switch (hasAttachment) {
       case HasAttachmentModes.Has:
-        list = list.filter(({otherAttachments}) => otherAttachments && otherAttachments.length > 0);
+        list = list.filter(({ otherAttachments }) => otherAttachments && otherAttachments.length > 0);
         break;
       case HasAttachmentModes.No:
-        list = list.filter(({otherAttachments}) => !otherAttachments || otherAttachments.length <= 0);
+        list = list.filter(({ otherAttachments }) => !otherAttachments || otherAttachments.length <= 0);
         break;
     }
 
     switch (hasLogs) {
       case HasLogsModes.Has:
-        list = list.filter(({logs}) => logs && logs.length > 1);
+        list = list.filter(({ logs }) => logs && logs.length > 1);
         break;
       case HasLogsModes.No:
-        list = list.filter(({logs}) => !logs || logs.length <= 0);
+        list = list.filter(({ logs }) => !logs || logs.length <= 0);
         break;
     }
 
@@ -380,19 +390,19 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
     this.list = list;
   }
 
-// load old logs of restaurant which need to be updated to ensure the integrity of data.
+  // load old logs of restaurant which need to be updated to ensure the integrity of data.
   async getRestaurantLogs(rtId) {
     let restaurant = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {_id: {$oid: rtId}},
-      projection: {logs: 1},
+      query: { _id: { $oid: rtId } },
+      projection: { logs: 1 },
       limit: 1
     }).toPromise();
     return restaurant[0].logs || [];
   }
 
   async addLog(row) {
-    this.logInEditing = new Log({type: 'online-agreement', time: new Date()});
+    this.logInEditing = new Log({ type: 'online-agreement', time: new Date() });
     this.restaurant = row;
     this.restaurant.logs = await this.getRestaurantLogs(this.restaurant._id);
     this.logEditingModal.show();
@@ -404,12 +414,12 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
     event.log.username = username;
     let logs = [...this.restaurant.logs, event.log];
 
-    const newRestaurant = {_id: this.restaurant._id, logs: logs};
+    const newRestaurant = { _id: this.restaurant._id, logs: logs };
 
     this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant',
       [{
-        old: {_id: this.restaurant._id},
-        new: {_id: newRestaurant._id, logs: newRestaurant.logs}
+        old: { _id: this.restaurant._id },
+        new: { _id: newRestaurant._id, logs: newRestaurant.logs }
       }]).subscribe(result => {
         this.restaurant.logs = logs;
         this.restaurant.agent = username;
@@ -422,11 +432,11 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
         this.restaurant = undefined;
         this.logEditingModal.hide();
       },
-      error => {
-        this._global.publishAlert(AlertType.Danger, 'Error while adding log');
-        event.formEvent.acknowledge('Error while adding log');
-      }
-    );
+        error => {
+          this._global.publishAlert(AlertType.Danger, 'Error while adding log');
+          event.formEvent.acknowledge('Error while adding log');
+        }
+      );
   }
 
   onCancelAddLog() {

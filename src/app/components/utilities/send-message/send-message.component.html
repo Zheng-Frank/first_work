@@ -40,7 +40,7 @@
 </div>
 <ng-container *ngIf="hasSMS()">
   <div class="mt-3">
-    <label>SMS Content:</label>
+    <label>SMS Content:<a (click)="copySMSContent()" *ngIf="template.smsPreview" class="btn-link">Preview</a></label>
     <textarea [disabled]="!canEdit()" rows="10" class="form-control" [(ngModel)]="template.smsContent"></textarea>
   </div>
   <ng-container *ngIf="template.smsPreview">
@@ -69,6 +69,14 @@
     <div class="msg-content" [innerHTML]="sanitized(template.emailContent)"></div>
   </div>
 </ng-container>
+
+<ng-container *ngIf="canSend()">
+  <div class="mt-3">
+    <input type="checkbox" [(ngModel)]="markSentFlag"> Only Mark as Sent
+    <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title=""></i>
+  </div>
+</ng-container>
+
 <div class="mt-3">
   <button (click)="send()" [disabled]="!canSend()" class="btn btn-primary btn-block">Send</button>
 </div>

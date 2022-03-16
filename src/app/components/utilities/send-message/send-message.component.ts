@@ -4,7 +4,7 @@ import { GlobalService } from 'src/app/services/global.service';
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from '../../../../environments/environment';
 import { DomSanitizer } from '@angular/platform-browser';
-
+declare var $: any;
 enum EmailContentModes {
   Origin, Preview
 }
@@ -45,6 +45,7 @@ export class SendMessageComponent {
   emailContentMode = EmailContentModes.Origin;
   smsContentMode = EmailContentModes.Origin;
   customTemplate: MessageTemplate = { title: 'Custom', smsContent: '', subject: '', emailContent: '' };
+  markSentFlag = false;
 
   constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer) {
   }
@@ -93,6 +94,13 @@ export class SendMessageComponent {
       this.template = { ...this.customTemplate };
     }
     this.emailContentMode = EmailContentModes.Origin;
+    this.tooltip();
+  }
+
+  tooltip() {
+    setTimeout(() => {
+      $("[data-toggle='tooltip']").tooltip();
+    })
   }
 
   init() {
@@ -187,6 +195,47 @@ export class SendMessageComponent {
     }
     return htmlContent;
   }
+  // generate a sms html link and copy it to clipboard
+  async copySMSContent() {
+    let { inputs, smsContent, emailContent, smsPreview, uploadHtml } = this.template;
+    if (inputs) {
+      inputs.forEach(field => {
+        if (smsContent) {
+          smsContent = field.apply(smsContent, field.value);
+        }
+        if (smsPreview) {
+          smsPreview = field.apply(emailContent, field.value);
+        }
+      });
+    }
+    let uploadParams = uploadHtml(smsPreview);
+    // some rt use sms to receive agreement, and need to generate a mediaUrl using email html content
+    if (uploadParams) {
+      const loadParameters = {
+        'content-type': uploadParams.contentType,
+        body: uploadParams.body
+      };
+      const formatParams = uploadParams.format;
+      smsContent = await this.generateFormatHtml(loadParameters, formatParams, smsContent);
+
+      if (!smsContent) {
+        return this._global.publishAlert(AlertType.Danger, 'Generate sms content fail due to network error !')
+      } else {
+        const handleCopy = (e: ClipboardEvent) => {
+          // clipboardData 可能是 null
+          if (e.clipboardData) {
+            e.clipboardData.setData('text/plain', smsContent);
+          }
+          e.preventDefault();
+          // removeEventListener 要传入第二个参数
+          document.removeEventListener('copy', handleCopy);
+        };
+        document.addEventListener('copy', handleCopy);
+        document.execCommand('copy');
+        this._global.publishAlert(AlertType.Success, 'the data of order has copyed to your clipboard ~', 1000);
+      }
+    }
+  }
 
   async send() {
     // fill inputs
@@ -213,7 +262,7 @@ export class SendMessageComponent {
       };
       const formatParams = uploadParams.format;
       smsContent = await this.generateFormatHtml(loadParameters, formatParams, smsContent);
-      
+
       if (!smsContent) {
         return this._global.publishAlert(AlertType.Danger, 'Generate sms content fail due to network error !')
       }
@@ -254,9 +303,28 @@ export class SendMessageComponent {
         }
       }[target.type];
     });
+    if (!this.markSentFlag) {
+      this._api.post(environment.qmenuApiUrl + 'events/add-jobs', jobs)
+        .subscribe(
+          () => {
+            this._global.publishAlert(AlertType.Success, 'Text message sent success');
+            this.success.emit(this.template);
+          },
+          error => {
+            console.log(error);
+            this._global.publishAlert(AlertType.Danger, 'Text message sent failed!');
+          }
+        );
+    } else {
+      // only add some new record and don't send anything
+      await this.addJobs(jobs);
+    }
+  }
 
-    this._api.post(environment.qmenuApiUrl + 'events/add-jobs', jobs)
-      .subscribe(
+  async addJobs(jobs) {
+    if (jobs && jobs.length > 0) {
+      const dbJobs = jobs.map((job) => ({ name: job.name, params: job.params, logs: [{ status: 'executed', eventName: job.name, fake: true}] }));
+      await this._api.post(environment.qmenuApiUrl + 'generic?resource=job', dbJobs).subscribe(
         () => {
           this._global.publishAlert(AlertType.Success, 'Text message sent success');
           this.success.emit(this.template);
@@ -265,7 +333,8 @@ export class SendMessageComponent {
           console.log(error);
           this._global.publishAlert(AlertType.Danger, 'Text message sent failed!');
         }
-      );
+      );;
+    }
   }
 
 }
