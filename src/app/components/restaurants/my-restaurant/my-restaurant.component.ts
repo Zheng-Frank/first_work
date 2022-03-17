@@ -1,10 +1,10 @@
-import {Component, OnInit} from '@angular/core';
-import {Restaurant, TimezoneHelper} from '@qmenu/ui';
+import { Component, OnInit } from '@angular/core';
+import { Restaurant, TimezoneHelper } from '@qmenu/ui';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { Invoice } from 'src/app/classes/invoice';
-import {Helper} from '../../../classes/helper';
+import { Helper } from '../../../classes/helper';
 
 @Component({
   selector: 'app-my-restaurant',
@@ -147,12 +147,30 @@ export class MyRestaurantComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
+  /** 
+   * 1. Gary, Chris, Mo, Dixon,: Can see ALL info on Me page for ALL people,.
+     2. Each person can see ALL info about THEMSELVES
+     3. ADMIN, CSR_MANAGER can see ALL NON-DOLLAR info about ALL people
+    4. MARKETER_MANAGER can see ALL info about people who they supervised.
+   * 
+  */
+  canSeeMoneySection() {
+    if (this.username === this._global.user.username || this.isSuperUser() || (this.isMarketerManagerWithTeam() && this.teamUsers.includes(this.username))) {
+      return true;
+    }
+    return false;
+  }
+
   isSuperUser() {
-    return ['gary', 'chris', 'mo', 'dixon.adair', 'maceo.cozier'].includes(this._global.user.username);
+    return ['gary', 'chris', 'mo', 'dixon.adair'].includes(this._global.user.username);
   }
 
   isMarketerManagerWithTeam() {
     return this._global.user.roles.includes('MARKETER_MANAGER') && this.teamUsers.length > 0;
+  }
+
+  isAdminCSRManagerWithTeam() {
+    return ['ADMIN', 'CSR_MANAGER'].some(role => this._global.user.roles.includes(role));
   }
 
   async getTeamUsers() {
@@ -168,8 +186,8 @@ export class MyRestaurantComponent implements OnInit {
             as: "leaders"
           }
         },
-        {$match: {"leaders.username": {$eq: this._global.user.username}}},
-        {$project: {username: 1}}
+        { $match: { "leaders.username": { $eq: this._global.user.username } } },
+        { $project: { username: 1 } }
       ]
     }).toPromise();
     this.teamUsers = users.map(x => x.username);
@@ -181,10 +199,10 @@ export class MyRestaurantComponent implements OnInit {
     if (this._global.user.roles.includes('MARKETER_MANAGER')) {
       await this.getTeamUsers();
     }
-    if (this.isSuperUser() || this.isMarketerManagerWithTeam()) {
+    if (this.isSuperUser() || this.isMarketerManagerWithTeam() || this.isAdminCSRManagerWithTeam()) {
       const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
         resource: 'restaurant',
-        projection: {"rateSchedules.agent": 1}
+        projection: { "rateSchedules.agent": 1 }
       }, 6000);
       const userSet = new Set();
       restaurants.map(r => {
@@ -196,10 +214,12 @@ export class MyRestaurantComponent implements OnInit {
       });
 
       this.usernames = [...userSet];
-      if (!this.isSuperUser()) {
+      if (this.isMarketerManagerWithTeam() && !this.isAdminCSRManagerWithTeam() && !this.isSuperUser()) {
         this.usernames = this.usernames.filter(x => this.teamUsers.includes(x));
+        // add current user himself
+        this.usernames.unshift(this._global.user.username);
       }
-      this.usernames.sort();
+      this.usernames.sort((a, b) => (a || '').localeCompare((b || '')));
     }
     this.populate();
   }
@@ -708,13 +728,13 @@ export class MyRestaurantComponent implements OnInit {
       periods = this.commissionByFeeSchedules(feeSchedules, timezone);
     }
     // @ts-ignore
-    return Object.entries(periods).map(([key, {commission}]) => ({ period: key, commission }))
+    return Object.entries(periods).map(([key, { commission }]) => ({ period: key, commission }))
       .sort((a, b) => new Date(b.period).valueOf() - new Date(a.period).valueOf())
   }
 
   commissionByFeeSchedules(schedules, timezone) {
     let dict = {};
-    schedules.filter(x => x.chargeBasis.toLowerCase() === 'commission').forEach(({fromTime, toTime, rate, payee}) => {
+    schedules.filter(x => x.chargeBasis.toLowerCase() === 'commission').forEach(({ fromTime, toTime, rate, payee }) => {
       let commission = (payee === this.username ? rate : 0) || 0;
       let temp = TimezoneHelper.getTimezoneDateFromBrowserDate(fromTime, timezone);
       temp.setDate(1);
@@ -723,7 +743,7 @@ export class MyRestaurantComponent implements OnInit {
       let key = `${temp.getFullYear()}-${Helper.padNumber(temp.getMonth() + 1)}`;
       let start = TimezoneHelper.getTimezoneDateFromBrowserDate(fromTime, timezone);
       if (dict[key]) {
-        let {timestamp} = dict[key];
+        let { timestamp } = dict[key];
         if (timestamp <= start.valueOf()) {
           dict[key] = { timestamp: start.valueOf(), commission }
         }
@@ -736,7 +756,7 @@ export class MyRestaurantComponent implements OnInit {
           temp.setMonth(temp.getMonth() + 1);
           key = `${temp.getFullYear()}-${Helper.padNumber(temp.getMonth() + 1)}`;
           if (dict[key]) {
-            let {timestamp} = dict[key];
+            let { timestamp } = dict[key];
             if (timestamp <= end.valueOf()) {
               dict[key] = { timestamp: end.valueOf(), commission }
             }
@@ -752,7 +772,7 @@ export class MyRestaurantComponent implements OnInit {
   commissionByRateSchedules(schedules, timezone) {
     // should exclude non-agent's schedule
     let dict = {}, nonAgents = ['none', 'auto', 'AUTO', 'random_name', 'qmenu', 'invalid', 'no-gmb'];
-    schedules.filter(x => x.agent && !nonAgents.includes(x.agent)).forEach(({date, agent, commission}) => {
+    schedules.filter(x => x.agent && !nonAgents.includes(x.agent)).forEach(({ date, agent, commission }) => {
       commission = (agent === this.username ? commission : 0) || 0;
       let temp = TimezoneHelper.parse(date, timezone);
       temp.setDate(1);
@@ -761,7 +781,7 @@ export class MyRestaurantComponent implements OnInit {
       let key = `${temp.getFullYear()}-${Helper.padNumber(temp.getMonth() + 1)}`;
       let start = TimezoneHelper.parse(date, timezone);
       if (dict[key]) {
-        let {timestamp} = dict[key];
+        let { timestamp } = dict[key];
         if (timestamp <= start.valueOf()) {
           dict[key] = { timestamp: start.valueOf(), commission }
         }
@@ -777,9 +797,9 @@ export class MyRestaurantComponent implements OnInit {
     row.notCollected = 0;
     row.earned = 0;
     row.notEarned = 0;
-    let { rateSchedules, feeSchedules, googleAddress: {timezone} } = row.restaurant;
+    let { rateSchedules, feeSchedules, googleAddress: { timezone } } = row.restaurant;
     let periods = this.getCommissionPeriods(feeSchedules, rateSchedules, timezone);
-    let latest = periods[0] || {commission: 0};
+    let latest = periods[0] || { commission: 0 };
     row.commission = latest.commission || 0;
     row.invoices.forEach(invoice => {
       const commissionAdjustment = invoice.adjustment - invoice.transactionAdjustment;
