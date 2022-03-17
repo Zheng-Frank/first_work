@@ -60,6 +60,12 @@ enum enumTinTypes {
   SSN = 'SSN'
 }
 
+enum refuseFormOptionTypes {
+  All = 'Refused?',
+  Refused = 'Refused',
+  Not_Refused = 'Not Refused'
+}
+
 @Component({
   selector: "app-1099k-dashboard",
   templateUrl: "./1099k-dashboard.component.html",
@@ -98,6 +104,9 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
 
   customizeOptions = [customizeOptionTypes.All, customizeOptionTypes.Custom, customizeOptionTypes.Regular];
   customizeOption = customizeOptionTypes.All;
+
+  refuseFormOptions = [refuseFormOptionTypes.All, refuseFormOptionTypes.Refused, refuseFormOptionTypes.Not_Refused];
+  refuseFormOption = refuseFormOptionTypes.All;
 
   bulkFileOperations = [bulkFileOperationTypes.Download, bulkFileOperationTypes.Send];
   bulkFileOperation = '';
@@ -1122,8 +1131,15 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     // customized form1099k or not in the year
     if (this.customizeOption === customizeOptionTypes.Custom) {
       this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && form.yearPeriodStart));
-    } else if (this.sentEmailOption === sentEmailOptionTypes.Form_Not_Sent) {
+    } else if (this.customizeOption === customizeOptionTypes.Regular) {
       this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && !form.yearPeriodStart));
+    }
+
+    // refuse form1099k or not in the year and the form won't appear in irs fire files if its refuseForm mark is true
+    if (this.refuseFormOption === refuseFormOptionTypes.Refused) {
+      this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && form.refuseForm));
+    } else if (this.refuseFormOption === refuseFormOptionTypes.Not_Refused) {
+      this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && !form.refuseForm));
     }
 
     // search will match RT name, RT id, payee name, or email address

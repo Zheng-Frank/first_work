@@ -57,6 +57,40 @@ export class Form1099KComponent implements OnInit {
     this.populateFormLinks();
     this.populateEmails();
   }
+
+  /*
+  Add a boolean "refuseForm" attribute to a 1099K form sub-object, 
+  and a "Refuse form" checkbox next to each 1099K generated which will be 
+  unchecked by default. If the "refuseForm" attribute for a given 1099K form 
+  sub-object is true, then it won't be included in the FIRE submission txt document.
+  */
+  async onChangeRefuseform(formLink) {
+    const [formEntry, year] = formLink;
+    let new1099kRecords = JSON.parse(JSON.stringify(this.restaurant.form1099k));
+    // current editing form will be add refuseForm attribute 
+    new1099kRecords.forEach(record => {
+      if (formEntry.yearPeriodStart) {
+        if (formEntry.yearPeriodStart === record.yearPeriodStart && formEntry.year === record.year) {
+          record.refuseForm = formEntry.refuseForm;
+        }
+      } else {
+        if (formEntry.year === record.year) {
+          record.refuseForm = formEntry.refuseForm;
+        }
+      }
+    });
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+      {
+        old: { _id: this.restaurant._id },
+        new: { _id: this.restaurant._id, form1099k: new1099kRecords }
+      }
+    ]).toPromise();
+    // update origin data
+    this.restaurant.form1099k = new1099kRecords;
+    this.populateFormLinks();
+    this._global.publishAlert(AlertType.Success, `refuseForm of 1099k marked!`);
+  }
+
   // send button will be disabled when no invoice type emails
   disableSendBtn() {
     return this.emails.length === 0;
