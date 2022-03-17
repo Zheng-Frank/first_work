@@ -1,13 +1,15 @@
-import { TimezoneHelper } from '@qmenu/ui';
-import { Component, OnInit } from '@angular/core';
-import { ApiService } from "../../../services/api.service";
-import { environment } from "../../../../environments/environment";
-import { GlobalService } from "../../../services/global.service";
-enum FaxProblemFilterTypes{
+import {TimezoneHelper} from '@qmenu/ui';
+import {Component, OnInit} from '@angular/core';
+import {ApiService} from '../../../services/api.service';
+import {environment} from '../../../../environments/environment';
+import {GlobalService} from '../../../services/global.service';
+
+enum FaxProblemFilterTypes {
   ALL = 'All',
   SEND_INVOICE_ONLY_FAX = 'Send invoice only fax',
   SEND_ORDER_ONLY_FAX = 'Send order only fax'
 }
+
 @Component({
   selector: 'app-monitoring-fax',
   templateUrl: './monitoring-fax.component.html',
@@ -16,31 +18,33 @@ enum FaxProblemFilterTypes{
 export class MonitoringFaxComponent implements OnInit {
 
   rows = [];
-  filterRows = []; //the filter rows used to show three types of fax problem.
+  filterRows = []; // the filter rows used to show three types of fax problem.
   myColumnDescriptors = [
     {
-      label: "Restaurant"
+      label: 'Restaurant'
     },
     {
-      label: "Timezone (as Offset to EST)"
+      label: 'Timezone (as Offset to EST)'
     },
     {
-      label: "Fax Number"
+      label: 'Fax Number'
     },
     {
-      label: "Error Count"
+      label: 'Error Count'
     },
     {
-      label: "Errors"
+      label: 'Errors'
     },
     {
-      label: "Succeeded Once"
+      label: 'Succeeded Once'
     }
   ];
   filterTypes = [FaxProblemFilterTypes.ALL, FaxProblemFilterTypes.SEND_INVOICE_ONLY_FAX, FaxProblemFilterTypes.SEND_ORDER_ONLY_FAX];
-  type = FaxProblemFilterTypes.ALL;//  concrete filter type
+  type = FaxProblemFilterTypes.ALL; //  concrete filter type
   now = new Date();
-  constructor(private _api: ApiService, private _global: GlobalService) { }
+
+  constructor(private _api: ApiService, private _global: GlobalService) {
+  }
 
   ngOnInit() {
     this.findPhaxioFailedNumbers();
@@ -48,45 +52,46 @@ export class MonitoringFaxComponent implements OnInit {
 
   // our salesperson only wants to know what is the time offset
   // between EST and the location of restaurant
-  getTimeOffsetByTimezone(timezone){
-    if(timezone){
+  getTimeOffsetByTimezone(timezone) {
+    if (timezone) {
       let localTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), timezone);
       let ESTTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), 'America/New_York');
-      let offset = (ESTTime.valueOf() - localTime.valueOf())/(3600*1000);
-      return offset > 0 ? "+"+offset.toFixed(0) : offset.toFixed(0);
-    }else{
+      let offset = (ESTTime.valueOf() - localTime.valueOf()) / (3600 * 1000);
+      return offset > 0 ? '+' + offset.toFixed(0) : offset.toFixed(0);
+    } else {
       return 'N/A';
     }
   }
 
-  getTimezoneCity(timezone){
+  getTimezoneCity(timezone) {
     return (timezone || '').split('/')[1] || '';
   }
 
-  //when the select change we can show three different type of fax problems 
+  // when the select change we can show three different type of fax problems
   filterFaxProblemByType() {
     if (this.type === FaxProblemFilterTypes.ALL) {
       this.filterRows = this.rows;
     } else if (this.type === FaxProblemFilterTypes.SEND_INVOICE_ONLY_FAX) {
-      this.filterRows = this.rows.filter(r => r.restaurant && r.restaurant.channels 
+      this.filterRows = this.rows.filter(r => r.restaurant && r.restaurant.channels
         && r.restaurant.channels.filter(c => c.type === 'Fax' && c.notifications && c.notifications.filter(n => n === 'Invoice').length > 0).length > 0
-        && r.restaurant.channels.filter(c => c.type != 'Fax' && c.notifications && c.notifications.filter(n => n === 'Invoice').length > 0).length === 0);
+        && r.restaurant.channels.filter(c => c.type !== 'Fax' && c.notifications && c.notifications.filter(n => n === 'Invoice').length > 0).length === 0);
     } else if (this.type === FaxProblemFilterTypes.SEND_ORDER_ONLY_FAX) {
       this.filterRows = this.rows.filter(r => r.restaurant && r.restaurant.channels
         && r.restaurant.channels.filter(c => c.type === 'Fax' && c.notifications && c.notifications.filter(n => n === 'Order').length > 0).length > 0
-        && r.restaurant.channels.filter(c => c.type != 'Fax' && c.notifications && c.notifications.filter(n => n === 'Order').length > 0).length === 0);
+        && r.restaurant.channels.filter(c => c.type !== 'Fax' && c.notifications && c.notifications.filter(n => n === 'Order').length > 0).length === 0);
     }
   }
+
   async findPhaxioFailedNumbers() {
     const failedFaxEvents = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'event',
       query: {
-        "name": "fax-status",
-        "params.body.success": "false",
-        "createdAt": { $gt: new Date().valueOf() - 1 * 24 * 3600000 }
+        'name': 'fax-status',
+        'params.body.success': 'false',
+        'createdAt': {$gt: new Date().valueOf() - 5 * 24 * 3600000}
       },
       projection: {
-        "params.body": 1
+        'params.body': 1
       },
       limit: 30000
     }).toPromise();
@@ -101,7 +106,7 @@ export class MonitoringFaxComponent implements OnInit {
         numberFailureLogs[phone] = {
           phone: phone,
           errors: {}
-        }
+        };
       }
       numberFailureLogs[phone].errors[error] = (numberFailureLogs[phone].errors[error] || 0) + 1;
     });
@@ -113,7 +118,7 @@ export class MonitoringFaxComponent implements OnInit {
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {
-        "channels.value": { $in: this.rows.map(row => row.phone) }
+        'channels.value': {$in: this.rows.map(row => row.phone)}
       },
       projection: {
         name: 1,
@@ -146,13 +151,13 @@ export class MonitoringFaxComponent implements OnInit {
     const onceSucceededJobs = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'job',
       query: {
-        "name": "send-order-fax",
-        "logs.status": "success",
-        "params.to": { $in: this.rows.map(row => row.phone) },
-        "createdAt": { $gt: new Date().valueOf() - 1 * 24 * 3600000 }
+        'name': 'send-order-fax',
+        'logs.status': 'success',
+        'params.to': {$in: this.rows.map(row => row.phone)},
+        'createdAt': {$gt: new Date().valueOf() - 1 * 24 * 3600000}
       },
       projection: {
-        "params.to": 1
+        'params.to': 1
       },
       limit: 30000
     }).toPromise();
