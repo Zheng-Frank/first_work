@@ -55,69 +55,80 @@
         </div>
       </ng-container>
     </div>
-    <div *ngIf="manageMode === manageModes.Standard" class="mt-2 mb-2 text-right">
-      <button class="btn btn-link" (click)="mergeDuplicates()" [qLoading]="merging">Merge Duplicates</button>
-      <button class="btn btn-link" (click)="normalizeAliases()" [qLoading]="normalizing">Normalize Aliases</button>
-      <button class="btn btn-link" (click)="removeImagelessItems()" [qLoading]="removing">Remove Imageless Items</button>
-      <button class="btn btn-link" (click)="syncFromMenuItems()" [qLoading]="syncing">Sync from Latest
-        Menu Items</button>
-      <button class="btn btn-primary" (click)="openAddRecordsModal()">+ Add New</button>
-    </div>
-    <table *ngIf="manageMode === manageModes.Standard" class="table table-striped">
-      <tr><th></th><th>Menu Names</th><th>Images</th><th>Delete</th></tr>
-      <tr *ngFor="let row of filterRows; let i = index">
-        <td>
-          {{i+1}}
-        </td>
-        <td>
-          <div class="my-text-big">
-            <q-values [(ngModel)]="row.aliases" (ngModelChange)="updateAliases(row)"></q-values>
-          </div>
-          <div class="my-text-small">
-            <div *ngIf="row.menuCount || row.orderCount">
-              <span class="mr-2">Menu Frequency: {{row.menuCount || 0}},</span>
-              <span>Ordered Frequency: {{row.orderCount || 0}}</span>
+    <hr />
+    <ng-container *ngIf="manageMode === manageModes.Standard">
+      <div class="mt-2 mb-2 text-right">
+        <button class="btn btn-link" (click)="mergeDuplicates()" [qLoading]="merging">Merge Duplicates</button>
+        <button class="btn btn-link" (click)="normalizeAliases()" [qLoading]="normalizing">Normalize Aliases</button>
+        <button class="btn btn-link" (click)="removeImagelessItems()" [qLoading]="removing">Remove Imageless Items</button>
+        <button class="btn btn-link" (click)="syncFromMenuItems()" [qLoading]="syncing">Sync from Latest
+          Menu Items</button>
+        <button class="btn btn-primary" (click)="openAddRecordsModal()">+ Add New</button>
+      </div>
+      <table *ngIf="manageMode === manageModes.Standard" class="table table-striped">
+        <tr><th></th><th>Menu Names</th><th>Images</th><th>Delete</th></tr>
+        <tr *ngFor="let row of filterRows; let i = index">
+          <td>
+            {{i+1}}
+          </td>
+          <td>
+            <div class="my-text-big">
+              <q-values [(ngModel)]="row.aliases" (ngModelChange)="updateAliases(row)"></q-values>
             </div>
-            <div *ngIf="row.cuisines">
-              <span>{{row.cuisines.join(', ').toString()}}</span>
+            <div class="my-text-small">
+              <div *ngIf="row.menuCount || row.orderCount">
+                <span class="mr-2">Menu Frequency: {{row.menuCount || 0}},</span>
+                <span>Ordered Frequency: {{row.orderCount || 0}}</span>
+              </div>
+              <div *ngIf="row.cuisines">
+                <span>{{row.cuisines.join(', ').toString()}}</span>
+              </div>
             </div>
-          </div>
-        </td>
-        <td class="pl-1">
-          <div *ngFor="let img of row.images" class="pr-1 pb-1" style="display:inline-block; position:relative">
-            <img src="{{img.url192}}" (click)="thumbnailClick(row)">
-            <button (click)="deleteImage(img, row)" *ngIf="img.url192"
-              class="btn btn-secondary close-button transparent">
-              <i class="fas fa-times"></i>
-            </button>
-            <button (click)="deleteImage(img, row)" *ngIf="img.url192" class="btn btn-link text-danger close-button">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-          <div *ngIf="uploadImageError">
-            <span class="text-danger">{{uploadImageError}}</span>
-          </div>
-          <div class="app-limit-file">
-            <input type="file" (change)="onUploadImage($event, row)" />
-          </div>
-          <div>
-            <small class="text-warning">Image may take time to show</small>
-          </div>
-        </td>
-        <td>
-          <button class="btn btn-link" (click)="deleteRow(row)">Delete</button>
-        </td>
-      </tr>
+          </td>
+          <td class="pl-1">
+            <div *ngFor="let img of row.images" class="pr-1 pb-1" style="display:inline-block; position:relative">
+              <img src="{{img.url192}}" (click)="thumbnailClick(row)">
+              <button (click)="deleteImage(img, row)" *ngIf="img.url192"
+                      class="btn btn-secondary close-button transparent">
+                <i class="fas fa-times"></i>
+              </button>
+              <button (click)="deleteImage(img, row)" *ngIf="img.url192" class="btn btn-link text-danger close-button">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div *ngIf="uploadImageError">
+              <span class="text-danger">{{uploadImageError}}</span>
+            </div>
+            <div class="app-limit-file">
+              <input type="file" (change)="onUploadImage($event, row)" />
+            </div>
+            <div>
+              <small class="text-warning">Image may take time to show</small>
+            </div>
+          </td>
+          <td>
+            <button class="btn btn-link" (click)="deleteRow(row)">Delete</button>
+          </td>
+        </tr>
 
-    </table>
-
+      </table>
+    </ng-container>
     <ng-container *ngIf="manageMode === manageModes.Common">
+      <ng-container *ngIf="showUniqueImages">
+        <div class="unique-images mb-2">
+          <div class="image-item" *ngFor="let item of uniqueImages()">
+            <img [src]="item" />
+            <div class="image-url">{{item}}</div>
+          </div>
+        </div>
+        <hr />
+      </ng-container>
       <div class="mb-2 mt-2 col">
         <q-pager #myPager1 [numberOfRows]="filteredMis.length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
       </div>
       <div class="row">
         <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-4" *ngFor="let item of paged()">
-          <div class="image-item">
+          <div class="menu-item">
             <div class="title">RT: {{item.rt.name}}</div>
             <div><a target="_blank" [routerLink]="'/restaurants/' + item.rt._id">{{item.rt._id}}</a></div>
             <div>{{item.menu.name}} > {{item.mc.name}} > {{item.mi.name}}</div>

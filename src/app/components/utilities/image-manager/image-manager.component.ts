@@ -85,6 +85,7 @@ export class ImageManagerComponent implements OnInit {
   miItem;
   menu: Menu;
   restaurant: Restaurant;
+  showUniqueImages = false;
 
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) { }
 
@@ -135,11 +136,22 @@ export class ImageManagerComponent implements OnInit {
         return Number(!!a.image) - Number(!!b.image)
       })
     }
+    this.showUniqueImages = kt === KeywordTypes.ItemName && !!kw;
   }
   paginate(index) {
     this.pageIndex = index;
     this.myPager1.currentPageNumber = index;
     this.myPager2.currentPageNumber = index;
+  }
+
+  uniqueImages() {
+    let data = new Set();
+    this.filteredMis.forEach(item => {
+      if (item.image) {
+        data.add(item.image.url)
+      }
+    })
+    return Array.from(data)
   }
 
   async getRtsWithMenuName() {
