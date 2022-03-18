@@ -145,13 +145,14 @@ export class ImageManagerComponent implements OnInit {
   }
 
   uniqueImages() {
-    let data = new Set();
+    let data = {} as {[key: string]: number};
     this.filteredMis.forEach(item => {
       if (item.image) {
-        data.add(item.image.url)
+        let {url} = item.image;
+        data[url] = (data[url] || 0) + 1
       }
     })
-    return Array.from(data)
+    return Object.entries(data).map(([url, frequency]) => ({url, frequency})).sort((a, b) => b.frequency - a.frequency);
   }
 
   async getRtsWithMenuName() {

@@ -117,8 +117,9 @@
       <ng-container *ngIf="showUniqueImages">
         <div class="unique-images mb-2">
           <div class="image-item" *ngFor="let item of uniqueImages()">
-            <img [src]="item" />
-            <div class="image-url">{{item}}</div>
+            <img [src]="item.url" />
+            <div class="image-url">{{item.url}}</div>
+            <div class="image-url"><strong>Frequency for searched: {{item.frequency}}</strong></div>
           </div>
         </div>
         <hr />
