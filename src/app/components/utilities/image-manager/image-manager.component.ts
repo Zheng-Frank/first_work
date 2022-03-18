@@ -86,6 +86,7 @@ export class ImageManagerComponent implements OnInit {
   menu: Menu;
   restaurant: Restaurant;
   showUniqueImages = false;
+  selectedImg = ''
 
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) { }
 
@@ -110,10 +111,27 @@ export class ImageManagerComponent implements OnInit {
     return Object.values(KeywordTypes);
   }
   paged() {
-    return this.filteredMis.slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize)
+    return this.visibleMis().slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize)
   }
+
+  visibleMis() {
+    if (this.selectedImg) {
+      return this.filteredMis.filter(x => x.image && x.image.url === this.selectedImg);
+    }
+    return this.filteredMis;
+  }
+
+  selectImg(url) {
+    if (this.selectedImg === url) {
+      this.selectedImg = '';
+    } else {
+      this.selectedImg = url;
+    }
+  }
+
   filterMi() {
-    let kw = this.keyword.trim(), kt = this.keywordType;
+    this.selectedImg = '';
+    let kw = this.keyword.trim(), kt = this.keywordType
     const match = str => (str || '').toLowerCase().includes(kw.toLowerCase());
     this.filteredMis = this.mis.filter(item => {
       let matched = (kt === KeywordTypes.ItemName && match(item.mi.name)) || (kt === KeywordTypes.ImageUrl && item.image && match(item.image.url));

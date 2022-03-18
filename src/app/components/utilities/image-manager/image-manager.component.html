@@ -116,8 +116,8 @@
     <ng-container *ngIf="manageMode === manageModes.Common">
       <ng-container *ngIf="showUniqueImages">
         <div class="unique-images mb-2">
-          <div class="image-item" *ngFor="let item of uniqueImages()">
-            <img [src]="item.url" />
+          <div class="image-item" [ngClass]="{'selected': selectedImg === item.url}" *ngFor="let item of uniqueImages()">
+            <img (click)="selectImg(item.url)" [src]="item.url" />
             <div class="image-url">{{item.url}}</div>
             <div class="image-url"><strong>Frequency for searched: {{item.frequency}}</strong></div>
           </div>
@@ -125,7 +125,7 @@
         <hr />
       </ng-container>
       <div class="mb-2 mt-2 col">
-        <q-pager #myPager1 [numberOfRows]="filteredMis.length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
+        <q-pager #myPager1 [numberOfRows]="visibleMis().length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
       </div>
       <div class="row">
         <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-4" *ngFor="let item of paged()">
