@@ -186,8 +186,10 @@ export class InvoicesAnualComponent implements OnInit {
         toDate: null
       };
     });
+    // Filter since only previous year needed
+    const previousYear = new Date().getFullYear() - 1;
     // console.log("this.invoices:"+JSON.stringify(this.invoices));
-    let anual_invoices=this.invoices.filter(i => i.fromDate.getFullYear() == this.statements[0].year && !i.isCanceled);
+    let anual_invoices = this.invoices.filter(i => i.fromDate.getFullYear() === previousYear && !i.isCanceled);
     // console.log("anual_invoices:"+JSON.stringify(anual_invoices));
     anual_invoices.forEach(invoice => {
       let valid_order = invoice.orders.filter(o => !o.canceled);
@@ -263,11 +265,13 @@ export class InvoicesAnualComponent implements OnInit {
       this.total.subtotal += invoice.subtotal;
       this.total.total += invoice.total;
     });
+    console.log(this.statements.map(s => s.year), anual_invoices)
     this.total.deliveryCharge = this.Cash.deliveryCharge + this.qmenuCollected.deliveryCharge + this.restaurantStripe.deliveryCharge
       + this.swipeInPerson.deliveryCharge + this.keyIn.deliveryCharge;
     // Compute
     this.statements.map((statementAcc, index) => {
       let countingInvoices = this.invoices.filter(i => i.fromDate.getFullYear() === statementAcc.year && !i.isCanceled);
+      console.log(statementAcc.year, countingInvoices)
       let balanceInvoices = this.filterBalanceInvoices(countingInvoices), paidInvoices = balanceInvoices.filter(i => i.isPaymentCompleted);
       // --- Assume all invoices during the year have the same restaurant, picks first invoice's rt info
       this.statements[index].restaurant.name = this.invoices[0].restaurant.name;
@@ -307,8 +311,6 @@ export class InvoicesAnualComponent implements OnInit {
 
     });
 
-    // Filter since only previous year needed
-    const previousYear = new Date().getFullYear() - 1;
     this.statements = this.statements.filter(statement => statement.year === previousYear);
   }
 

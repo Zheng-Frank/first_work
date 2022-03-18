@@ -49,6 +49,12 @@
     <a class="btn-link" (click)="openCustomize1099kModal()" *ngIf="taxYear">
       {{hasCustomOfThisYear(restaurant.form1099k || []) ? 'Edit Customizations' : 'Customize'}}
     </a>
+    <div>
+      <label class="form-check-label">
+        Skip auto invoicing
+        <input type="checkbox" [(ngModel)]="skipAutoInvoicing" (change)="updateSkipAutoInvoicing()" />
+      </label>
+    </div>
     <!-- end with customized btn -->
   </div>
   <!-- end with Payee/TIN/Email Attributes -->
@@ -65,7 +71,8 @@
               <i class="fa fa-download"></i></a>
             <a class="btn-link ml-2" (click)="renderPDFForm('restaurant',linkEntry)"> for Restaurant
               <i class="fa fa-download"></i></a>
-            <a class="btn-link ml-2" (click)="openSendEmailModal(linkEntry)">Send</a>
+            <a class="btn-link ml-2 {{!disableSendBtn() ? '': 'disabled'}}"
+              (click)="openSendEmailModal(linkEntry)">Send</a>
             <span *ngIf="linkEntry[0].sent" class="text-success">
               (Sent)
             </span>
@@ -80,11 +87,13 @@
           {{linkEntry[1]}} <span *ngIf="linkEntry[0].yearPeriodStart">(Customized Part
             {{getCustomizedNum(linkEntry[0])}})</span> - No Form Required for this year
         </ng-template>
+        <label for="">Refuse form</label>
+        <input type="checkbox" [(ngModel)]="linkEntry[0].refuseForm" (change)="onChangeRefuseform(linkEntry)">
       </li>
       <ng-template #elseBlock>
         <li>
           <a class="btn-link disabled" *ngIf="disbleCalBtn(linkEntry)">Calculate 1099K</a>
-          <a class="btn-link"  *ngIf="!disbleCalBtn(linkEntry)" (click)="calculateForm1099k(linkEntry)">Calculate
+          <a class="btn-link" *ngIf="!disbleCalBtn(linkEntry)" (click)="calculateForm1099k(linkEntry)">Calculate
             1099K</a>
         </li>
       </ng-template>

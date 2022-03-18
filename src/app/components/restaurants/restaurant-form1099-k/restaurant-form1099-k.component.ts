@@ -45,20 +45,68 @@ export class Form1099KComponent implements OnInit {
     '2021',
     '2020',
   ];
+  skipAutoInvoicing = false;
   taxYear = '';
   markSentFlag = false;// if it is true, the email won't actually be sent, it'll simply mark the status as "Sent" for that restaurant for that tax year.
   currForm;
   constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer, private _http: HttpClient) { }
 
   async ngOnInit() {
+    this.skipAutoInvoicing = this.restaurant.skipAutoInvoicing;
     $("[data-toggle='tooltip']").tooltip();
     this.populateFormLinks();
     this.populateEmails();
   }
 
   /*
-  Add ability to calculate, separate, and save separately, 
-  1099K info for a specific restaurant for different portions of the tax year 
+  Add a boolean "refuseForm" attribute to a 1099K form sub-object, 
+  and a "Refuse form" checkbox next to each 1099K generated which will be 
+  unchecked by default. If the "refuseForm" attribute for a given 1099K form 
+  sub-object is true, then it won't be included in the FIRE submission txt document.
+  */
+  async onChangeRefuseform(formLink) {
+    const [formEntry, year] = formLink;
+    let new1099kRecords = JSON.parse(JSON.stringify(this.restaurant.form1099k));
+    // current editing form will be add refuseForm attribute 
+    new1099kRecords.forEach(record => {
+      if (formEntry.yearPeriodStart) {
+        if (formEntry.yearPeriodStart === record.yearPeriodStart && formEntry.year === record.year) {
+          record.refuseForm = formEntry.refuseForm;
+        }
+      } else {
+        if (formEntry.year === record.year) {
+          record.refuseForm = formEntry.refuseForm;
+        }
+      }
+    });
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+      {
+        old: { _id: this.restaurant._id },
+        new: { _id: this.restaurant._id, form1099k: new1099kRecords }
+      }
+    ]).toPromise();
+    // update origin data
+    this.restaurant.form1099k = new1099kRecords;
+    this.populateFormLinks();
+    this._global.publishAlert(AlertType.Success, `refuseForm of 1099k marked!`);
+  }
+
+  // send button will be disabled when no invoice type emails
+  disableSendBtn() {
+    return this.emails.length === 0;
+  }
+
+  async updateSkipAutoInvoicing() {
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+      old: { _id: this.restaurant['_id'] },
+      new: { _id: this.restaurant['_id'], skipAutoInvoicing: this.skipAutoInvoicing }
+    }]).toPromise();
+    this.restaurant.skipAutoInvoicing = this.skipAutoInvoicing;
+  }
+
+  /*
+  Add ability to calculate, separate, and save separately,
+  1099K info for a specific restaurant for different portions of the tax year
   and generate multiple 1099Ks, from the 1099K dashboard.
   */
   openCustomize1099kModal() {
@@ -119,7 +167,7 @@ export class Form1099KComponent implements OnInit {
     return tinErr || payeeErr || dateErr || otherItemDateErr || noform1099kDataErr;
   }
 
-  // check error of every item of customizeList 
+  // check error of every item of customizeList
   hasCustomItemErr(i) {
     const item = this.customize1099kList[i];
     if (!item) {
@@ -154,7 +202,7 @@ export class Form1099KComponent implements OnInit {
       return dateErr;
     }
     // check this condition:
-    // fromTime of another item is smaller than this item but its index is behind  
+    // fromTime of another item is smaller than this item but its index is behind
     if (this.customize1099kList.some((another, index) => new Date(another.fromDate).valueOf() <= new Date(item.toDate).valueOf() && index > i)) {
       return otherItemDateErr;
     }
@@ -211,7 +259,7 @@ export class Form1099KComponent implements OnInit {
     return yearforms.findIndex(f => f.createdAt === form.createdAt) + 1;
   }
 
-  // calculate tool of customize 1099k 
+  // calculate tool of customize 1099k
   async calcTransactionByTime(fromDate, toDate, customizeItem) {
     if (!fromDate || !toDate) {
       return this._global.publishAlert(AlertType.Danger, "Please input a correct from time date format!");
@@ -270,12 +318,12 @@ export class Form1099KComponent implements OnInit {
            "yearPeriodEnd": "2021-12-31T00:00:00.000Z",
            "periodTin": "55-5555555",
            "periodPayeeName": "Dragon Fly Old Name",
-           "periodTinType": "EIN", 
+           "periodTinType": "EIN",
            "required": true,
            "createdAt": "2022-02-09T17:14:38.303Z",
            "total": 42454.75
        }
-        * 
+        *
         */
     let rt1099KData = {
       year: +this.taxYear,
@@ -551,10 +599,9 @@ export class Form1099KComponent implements OnInit {
   }
 
   allAttributesPresent() {
-    const emailExists = this.emails.length > 0;
     const payeeNameExists = (this.restaurant.payeeName || "").length > 0;
     const tinExists = (this.restaurant.tin || "").length > 0;
-    return emailExists && payeeNameExists && tinExists;
+    return payeeNameExists && tinExists;
   }
 
   async onEdit(event, field: string) {
@@ -566,7 +613,7 @@ export class Form1099KComponent implements OnInit {
       this.restaurant.payeeName = newObj['payeeName'] = event.newValue;
     }
     if (field === 'Email') {
-      /* we only allow user to submit email if one does not already exist. 
+      /* we only allow user to submit email if one does not already exist.
       to avoid possible confusion, will not allow users to edit existing channels from this component*/
       const newChannel = {
         type: 'Email',
@@ -756,9 +803,9 @@ export class Form1099KComponent implements OnInit {
 
     // Filer's TIN
     form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_8[0]`).setText('81-4208444');
-    // Payee's TIN    
+    // Payee's TIN
     form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_9[0]`).setText(this.currForm.yearPeriodStart ? this.currForm.periodTin : rt.rtTIN)
-    // Box 1a gross amount of payment card/third party network transactions 
+    // Box 1a gross amount of payment card/third party network transactions
     form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].f2_10[0]`).setText(this.currForm.total.toFixed(2));
     // Box 1b card not present transactions
     form.getTextField(`topmostSubform[0].CopyB[0].RightCol[0].Box1b_ReadOrder[0].f2_11[0]`).setText(this.currForm.total.toFixed(2));

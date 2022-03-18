@@ -1,14 +1,14 @@
-import {DomSanitizer} from '@angular/platform-browser';
-import {HttpClient} from '@angular/common/http';
-import {AlertType} from 'src/app/classes/alert-type';
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {ApiService} from '../../../services/api.service';
-import {environment} from '../../../../environments/environment';
-import {GlobalService} from '../../../services/global.service';
-import {PDFDocument} from 'pdf-lib';
-import {Hour, TimezoneHelper} from '@qmenu/ui';
-import {ModalComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
-import {form1099kEmailTemplate} from '../../restaurants/restaurant-form1099-k/html-email-templates';
+import { DomSanitizer } from '@angular/platform-browser';
+import { HttpClient } from '@angular/common/http';
+import { AlertType } from 'src/app/classes/alert-type';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ApiService } from '../../../services/api.service';
+import { environment } from '../../../../environments/environment';
+import { GlobalService } from '../../../services/global.service';
+import { PDFDocument } from 'pdf-lib';
+import { Hour, TimezoneHelper } from '@qmenu/ui';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { form1099kEmailTemplate } from '../../restaurants/restaurant-form1099-k/html-email-templates';
 import IRSHelper from './irs-fire-helper';
 
 
@@ -60,6 +60,12 @@ enum enumTinTypes {
   SSN = 'SSN'
 }
 
+enum refuseFormOptionTypes {
+  All = 'Refused?',
+  Refused = 'Refused',
+  Not_Refused = 'Not Refused'
+}
+
 @Component({
   selector: "app-1099k-dashboard",
   templateUrl: "./1099k-dashboard.component.html",
@@ -98,6 +104,9 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
 
   customizeOptions = [customizeOptionTypes.All, customizeOptionTypes.Custom, customizeOptionTypes.Regular];
   customizeOption = customizeOptionTypes.All;
+
+  refuseFormOptions = [refuseFormOptionTypes.All, refuseFormOptionTypes.Refused, refuseFormOptionTypes.Not_Refused];
+  refuseFormOption = refuseFormOptionTypes.All;
 
   bulkFileOperations = [bulkFileOperationTypes.Download, bulkFileOperationTypes.Send];
   bulkFileOperation = '';
@@ -147,6 +156,48 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     }, this.refreshDataInterval);
     await this.get1099KData();
     this.filterRows();
+  }
+
+  /*
+  Add a boolean "refuseForm" attribute to a 1099K form sub-object, 
+  and a "Refuse form" checkbox next to each 1099K generated which will be 
+  unchecked by default. If the "refuseForm" attribute for a given 1099K form 
+  sub-object is true, then it won't be included in the FIRE submission txt document.
+  */
+  async onChangeRefuseform(row, form) {
+    let new1099kRecords = JSON.parse(JSON.stringify(row.form1099k));
+    // current editing form will be add refuseForm attribute 
+    new1099kRecords.forEach(record => {
+      if (form.yearPeriodStart) {
+        if (form.yearPeriodStart === record.yearPeriodStart && form.year === record.year) {
+          record.refuseForm = form.refuseForm;
+        }
+      } else {
+        if (form.year === record.year) {
+          record.refuseForm = form.refuseForm;
+        }
+      }
+    });
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+      {
+        old: { _id: row.id },
+        new: { _id: row.id, form1099k: new1099kRecords}
+      }
+    ]).toPromise();
+    // update origin data
+    this.restaurants.forEach(rt => {
+      if (rt._id === row.id) {
+        rt.form1099k = new1099kRecords;
+      }
+    });
+    this._global.publishAlert(AlertType.Success, `refuseForm of 1099k marked for restaurant ${row.name}!`);
+    this.rows = this.restaurants.map(rt => this.turnRtObjectIntoRow(rt));
+    this.filterRows();
+  }
+  
+  // disable send button when the row has not emails
+  disableSendBtn(row){
+    return (row.email || []).length === 0;
   }
 
   // title of page has a number that should show all 1099k count instead of rt count
@@ -347,12 +398,12 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     try {
 
       const download = (content) => {
-        let blob = new Blob([content], {type: 'text/plain; charset=utf-8'});
+        let blob = new Blob([content], { type: 'text/plain; charset=utf-8' });
         let node = document.createElement('a');
         node.href = URL.createObjectURL(blob);
         let dt = new Date();
         let y = dt.getFullYear();
-        let M =  IRSHelper.pad(dt.getMonth() + 1, 2, true)
+        let M = IRSHelper.pad(dt.getMonth() + 1, 2, true)
         let d = IRSHelper.pad(dt.getDate(), 2, true)
         let h = IRSHelper.pad(dt.getHours(), 2, true)
         let m = IRSHelper.pad(dt.getMinutes(), 2, true)
@@ -1025,10 +1076,9 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   }
 
   allAttributesPresent(row) {
-    const emailExists = (row.email || []).length > 0;
     const payeeNameExists = (row.payeeName || "").length > 0;
     const tinExists = (row.rtTIN || "").length > 0;
-    return emailExists && payeeNameExists && tinExists;
+    return payeeNameExists && tinExists;
   }
 
   filterRows() {
@@ -1081,8 +1131,15 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     // customized form1099k or not in the year
     if (this.customizeOption === customizeOptionTypes.Custom) {
       this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && form.yearPeriodStart));
-    } else if (this.sentEmailOption === sentEmailOptionTypes.Form_Not_Sent) {
+    } else if (this.customizeOption === customizeOptionTypes.Regular) {
       this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && !form.yearPeriodStart));
+    }
+
+    // refuse form1099k or not in the year and the form won't appear in irs fire files if its refuseForm mark is true
+    if (this.refuseFormOption === refuseFormOptionTypes.Refused) {
+      this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && form.refuseForm));
+    } else if (this.refuseFormOption === refuseFormOptionTypes.Not_Refused) {
+      this.filteredRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && !form.refuseForm));
     }
 
     // search will match RT name, RT id, payee name, or email address

@@ -11,7 +11,7 @@ import { environment } from '../../../../environments/environment';
 import { AlertType } from '../../../classes/alert-type';
 import { MenuCleanupComponent } from '../menu-cleanup/menu-cleanup.component';
 import { ImageItem } from 'src/app/classes/image-item';
-import {PrunedPatchService} from '../../../services/prunedPatch.service';
+import { PrunedPatchService } from '../../../services/prunedPatch.service';
 
 
 @Component({
@@ -24,6 +24,7 @@ export class MenusComponent implements OnInit {
   @ViewChild('menuEditingModal') menuEditingModal: ModalComponent;
   @ViewChild('menuEditor') menuEditor: MenuEditorComponent;
   @ViewChild('menuCleanModal') menuCleanModal: ModalComponent;
+  @ViewChild('injectImagesModal') injectImagesModal: ModalComponent;
   @ViewChild('cleanupComponent') cleanupComponent: MenuCleanupComponent;
 
   @Input() restaurant: Restaurant;
@@ -55,6 +56,9 @@ export class MenusComponent implements OnInit {
   menuCleanHandleIDsOnly = false;
   menuJson = '';
   isShowMenuItemStats = false;
+  menuNames = [];
+  allMenuName = 'ALL MENUS';
+  menuName;
 
   constructor(private _api: ApiService, private _prunedPatch: PrunedPatchService, private _global: GlobalService) {
   }
@@ -155,8 +159,8 @@ export class MenusComponent implements OnInit {
     });
     try {
       await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {_id: this.restaurant['_id']},
-        new: {_id: this.restaurant['_id'], menus: newMenus}
+        old: { _id: this.restaurant['_id'] },
+        new: { _id: this.restaurant['_id'], menus: newMenus }
       }]).toPromise();
       this._global.publishAlert(AlertType.Success, 'Success!');
       this.restaurant.menus = newMenus.map(menu => new Menu(menu));
@@ -325,8 +329,8 @@ export class MenusComponent implements OnInit {
   async cleanupSave({ menus, translations }: any) {
     try {
       await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {_id: this.restaurant['_id']},
-        new: {_id: this.restaurant['_id'], menus, translations}
+        old: { _id: this.restaurant['_id'] },
+        new: { _id: this.restaurant['_id'], menus, translations }
       }]).toPromise();
       this._global.publishAlert(AlertType.Success, 'Success!');
       // @ts-ignore
@@ -342,8 +346,8 @@ export class MenusComponent implements OnInit {
   async sortMenus(sortedMenus) {
     try {
       await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {_id: this.restaurant['_id']},
-        new: {_id: this.restaurant['_id'], menus: sortedMenus}
+        old: { _id: this.restaurant['_id'] },
+        new: { _id: this.restaurant['_id'], menus: sortedMenus }
       }]).toPromise();
       this.restaurant.menus = sortedMenus;
       this._global.publishAlert(AlertType.Success, 'Success!');
@@ -394,8 +398,8 @@ export class MenusComponent implements OnInit {
     myNewMenus.push(new Menu(testMenu as any));
     try {
       await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {_id: this.restaurant['_id']},
-        new: {_id: this.restaurant['_id'], menus: myNewMenus}
+        old: { _id: this.restaurant['_id'] },
+        new: { _id: this.restaurant['_id'], menus: myNewMenus }
       }]).toPromise();
       this._global.publishAlert(AlertType.Success, 'Success!');
       this.restaurant.menus.push(new Menu(testMenu as any));
@@ -445,8 +449,8 @@ export class MenusComponent implements OnInit {
     });
     try {
       await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {_id: this.restaurant['_id']},
-        new: {_id: this.restaurant['_id'], menus: newMenus}
+        old: { _id: this.restaurant['_id'] },
+        new: { _id: this.restaurant['_id'], menus: newMenus }
       }]).toPromise();
       this.restaurant.menus = newMenus.map(each => new Menu(each));
       this._global.publishAlert(AlertType.Success, 'Success!');
@@ -648,6 +652,13 @@ export class MenusComponent implements OnInit {
     this.onVisitMenuOptions.emit();
   }
 
+  openInjectImagesModal() {
+    this.menuNames = (this.restaurant.menus || []).map(menu => menu.name);
+    this.menuNames.unshift(this.allMenuName);
+    this.menuName = this.menuNames[0];
+    this.injectImagesModal.show();
+  }
+
   async injectImages() {
     let totalMatched = 0;
     const images: ImageItem[] = await this._api.get(environment.qmenuApiUrl + 'generic', {
@@ -657,36 +668,40 @@ export class MenusComponent implements OnInit {
 
     const oldMenus = this.restaurant.menus || [];
     const newMenus = JSON.parse(JSON.stringify(oldMenus));
-    newMenus.map(menu => (menu.mcs || []).map(mc => (mc.mis || []).map(mi => {
-      /* the following is obsolete:
-          Image origin: "CSR", "RESTAURANT", "IMAGE-PICKER"
-          only inject image when no existing image with origin as "CSR", "RESTAURANT", or overwrite images with origin as "IMAGE-PICKER"
-      */
-      try {
-        // only inject if there is NO image
-        if (mi && !mi.SkipImageInjection && (!mi.imageObjs || mi.imageObjs.length === 0)) {// !(mi.imageObjs.some(each => each.origin === 'CSR' || each.origin === 'RESTAURANT'))) {
-          // 9/29/2021 use newer algorithm
-          const matchingAlias = images.find(i => i.images && i.images.length > 0 && i.aliases.some(a => ImageItem.areAliasesSame(a, mi.name)));
-          if (matchingAlias) {
-            totalMatched++;
-            mi.imageObjs = matchingAlias.images.map(each => ({
-              originalUrl: each.url,
-              thumbnailUrl: each.url192,
-              normalUrl: each.url768,
-              origin: 'IMAGE-PICKER'
-            }));
+    newMenus.map(menu => {
+      if (this.menuName === this.allMenuName || this.menuName === menu.name) {
+        (menu.mcs || []).map(mc => (mc.mis || []).map(mi => {
+          /* the following is obsolete:
+              Image origin: "CSR", "RESTAURANT", "IMAGE-PICKER"
+              only inject image when no existing image with origin as "CSR", "RESTAURANT", or overwrite images with origin as "IMAGE-PICKER"
+          */
+          try {
+            // only inject if there is NO image
+            if (mi && !mi.SkipImageInjection && (!mi.imageObjs || mi.imageObjs.length === 0)) {// !(mi.imageObjs.some(each => each.origin === 'CSR' || each.origin === 'RESTAURANT'))) {
+              // 9/29/2021 use newer algorithm
+              const matchingAlias = images.find(i => i.images && i.images.length > 0 && i.aliases.some(a => ImageItem.areAliasesSame(a, mi.name)));
+              if (matchingAlias) {
+                totalMatched++;
+                mi.imageObjs = matchingAlias.images.map(each => ({
+                  originalUrl: each.url,
+                  thumbnailUrl: each.url192,
+                  normalUrl: each.url768,
+                  origin: 'IMAGE-PICKER'
+                }));
+              }
+            }
+          } catch (e) {
+            console.log('mi', JSON.stringify(mi));
           }
-        }
-      } catch (e) {
-        console.log('mi', JSON.stringify(mi));
+        }))
       }
-    })));
+    });
 
     if (totalMatched > 0) {
       try {
         await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-          old: {_id: this.restaurant['_id']},
-          new: {_id: this.restaurant['_id'], menus: newMenus}
+          old: { _id: this.restaurant['_id'] },
+          new: { _id: this.restaurant['_id'], menus: newMenus }
         }]).toPromise();
         const menus = JSON.parse(JSON.stringify(newMenus));
         this.restaurant.menus = menus.map(x => new Menu(x));
@@ -698,6 +713,7 @@ export class MenusComponent implements OnInit {
     } else {
       this._global.publishAlert(AlertType.Info, `No update because ${totalMatched} matched!`);
     }
+    this.injectImagesModal.hide();
   }
 
   async deleteImages() {
@@ -722,8 +738,8 @@ export class MenusComponent implements OnInit {
     // now let's patch!
     try {
       await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {_id: this.restaurant['_id']},
-        new: {_id: this.restaurant['_id'], menus: newMenus}
+        old: { _id: this.restaurant['_id'] },
+        new: { _id: this.restaurant['_id'], menus: newMenus }
       }]).toPromise();
       this.restaurant.menus = newMenus.map(each => new Menu(each));
       this._global.publishAlert(AlertType.Success, 'Success!');

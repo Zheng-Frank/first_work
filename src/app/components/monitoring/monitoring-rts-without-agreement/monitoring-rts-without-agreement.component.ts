@@ -37,7 +37,12 @@ enum HasAttachmentModes {
 }
 
 const alphabet = (a, b) => (a || '').localeCompare(b || '');
-const bool_numeric = (a, b) => Number(!!a) - Number(!!b);
+const array_sort = (a, b) => {
+  if (a && b) {
+    return a.length - b.length;
+  }
+  return Number(!!a) - Number(!!b);
+};
 
 @Component({
   selector: 'app-monitoring-rts-without-agreement',
@@ -64,10 +69,17 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
       paths: ['createdAt'],
       sort: (a, b) => new Date(a || 0).valueOf() - new Date(b || 0).valueOf()
     },
-    { label: 'GMB ownership', paths: ['gmbOwner'], sort: alphabet },
-    { label: 'Agreement', paths: ['agreementSent'], sort: bool_numeric },
-    { label: 'Other attch.', paths: ['otherAttachments'], sort: bool_numeric },
-    { label: 'Logs', paths: ['logs'], sort: bool_numeric }
+    {label: 'GMB ownership', paths: ['gmbOwner'], sort: alphabet},
+    {
+      label: 'Agreement', sort: (a, b) => {
+        if (a.sent && b.sent) {
+          return a.agreementSentAt.valueOf() - b.agreementSentAt.valueOf()
+        }
+        return Number(!!a.sent) - Number(!!b.sent);
+      }
+    },
+    {label: 'Other attch.', paths: ['otherAttachments'], sort: array_sort},
+    {label: 'Logs', paths: ['logs'], sort: array_sort}
   ];
   filters = {
     createdAfter: '',

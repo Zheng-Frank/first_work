@@ -320,21 +320,20 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   getTier(score) {
-    if (!score) {
-      return 0;
-    }
     // 30.2: avg days per month, 0.7: discount factor
-    let value = score * 30.2 * 0.7;
-
+    let value = (score || 0) * 30.2 * 0.7;
     if (value > 40) {
       return 1;
     }
     if (value > 4) {
       return 2;
     }
-    if (value > 0) {
+    // count 0 to tier 3
+    if (value >= 0) {
       return 3;
     }
+    // data incorrect!!!, log it out.
+    console.log('score ', score)
     return 0;
   }
 
