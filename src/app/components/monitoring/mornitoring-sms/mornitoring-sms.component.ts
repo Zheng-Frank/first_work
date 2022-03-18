@@ -173,54 +173,67 @@ export class MornitoringSmsComponent implements OnInit {
         {
           $match: {
             'name': 'sms-status',
-            $or: [
+              'params.body.type': { // bandwidth
+                $eq: ['$params.body.type', 'message-failed']
+              }
+            ,
+            // $or: [
+            //   {
+            //     'params.body.Status': { // plivo
+            //       $eq: ['$params.body.Status', 'undelivered']
+            //     }
+            //   },
+            //   {
+            //     'params.body.type': { // bandwidth
+            //       $eq: ['$params.body.type', 'message-failed']
+            //     }
+            //   },
+            //   {
+            //     'params.body.MessageStatus': { // twilio
+            //       $eq: ['$params.body.type', 'undelivered']
+            //     }
+            //   },
+            //   // { // other
+            //   //   $and: [
+            //   //     {
+            //   //       'params.body.Status': { // plivo
+            //   //         $ne: ['$params.body.Status', 'delivered']
+            //   //       }
+            //   //     },
+            //   //     {
+            //   //       'params.body.type': { // bandwidth
+            //   //         $ne: ['$params.body.type', 'message-received']
+            //   //       }
+            //   //     },
+            //   //     {
+            //   //       'params.body.MessageStatus': { // twilio
+            //   //         $ne: ['$params.body.type', 'delivered']
+            //   //       }
+            //   //     }
+            //   //   ]
+            //   // }
+            // ],
+            $and: [
               {
-                'params.body.Status': { // plivo
-                  $eq: ['$params.body.Status', 'undelivered']
-                }
+                'createdAt': { $gt: new Date().valueOf() - 90 * 24 * 3600000 }
               },
               {
-                'params.body.type': { // bandwidth
-                  $eq: ['$params.body.type', 'message-failed']
-                }
-              },
-              {
-                'params.body.MessageStatus': { // twilio
-                  $eq: ['$params.body.type', 'undelivered']
-                }
-              },
-              // { // other
-              //   $and: [
-              //     {
-              //       'params.body.Status': { // plivo
-              //         $ne: ['$params.body.Status', 'delivered']
-              //       }
-              //     },
-              //     {
-              //       'params.body.type': { // bandwidth
-              //         $ne: ['$params.body.type', 'message-received']
-              //       }
-              //     },
-              //     {
-              //       'params.body.MessageStatus': { // twilio
-              //         $ne: ['$params.body.type', 'delivered']
-              //       }
-              //     }
-              //   ]
-              // }
-            ],
-            'createdAt': { $gt: new Date().valueOf() - 5 * 24 * 3600000 }
+                'createdAt': { $lt: new Date().valueOf() - 1 * 24 * 3600000 }
+              }
+            ]
           }
         },
         {
           $project: {
-            body: '$params.body',
+            // body: '$params.body',
             providerName: '$params.providerName',
             createdAt: 1
           }
+        },
+        {
+          $limit: 30000
         }
       ],
-      limit: 30000
     }).toPromise();
     const providerMap = {
       [providerTypes.Twilio]: 'twilio',
