@@ -34,7 +34,7 @@ export class RestaurantMsgLogsComponent implements OnInit {
     this.query();
   }
 
-  get msgViewOptionTypes(){
+  get msgViewOptionTypes() {
     return msgViewOptionTypes;
   }
 
@@ -64,10 +64,11 @@ export class RestaurantMsgLogsComponent implements OnInit {
   }
 
   async query() {
+    const qmenuGMBPhone = '8557592648';
     let { channels } = this.restaurant;
     let phones = channels.filter(({ type }) => type === 'SMS').map(({ value }) => value);
     let emails = channels.filter(({ type }) => type === 'Email').map(({ value }) => value);
-    // Inbound
+    // Outbound
     const jobs = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "job",
       aggregate: [
@@ -83,37 +84,79 @@ export class RestaurantMsgLogsComponent implements OnInit {
       ],
       limit: 100000
     }).toPromise();
-    // Outbound
-    const SMSes = await this._api.get(environment.qmenuApiUrl + "generic", {
-      resource: "sms",
+    // Inbound
+    //Retrieve Google PIn which got from SMS reply
+    let googlePins = [];
+    const googlePinEvents = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'event',
       aggregate: [
         {
           $match: {
-            $or: [
-              {
-                '$from': { $in: phones }
-              }
-            ]
+            "name": "google-pin",
+            "params.body.From": { $in: phones.map(phone => `1${phone}`) },
+            "params.body.To": `1${qmenuGMBPhone}` // Us phone number starts with 1
+          }
+        },
+        {
+          $project: {
+            _id: 1,
+            "params.body.From": 1,
+            "params.body.To": 1,
+            "params.body.Text": 1,
+            logs: { $slice: ["$logs", -1] },
+            createdAt: 1
           }
         },
         { $sort: { _id: -1 } }
       ],
       limit: 100000
     }).toPromise();
+    //Populatge Google PIN from rt logs with google-pin type
+    (this.restaurant.logs || []).map(eachLog => {
+      if (eachLog.type === 'google-pin') {
+        let pin = eachLog.response || eachLog.response.trim() || '';
+        let item = {
+          from: 'Call Log',
+          to: qmenuGMBPhone,
+          text: eachLog.response,
+          time: new Date(eachLog.time),
+          logs: ['triggered']
+        };
+        if (pin.startsWith('[biz]')) {
+          item.text = pin.replace('[biz]', '');
+          item.from = 'Customer Input';
+        }
+        googlePins.push(item);
+      }
+    });
+    //Populatge Google PIN from SMS reply
+    googlePins = googlePins.concat(googlePinEvents.map(each => {
+      return {
+        id: each['_id'],
+        from: (each.params.body.From || "").length == 11 ? each.params.body.From.toString().substring(1) : each.params.body.From,
+        to: (each.params.body.To || "").length == 11 ? each.params.body.To.toString().substring(1) : each.params.body.To,
+        text: (each.params.body.Text || "").replace(/\+/g, ' ').trim(),
+        time: new Date(each.createdAt),
+        logs: each.logs || []
+      }
+    }));
     this.messages = [...new Set((jobs || []).map(job => ({
       type: msgViewOptionTypes.Outbound,
       content: job
-    }))), ...new Set((SMSes || []).map(SMS => ({
+    }))), ...new Set((googlePins || []).map(googlePin => ({
       type: msgViewOptionTypes.Inbound,
       content: {
+        name: 'reply-sms',
         params: {
-          from: SMS.from,
-          to: SMS.to,
-          message: (SMS.row || {}).Body || (SMS.text || ''),
-        }
+          from: googlePin.from,
+          to: googlePin.to,
+          message: googlePin.text,
+        },
+        createdAt: googlePin.time,
+        logs: googlePin.logs
       }
     })))];
-    this.messages = jobs;
+    this.filterMsg();
   }
 
   filterMsg() {

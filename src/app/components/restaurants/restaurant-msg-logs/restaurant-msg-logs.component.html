@@ -38,6 +38,9 @@
               <a class="text-nowrap btn-link" (click)="showEmailPreview(msg.content)">Preview</a>
             </div>
           </ng-container>
+          <ng-container *ngIf="msg.content.name === 'reply-sms'">
+            {{msg.content.params.message}}
+          </ng-container>
         </td>
         <td class="text-nowrap">
           {{msg.content.createdAt | dateTz: 'shortDate': restaurant?.googleAddress?.timezone }}
