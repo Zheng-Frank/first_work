@@ -44,6 +44,16 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
       sort: (a, b) => a - b
     },
     {
+      label: 'Avg Commission(overall)',
+      paths: ['avgAll'],
+      sort: (a, b) => a - b
+    },
+    {
+      label: 'Avg Commission(last 3 months)',
+      paths: ['avg3M'],
+      sort: (a, b) => a - b
+    },
+    {
       label: "Timezone (as Offset to EST)",
       paths: ['googleAddress', 'timezone'],
       sort: (a, b) => Number(this.getTimeOffsetByTimezone(a)) - Number(this.getTimeOffsetByTimezone(b))
@@ -158,37 +168,61 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
     const avgAll = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'invoice',
       aggregate: [
-        {$group: {_id: {restaurantId: '$restaurant.id'}, avgCommission: {$avg: '$commission'}}},
-        {$match: {avgCommission: {$gte: 150}}},
-        {$project: {rt: "$_id.restaurantId", _id: 0}}
-      ]
-    }).toPromise();
-    const avgLast3Months = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'invoice',
-      aggregate: [
         {
-          $match: {
-            createdAt: {
-              $gte: {$date: new Date(new Date().valueOf() - 3 * 30 * 24 * 3600 * 1000)}
+          $project: {
+            'rtId': '$restaurant.id',
+            commission: {
+              $cond: {
+                if: { $gt: ['$commission', 0] }, then: '$commission', else: {$add: ['$commission', {$ifNull: ['$feesForQmenu', 0]}]}
+              }
+            },
+            createdAt: 1
+          }
+        },
+        {
+          $group: {
+            _id: {rtId: '$rtId'},
+            avgAll: {$avg: '$commission'},
+            invs: {
+              $push: {
+                commission: '$commission',
+                createdAt: '$createdAt'
+              }
             }
           }
         },
-        {$group: {_id: {restaurantId: '$restaurant.id'}, avgCommission: {$avg: '$commission'}}},
-        {$match: {avgCommission: {$gte: 150}}},
-        {$project: {rt: "$_id.restaurantId", _id: 0}}
+        {
+          $project: {
+            rtId: '$_id.rtId', _id: 0,
+            avgAll: 1,
+            avg3M: {
+              $avg: {
+                $map: {
+                  input: {
+                    $filter: {
+                      input: '$invs',
+                      as: 'inv',
+                      cond: {
+                        $gte: ['$$inv.createdAt', {$dateFromString: {dateString: new Date(new Date().valueOf() - 3 * 30 * 24 * 3600 * 1000)}} ]
+                      }
+                    }
+                  },
+                  as: 'item',
+                  in: '$$item.commission'
+                }
+              }
+            },
+          }
+        },
+        {$match: {$or: [{avgAll: {$gte: 150}}, {avg3M: {$gte: 150}}]}}
       ]
     }).toPromise();
-    const rts = new Set([...avgAll.map(x => x.rt), ...avgLast3Months.map(x => x.rt)]);
+    const dict = {};
+    avgAll.forEach(x => dict[x.rtId] = x)
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       aggregate: [
-        {
-          $match: {
-            disabled: {
-              $ne: true
-            }
-          }
-        },
+        {$match: {disabled: {$ne: true}}},
         {
           $project: {
             _id: 1,
@@ -206,16 +240,16 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
             }
           }
         }
-      ],
-      limit: 20000
+      ]
     }).toPromise();
-    this.vipRTs = restaurants.filter(restaurant => rts.has(restaurant._id)).map(r => {
-      let { logs } = r;
+    this.vipRTs = restaurants.filter(({_id}) => !!dict[_id]).map(r => {
+      let { logs, _id } = r;
       if (logs && logs.length > 0) {
         logs.sort((l1, l2) => new Date(l2.time).valueOf() - new Date(l1.time).valueOf());
         r.lastFollowUp = new Date(logs[0].time);
       }
-      return r;
+      let commissions = dict[_id];
+      return {...r, ...commissions};
     });
     this.filterFollowUp();
   }

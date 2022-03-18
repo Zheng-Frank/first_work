@@ -34,10 +34,12 @@
       <tr *tableRowTemplate="let r;">
         <td>{{filterVipRTs.indexOf(r) + 1}}</td>
         <td>
-          <a routerLink="/restaurants/{{r['_id']}}">{{r.name}} </a><br>
+          <a target="_blank" routerLink="/restaurants/{{r['_id']}}">{{r.name}} </a><br>
           <span>{{r._id}}</span>
         </td>
         <td>{{r.score}}</td>
+        <td>{{r.avgAll | money}}</td>
+        <td>{{r.avg3M | money}}</td>
         <td>
           <ng-container *ngIf="r?.googleAddress && r?.googleAddress?.timezone;else elseBlock;">
             {{getTimezoneCity(r.googleAddress.timezone)}}
