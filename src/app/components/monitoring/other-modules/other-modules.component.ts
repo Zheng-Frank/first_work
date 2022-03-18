@@ -25,7 +25,8 @@ export class OtherModulesComponent implements OnInit {
       { name: 'Dine-In Orders', route: 'dine-in-orders', authRoles: ['CSR', 'CSR_MANAGER'] },
       { name: 'Form 1099K Dashboard', route: '1099k-dashboard', authRoles: ['CSR', 'CSR_MANAGER'] },
       { name: 'RTs Service Agreement', route: 'rts-without-agreement', authRoles: ['CSR'] },
-      { name: 'QM BM SST', route: 'qm-bm-sst', authRoles: ['SST_USER'] }
+      { name: 'QM BM SST', route: 'qm-bm-sst', authRoles: ['SST_USER'] },
+      { name: 'SMS Problems', route: 'sms-problems', authRoles: ['CSR', 'CSR_MANAGER'] },
     ],
     Developers: [
       { name: 'Json Schemas', route: 'schemas', authRoles: ['DEVELOPER'] },

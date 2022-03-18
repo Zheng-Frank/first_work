@@ -1,0 +1,69 @@
+<div class="card">
+  <h2 class="card-title m-3">
+    <h1 class="text-center">SMS Problems ({{filterRows.length}})</h1>
+  </h2>
+  <div class="card-body">
+    <div class="form-inline">
+      <!-- start with to filter -->
+      <select class="form-control my-2 mx-2" [(ngModel)]="toOption" (change)="filterRows()">
+        <option *ngFor="let option of toOptions"> {{option}} </option>
+      </select>
+      <!-- end with to filter -->
+      <!-- start with search input -->
+      <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control my-2 mx-2 search-input"
+        placeholder="RT name or ID, RT owner name, email, etc." [(ngModel)]="searchFilter">
+      <!-- end with search input -->
+      <!-- start with provider -->
+      <select class="form-control my-2 mx-2" [(ngModel)]="providerOption" (change)="filterRows()">
+        <option *ngFor="let option of providerOptions"> {{option}} </option>
+      </select>
+      <!-- end with provider -->
+      <!-- start with happened -->
+      <select class="form-control my-2 mx-2" [(ngModel)]="happenedOption" (change)="filterRows()">
+        <option *ngFor="let option of happenedOptions"> {{option}} </option>
+      </select>
+      <!-- end with happened -->
+    </div>
+    <div class="form-inline mx-5 my-3" *ngIf="happenedOption === happenedTypes.Custom_Range">
+      <!-- start with custom date -->
+      <label class="ml-2">From:</label>
+      <input class="form-control ml-1" type="date" [(ngModel)]="fromDate">
+      <label class="ml-2">To:</label>
+      <input class="form-control ml-1" type="date" [(ngModel)]="toDate">
+      <button class="btn btn-primary ml-2" (click)="populateSMSProblemsByTime()"></button>
+      <!-- end with custom date -->
+    </div>
+
+    <q-table [rows]="filterRows" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true">
+      <tr *tableRowTemplate="let row;" class="{{!row.succeededOnce ? 'text-danger' : ''}}">
+        <td>
+          <a target="_blank" href="#/restaurants/{{row.restaurant?._id}}">{{row.restaurant?.name}}</a>
+          <div><small>{{row.restaurant?._id}}</small></div>
+        </td>
+        <td>
+          <ng-container
+            *ngIf="row.restaurant?.googleAddress && row.restaurant?.googleAddress?.timezone;else elseBlock;">
+            {{getTimezoneCity(row.restaurant.googleAddress.timezone)}}
+            ({{getTimeOffsetByTimezone(row.restaurant.googleAddress.timezone)}})
+          </ng-container>
+          <ng-template #elseBlock>
+            N/A
+          </ng-template>
+        </td>
+        <td>
+          {{row.phone}}
+        </td>
+        <td>
+          {{ getErrorsCount(row)}}
+        </td>
+        <td>
+          <div *ngFor="let error of row.errorList">
+            {{error}}
+
+          </div>
+        </td>
+        <td>{{row.succeededOnce}}</td>
+      </tr>
+    </q-table>
+  </div>
+</div>
