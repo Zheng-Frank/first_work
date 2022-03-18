@@ -147,12 +147,12 @@ export class MyRestaurantComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) {
   }
 
-  /** 
+  /**
    * 1. Gary, Chris, Mo, Dixon,: Can see ALL info on Me page for ALL people,.
      2. Each person can see ALL info about THEMSELVES
      3. ADMIN, CSR_MANAGER can see ALL NON-DOLLAR info about ALL people
     4. MARKETER_MANAGER can see ALL info about people who they supervised.
-   * 
+   *
   */
   canSeeMoneySection() {
     if (this.username === this._global.user.username || this.isSuperUser() || (this.isMarketerManagerWithTeam() && this.teamUsers.includes(this.username))) {
@@ -714,82 +714,41 @@ export class MyRestaurantComponent implements OnInit {
 
   }
 
-  // use commission for 1 month delay
-  // case 1. 2020-01-01 ~ 2020-03-04, rate 1, 2020-03-06 ~ , rate 2
-  // 02~03 by rate 1, 04 by rate 2
-  // case 2. 2020-01-01 ~ 2020-01-20, rate 1, 2020-01-30 ~ , rate 2
-  // 02~ by rate 2 (use the latest in same month), rate 1 skipped
-  // case 3. 2020-01-01 ~ , user 1, rate 1, 2020-05-06 ~, user 2, rate 2
-  // 02~05 use rate 1 for user 1, 06 ~ use rate 2 for user 2
   getCommissionPeriods(feeSchedules, rateSchedules, timezone) {
     // periods: { '2020-01': { commission: 1, timestamp: xxx } }
     let periods = this.commissionByRateSchedules(rateSchedules, timezone);
     if (feeSchedules && feeSchedules.length) {
       periods = this.commissionByFeeSchedules(feeSchedules, timezone);
     }
-    // @ts-ignore
-    return Object.entries(periods).map(([key, { commission }]) => ({ period: key, commission }))
-      .sort((a, b) => new Date(b.period).valueOf() - new Date(a.period).valueOf())
+    let limit;
+    periods.sort((a, b) => b.start.valueOf() - a.start.valueOf()).forEach(x => {
+      if (limit && !x.end) {
+        limit.setDate(limit.getDate() - 1);
+        x.end = limit
+      }
+      limit = new Date(x.start)
+    })
+    return periods;
   }
 
   commissionByFeeSchedules(schedules, timezone) {
-    let dict = {};
-    schedules.filter(x => x.chargeBasis.toLowerCase() === 'commission').forEach(({ fromTime, toTime, rate, payee }) => {
-      let commission = (payee === this.username ? rate : 0) || 0;
-      let temp = TimezoneHelper.getTimezoneDateFromBrowserDate(fromTime, timezone);
-      temp.setDate(1);
-      temp.setHours(0, 0, 0, 0);
-      temp.setMonth(temp.getMonth() + 1);
-      let key = `${temp.getFullYear()}-${Helper.padNumber(temp.getMonth() + 1)}`;
-      let start = TimezoneHelper.getTimezoneDateFromBrowserDate(fromTime, timezone);
-      if (dict[key]) {
-        let { timestamp } = dict[key];
-        if (timestamp <= start.valueOf()) {
-          dict[key] = { timestamp: start.valueOf(), commission }
+    return schedules.filter(x => x.chargeBasis.toLowerCase() === 'commission')
+      .map(({fromTime, toTime, rate, payee}) => {
+        return {
+          start: TimezoneHelper.getTimezoneDateFromBrowserDate(fromTime, timezone),
+          commission: (this.username === payee ? rate : 0) || 0,
+          end: toTime ? TimezoneHelper.getTimezoneDateFromBrowserDate(toTime, timezone) : undefined
         }
-      } else {
-        dict[key] = { timestamp: start.valueOf(), commission }
-      }
-      if (toTime) {
-        let end = TimezoneHelper.getTimezoneDateFromBrowserDate(toTime, timezone);
-        while (temp.valueOf() < end.valueOf()) {
-          temp.setMonth(temp.getMonth() + 1);
-          key = `${temp.getFullYear()}-${Helper.padNumber(temp.getMonth() + 1)}`;
-          if (dict[key]) {
-            let { timestamp } = dict[key];
-            if (timestamp <= end.valueOf()) {
-              dict[key] = { timestamp: end.valueOf(), commission }
-            }
-          } else {
-            dict[key] = { timestamp: end.valueOf(), commission }
-          }
-        }
-      }
-    })
-    return dict;
+      })
   }
 
   commissionByRateSchedules(schedules, timezone) {
     // should exclude non-agent's schedule
-    let dict = {}, nonAgents = ['none', 'auto', 'AUTO', 'random_name', 'qmenu', 'invalid', 'no-gmb'];
-    schedules.filter(x => x.agent && !nonAgents.includes(x.agent)).forEach(({ date, agent, commission }) => {
-      commission = (agent === this.username ? commission : 0) || 0;
-      let temp = TimezoneHelper.parse(date, timezone);
-      temp.setDate(1);
-      temp.setHours(0, 0, 0, 0);
-      temp.setMonth(temp.getMonth() + 1);
-      let key = `${temp.getFullYear()}-${Helper.padNumber(temp.getMonth() + 1)}`;
-      let start = TimezoneHelper.parse(date, timezone);
-      if (dict[key]) {
-        let { timestamp } = dict[key];
-        if (timestamp <= start.valueOf()) {
-          dict[key] = { timestamp: start.valueOf(), commission }
-        }
-      } else {
-        dict[key] = { timestamp: start.valueOf(), commission }
-      }
-    });
-    return dict;
+    let nonAgents = ['none', 'auto', 'AUTO', 'random_name', 'qmenu', 'invalid', 'no-gmb'];
+    return schedules.filter(x => x.agent && !nonAgents.includes(x.agent))
+      .map(({date, agent, commission}) => ({
+        start: TimezoneHelper.parse(date, timezone), commission: (agent === this.username ? commission : 0) || 0
+      }));
   }
 
   calculateRowCommission(row) {
@@ -807,7 +766,8 @@ export class MyRestaurantComponent implements OnInit {
       let invoiceCommission = invoice.commission > 0 ? invoice.commission : invoice.commission + invoice.feesForQmenu;
       let temp = invoiceCommission - commissionAdjustment;
       let period = periods.find(p => {
-        return Helper.getTimezoneDate('start', timezone, `${p.period}-01`).valueOf() <= invoice.fromDate.valueOf();
+        let fromDate = invoice.fromDate.valueOf();
+        return fromDate >= p.start.valueOf() && (!p.end || fromDate <= p.end.valueOf())
       });
       if (period) {
         let { commission } = period;
