@@ -29,7 +29,7 @@
       <button type="button" class="btn btn-link" (click)="toggleShowAdvancedSearch()">
         {{ showAdvancedSearch?'Hide advanced search..':'Show advanced search..'}}</button>
     </div>
-    <div class="form-inline mx-5 my-3" *ngIf="showAdvancedSearch">
+    <div class="form-inline mx-2" *ngIf="showAdvancedSearch">
       <!-- start with happened -->
       <select class="form-control my-2 mx-2" [(ngModel)]="happenedOption">
         <option *ngFor="let option of happenedOptions"> {{option}} </option>
@@ -42,7 +42,7 @@
         <label class="ml-2">To:</label>
         <input class="form-control ml-1" type="date" [(ngModel)]="toDate">
       </ng-container>
-      <button class="btn btn-primary ml-2" (click)="populateSMSProblems()"></button>
+      <button class="btn btn-primary ml-2" (click)="populateSMSProblems()">Search</button>
       <!-- end with custom date -->
     </div>
 
