@@ -13,8 +13,7 @@ enum providerTypes {
   All = 'Provider?',
   Twilio = 'Twilio',
   Plivo = 'Plivo',
-  Bandwidth = 'Bandwidth',
-  Other = 'Other/Unknown'
+  Bandwidth = 'Bandwidth'
 }
 
 enum happenedTypes {
@@ -58,13 +57,14 @@ export class MornitoringSmsComponent implements OnInit {
   // filtered conditions
   toOptions = [toOptionTypes.All, toOptionTypes.To_RT, toOptionTypes.To_Customer];
   toOption = toOptionTypes.All;
-  providerOptions = [providerTypes.All, providerTypes.Twilio, providerTypes.Plivo, providerTypes.Bandwidth, providerTypes.Other];
+  providerOptions = [providerTypes.All, providerTypes.Twilio, providerTypes.Plivo, providerTypes.Bandwidth];
   providerOption = providerTypes.All;
   happenedOptions = [happenedTypes.All, happenedTypes.Last_24_Hours, happenedTypes.Last_48_Hours, happenedTypes.Last_3_days, happenedTypes.Last_30_days, happenedTypes.Custom_Range];
   happenedOption = happenedTypes.All;
   fromDate = '';
   toDate = '';
   searchFilter = '';
+  system;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -166,117 +166,177 @@ export class MornitoringSmsComponent implements OnInit {
 
    */
   async populateSMSProblems() {
-    // 5 days by default
-    const failedSMSEvents = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    // 90 days by default
+    // bandwidth event
+    const bandwidth = providerTypes.Bandwidth.toLowerCase();
+    const plivo = providerTypes.Plivo.toLowerCase();
+    const twilio = providerTypes.Twilio.toLowerCase();
+    const failedBandwidthEvents = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'event',
       aggregate: [
         {
           $match: {
             'name': 'sms-status',
-              'params.body.type': { // bandwidth
-                $eq: ['$params.body.type', 'message-failed']
-              }
-            ,
-            // $or: [
-            //   {
-            //     'params.body.Status': { // plivo
-            //       $eq: ['$params.body.Status', 'undelivered']
-            //     }
-            //   },
-            //   {
-            //     'params.body.type': { // bandwidth
-            //       $eq: ['$params.body.type', 'message-failed']
-            //     }
-            //   },
-            //   {
-            //     'params.body.MessageStatus': { // twilio
-            //       $eq: ['$params.body.type', 'undelivered']
-            //     }
-            //   },
-            //   // { // other
-            //   //   $and: [
-            //   //     {
-            //   //       'params.body.Status': { // plivo
-            //   //         $ne: ['$params.body.Status', 'delivered']
-            //   //       }
-            //   //     },
-            //   //     {
-            //   //       'params.body.type': { // bandwidth
-            //   //         $ne: ['$params.body.type', 'message-received']
-            //   //       }
-            //   //     },
-            //   //     {
-            //   //       'params.body.MessageStatus': { // twilio
-            //   //         $ne: ['$params.body.type', 'delivered']
-            //   //       }
-            //   //     }
-            //   //   ]
-            //   // }
-            // ],
+            'params.providerName': bandwidth,
+            'params.body.type': 'message-failed',
             $and: [
               {
-                'createdAt': { $gt: new Date().valueOf() - 90 * 24 * 3600000 }
+                'createdAt': { $gt: new Date().valueOf() - 7 * 24 * 3600000 }
               },
               {
-                'createdAt': { $lt: new Date().valueOf() - 1 * 24 * 3600000 }
+                'createdAt': { $lt: new Date().valueOf() }
               }
             ]
           }
         },
         {
           $project: {
-            // body: '$params.body',
+            // send status (error)
+            'params.body.type': 1, // bandwidth
+            // number
+            'params.body.message.from': 1, // bandwidth
+            'params.body.to': 1, // bandwidth
+            // provider
             providerName: '$params.providerName',
+            // date
             createdAt: 1
+          }
+        }
+      ],
+    }, 10000);
+    // plivo event
+    const failedPlivoEvents = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'event',
+      aggregate: [
+        {
+          $match: {
+            'name': 'sms-status',
+            'params.providerName': plivo,
+            'params.body.Status': 'undelivered',
+            $and: [
+              {
+                'createdAt': { $gt: new Date().valueOf() - 7 * 24 * 3600000 }
+              },
+              {
+                'createdAt': { $lt: new Date().valueOf() }
+              }
+            ]
           }
         },
         {
-          $limit: 30000
+          $project: {
+            // send status (error)
+            'params.body.Status': 1, // plivo
+            // number
+            'params.body.From': 1, // plivo
+            'params.body.To': 1, // plivo
+            // provider
+            providerName: '$params.providerName',
+            // date
+            createdAt: 1
+          }
         }
       ],
-    }).toPromise();
+    }, 10000);
+    // twilio event 
+    const failedTwilioEvents = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'event',
+      aggregate: [
+        {
+          $match: {
+            'name': 'sms-status',
+            'params.providerName': twilio,
+            'params.body.MessageStatus': 'undelivered',
+            $and: [
+              {
+                'createdAt': { $gt: new Date().valueOf() - 7 * 24 * 3600000 }
+              },
+              {
+                'createdAt': { $lt: new Date().valueOf() }
+              }
+            ]
+          }
+        },
+        {
+          $project: {
+            // send status (error)
+            'params.body.MessageStatus': 1, // twilio
+            // number
+            'params.body.From': 1, // twilio
+            'params.body.To': 1, // twilio
+            // provider
+            providerName: '$params.providerName',
+            // date
+            createdAt: 1
+          }
+        }
+      ],
+    }, 10000);
+    const failedSMSEvents = [...new Set(failedBandwidthEvents), ...new Set(failedPlivoEvents), ...new Set(failedTwilioEvents)];
     const providerMap = {
-      [providerTypes.Twilio]: 'twilio',
-      [providerTypes.Plivo]: 'plivo',
-      [providerTypes.Bandwidth]: 'bandwidth'
+      [providerTypes.Twilio]: twilio,
+      [providerTypes.Plivo]: plivo,
+      [providerTypes.Bandwidth]: bandwidth
     }
     let providerKeys = Object.keys(providerMap);
     failedSMSEvents.forEach(event => {
       if (providerKeys.includes(event.providerName)) {
         let item = {
           type: this.getEventType(event),
-          number: this.getEventFrom(event),
-          providerName: providerMap[event.providerName],
+          provider: providerMap[event.providerName],
+          currentProvider: providerMap[this.getCurrentProvider(event)],
           createdAt: event.createdAt,
         }
-        if (event.providerName === 'twilio') {
-
-        } else if (event.providerName === 'plivo') {
-
-        } else if (event.providerName === 'bandwidth') {
-
-        }
-
+        if (event.providerName === bandwidth) {
+          item['fromNumber'] = this.getEventPhoneNumber(event.providerName, event.params.body.message.from);
+          item['toNumber'] = this.getEventPhoneNumber(event.providerName, event.params.body.to);
+        } else if (event.providerName === plivo || event.providerName === twilio) {
+          item['fromNumber'] = this.getEventPhoneNumber(event.providerName, event.params.body.From);
+          item['toNumber'] = this.getEventPhoneNumber(event.providerName, event.params.body.To);
+        } 
         this.rows.push(item);
-      } else { // other
-
       }
     });
-
+    // use sms settings of system to construct the currentProvider of rows
+    this.system = (await this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'system' }).toPromise())[0] || {};
     this.filterRows();
   }
 
   filterRows() {
-
+    this.filteredRows = this.rows;
   }
 
-  getEventFrom(event) {
-    switch (event.providerName) {
-      case 'twilio':
-      case 'plivo':
-        return (event.params.body.From || '').length.toString().substring(1);// 1xxxxxxxxxx
-      case 'bandwidth':
-        return (event.params.body.from || '').length.toString().substring(2); // +1xxxxxxxxxx
+  getCurrentProvider(event) {
+    const bandwidth = providerTypes.Bandwidth.toLowerCase();
+    const plivo = providerTypes.Plivo.toLowerCase();
+    const twilio = providerTypes.Twilio.toLowerCase();
+    if (this.system.smsSettings.customized) {
+      let fromPhone = '';
+      switch (event.providerName) {
+        case plivo:
+          fromPhone = (event.params.body.From || '').length.toString().substring(1);// 1xxxxxxxxxx
+        case twilio:
+        case bandwidth:
+          fromPhone = (event.params.body.message.from || '').length.toString().substring(2); // +1xxxxxxxxxx
+        default:
+          break;
+      }
+      return (this.system.smsSettings.customized.toPhones || []).find(phone => phone === fromPhone).providerName;
+    }
+    return this.system.smsSettings.defaultProviderName;
+  }
+
+
+  getEventPhoneNumber(providerName, phone) {
+    const bandwidth = providerTypes.Bandwidth.toLowerCase();
+    const plivo = providerTypes.Plivo.toLowerCase();
+    const twilio = providerTypes.Twilio.toLowerCase();
+    switch (providerName) {
+      case plivo:
+        return (phone || '').length.toString().substring(1);// 1xxxxxxxxxx
+      case twilio:
+      case bandwidth:
+        return (phone || '').length.toString().substring(2); // +1xxxxxxxxxx
       default:
         break;
     }
@@ -285,13 +345,16 @@ export class MornitoringSmsComponent implements OnInit {
   async getEventType(event) {
     const restaurants = await this._global.getCachedRestaurantListForPicker();
     let restaurant = undefined;
+    const bandwidth = providerTypes.Bandwidth.toLowerCase();
+    const plivo = providerTypes.Plivo.toLowerCase();
+    const twilio = providerTypes.Twilio.toLowerCase();
     switch (event.providerName) {
-      case 'twilio':
-      case 'plivo':
+      case plivo:
         let toNumber = (event.params.body.To || '').length.toString().substring(1);// 1xxxxxxxxxx
         restaurant = restaurants.filter(rt => (rt.channels || []).some(ch => ch.value === toNumber))[0];
         break;
-      case 'bandwidth':
+      case twilio:
+      case bandwidth:
         let toNumber1 = (event.params.body.to || '').length.toString().substring(2); // +1xxxxxxxxxx
         restaurant = restaurants.filter(rt => (rt.channels || []).some(ch => ch.value === toNumber1))[0];
         break;
