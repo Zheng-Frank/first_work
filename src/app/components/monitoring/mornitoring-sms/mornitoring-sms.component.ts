@@ -1,3 +1,4 @@
+import { AlertType } from 'src/app/classes/alert-type';
 import { ApiService } from './../../../services/api.service';
 import { environment } from './../../../../environments/environment';
 import { Component, OnInit } from '@angular/core';
@@ -17,7 +18,6 @@ enum providerTypes {
 }
 
 enum happenedTypes {
-  All = 'Happened?',
   Last_24_Hours = 'Last 24 hrs',
   Last_48_Hours = 'Last 48 hrs',
   Last_3_days = 'Last 3 days',
@@ -39,10 +39,15 @@ export class MornitoringSmsComponent implements OnInit {
       label: 'Type'
     },
     {
-      label: 'Number'
+      label: 'From # (QM)'
     },
     {
-      label: 'Date'
+      label: 'To # (RT/Customer)'
+    },
+    {
+      label: 'CreatedAt',
+      paths: ['createdAt'],
+      sort: (a, b) => new Date(a || 0).valueOf() - new Date(b || 0).valueOf()
     },
     {
       label: 'Provider'
@@ -59,17 +64,21 @@ export class MornitoringSmsComponent implements OnInit {
   toOption = toOptionTypes.All;
   providerOptions = [providerTypes.All, providerTypes.Twilio, providerTypes.Plivo, providerTypes.Bandwidth];
   providerOption = providerTypes.All;
-  happenedOptions = [happenedTypes.All, happenedTypes.Last_24_Hours, happenedTypes.Last_48_Hours, happenedTypes.Last_3_days, happenedTypes.Last_30_days, happenedTypes.Custom_Range];
-  happenedOption = happenedTypes.All;
+  happenedOptions = [happenedTypes.Last_24_Hours, happenedTypes.Last_48_Hours, happenedTypes.Last_3_days, happenedTypes.Last_30_days, happenedTypes.Custom_Range];
+  happenedOption = happenedTypes.Last_48_Hours;
   fromDate = '';
   toDate = '';
   searchFilter = '';
   system;
-
+  showAdvancedSearch: boolean = false;
+  pagination = true;
+  restaurants = [];
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
-  ngOnInit() {
-    this.populateSMSProblems();
+  async ngOnInit() {
+    // this.system = (await this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'system' }).toPromise())[0] || {};
+    this.restaurants = await this._global.getCachedRestaurantListForPicker();
+    await this.populateSMSProblems();
   }
 
   get happenedTypes() {
@@ -162,11 +171,74 @@ export class MornitoringSmsComponent implements OnInit {
     }
   ]
 }
-
-
    */
   async populateSMSProblems() {
-    // 90 days by default
+    // last 48 hours by default
+    let timeQuery = [
+      {
+        'createdAt': { $gt: new Date().valueOf() - 2 * 24 * 3600000 }
+      },
+      {
+        'createdAt': { $lt: new Date().valueOf() }
+      }
+    ];
+    if (this.showAdvancedSearch) {
+      if (this.happenedOption === happenedTypes.Last_24_Hours) {
+        timeQuery = [
+          {
+            'createdAt': { $gt: new Date().valueOf() - 1 * 24 * 3600000 }
+          },
+          {
+            'createdAt': { $lt: new Date().valueOf() }
+          }
+        ];
+      } else if (this.happenedOption === happenedTypes.Last_48_Hours) {
+        timeQuery = [
+          {
+            'createdAt': { $gt: new Date().valueOf() - 2 * 24 * 3600000 }
+          },
+          {
+            'createdAt': { $lt: new Date().valueOf() }
+          }
+        ];
+      } else if (this.happenedOption === happenedTypes.Last_3_days) {
+        timeQuery = [
+          {
+            'createdAt': { $gt: new Date().valueOf() - 3 * 24 * 3600000 }
+          },
+          {
+            'createdAt': { $lt: new Date().valueOf() }
+          }
+        ];
+      } else if (this.happenedOption === happenedTypes.Last_30_days) {
+        timeQuery = [
+          {
+            'createdAt': { $gt: new Date().valueOf() - 30 * 24 * 3600000 }
+          },
+          {
+            'createdAt': { $lt: new Date().valueOf() }
+          }
+        ];
+      } else if (this.happenedOption === happenedTypes.Custom_Range) {
+        if (!this.fromDate || !this.toDate) {
+          return this._global.publishAlert(AlertType.Danger, "please input a correct time date format!");
+        }
+        if (new Date(this.fromDate).valueOf() - new Date(this.toDate).valueOf() > 0) {
+          return this._global.publishAlert(AlertType.Danger, "Please input a correct date format, from time is less than or equals to time!");
+        }
+        if (new Date(this.toDate).valueOf() - new Date(this.fromDate).valueOf() > 30 * 24 * 3600000) {
+          return this._global.publishAlert(AlertType.Danger, "Please input a correct date format, it is at most one month apart!");
+        }
+        timeQuery = [
+          {
+            'createdAt': { $gt: new Date(this.fromDate).valueOf() }
+          },
+          {
+            'createdAt': { $lt: new Date(this.toDate).valueOf() }
+          }
+        ];
+      }
+    }
     // bandwidth event
     const bandwidth = providerTypes.Bandwidth.toLowerCase();
     const plivo = providerTypes.Plivo.toLowerCase();
@@ -179,27 +251,20 @@ export class MornitoringSmsComponent implements OnInit {
             'name': 'sms-status',
             'params.providerName': bandwidth,
             'params.body.type': 'message-failed',
-            $and: [
-              {
-                'createdAt': { $gt: new Date().valueOf() - 7 * 24 * 3600000 }
-              },
-              {
-                'createdAt': { $lt: new Date().valueOf() }
-              }
-            ]
+            $and: timeQuery
           }
         },
         {
           $project: {
             // send status (error)
-            'params.body.type': 1, // bandwidth
+            'params.body.description': 1, // bandwidth
             // number
             'params.body.message.from': 1, // bandwidth
             'params.body.to': 1, // bandwidth
             // provider
             providerName: '$params.providerName',
             // date
-            createdAt: 1
+            createdAt: 1,
           }
         }
       ],
@@ -213,14 +278,7 @@ export class MornitoringSmsComponent implements OnInit {
             'name': 'sms-status',
             'params.providerName': plivo,
             'params.body.Status': 'undelivered',
-            $and: [
-              {
-                'createdAt': { $gt: new Date().valueOf() - 7 * 24 * 3600000 }
-              },
-              {
-                'createdAt': { $lt: new Date().valueOf() }
-              }
-            ]
+            $and: timeQuery
           }
         },
         {
@@ -247,14 +305,7 @@ export class MornitoringSmsComponent implements OnInit {
             'name': 'sms-status',
             'params.providerName': twilio,
             'params.body.MessageStatus': 'undelivered',
-            $and: [
-              {
-                'createdAt': { $gt: new Date().valueOf() - 7 * 24 * 3600000 }
-              },
-              {
-                'createdAt': { $lt: new Date().valueOf() }
-              }
-            ]
+            $and: timeQuery
           }
         },
         {
@@ -272,56 +323,115 @@ export class MornitoringSmsComponent implements OnInit {
         }
       ],
     }, 10000);
+    // use sms settings of system to construct the currentProvider of rows
     const failedSMSEvents = [...new Set(failedBandwidthEvents), ...new Set(failedPlivoEvents), ...new Set(failedTwilioEvents)];
     const providerMap = {
-      [providerTypes.Twilio]: twilio,
-      [providerTypes.Plivo]: plivo,
-      [providerTypes.Bandwidth]: bandwidth
+      [twilio]: providerTypes.Twilio,
+      [plivo]: providerTypes.Plivo,
+      [bandwidth]: providerTypes.Bandwidth
     }
     let providerKeys = Object.keys(providerMap);
     failedSMSEvents.forEach(event => {
       if (providerKeys.includes(event.providerName)) {
         let item = {
-          type: this.getEventType(event),
           provider: providerMap[event.providerName],
-          currentProvider: providerMap[this.getCurrentProvider(event)],
-          createdAt: event.createdAt,
+          createdAt: new Date(event.createdAt),
+          error: this.getEventError(event)
         }
         if (event.providerName === bandwidth) {
-          item['fromNumber'] = this.getEventPhoneNumber(event.providerName, event.params.body.message.from);
-          item['toNumber'] = this.getEventPhoneNumber(event.providerName, event.params.body.to);
-        } else if (event.providerName === plivo || event.providerName === twilio) {
-          item['fromNumber'] = this.getEventPhoneNumber(event.providerName, event.params.body.From);
-          item['toNumber'] = this.getEventPhoneNumber(event.providerName, event.params.body.To);
-        } 
+          item['fromNumber'] = this.getEventPhoneNumber(event.providerName, ((event.params.body[0] || {}).message || {}).from);
+          item['toNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body[0] || {}).to);
+          item['type'] = this.getEventType(event.providerName, (event.params.body[0] || {}).to);
+          //item['currentProvider'] = this.getCurrentProvider(event.providerName, event.params.body.to);
+        } else if (event.providerName === plivo) {
+          item['fromNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body || {}).From);
+          item['toNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body || {}).To);
+          item['type'] = this.getEventType(event.providerName, (event.params.body || {}).To);
+          //item['currentProvider'] = this.getCurrentProvider(event.providerName, event.params.body.To);
+        } else if (event.providerName === twilio) {
+          item['fromNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body || {}).From);
+          item['toNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body || {}).To);
+          item['type'] = this.getEventType(event.providerName, (event.params.body || {}).To);
+          //item['currentProvider'] = this.getCurrentProvider(event.providerName, event.params.body.To);
+        }
         this.rows.push(item);
       }
     });
-    // use sms settings of system to construct the currentProvider of rows
-    this.system = (await this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'system' }).toPromise())[0] || {};
+    this.filterRows();
+  }
+
+  toggleShowAdvancedSearch() {
+    this.showAdvancedSearch = !this.showAdvancedSearch;
+    if (!this.showAdvancedSearch) {
+      this.searchFilter = '';
+      this.fromDate = '';
+      this.toDate = '';
+      this.populateSMSProblems();
+    } else {
+      this.searchFilter = '';
+      this.happenedOption = happenedTypes.Last_48_Hours;
+    }
+  }
+
+  debounce(value) {
     this.filterRows();
   }
 
   filterRows() {
     this.filteredRows = this.rows;
+    // filter by provider
+    if (this.providerOption !== providerTypes.All) {
+      if (this.providerOption === providerTypes.Bandwidth) {
+        this.filteredRows = this.filteredRows.filter(row => row.provider === providerTypes.Bandwidth);
+      } else if (this.providerOption === providerTypes.Plivo) {
+        this.filteredRows = this.filteredRows.filter(row => row.provider === providerTypes.Plivo);
+      } else if (this.providerOption === providerTypes.Twilio) {
+        this.filteredRows = this.filteredRows.filter(row => row.provider === providerTypes.Twilio);
+      }
+    }
+    // filter by type 
+    if (this.toOption !== toOptionTypes.All) {
+      if (this.toOption === toOptionTypes.To_RT) {
+        this.filteredRows = this.filteredRows.filter(row => row.type.rtInfo);
+      } else if (this.toOption === toOptionTypes.To_Customer) {
+        this.filteredRows = this.filteredRows.filter(row => !row.type.rtInfo);
+      }
+    }
+    // filter by restaurant 
+    if (this.searchFilter && this.searchFilter.trim().length > 0) {
+      this.filteredRows = this.filteredRows.filter(row => {
+        let lowerCaseSearchFilter = this.searchFilter.toLowerCase();
+        if (row.type.rtInfo) {
+          const nameMatch = (row.type.rtInfo.name || "").toLowerCase().includes(lowerCaseSearchFilter);
+          const idMatch = (row.type.rtInfo._id || "").toLowerCase().includes(lowerCaseSearchFilter);
+          return nameMatch || idMatch;
+        } else {
+          return false;
+        }
+      });
+    }
   }
 
-  getCurrentProvider(event) {
+  getEventError(event) {
     const bandwidth = providerTypes.Bandwidth.toLowerCase();
     const plivo = providerTypes.Plivo.toLowerCase();
     const twilio = providerTypes.Twilio.toLowerCase();
+    switch (event.providerName) {
+      case plivo:
+        return (event.params.body || {}).Status;
+      case twilio:
+        return (event.params.body || {}).MessageStatus;
+      case bandwidth:
+        return (event.params.body[0] || {}).description;
+      default:
+        break;
+    }
+  }
+
+  getCurrentProvider(providerName, phone) {
     if (this.system.smsSettings.customized) {
-      let fromPhone = '';
-      switch (event.providerName) {
-        case plivo:
-          fromPhone = (event.params.body.From || '').length.toString().substring(1);// 1xxxxxxxxxx
-        case twilio:
-        case bandwidth:
-          fromPhone = (event.params.body.message.from || '').length.toString().substring(2); // +1xxxxxxxxxx
-        default:
-          break;
-      }
-      return (this.system.smsSettings.customized.toPhones || []).find(phone => phone === fromPhone).providerName;
+      let toPhone = this.getEventPhoneNumber(providerName, phone);
+      return (this.system.smsSettings.customized.toPhones || []).find(phone => phone === toPhone).providerName;
     }
     return this.system.smsSettings.defaultProviderName;
   }
@@ -333,45 +443,28 @@ export class MornitoringSmsComponent implements OnInit {
     const twilio = providerTypes.Twilio.toLowerCase();
     switch (providerName) {
       case plivo:
-        return (phone || '').length.toString().substring(1);// 1xxxxxxxxxx
+        return (phone || '').toString().substring(1);// 1xxxxxxxxxx
       case twilio:
       case bandwidth:
-        return (phone || '').length.toString().substring(2); // +1xxxxxxxxxx
+        return (phone || '').toString().substring(2); // +1xxxxxxxxxx
       default:
         break;
     }
   }
 
-  async getEventType(event) {
-    const restaurants = await this._global.getCachedRestaurantListForPicker();
-    let restaurant = undefined;
-    const bandwidth = providerTypes.Bandwidth.toLowerCase();
-    const plivo = providerTypes.Plivo.toLowerCase();
-    const twilio = providerTypes.Twilio.toLowerCase();
-    switch (event.providerName) {
-      case plivo:
-        let toNumber = (event.params.body.To || '').length.toString().substring(1);// 1xxxxxxxxxx
-        restaurant = restaurants.filter(rt => (rt.channels || []).some(ch => ch.value === toNumber))[0];
-        break;
-      case twilio:
-      case bandwidth:
-        let toNumber1 = (event.params.body.to || '').length.toString().substring(2); // +1xxxxxxxxxx
-        restaurant = restaurants.filter(rt => (rt.channels || []).some(ch => ch.value === toNumber1))[0];
-        break;
-      default:
-        break;
-    }
+  getEventType(providerName, phone) {
+    let toPhone = this.getEventPhoneNumber(providerName, phone);
+    let restaurant = this.restaurants.filter(rt => (rt.channels || []).some(ch => ch.value === toPhone))[0];;
     let item = {
-      type: restaurant ? toOptionTypes.To_RT : toOptionTypes.To_Customer
+      text: restaurant ? toOptionTypes.To_RT : toOptionTypes.To_Customer
     }
     if (restaurant) {
-      item['rtInfo'] = restaurant;
+      item['rtInfo'] = {
+        _id: restaurant._id,
+        name: restaurant.name
+      };
     }
     return item;
-  }
-
-  async populateSMSProblemsByTime() {
-
   }
 
 }
