@@ -173,6 +173,8 @@ export class MornitoringSmsComponent implements OnInit {
 }
    */
   async populateSMSProblems() {
+    this.rows = [];
+    this.filteredRows = [];
     // last 48 hours by default
     let timeQuery = [
       {
