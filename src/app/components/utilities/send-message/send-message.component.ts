@@ -195,7 +195,7 @@ export class SendMessageComponent {
           smsContent = field.apply(smsContent, field.value);
         }
         if (smsPreview) {
-          smsPreview = field.apply(emailContent, field.value);
+          smsPreview = field.apply(smsPreview, field.value);
         }
       });
     }
@@ -240,7 +240,7 @@ export class SendMessageComponent {
           emailContent = field.apply(emailContent, field.value);
         }
         if (smsPreview) {
-          smsPreview = field.apply(emailContent, field.value);
+          smsPreview = field.apply(smsPreview, field.value);
         }
       });
     }
