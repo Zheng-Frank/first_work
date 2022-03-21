@@ -30,9 +30,14 @@ export class AddonsComponent implements OnInit {
     return [];
   }
 
+  trim(str) {
+    return str.replace(/\s+/g, ' ').trim();
+  }
+
   isValid() {
     let { name, price } = this.editing;
-    return name && price && price > 0;
+    let addons = [...(this.restaurant.addons || [])].splice(this.editingIndex, 1);
+    return name && price && price > 0 && !addons.some(a => this.trim(a.name) === this.trim(name));
   }
 
   editAddon(addon: Item) {
@@ -52,6 +57,7 @@ export class AddonsComponent implements OnInit {
 
   save() {
     const addons = (this.restaurant.addons || []).slice(0);
+    this.editing.name = this.trim(this.editing.name);
     addons[this.editingIndex] = this.editing;
 
     this._api
