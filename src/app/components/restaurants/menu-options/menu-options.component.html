@@ -10,9 +10,6 @@
           <a (click)="copyMenuOption(mo)" role="button"class="card-link text-primary">Copy</a>
         </div>
       </div>
-
-
-
     </div>
   </div>
 
@@ -29,3 +26,4 @@
     <app-menu-option-editor [menuOption]="menuOptionInEditing" #menuOptionEditor (submit)="moDone($event)" (cancel)="moCancel($event)"
       (remove)="moDelete(menuOptionInEditing)"></app-menu-option-editor>
   </q-modal>
+</div>

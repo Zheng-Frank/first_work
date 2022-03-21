@@ -179,7 +179,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     tin: 1,  // 1099k tab needs it
     payeeName: 1, // 1099k tab needs it
     form1099k: 1,
-    customerPaidFeesTaxable: 1
+    customerPaidFeesTaxable: 1,
+    addons: 1
   };
 
   showExplanations = false; // a flag to decide whether show English/Chinese translations,and the switch is closed by default.
