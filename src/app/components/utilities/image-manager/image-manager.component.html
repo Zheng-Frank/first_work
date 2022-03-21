@@ -210,7 +210,7 @@
 
     <q-modal #miModal>
     <!--size names: if use get method, it keeps changing detection-->
-      <app-menu-item-editor #miEditor (onDone)="miDone($event)" (onCancel)="miCancel($event)" (onDelete)="miDelete($event)"></app-menu-item-editor>
+      <app-menu-item-editor #miEditor (onDone)="miDone($event)" (onCancel)="miCancel()" (onDelete)="miDelete($event)"></app-menu-item-editor>
     </q-modal>
   </div>
 </div>
