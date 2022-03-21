@@ -12,6 +12,7 @@
         <th>Message</th>
         <th>Send Time</th>
         <th>Status</th>
+        <th>Type</th>
       </tr>
     </thead>
     <tbody>
@@ -49,6 +50,7 @@
         </td>
         <td class="text-nowrap">{{getStatus(msg.content.logs)}} <a class="btn-link"
             *ngIf="msgViewOption === msgViewOptionTypes.Outbound" (click)="showJson(msg.content)">Show JSON</a></td>
+        <td>{{msg.type}}</td>
       </tr>
     </tbody>
   </table>
