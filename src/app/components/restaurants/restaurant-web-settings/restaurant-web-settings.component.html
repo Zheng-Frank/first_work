@@ -55,9 +55,9 @@
               (change)="toggle($event, 'ignoreGmbOwnershipRequest')">
             <label class="form-check-label" for="id_ignoreGmbOwnershipRequest"> Skip creating ALL GMB tasks(asked by
               restaurant explicitly)</label>
-              <input class="form-check-input" type="checkbox" id="id_ignoreGmbOwnershipRequest" [checked]="restaurant.web?.applyCmoOwnedGMB"
+              <input class="form-check-input" type="checkbox" id="id_applyCmoOwnedGMB" [checked]="restaurant.web?.applyCmoOwnedGMB"
               (change)="toggle($event, 'applyCmoOwnedGMB')">
-            <label class="form-check-label" for="id_applyCmoOwnedGMB"> Create GMB Tasks for CMO-owned Listing (asked by
+            <label class="form-check-label" for="id_applyCmoOwnedGMB"> Create GMB Tasks for CMO-owned Listing (agreed to by
               restaurant explicitly)</label>
           </div>
 
