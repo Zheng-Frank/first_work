@@ -1,3 +1,4 @@
+import { MonitoringDeactivatedCustomersComponent } from './components/monitoring/monitoring-deactivated-customers/monitoring-deactivated-customers.component';
 import { MonitoringRtsWithoutAgreementComponent } from './components/monitoring/monitoring-rts-without-agreement/monitoring-rts-without-agreement.component';
 import { MonitoringVipRestaurantsComponent } from './components/monitoring/monitoring-vip-restaurants/monitoring-vip-restaurants.component';
 /* tslint:disable:max-line-length */
@@ -200,7 +201,8 @@ const routes: Routes = [
   { path: 'rts-without-agreement', component: MonitoringRtsWithoutAgreementComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'phone-ordering', component: PhoneOrderingDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'sms-problems', component: MornitoringSmsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR_MANAGER'] } },
-  
+  { path: 'deactivated-customers', component: MonitoringDeactivatedCustomersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
+ 
   { path: '**', redirectTo: '/home' }
 
 ];

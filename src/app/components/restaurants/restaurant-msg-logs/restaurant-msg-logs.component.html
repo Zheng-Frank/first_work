@@ -1,40 +1,56 @@
 <div class="msg-logs">
+  <div class="row form-inline ml-2 mb-2">
+    <select class="form-control" [(ngModel)]="msgViewOption" (change)="filterMsg()">
+      <option *ngFor="let option of msgViewOptions"> {{option}} </option>
+    </select>
+  </div>
   <table class="table">
     <thead>
       <tr>
+        <th>Sent from</th>
         <th>Sent to</th>
         <th>Message</th>
         <th>Send Time</th>
         <th>Status</th>
+        <th>Type</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let job of jobs; let i = index">
-        <td class="text-nowrap">{{job.params.to}}</td>
+      <tr *ngFor="let msg of filteredMessages; let i = index">
+        <td class="text-nowrap">{{msg.content.params.from}}</td>
+        <td class="text-nowrap">{{msg.content.params.to}}</td>
         <td class="text-break">
-          <ng-container *ngIf="job.name === 'send-sms'">
-          {{job.params.message}}
+          <ng-container *ngIf="msg.content.name === 'send-sms'">
+            {{msg.content.params.message}}
           </ng-container>
-          <ng-container *ngIf="job.name === 'send-email'">
+          <ng-container *ngIf="msg.content.name === 'send-email'">
             <div class="email-line">
               <label>Subject: </label>
-              <span>{{job.params.subject}}</span>
+              <span>{{msg.content.params.subject}}</span>
             </div>
             <div class="email-line">
               <label>Content: </label>
               <span>
-                {{job.params.html.substr(0, 200)}}
-                <a *ngIf="job.params.html.length > 200" class="text-nowrap btn-link" (click)="showEmailHtml(job)">... Show More</a>
+                {{msg.content.params.html.substr(0, 200)}}
+                <a *ngIf="msg.content.params.html.length > 200" class="text-nowrap btn-link"
+                  (click)="showEmailHtml(msg.content)">...
+                  Show More</a>
               </span>
-              <a class="text-nowrap btn-link" (click)="showEmailPreview(job)">Preview</a>
+              <a class="text-nowrap btn-link" (click)="showEmailPreview(msg.content)">Preview</a>
             </div>
+          </ng-container>
+          <ng-container *ngIf="msg.content.name === 'reply-sms'">
+            {{msg.content.params.message}}
           </ng-container>
         </td>
         <td class="text-nowrap">
-          {{job.createdAt | dateTz: 'shortDate': restaurant?.googleAddress?.timezone }}
-          <span class="text-muted">{{job.createdAt | dateTz: 'shortTime': restaurant?.googleAddress?.timezone }}</span>
+          {{msg.content.createdAt | dateTz: 'shortDate': restaurant?.googleAddress?.timezone }}
+          <span
+            class="text-muted">{{msg.content.createdAt | dateTz: 'shortTime': restaurant?.googleAddress?.timezone }}</span>
         </td>
-        <td class="text-nowrap">{{getStatus(job.logs)}} <a class="btn-link" (click)="showJson(job)">Show JSON</a></td>
+        <td class="text-nowrap">{{getStatus(msg.content.logs)}} <a class="btn-link"
+            *ngIf="msgViewOption === msgViewOptionTypes.Outbound" (click)="showJson(msg.content)">Show JSON</a></td>
+        <td>{{msg.type}}</td>
       </tr>
     </tbody>
   </table>
@@ -53,5 +69,3 @@
 <q-modal #emailPreviewModal [size]="'600px'">
   <div style="overflow: auto" [innerHTML]="sanitized(current?.params?.html)"></div>
 </q-modal>
-
-
