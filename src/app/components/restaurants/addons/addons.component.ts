@@ -1,6 +1,6 @@
 import {Component, Input, OnInit, ViewChild} from '@angular/core';
 import {Item, Restaurant} from '@qmenu/ui';
-import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { ModalComponent, SelectorComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import {ApiService} from '../../../services/api.service';
 import {environment} from '../../../../environments/environment';
 import {AlertType} from '../../../classes/alert-type';
@@ -15,8 +15,13 @@ export class AddonsComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
   @ViewChild('addonEditModal') addonEditModal: ModalComponent;
-  editing: Item;
+  editing: any;
   editingIndex = -1;
+  @ViewChild("selectorMinQuantity") selectorMinQuantity: SelectorComponent;
+  @ViewChild("selectorMaxQuantity") selectorMaxQuantity: SelectorComponent;
+
+  maxQuantities = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Any"];
+  minQuantities = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -36,29 +41,47 @@ export class AddonsComponent implements OnInit {
 
   isValid() {
     let { name, price } = this.editing;
-    let addons = [...(this.restaurant.addons || [])].splice(this.editingIndex, 1);
+    let addons = [...(this.restaurant.addons || [])];
+    addons.splice(this.editingIndex, 1);
     return name && price && price > 0 && !addons.some(a => this.trim(a.name) === this.trim(name));
   }
 
-  editAddon(addon: Item) {
-    // we use a copy of mo:
-    let copy: Item;
+  editAddon(addon: any) {
     let { addons } = this.restaurant;
+    let copy;
     if (!addon) {
-      copy = new Item();
+      copy = {}
       this.editingIndex = (addons || []).length;
     } else {
-      copy = new Item(addon);
+      copy = {...addon}
       this.editingIndex = addons.indexOf(addon)
     }
     this.editing = copy;
+    setTimeout(() => {
+      this.selectorMinQuantity.selectedValues.length = 0;
+      this.selectorMaxQuantity.selectedValues.length = 0;
+      if (copy.minQuantity) {
+        this.selectorMinQuantity.selectedValues.push(
+          copy.minQuantity < 0 ? "Any" : copy.minQuantity + ""
+        );
+      }
+      if (copy.maxQuantity) {
+        this.selectorMaxQuantity.selectedValues.push(
+          copy.maxQuantity < 0 ? "Any" : copy.maxQuantity + ""
+        );
+      }
+    }, 0)
     this.addonEditModal.show();
   }
 
   save() {
     const addons = (this.restaurant.addons || []).slice(0);
     this.editing.name = this.trim(this.editing.name);
-    addons[this.editingIndex] = this.editing;
+    addons[this.editingIndex] = {
+      ...this.editing,
+      minQuantity: Number(this.selectorMinQuantity.selectedValues[0] || 0),
+      maxQuantity: Number(this.selectorMaxQuantity.selectedValues[0] || -1)
+    }
 
     this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
