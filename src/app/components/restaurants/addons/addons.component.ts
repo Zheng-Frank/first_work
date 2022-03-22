@@ -21,7 +21,6 @@ export class AddonsComponent implements OnInit {
   @ViewChild("selectorMaxQuantity") selectorMaxQuantity: SelectorComponent;
 
   maxQuantities = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Any"];
-  minQuantities = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -58,13 +57,7 @@ export class AddonsComponent implements OnInit {
     }
     this.editing = copy;
     setTimeout(() => {
-      this.selectorMinQuantity.selectedValues.length = 0;
       this.selectorMaxQuantity.selectedValues.length = 0;
-      if (copy.minQuantity) {
-        this.selectorMinQuantity.selectedValues.push(
-          copy.minQuantity < 0 ? "Any" : copy.minQuantity + ""
-        );
-      }
       if (copy.maxQuantity) {
         this.selectorMaxQuantity.selectedValues.push(
           copy.maxQuantity < 0 ? "Any" : copy.maxQuantity + ""
@@ -79,7 +72,6 @@ export class AddonsComponent implements OnInit {
     this.editing.name = this.trim(this.editing.name);
     addons[this.editingIndex] = {
       ...this.editing,
-      minQuantity: Number(this.selectorMinQuantity.selectedValues[0] || 0),
       maxQuantity: Number(this.selectorMaxQuantity.selectedValues[0] || -1)
     }
 

@@ -8,8 +8,7 @@
           <h5>
             {{addon.name}}
             <small>
-              <span *ngIf="addon.minQuantity > 0" class="text-danger">Customer MUST select {{addon.minQuantity}}</span>
-              <span *ngIf="addon.minQuantity <= 0">Select {{addon.maxQuantity > 0 ? addon.maxQuantity : 'any'}}, optional</span>
+              <span>Select {{addon.maxQuantity > 0 ? addon.maxQuantity : 'any'}}, optional</span>
             </small>
           </h5>
         </div>
@@ -45,19 +44,8 @@
         <small class="text-danger" *ngIf="!editing.price">Required</small>
       </div>
       <div class="form-group">
-        <label>Min quantity a customer must select:</label>
-        <q-selector name="minQuantity" #selectorMinQuantity [values]="minQuantities"></q-selector>
-      </div>
-      <div class="form-group">
         <label>Max quantity a customer can select:</label>
         <q-selector name="maxQuantity" #selectorMaxQuantity [values]="maxQuantities"></q-selector>
-        <div *ngIf="!selectorMaxQuantity.getFirstSelectedValue()" class="text-danger">
-          <small>Max quantity is not selected</small>
-        </div>
-        <div *ngIf="selectorMaxQuantity.selectedValues[0] !== 'Any' && +selectorMaxQuantity.selectedValues[0] < +selectorMinQuantity.selectedValues[0]"
-             class="text-danger">
-          <small>Max quantity can't be smaller than min quantity</small>
-        </div>
       </div>
       <div class="text-right pt-1">
         <button type="button" class="btn btn-link" (click)="cancel()" data-dismiss="modal">
