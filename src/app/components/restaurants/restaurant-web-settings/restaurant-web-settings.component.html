@@ -1,6 +1,7 @@
 <div class="card mb-2">
   <h3 class="card-title text-center pt-4 pb-2">
-    <i class="fas fa-globe"></i> GMB Related Web Settings</h3>
+    <i class="fas fa-globe"></i> GMB Related Web Settings
+  </h3>
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
       <div class="form-group row">
@@ -10,8 +11,8 @@
           </q-edit-label>
           <div *ngIf="restaurant.web?.bizManagedWebsite" class="pt-2">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="id_useBizWebsite" [checked]="restaurant.web?.useBizWebsite"
-                (change)="toggle($event, 'useBizWebsite')">
+              <input class="form-check-input" type="checkbox" id="id_useBizWebsite"
+                [checked]="restaurant.web?.useBizWebsite" (change)="toggle($event, 'useBizWebsite')">
               <label class="form-check-label" for="id_useBizWebsite"> Insisted Website</label>
             </div>
             <div class="form-check">
@@ -22,22 +23,22 @@
               </q-edit-label>
             </div>
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="orderAheadUrl" [checked]="restaurant.web?.useBizOrderAheadUrl"
-                (change)="toggle($event, 'useBizOrderAheadUrl')">
+              <input class="form-check-input" type="checkbox" id="orderAheadUrl"
+                [checked]="restaurant.web?.useBizOrderAheadUrl" (change)="toggle($event, 'useBizOrderAheadUrl')">
               <label class="form-check-label" for="orderAheadUrl"> Insisted Order Url</label>
               <q-edit-label [value]="restaurant.web?.orderAheadUrl" (edit)="onEdit($event, 'orderAheadUrl')">
               </q-edit-label>
             </div>
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="reservationUrl" [checked]="restaurant.web?.useBizReservationUrl"
-                (change)="toggle($event, 'useBizReservationUrl')">
+              <input class="form-check-input" type="checkbox" id="reservationUrl"
+                [checked]="restaurant.web?.useBizReservationUrl" (change)="toggle($event, 'useBizReservationUrl')">
               <label class="form-check-label" for="reservationUrl"> Insisted Reservation Url</label>
               <q-edit-label [value]="restaurant.web?.reservationUrl" (edit)="onEdit($event, 'reservationUrl')">
               </q-edit-label>
             </div>
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="id_useBizWebsiteForAll" [checked]="restaurant.web?.useBizWebsiteForAll"
-                (change)="toggle($event, 'useBizWebsiteForAll')">
+              <input class="form-check-input" type="checkbox" id="id_useBizWebsiteForAll"
+                [checked]="restaurant.web?.useBizWebsiteForAll" (change)="toggle($event, 'useBizWebsiteForAll')">
               <label class="form-check-label" for="id_useBizWebsiteForAll"> Insisted All</label>
             </div>
           </div>
@@ -51,13 +52,17 @@
         <label class="col-4 col-form-label pt-0">GMB</label>
         <div class="col-8 text-left">
           <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" id="id_ignoreGmbOwnershipRequest" [checked]="restaurant.web?.ignoreGmbOwnershipRequest"
+            <input class="form-check-input" type="checkbox" id="id_ignoreGmbOwnershipRequest"
+              [checked]="restaurant.web?.ignoreGmbOwnershipRequest"
               (change)="toggle($event, 'ignoreGmbOwnershipRequest')">
             <label class="form-check-label" for="id_ignoreGmbOwnershipRequest"> Skip creating ALL GMB tasks(asked by
               restaurant explicitly)</label>
-              <input class="form-check-input" type="checkbox" id="id_applyCmoOwnedGMB" [checked]="restaurant.web?.applyCmoOwnedGMB"
-              (change)="toggle($event, 'applyCmoOwnedGMB')">
-            <label class="form-check-label" for="id_applyCmoOwnedGMB"> Create GMB Tasks for CMO-owned Listing (agreed to by
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="id_applyCmoOwnedGMB"
+              [checked]="restaurant.web?.applyCmoOwnedGMB" (change)="toggle($event, 'applyCmoOwnedGMB')">
+            <label class="form-check-label" for="id_applyCmoOwnedGMB"> Create GMB Tasks for CMO-owned Listing (agreed to
+              by
               restaurant explicitly)</label>
           </div>
 
