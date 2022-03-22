@@ -95,6 +95,7 @@ import { MonitoringDineInOrdersComponent } from './components/monitoring/monitor
 import { QmBmSstDashboardComponent } from "./components/monitoring/qm-bm-sst-dashboard/qm-bm-sst-dashboard.component"
 import { Dashboard1099KComponent } from './components/system/1099k-dashboard/1099k-dashboard.component';
 import { PhoneOrderingDashboardComponent } from './components/phone-ordering/phone-ordering-dashboard/phone-ordering-dashboard.component';
+import { MornitoringSmsComponent } from './components/monitoring/mornitoring-sms/mornitoring-sms.component';
 
 const routes: Routes = [
   { path: 'bs4', component: Bs4Component, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'DEVELOPER'] } },
@@ -199,7 +200,9 @@ const routes: Routes = [
   { path: '1099k-dashboard', component: Dashboard1099KComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'rts-without-agreement', component: MonitoringRtsWithoutAgreementComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
   { path: 'phone-ordering', component: PhoneOrderingDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
+  { path: 'sms-problems', component: MornitoringSmsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR_MANAGER'] } },
   { path: 'deactivated-customers', component: MonitoringDeactivatedCustomersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
+ 
   { path: '**', redirectTo: '/home' }
 
 ];
