@@ -50,7 +50,7 @@
       [pageSize]="pagination ? 100 : 100000">
       <tr *tableRowTemplate="let row;">
         <td>
-          {{row.type.text}}
+          <i class="fa fa-{{getTypeIcon(row.type.text)}}"></i>
           <div *ngIf="row.type.rtInfo">
             <a target="_blank" href="#/restaurants/{{row.type.rtInfo?._id}}">{{row.type.rtInfo?.name}}</a>
             <div><small>{{row.type.rtInfo?._id}}</small></div>

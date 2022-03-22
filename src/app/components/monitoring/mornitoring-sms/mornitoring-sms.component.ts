@@ -76,9 +76,16 @@ export class MornitoringSmsComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
-    // this.system = (await this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'system' }).toPromise())[0] || {};
+    this.system = (await this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'system' }).toPromise())[0] || {};
     this.restaurants = await this._global.getCachedRestaurantListForPicker();
     await this.populateSMSProblems();
+  }
+
+  getTypeIcon(type) {
+    return {
+      [toOptionTypes.To_RT]: 'utensils',
+      [toOptionTypes.To_Customer]: 'user'
+    }[type] || 'question';
   }
 
   get happenedTypes() {
@@ -228,9 +235,7 @@ export class MornitoringSmsComponent implements OnInit {
         if (new Date(this.fromDate).valueOf() - new Date(this.toDate).valueOf() > 0) {
           return this._global.publishAlert(AlertType.Danger, "Please input a correct date format, from time is less than or equals to time!");
         }
-        if (new Date(this.toDate).valueOf() - new Date(this.fromDate).valueOf() > 30 * 24 * 3600000) {
-          return this._global.publishAlert(AlertType.Danger, "Please input a correct date format, it is at most one month apart!");
-        }
+
         timeQuery = [
           {
             'createdAt': { $gt: new Date(this.fromDate).valueOf() }
@@ -344,17 +349,17 @@ export class MornitoringSmsComponent implements OnInit {
           item['fromNumber'] = this.getEventPhoneNumber(event.providerName, ((event.params.body[0] || {}).message || {}).from);
           item['toNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body[0] || {}).to);
           item['type'] = this.getEventType(event.providerName, (event.params.body[0] || {}).to);
-          //item['currentProvider'] = this.getCurrentProvider(event.providerName, event.params.body.to);
+          item['currentProvider'] = providerMap[this.getCurrentProvider(event.providerName, event.params.body.to)];
         } else if (event.providerName === plivo) {
           item['fromNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body || {}).From);
           item['toNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body || {}).To);
           item['type'] = this.getEventType(event.providerName, (event.params.body || {}).To);
-          //item['currentProvider'] = this.getCurrentProvider(event.providerName, event.params.body.To);
+          item['currentProvider'] = providerMap[this.getCurrentProvider(event.providerName, event.params.body.To)];
         } else if (event.providerName === twilio) {
           item['fromNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body || {}).From);
           item['toNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body || {}).To);
           item['type'] = this.getEventType(event.providerName, (event.params.body || {}).To);
-          //item['currentProvider'] = this.getCurrentProvider(event.providerName, event.params.body.To);
+          item['currentProvider'] = providerMap[this.getCurrentProvider(event.providerName, event.params.body.To)];
         }
         this.rows.push(item);
       }
@@ -433,7 +438,11 @@ export class MornitoringSmsComponent implements OnInit {
   getCurrentProvider(providerName, phone) {
     if (this.system.smsSettings.customized) {
       let toPhone = this.getEventPhoneNumber(providerName, phone);
-      return (this.system.smsSettings.customized.toPhones || []).find(phone => phone === toPhone).providerName;
+      if ((this.system.smsSettings.customized.toPhones || []).some(phone => phone === toPhone)) {
+        return this.system.smsSettings.customized.providerName;
+      } else {
+        return this.system.smsSettings.defaultProviderName;
+      }
     }
     return this.system.smsSettings.defaultProviderName;
   }
