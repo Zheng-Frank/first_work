@@ -74,19 +74,9 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
     inputType: "single-select",
     items: []
   };
-  phoneProviders = [
-    { object: "Plivo", text: "Plivo", selected: false },
-    { object: "Twilio", text: "Twilio", selected: false },
-  ];
-  smsProviders = [
-    { object: "Plivo", text: "Plivo", selected: false },
-    { object: "Twilio", text: "Twilio", selected: false },
-    { object: "Bandwidth", text: "Bandwidth", selected: false },
-  ];
-  faxProviders = [
-    { object: "Phaxio", text: "Phaxio", selected: false },
-    { object: "Telnyx", text: "Telnyx", selected: false },
-  ];
+  phoneProviders = [];
+  smsProviders = [];
+  faxProviders = [];
 
   languageDescriptor = {
     field: "language",
@@ -98,7 +88,6 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
       { object: "CHINESE", text: "Chinese", selected: false }
     ]
   };
-
   personFieldDescriptors = [
     {
       field: "title", //
@@ -137,8 +126,6 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
       ]
     }
   ];
-
-
   channelTypeToFaClassMap = {
     'Email': 'fas fa-envelope',
     'Phone': 'fas fa-phone-volume',
@@ -149,13 +136,15 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
   crm = "";
   crms = [];
   settings = {} as any;
-
+  showProviders = false;
   Languages = { ENGLISH: 'English', CHINESE: 'Chinese' };
 
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
 
-  ngOnInit() {
-    this.getSystemSettings();
+  async ngOnInit() {
+    if (this.isAdminOrCsrManager()) {
+      await this.getSystemSettings();
+    }
     this.resetPersonFieldDescriptors();
     this.notes = this.restaurant.notes;
     this.getCrms();
@@ -164,6 +153,11 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
 
   ngOnChanges() {
     this.synchronizeNotificationData();
+  }
+
+  isAdminOrCsrManager() {
+    let { roles } = this._global.user;
+    return roles.includes('CSR_MANAGER') || roles.includes('ADMIN');
   }
 
   async getSystemSettings() {
@@ -175,6 +169,20 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
       }
     }).toPromise();
     this.settings = setting;
+    let { smsSettings, voiceSettings, faxSettings } = setting;
+
+    this.phoneProviders = this.getProviders(voiceSettings);
+    this.smsProviders = this.getProviders(smsSettings);
+    this.faxProviders = this.getProviders(faxSettings)
+  }
+
+  getProviders({defaultProviderName, customized}) {
+    let data = customized.map(x => {
+      let value = `${x.providerName}(${x.phone})`;
+      return {object: value, text: value, selected: false};
+    });
+    data.push({object: defaultProviderName + '(Default)', text: defaultProviderName + '(Default)', selected: true});
+    return data;
   }
 
   synchronizeNotificationData() {
@@ -247,16 +255,12 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
     if (!this.settings[key]) {
       return;
     }
-    let { providers, customized, defaultProviderName } = this.settings[key];
-    let custom = customized.find(x => x.phone === value);
+    let { customized, defaultProviderName } = this.settings[key];
+    let custom = customized.find(x => (x.toPhones || []).includes(value));
     if (custom) {
-      return custom.providerName;
+      return `${custom.providerName}(${custom.phone})`;
     }
-    let provider = providers.find(x => x.phones.includes(value));
-    if (provider) {
-      return provider.name
-    }
-    return defaultProviderName;
+    return `${defaultProviderName}(Default)`;
   }
 
   editChannel(channel?: any) {
@@ -338,7 +342,7 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
     } else {
       this.channelFieldDescriptors = this.channelFieldDescriptors.filter(x => !['language', 'isMainBizPhone'].includes(x.field));
     }
-    if (type && type !== 'Email') {
+    if (this.showProviders && type && type !== 'Email') {
       this.providerDescriptor.items = {
         Phone: this.phoneProviders, SMS: this.smsProviders, Fax: this.faxProviders
       }[type];
@@ -352,31 +356,34 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
 
 
   submitChannel(event: FormSubmit) {
+    // use a temp variable to keep data independent
+    let temp = JSON.parse(JSON.stringify(this.channelInEditing));
     // keep only digits for phone/sms/fax
-    if (['Phone', 'SMS', 'Fax'].indexOf(this.channelInEditing.type) >= 0) {
-      this.channelInEditing.value = this.channelInEditing.value.replace(/\D/g, '');
+    if (['Phone', 'SMS', 'Fax'].indexOf(temp.type) >= 0) {
+      temp.value = temp.value.replace(/\D/g, '');
     }
 
-    // currently language only support for Phone
-    if (this.channelInEditing.type !== 'Phone') {
-      delete this.channelInEditing.language;
+    // currently, language only support for Phone
+    if (temp.type !== 'Phone') {
+      delete temp.language;
     }
-    let params = JSON.parse(JSON.stringify(this.channelInEditing));
 
     const newChannels = (this.restaurant.channels || []).slice(0);
     if (this.channelInEditing.index === -1) {
-      newChannels.push(params);
+      newChannels.push(temp);
     } else {
 
-      this.updatePeopleOnChannelChange('UPDATE', this.restaurant.channels[this.channelInEditing.index], params);
-      newChannels[this.channelInEditing.index] = params;
+      this.updatePeopleOnChannelChange('UPDATE', this.restaurant.channels[this.channelInEditing.index], temp);
+      newChannels[this.channelInEditing.index] = temp;
     }
 
     // we need to remove temp index!
-    delete params.index;
+    delete temp.index;
 
-    this.updateOrderNotifications(params)
-    this.updateProviders(params);
+    this.updateOrderNotifications(temp)
+    if (this.showProviders) {
+      this.updateProviders(temp);
+    }
 
     this.patchDiff('channels', newChannels);
     this.channelBeforeEditing = null;
@@ -391,40 +398,32 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
     let prev = this.channelBeforeEditing;
     let prevKey = {SMS: 'smsSettings', 'Phone': 'voiceSettings', 'Fax': 'faxSettings'}[prev.type];
     if (prevKey) {
-      // clean prev
-      let { providers, customized } = settings[prevKey];
-      customized = customized.filter(x => x.phone !== prev.value)
-      providers.forEach(p => {
-        p.phones = p.phones.filter(x => x !== prev.value)
+      // clean previous
+      let { customized } = settings[prevKey];
+      customized.forEach(x => {
+        if (x.toPhones && x.toPhones.includes(prev.value)) {
+          x.toPhones = x.toPhones.filter(p => p !== prev.value)
+        }
       })
-      settings[prevKey].providers = providers
       settings[prevKey].customized = customized
     }
     let curKey = {SMS: 'smsSettings', 'Phone': 'voiceSettings', 'Fax': 'faxSettings'}[channel.type];
     if (curKey) {
-      // clean prev
-      let { providers, customized, defaultProviderName } = settings[curKey];
-      if (channel.provider !== defaultProviderName) {
-        let hasProvider = false;
-        providers.forEach(p => {
-          if (p.name === channel.provider) {
-            hasProvider = true;
-            p.phones.push(channel.value)
+      // save current
+      let { customized, defaultProviderName } = settings[curKey];
+      if (channel.provider !== defaultProviderName + '(Default)') {
+        customized.forEach(p => {
+          let key = `${p.providerName}(${p.phone})`
+          if (key === channel.provider) {
+            if (!p.toPhones) {
+              p.toPhones = [];
+            }
+            p.toPhones.push(channel.value)
           }
         })
-        if (!hasProvider) {
-          customized.push({
-            phone: channel.value,
-            providerName: channel.provider
-          })
-        }
-        settings[curKey].providers = providers;
         settings[curKey].customized = customized;
       }
     }
-    console.log(this.settings, settings)
-    delete channel.provider;
-    return;
     this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=system", [{old: this.settings, new: settings}])
       .subscribe(() => {
         this.settings = settings;
@@ -436,7 +435,8 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
 
   updateOrderNotifications(channel) {
     if (channel.type === 'Phone' && channel.isMainBizPhone) {
-      if (!channel.notifications.includes('Business')) {
+      if (!(channel.notifications || []).includes('Business')) {
+        channel.notifications = channel.notifications || [];
         channel.notifications.push('Business')
       }
     }
@@ -493,6 +493,16 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
       newNotifications.splice(notificationMatchIndex, 1);
       this.patchDiff('orderNotifications', newNotifications);
     }
+
+    // todo: how can we update system settings if user has no permission?
+    if (this.showProviders) {
+      let provider = this.getProvider(this.channelBeforeEditing);
+      if (!provider.includes('(Default)')) {
+        // for customized phones, we need update system settings
+        this.updateProviders({})
+      }
+    }
+
     this.patchDiff('channels', newChannels);
     event.acknowledge(null);
     this.modalChannel.hide();

@@ -11,7 +11,7 @@
             <th scope="col">Type</th>
             <th scope="col">Notifications</th>
             <th scope="col">Language</th>
-            <th scope="col">Provider</th>
+            <th *ngIf="showProviders" scope="col">Provider</th>
             <th scope="col"></th>
           </tr>
         </thead>
@@ -29,7 +29,7 @@
             </td>
             <td>{{showNotifications(channel.notifications)}}</td>
             <td>{{Languages[channel.language]}}</td>
-            <td>{{getProvider(channel)}}</td>
+            <td *ngIf="showProviders">{{getProvider(channel)}}</td>
             <td>
               <button class="btn btn-link p0" (click)="editChannel(channel)" *ngIf="!viewOnly">Edit</button>
             </td>
@@ -37,6 +37,9 @@
           <tr *ngIf="!viewOnly">
             <td colspan="3">
               <button class="btn btn-link px-0" (click)="editChannel()">+ Add A Channel</button>
+            </td>
+            <td [colSpan]="showProviders ? 4: 3" class="text-end" *ngIf="isAdminOrCsrManager()">
+              <label><input type="checkbox" [(ngModel)]="showProviders">Show Providers</label>
             </td>
           </tr>
         </tbody>
