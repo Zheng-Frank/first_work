@@ -7,21 +7,29 @@
         <thead>
           <tr *ngIf="restaurant.channels">
             <th scope="col">Channel</th>
+            <th scope="col">Main #</th>
             <th scope="col">Type</th>
-            <th scope="col">Notifications / Purpose</th>
-            <th scope="col">Channel Language</th>
+            <th scope="col">Notifications</th>
+            <th scope="col">Language</th>
+            <th scope="col">Provider</th>
             <th scope="col"></th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let channel of restaurant.channels || []">
-            <td *ngIf="channel.type === 'Email'">{{channel.value}}</td>
-            <td *ngIf="channel.type !== 'Email'">{{channel.value | tel}}</td>
+            <td>
+              <ng-container *ngIf="channel.type === 'Email'">{{channel.value}}</ng-container>
+              <ng-container *ngIf="channel.type !== 'Email'">{{channel.value | tel}}</ng-container>
+            </td>
+            <td>
+              <i *ngIf="showIsMainBizPhone(channel)" class="fa fa-star text-primary"></i>
+            </td>
             <td>
               <i class="{{channelTypeToFaClassMap[channel.type]}}"></i>
             </td>
-            <td>{{join(channel.notifications)}}</td>
+            <td>{{showNotifications(channel.notifications)}}</td>
             <td>{{Languages[channel.language]}}</td>
+            <td>{{getProvider(channel)}}</td>
             <td>
               <button class="btn btn-link p0" (click)="editChannel(channel)" *ngIf="!viewOnly">Edit</button>
             </td>
