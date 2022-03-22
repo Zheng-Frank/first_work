@@ -17,6 +17,11 @@ enum RuleTypes {
   Three_Months = '3 months'
 }
 
+enum VIPRanges {
+  Last3Months = 'VIP Last 3 months',
+  Overall = 'VIP Overall'
+}
+
 @Component({
   selector: 'app-monitoring-vip-restaurants',
   templateUrl: './monitoring-vip-restaurants.component.html',
@@ -75,33 +80,42 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
   viewMode = ViewTypes.All;
   rules = [RuleTypes.Six_Months, RuleTypes.Three_Months];
   rule = RuleTypes.Six_Months;
+  vipRanges = [VIPRanges.Last3Months, VIPRanges.Overall];
+  vipRange = '';
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
-  ngOnInit() {
-    this.loadVIPRestaurants();
+  async ngOnInit() {
+    await this.loadVIPRestaurants();
   }
 
   get viewTypes() {
     return ViewTypes
   }
 
-  filterFollowUp() {
-    switch (this.viewMode) {
-      case ViewTypes.All:
-        // all includes: overdue, or not overdue in six month rules, three month, or haven't lastFollowup
-        this.filterVipRTs = this.vipRTs;
+  filter() {
+    let list = this.vipRTs;
+    switch (this.vipRange) {
+      case VIPRanges.Last3Months:
+        list = list.filter(x => x.avg3M >= 150)
         break;
-      case ViewTypes.Overdue:
-        this.filterVipRTs = this.vipRTs.filter(vipRT => this.followUpOverdue(vipRT) || !vipRT.lastFollowUp);
+      case VIPRanges.Overall:
+        list = list.filter(x => x.avgAll >= 150)
         break;
-      case ViewTypes.NotOverdue:
-        this.filterVipRTs = this.vipRTs.filter(vipRT => vipRT.lastFollowUp && !this.followUpOverdue(vipRT));
-        break;
-
       default:
         break;
     }
+    switch (this.viewMode) {
+      case ViewTypes.Overdue:
+        list = list.filter(vipRT => this.followUpOverdue(vipRT) || !vipRT.lastFollowUp);
+        break;
+      case ViewTypes.NotOverdue:
+        list = list.filter(vipRT => vipRT.lastFollowUp && !this.followUpOverdue(vipRT));
+        break;
+      default:
+        break;
+    }
+    this.filterVipRTs = list;
   }
 
   followUpOverdue(rt) {
@@ -251,7 +265,7 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
       let commissions = dict[_id];
       return {...r, ...commissions};
     });
-    this.filterFollowUp();
+    this.filter();
   }
 
   async addLog(row) {
