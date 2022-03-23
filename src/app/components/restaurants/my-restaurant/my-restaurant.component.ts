@@ -535,7 +535,7 @@ export class MyRestaurantComponent implements OnInit {
         createdAt: 1,
         // previousBalance: 1
       }
-    }, 10000);
+    }, 15000);
     this.invoices = invoices.map(i => new Invoice(i));
   }
 
@@ -628,9 +628,10 @@ export class MyRestaurantComponent implements OnInit {
       }
     });
 
+    const acrossInvoicesMap = {};
     for (let i = 0; i < this.rows.length; i++) {
       let row = this.rows[i];
-      await this.calculateRowCommission(row);
+      await this.calculateRowCommission(row, acrossInvoicesMap);
       row.rate = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].rate || 0;
       row.fixed = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].fixed || 0;
 
@@ -651,6 +652,8 @@ export class MyRestaurantComponent implements OnInit {
 
       row.invoices.reverse();
     }
+
+    await this.calcAcrossInvoices(acrossInvoicesMap);
 
     // compute subtotal
     this.rows.map(row => {
@@ -703,30 +706,66 @@ export class MyRestaurantComponent implements OnInit {
 
   }
 
-  getCommissionPeriods(feeSchedules, rateSchedules, timezone) {
+  isSameOrNextDay(prevEnd: Date, nextStart: Date, timezone) {
+    let options = { timeZone: timezone };
+    let nextDateStr = nextStart.toLocaleDateString('en-US', options);
+    if (prevEnd.toLocaleDateString('en-US', options) === nextDateStr) {
+      return true;
+    }
+    let nextD = new Date(prevEnd)
+    nextD.setDate(nextD.getDate() + 1);
+    return nextD.toLocaleDateString('en-US', options) === nextDateStr;
+  }
+
+  getCommissionPeriods(rt, feeSchedules, rateSchedules, timezone) {
     // periods: [{rate: 0.1, start: '2020-01-01', end: '2020-03-04'}, ...]
     let periods = this.commissionByRateSchedules(rateSchedules, timezone);
     if (feeSchedules && feeSchedules.length) {
       periods = this.commissionByFeeSchedules(feeSchedules, timezone);
     }
     let limit;
-    periods.sort((a, b) => b.start.valueOf() - a.start.valueOf()).forEach(x => {
-      if (limit && !x.end) {
-        limit.setDate(limit.getDate() - 1);
-        x.end = limit
-      }
-      limit = new Date(x.start)
+    periods.sort((a, b) => (b.start.valueOf() - a.start.valueOf()) || ((b.end || new Date()).valueOf() - (a.end || new Date()).valueOf()))
+      .forEach(x => {
+        if (limit && !x.end) {
+          limit.setDate(limit.getDate() - 1);
+          if (limit.valueOf() >= x.start.valueOf()) {
+            x.end = limit;
+          } else {
+            x.end = new Date(x.start)
+          }
+        }
+        limit = new Date(x.start)
     })
-    return periods;
+    // we should merge continuous periods with same rate, to reduce invoice across check
+
+    let merged = [], next;
+    periods.forEach(({start, end, rate}) => {
+      if (!next) {
+        next = {start, end, rate}
+        merged.push(next);
+      } else {
+        if (rate === next.rate && this.isSameOrNextDay(end, next.start, timezone)) {
+          next.start = start;
+        } else {
+          next = { start, end, rate }
+          merged.push(next);
+        }
+      }
+    })
+    return merged;
+  }
+
+  time2Date(time, timezone) {
+    return TimezoneHelper.parse(new Date(time).toLocaleDateString('en-US', {timeZone: timezone}), timezone);
   }
 
   commissionByFeeSchedules(schedules, timezone) {
     return schedules.filter(x => x.chargeBasis.toLowerCase() === 'commission')
       .map(({fromTime, toTime, rate, payee}) => {
         return {
-          start: TimezoneHelper.getTimezoneDateFromBrowserDate(fromTime, timezone),
+          start: this.time2Date(fromTime, timezone),
           rate: (this.username === payee ? rate : 0) || 0,
-          end: toTime ? TimezoneHelper.getTimezoneDateFromBrowserDate(toTime, timezone) : undefined
+          end: toTime ? this.time2Date(toTime, timezone) : undefined
         }
       })
   }
@@ -740,20 +779,22 @@ export class MyRestaurantComponent implements OnInit {
       }));
   }
 
-  async calculateRowCommission(row) {
+  async calculateRowCommission(row, acrossInvoicesMap) {
     row.collected = 0;
     row.notCollected = 0;
     row.earned = 0;
     row.notEarned = 0;
-    let { rateSchedules, feeSchedules, googleAddress: { timezone } } = row.restaurant;
-    let periods = this.getCommissionPeriods(feeSchedules, rateSchedules, timezone);
+    let { rateSchedules, feeSchedules, googleAddress: { timezone }, _id } = row.restaurant;
+    let periods = this.getCommissionPeriods(_id, feeSchedules, rateSchedules, timezone);
     let latest = periods[0] || { commission: 0 };
     row.commission = latest.commission || 0;
     for (let i = 0; i < row.invoices.length; i++) {
       let invoice = row.invoices[i];
-      let from = TimezoneHelper.getTimezoneDateFromBrowserDate(invoice.fromeDate, timezone).valueOf();
-      let to = TimezoneHelper.getTimezoneDateFromBrowserDate(invoice.toDate, timezone).valueOf()
-      let period = periods.find(({start, end}) => from >= start.valueOf() && (!end || to <= end.valueOf()));
+      let from = this.time2Date(invoice.fromDate, timezone);
+      let to = this.time2Date(invoice.toDate, timezone);
+      let period = periods.find(({start, end}) => {
+        return from.valueOf() >= start.valueOf() && (!end || to.valueOf() <= end.valueOf());
+      });
       if (period) {
         // we found a period which can enclose this invoice,
         // for this invoice we can just use invoice's data
@@ -771,28 +812,51 @@ export class MyRestaurantComponent implements OnInit {
         }
         continue;
       }
-      // this invoice across different periods, we need to calculate per order
-      await this.calcCommissionPerOrder(row, invoice, feeSchedules, timezone, periods);
+      const across = ({start, end}) => {
+        let fromIn = from.valueOf() >= start.valueOf() && (!end || from.valueOf() <= end.valueOf());
+        let toIn = to.valueOf() >= start.valueOf() && (!end || to.valueOf() <= end.valueOf());
+        return fromIn || toIn;
+      }
+      if (periods.some(across)) {
+        // this invoice across different periods, we need to calculate per order
+        // we record all across invoices to batch query and calculate later
+        acrossInvoicesMap[invoice._id] = {row, periods, feeSchedules, paid: invoice.paid, timezone};
+      }
     }
   }
 
-  async calcCommissionPerOrder(row, invoice, feeSchedules, timezone, periods) {
-    const [data] = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'invoice',
-      query: {_id: {$oid: invoice._id}},
-      projection: {
-        adjustments: 1,
-        orders: 1
-      }
-    }).toPromise();
+  async calcAcrossInvoices(invoicesMap) {
+    const ids = Object.keys(invoicesMap);
+    if (ids.length <= 0) {
+      return;
+    }
+    const invoices = [];
+    while (ids.length > 0) {
+      let data = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'invoice',
+        query: {_id: {$in: ids.splice(0, 100).map(id => ({$oid: id}))}},
+        projection: {
+          adjustments: 1,
+          orders: 1
+        },
+        limit: 100
+      }).toPromise();
+      invoices.push(...data);
+    }
+    invoices.forEach(({_id, adjustments, orders}) => {
+      let {row, periods, feeSchedules, timezone, paid} = invoicesMap[_id];
+      this.calcCommissionPerOrder(row, {adjustments, orders, paid}, feeSchedules, timezone, periods);
+    })
+  }
 
+  calcCommissionPerOrder(row, invoice, feeSchedules, timezone, periods) {
     // calculate commission
-    let { orders,  adjustments} = data;
+    let { orders,  adjustments} = invoice;
     (orders || []).forEach(order => {
       // based on feesForQmenu and commission
       let temp = this.getFeesForQmenu(order) + this.getOrderCommission(order, feeSchedules);
 
-      let orderDate = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(order.createdAt), timezone).valueOf();
+      let orderDate = this.time2Date(order.createdAt, timezone).valueOf();
       let period = periods.find(p => {
         return orderDate >= p.start.valueOf() && (!p.end || orderDate <= p.end.valueOf())
       });
@@ -812,7 +876,7 @@ export class MyRestaurantComponent implements OnInit {
       if (!time) {
         return;
       }
-      let adjustTime = TimezoneHelper.getTimezoneDateFromBrowserDate(time, timezone).valueOf()
+      let adjustTime = this.time2Date(time, timezone).valueOf()
       let period = periods.find(p => {
         return adjustTime >= p.start.valueOf() && (!p.end || adjustTime <= p.end.valueOf())
       });
