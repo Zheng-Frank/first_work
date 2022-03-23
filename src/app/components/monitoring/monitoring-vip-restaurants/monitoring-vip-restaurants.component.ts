@@ -14,7 +14,8 @@ enum ViewTypes {
 
 enum RuleTypes {
   Six_Months = '6 months',
-  Three_Months = '3 months'
+  Three_Months = '3 months',
+  Twelve_Months = '12 months'
 }
 
 enum VIPRanges {
@@ -78,7 +79,7 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
   // filter conditions
   viewModes = [ViewTypes.All, ViewTypes.Overdue, ViewTypes.NotOverdue];
   viewMode = ViewTypes.All;
-  rules = [RuleTypes.Six_Months, RuleTypes.Three_Months];
+  rules = [RuleTypes.Six_Months, RuleTypes.Three_Months, RuleTypes.Twelve_Months];
   rule = RuleTypes.Six_Months;
   vipRanges = [VIPRanges.Last3Months, VIPRanges.Overall];
   vipRange = '';
@@ -127,10 +128,14 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
     if (this.rule === RuleTypes.Three_Months) {
       return rt.lastFollowUp && rt.lastFollowUp.valueOf() <= (this.now.valueOf() - 3 * 30 * 24 * 3600 * 1000);
     }
+    // twelve months
+    if (this.rule === RuleTypes.Twelve_Months) {
+      return rt.lastFollowUp && rt.lastFollowUp.valueOf() <= (this.now.valueOf() - 12 * 30 * 24 * 3600 * 1000);
+    }
   }
 
   getOverdueDays(rt, isOverDue) {
-    if (isOverDue) { // need to calculate delta with 180 or 90 days
+    if (isOverDue) { // need to calculate delta with 180, 90 days, 360 days
       // six months
       if (this.rule === RuleTypes.Six_Months) {
         return Math.round((this.now.valueOf() - 6 * 30 * 24 * 3600 * 1000 - rt.lastFollowUp.valueOf()) / (24 * 3600 * 1000));
@@ -139,6 +144,10 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
       if (this.rule === RuleTypes.Three_Months) {
         return Math.round((this.now.valueOf() - 3 * 30 * 24 * 3600 * 1000 - rt.lastFollowUp.valueOf()) / (24 * 3600 * 1000));
       }
+      // twelve months
+      if (this.rule === RuleTypes.Twelve_Months) {
+        return Math.round((this.now.valueOf() - 12 * 30 * 24 * 3600 * 1000 - rt.lastFollowUp.valueOf()) / (24 * 3600 * 1000));
+      }
     } else {
       // six months
       if (this.rule === RuleTypes.Six_Months) {
@@ -146,6 +155,10 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
       }
       // three months
       if (this.rule === RuleTypes.Three_Months) {
+        return Math.round((this.now.valueOf() - rt.lastFollowUp.valueOf()) / (24 * 3600 * 1000));
+      }
+      // twelve months
+      if (this.rule === RuleTypes.Twelve_Months) {
         return Math.round((this.now.valueOf() - rt.lastFollowUp.valueOf()) / (24 * 3600 * 1000));
       }
     }
@@ -187,7 +200,7 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
             'rtId': '$restaurant.id',
             commission: {
               $cond: {
-                if: { $gt: ['$commission', 0] }, then: '$commission', else: {$add: ['$commission', {$ifNull: ['$feesForQmenu', 0]}]}
+                if: { $gt: ['$commission', 0] }, then: '$commission', else: { $add: ['$commission', { $ifNull: ['$feesForQmenu', 0] }] }
               }
             },
             createdAt: 1
@@ -195,8 +208,8 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
         },
         {
           $group: {
-            _id: {rtId: '$rtId'},
-            avgAll: {$avg: '$commission'},
+            _id: { rtId: '$rtId' },
+            avgAll: { $avg: '$commission' },
             invs: {
               $push: {
                 commission: '$commission',
@@ -217,7 +230,7 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
                       input: '$invs',
                       as: 'inv',
                       cond: {
-                        $gte: ['$$inv.createdAt', {$dateFromString: {dateString: new Date(new Date().valueOf() - 3 * 30 * 24 * 3600 * 1000)}} ]
+                        $gte: ['$$inv.createdAt', { $dateFromString: { dateString: new Date(new Date().valueOf() - 3 * 30 * 24 * 3600 * 1000) } }]
                       }
                     }
                   },
@@ -228,7 +241,7 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
             },
           }
         },
-        {$match: {$or: [{avgAll: {$gte: 150}}, {avg3M: {$gte: 150}}]}}
+        { $match: { $or: [{ avgAll: { $gte: 150 } }, { avg3M: { $gte: 150 } }] } }
       ]
     }).toPromise();
     const dict = {};
@@ -236,7 +249,7 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       aggregate: [
-        {$match: {disabled: {$ne: true}}},
+        { $match: { disabled: { $ne: true } } },
         {
           $project: {
             _id: 1,
@@ -256,14 +269,14 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
         }
       ]
     }).toPromise();
-    this.vipRTs = restaurants.filter(({_id}) => !!dict[_id]).map(r => {
+    this.vipRTs = restaurants.filter(({ _id }) => !!dict[_id]).map(r => {
       let { logs, _id } = r;
       if (logs && logs.length > 0) {
         logs.sort((l1, l2) => new Date(l2.time).valueOf() - new Date(l1.time).valueOf());
         r.lastFollowUp = new Date(logs[0].time);
       }
       let commissions = dict[_id];
-      return {...r, ...commissions};
+      return { ...r, ...commissions };
     });
     this.filter();
   }
