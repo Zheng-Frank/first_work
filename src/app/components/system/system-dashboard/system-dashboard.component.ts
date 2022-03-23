@@ -34,7 +34,7 @@ export class SystemDashboardComponent implements OnInit {
 
   system: any;
   items = [];
-  systemItem = 'DB Scripts';
+  systemItem = '';
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
@@ -49,6 +49,7 @@ export class SystemDashboardComponent implements OnInit {
     };
     const myRoles = this._global.user.roles;
     this.items = Object.keys(roleMap).filter(k => roleMap[k].some(role => myRoles.indexOf(role) >= 0));
+    this.systemItem = this.items[0];
   }
 
   isAdmin() {
