@@ -434,10 +434,16 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
   }
 
   updateOrderNotifications(channel) {
-    if (channel.type === 'Phone' && channel.isMainBizPhone) {
-      if (!(channel.notifications || []).includes('Business')) {
-        channel.notifications = channel.notifications || [];
-        channel.notifications.push('Business')
+    if (channel.type === 'Phone') {
+      if (channel.isMainBizPhone) {
+        if (!(channel.notifications || []).includes('Business')) {
+          channel.notifications = channel.notifications || [];
+          channel.notifications.push('Business')
+        }
+      } else {
+        if ((channel.notifications || []).includes('Business')) {
+          channel.notifications = channel.notifications.filter(x => x !== 'Business');
+        }
       }
     }
     delete channel.isMainBizPhone;
