@@ -51,7 +51,7 @@ export class RestaurantSalesComponent implements OnInit {
         }
       });
     });
-    let enabledUsers = this.users.filter(user => user.disabled);
+    let enabledUsers = this.users.filter(user => !user.disabled);
     enabledUsers.forEach(eu => {
       if (agents.indexOf(eu.username) === -1) {
         agents.push(eu.username.trim());
