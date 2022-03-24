@@ -35,7 +35,7 @@
     <ng-container *ngIf="editing">
       <div class="form-group">
         <label>Name:</label>
-        <input type="text" class="form-control" [(ngModel)]="editing.name">
+        <input type="text" class="form-control" maxlength="40" [(ngModel)]="editing.name">
         <small class="text-danger" *ngIf="!editing.name">Required</small>
       </div>
       <div class="form-group">

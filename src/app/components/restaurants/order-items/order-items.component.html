@@ -63,6 +63,17 @@
         <td class="text-right text-nowrap">-{{order.getDiscount() | money}}</td>
       </tr>
 
+      <tr *ngFor="let a of (order.addons || [])">
+        <td colspan="2">
+          <strong>{{a.name}}</strong>
+          <div *ngIf="a.quantity > 1">
+            <span class="box"><strong>Qty = {{a.quantity}}</strong></span>
+            <div>{{a.price| money}} &times; {{a.quantity}}</div>
+          </div>
+        </td>
+        <td class="text-right text-nowrap">{{a.quantity * a.price | money}}</td>
+      </tr>
+
       <tr class="gray-border-top">
         <td class="text-sm-center" style="vertical-align: middle"
           attr.rowspan="{{3 + (order.fees || []).length + (alwaysDisplayDeliveryCharge || order.deliveryCharge ? 1: 0) + (alwaysDisplayTip || order.getTip() ? 1: 0) + (order.surchargeRate || order.surchargeAmount ? 1: 0) + (order.ccProcessingRate || order.ccProcessingFlatFee ? 1: 0)}}">
