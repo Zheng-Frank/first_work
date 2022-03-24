@@ -629,9 +629,8 @@ export class MyRestaurantComponent implements OnInit {
     });
 
     const acrossInvoicesMap = {};
-    for (let i = 0; i < this.rows.length; i++) {
-      let row = this.rows[i];
-      await this.calculateRowCommission(row, acrossInvoicesMap);
+    this.rows.forEach(row => {
+      this.calculateRowCommission(row, acrossInvoicesMap);
       row.rate = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].rate || 0;
       row.fixed = row.restaurant.rateSchedules[row.restaurant.rateSchedules.length - 1].fixed || 0;
 
@@ -651,7 +650,7 @@ export class MyRestaurantComponent implements OnInit {
       row.unqualifiedSalesBonus = (row.restaurant.salesBonus || 0) - (row.qualifiedSalesBonus || 0);
 
       row.invoices.reverse();
-    }
+    });
 
     await this.calcAcrossInvoices(acrossInvoicesMap);
 
@@ -779,15 +778,15 @@ export class MyRestaurantComponent implements OnInit {
       }));
   }
 
-  async calculateRowCommission(row, acrossInvoicesMap) {
+  calculateRowCommission(row, acrossInvoicesMap) {
     row.collected = 0;
     row.notCollected = 0;
     row.earned = 0;
     row.notEarned = 0;
     let { rateSchedules, feeSchedules, googleAddress: { timezone }, _id } = row.restaurant;
     let periods = this.getCommissionPeriods(_id, feeSchedules, rateSchedules, timezone);
-    let latest = periods[0] || { commission: 0 };
-    row.commission = latest.commission || 0;
+    let latest = periods[0] || { rate: 0 };
+    row.commission = latest.rate || 0;
     for (let i = 0; i < row.invoices.length; i++) {
       let invoice = row.invoices[i];
       let from = this.time2Date(invoice.fromDate, timezone);
