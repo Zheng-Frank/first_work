@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
-import { ApiService } from '../../services/api.service';
-import { GlobalService } from '../../services/global.service';
+import {Component} from '@angular/core';
+import {ApiService} from '../../services/api.service';
+import {GlobalService} from '../../services/global.service';
 
 @Component({
   selector: 'app-profile',
@@ -15,5 +15,6 @@ export class ProfileComponent {
   getUser() {
     return this._global.user;
   }
+
 
 }

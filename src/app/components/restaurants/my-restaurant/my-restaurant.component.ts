@@ -195,7 +195,6 @@ export class MyRestaurantComponent implements OnInit {
 
   async ngOnInit() {
     this.username = this._global.user.username;
-    console.log(JSON.stringify(this._global.user));
     this.usernames = [this.username];
     if (this._global.user.roles.includes('MARKETER_MANAGER')) {
       await this.getTeamUsers();
