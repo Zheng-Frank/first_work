@@ -195,6 +195,7 @@ export class MyRestaurantComponent implements OnInit {
 
   async ngOnInit() {
     this.username = this._global.user.username;
+    console.log(JSON.stringify(this._global.user));
     this.usernames = [this.username];
     if (this._global.user.roles.includes('MARKETER_MANAGER')) {
       await this.getTeamUsers();
@@ -216,10 +217,12 @@ export class MyRestaurantComponent implements OnInit {
       this.usernames = [...userSet];
       if (this.isMarketerManagerWithTeam() && !this.isAdminCSRManagerWithTeam() && !this.isSuperUser()) {
         this.usernames = this.usernames.filter(x => this.teamUsers.includes(x));
-        // add current user himself
-        this.usernames.unshift(this._global.user.username);
       }
       this.usernames.sort((a, b) => (a || '').localeCompare((b || '')));
+    }
+    if(this.usernames.indexOf(this._global.user.username) === -1) {
+      // add current user himself
+      this.usernames.unshift(this._global.user.username);
     }
     this.populate();
   }
