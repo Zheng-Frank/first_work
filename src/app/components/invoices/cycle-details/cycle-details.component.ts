@@ -238,15 +238,14 @@ export class CycleDetailsComponent implements OnInit {
   }
 
   async populatePaymentMeansAndDisabled() {
-    const rtPms = await this._api.get(environment.qmenuApiUrl + "generic", {
+    const rtPms = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "restaurant",
       projection: {
         paymentMeans: 1,
         disabled: 1,
         skipAutoInvoicing: 1,
-      },
-      limit: 100000
-    }).toPromise();
+      }    
+    }, 8000);
     rtPms.map(rt => {
       if (rt.skipAutoInvoicing) {
         this.skipAutoInvoicingRestaurants.add(rt._id);
@@ -289,14 +288,13 @@ export class CycleDetailsComponent implements OnInit {
     });
   }
   async loadCycle() {
-    const allCycles = await this._api.get(environment.qmenuApiUrl + "generic", {
+    const allCycles = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "cycle",
       query: {},
       projection: {
         createdAt: 1
-      },
-      limit: 1000000
-    }).toPromise();
+      }
+    }, 1000000);
 
     allCycles.sort((c1, c2) => new Date(c1.createdAt).valueOf() - new Date(c2.createdAt).valueOf());
     this.isLastCycle = allCycles[allCycles.length - 1]._id === this.cycleId;
