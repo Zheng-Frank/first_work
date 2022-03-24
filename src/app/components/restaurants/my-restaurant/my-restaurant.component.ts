@@ -763,7 +763,9 @@ export class MyRestaurantComponent implements OnInit {
   }
 
   time2Date(time, timezone) {
-    return TimezoneHelper.parse(new Date(time).toLocaleDateString('en-US', {timeZone: timezone}), timezone);
+    return new Date(time);
+    // just use utc time since we didn't care timezone when invoice are generated and calculated.
+    // return TimezoneHelper.parse(new Date(time).toLocaleDateString('en-US', {timeZone: timezone}), timezone);
   }
 
   commissionByFeeSchedules(schedules, timezone) {
@@ -782,7 +784,8 @@ export class MyRestaurantComponent implements OnInit {
     let nonAgents = ['none', 'auto', 'AUTO', 'random_name', 'qmenu', 'invalid', 'no-gmb'];
     return schedules.filter(x => x.agent && !nonAgents.includes(x.agent))
       .map(({date, agent, commission}) => ({
-        start: TimezoneHelper.parse(date, timezone), rate: (agent === this.username ? commission : 0) || 0
+        // just use utc time since we didn't care timezone when invoice are generated and calculated.
+        start: new Date(date), rate: (agent === this.username ? commission : 0) || 0
       }));
   }
 
@@ -851,10 +854,7 @@ export class MyRestaurantComponent implements OnInit {
       let data = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'invoice',
         query: {_id: {$in: ids.splice(0, 100).map(id => ({$oid: id}))}},
-        projection: {
-          adjustments: 1,
-          orders: 1
-        },
+        projection: {adjustments: 1, orders: 1},
         limit: 100
       }).toPromise();
       invoices.push(...data);
@@ -873,7 +873,7 @@ export class MyRestaurantComponent implements OnInit {
       let { rate } = p;
       let ordersInPeriod = (orders || []).filter(o => {
         let orderDate = this.time2Date(o.createdAt, timezone).valueOf();
-        return orderDate >= p.start.valueOf() && (!p.end || orderDate <= p.end.valueOf())
+        return orderDate >= p.start.valueOf() && (!p.end || orderDate <= p.end.valueOf());
       }).sort((a, b) => new Date(a.createdAt).valueOf() - new Date(b.createdAt).valueOf());
       let adjsInPeriod = (adjustments || []).filter(a => {
         if (!a.time) {
@@ -884,6 +884,8 @@ export class MyRestaurantComponent implements OnInit {
       });
       let i = 0;
       let tempO = ordersInPeriod.reduce((a, c) => {
+        // todo: logically, we should calculate sales agent's commission by order type as we calc our commission
+        // todo: that will need a deeper thinking
         // based on feesForQmenu and commission
         let temp = this.getFeesForQmenu(c) + this.getOrderCommission(c, feeSchedules);
         if (invoice.paid) {
@@ -893,12 +895,11 @@ export class MyRestaurantComponent implements OnInit {
           row.notCollected += temp;
           row.notEarned += temp * rate;
         }
-        if (invoice._id === '5d1a9e53557253b6356e713f') {
-          console.log(i, c.createdAt, a, temp, a + temp)
-        }
         i++;
         return a + temp;
       }, 0);
+      // when invoice created, adjustments are calculated separately without consider of rate schedule
+      // todo: logically we should consider it, will we update it???
       let tempA = adjsInPeriod.reduce((a, c) => {
         let { amount, type } = c;
         let temp = +(+amount).toFixed(2) || 0;
@@ -987,7 +988,7 @@ export class MyRestaurantComponent implements OnInit {
         notEarned += sales;
       }
       if (Number.isNaN(earned) || Number.isNaN(notEarned)) {
-        console.log(temp, sales, i)
+        console.log('NaN...', temp, sales, i)
       }
     });
     return {total, paid, counted, earned, notEarned}
