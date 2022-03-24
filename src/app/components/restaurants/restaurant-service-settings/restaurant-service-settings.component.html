@@ -92,7 +92,11 @@
             </tr>
           </tbody>
         </table>
-
+        <!-- start with payee name and tin warning -->
+        <div class="row ml-1" *ngIf="shortForTinAndPayeeName()">
+          <span class="text-danger">Can not select "qMenu collect payment" until payee name and TIN entered</span>
+        </div>
+        <!-- end with payee name and tin warning -->
         <div *ngIf="shouldShowCCProcessorForm()" class="mt-3 pt-3">
           <q-simple-radio [(ngModel)]="ccProcessorSelected" [equalWidth]="true" [values]="['STRIPE', 'SPREEDLY']">
           </q-simple-radio>

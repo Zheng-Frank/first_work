@@ -275,6 +275,9 @@ import { PhoneOrderingDashboardComponent } from './components/phone-ordering/pho
 import { RestaurantOtherAttachmentsComponent } from './components/restaurants/restaurant-other-attachments/restaurant-other-attachments.component';
 import { AddonsComponent } from './components/restaurants/addons/addons.component';
 import { MenuOptionsAndAddonsComponent } from './components/restaurants/menu-options-and-addons/menu-options-and-addons.component';
+import { MornitoringSmsComponent } from './components/monitoring/mornitoring-sms/mornitoring-sms.component';
+import { MonitoringDeactivatedCustomersComponent } from './components/monitoring/monitoring-deactivated-customers/monitoring-deactivated-customers.component';
+
 
 
 @NgModule({
@@ -520,7 +523,9 @@ import { MenuOptionsAndAddonsComponent } from './components/restaurants/menu-opt
     PhoneOrderingDashboardComponent,
     RestaurantOtherAttachmentsComponent,
     AddonsComponent,
-    MenuOptionsAndAddonsComponent
+    MenuOptionsAndAddonsComponent,
+    MornitoringSmsComponent,
+    MonitoringDeactivatedCustomersComponent
   ],
   imports: [
     BrowserModule,

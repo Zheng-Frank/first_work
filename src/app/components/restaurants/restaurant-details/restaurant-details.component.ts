@@ -508,34 +508,34 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
             };
           }
         },
-        {
-          title: "qMenu Online Service Agreement (中文)",
-          subject: "qMenu Online Service Agreement (中文)",
-          inputs: [
-            {
-              label: "Signature", value: '',
-              apply: (tpl, value) => this.fillMessageTemplate(tpl, { "SIGNATURE": value }, /%%(SIGNATURE)%%/g)
-            },
-            {
-              label: "Full Name", value: '',
-              apply: (tpl, value) => this.fillMessageTemplate(tpl, { "FULL_NAME": value }, /%%(FULL_NAME)%%/g)
-            },
-            {
-              label: "Title", value: '',
-              apply: (tpl, value) => this.fillMessageTemplate(tpl, { "POSITION": value }, /%%(POSITION)%%/g)
+          {
+            title: "qMenu Online Service Agreement (中文)",
+            subject: "qMenu Online Service Agreement (中文)",
+            inputs: [
+              {
+                label: "Signature", value: '',
+                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "SIGNATURE": value }, /%%(SIGNATURE)%%/g)
+              },
+              {
+                label: "Full Name", value: '',
+                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "FULL_NAME": value }, /%%(FULL_NAME)%%/g)
+              },
+              {
+                label: "Title", value: '',
+                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "POSITION": value }, /%%(POSITION)%%/g)
+              }
+            ],
+            emailContent: this.getChineseOnlineServicesAgreement(),
+            smsContent: this.getChineseOnlineServicesAgreementForSMS(),
+            smsPreview: this.getChineseOnlineServicesAgreement(),
+            uploadHtml: (body) => {
+              return {
+                contentType: 'text/html; charset=utf-8',
+                body: body,
+                format: 'pdf'
+              };
             }
-          ],
-          emailContent: this.getChineseOnlineServicesAgreement(),
-          smsContent: this.getChineseOnlineServicesAgreementForSMS(),
-          smsPreview: this.getChineseOnlineServicesAgreement(),
-          uploadHtml: (body) => {
-            return {
-              contentType: 'text/html; charset=utf-8',
-              body: body,
-              format: 'pdf'
-            };
           }
-        }
         );
       }
       if (this.earliestInvoiceDueDate) {
@@ -792,6 +792,26 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     }
     this.now = new Date();
   }
+  //every item includes: user and his all managers
+  async getManagerAndUsers() {
+    const users = await this._api.get(environment.qmenuApiUrl + "generic", {
+      resource: "user",
+      aggregate: [
+        {
+          $graphLookup: {
+            from: "user",
+            startWith: "$manager",
+            connectFromField: "manager",
+            connectToField: "username",
+            as: "leaders"
+          }
+        },
+        { $match: { "leaders.username": { $eq: this._global.user.username } } },
+        { $project: { username: 1, "leaders.username": 1 } }
+      ]
+    }).toPromise();
+    return users;
+  }
 
   async loadDetails() {
     this.readonly = true;
@@ -799,7 +819,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     if (this.id) {
       this.apiRequesting = true;
       const query = { _id: { $oid: this.id } };
-
+      const teamUsers = await this.getManagerAndUsers();
       this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'restaurant',
         query: query,
@@ -818,7 +838,9 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           const canEdit = this._global.user.roles.some(r =>
             ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'ACCOUNTANT'].indexOf(r) >= 0) ||
             (rt.rateSchedules).some(rs => rs.agent === 'invalid') ||
-            (rt.rateSchedules || []).some(rs => rs.agent === this._global.user.username);
+            (rt.rateSchedules || []).some(rs => rs.agent === this._global.user.username) ||
+            // You are the administrator of any salesperson in this restaurant
+            teamUsers.some(user => (rt.rateSchedules || []).some(rs => rs.agent === user.username && (user.leaders || []).some(lead => lead.username === this._global.user.username)));
           this.readonly = !canEdit;
           // use encodeURLComponment to reformat the href of a link.
           // https://www.google.com/search?q={{restaurant.name}} {{restaurant.googleAddress.formatted_address}}
