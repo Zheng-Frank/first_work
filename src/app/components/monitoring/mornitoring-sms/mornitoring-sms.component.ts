@@ -246,28 +246,96 @@ export class MornitoringSmsComponent implements OnInit {
         ];
       }
     }
-    // bandwidth event
-    const bandwidth = providerTypes.Bandwidth.toLowerCase();
-    const plivo = providerTypes.Plivo.toLowerCase();
-    const twilio = providerTypes.Twilio.toLowerCase();
-    const failedBandwidthEvents = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'event',
+    // a job has several event, and need to find the final one 
+    const smsJobs = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+      resource: "job",
       aggregate: [
         {
           $match: {
-            'name': 'sms-status',
-            'params.providerName': bandwidth,
-            'params.body.type': 'message-failed',
+            $or: [
+              { name: 'send-sms' },
+              { name: 'send-order-sms' },
+              { name: 'sms-login' }
+            ],
+            "logs.eventName": "sms-status",
+            "logs.status": "failed",
             $and: timeQuery
           }
         },
         {
           $project: {
+            name: 1,
+            logs: {
+              $slice: ['$logs', -1]
+            }
+          }
+        }
+      ]
+    }, 10000);
+    // divided eventIds  
+    const eventIds = [];
+    smsJobs.forEach(job => {
+      (job.logs || []).forEach(log => {
+        if (log.eventId && eventIds.indexOf(log.eventId) === -1) {
+          eventIds.push(log.eventId);
+        }
+      });
+    });
+    // the eventIds array is very large and need to slice it.
+    const split_arr = (arr, len) => {
+      var newArr = [];
+      for (let i = 0; i < arr.length; i += len) {
+        newArr.push(arr.slice(i, i + len));
+      }
+      return newArr;
+    }
+    /* spell the following conditions
+     $or:[
+       {
+        _id: { $in:['xx','xx'] }
+       }
+     ]
+    */
+    let tempEventIds = split_arr(eventIds, Math.ceil(eventIds.length / 100));
+     let idsOrArr = [];
+     for (let i = 0; i < tempEventIds.length; i++) {
+       let item = {
+         _id: {
+           $in: tempEventIds[i]
+         }
+       }
+       idsOrArr.push(item);
+     }
+     console.log(JSON.stringify(idsOrArr));
+    // query fail sms event
+    const failedSMSEvents = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'event',
+      aggregate: [
+        {
+          $match: {
+            $or: idsOrArr
+          }
+        },
+        {
+          $project: {
+            /* bandwidth*/
             // send status (error)
             'params.body.description': 1, // bandwidth
             // number
             'params.body.message.from': 1, // bandwidth
             'params.body.to': 1, // bandwidth
+
+            /* plivo */
+            // send status (error)
+            'params.body.Status': 1, // plivo
+            // number
+            'params.body.From': 1, // plivo and twilio
+            'params.body.To': 1, // plivo and twilio
+
+            /* twilio */
+            // send status (error)
+            'params.body.MessageStatus': 1, // twilio
+
             // provider
             providerName: '$params.providerName',
             // date
@@ -276,62 +344,10 @@ export class MornitoringSmsComponent implements OnInit {
         }
       ],
     }, 10000);
-    // plivo event
-    const failedPlivoEvents = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'event',
-      aggregate: [
-        {
-          $match: {
-            'name': 'sms-status',
-            'params.providerName': plivo,
-            'params.body.Status': 'undelivered',
-            $and: timeQuery
-          }
-        },
-        {
-          $project: {
-            // send status (error)
-            'params.body.Status': 1, // plivo
-            // number
-            'params.body.From': 1, // plivo
-            'params.body.To': 1, // plivo
-            // provider
-            providerName: '$params.providerName',
-            // date
-            createdAt: 1
-          }
-        }
-      ],
-    }, 10000);
-    // twilio event 
-    const failedTwilioEvents = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'event',
-      aggregate: [
-        {
-          $match: {
-            'name': 'sms-status',
-            'params.providerName': twilio,
-            'params.body.MessageStatus': 'undelivered',
-            $and: timeQuery
-          }
-        },
-        {
-          $project: {
-            // send status (error)
-            'params.body.MessageStatus': 1, // twilio
-            // number
-            'params.body.From': 1, // twilio
-            'params.body.To': 1, // twilio
-            // provider
-            providerName: '$params.providerName',
-            // date
-            createdAt: 1
-          }
-        }
-      ],
-    }, 10000);
-    // use sms settings of system to construct the currentProvider of rows
-    const failedSMSEvents = [...new Set(failedBandwidthEvents), ...new Set(failedPlivoEvents), ...new Set(failedTwilioEvents)];
+ 
+    const bandwidth = providerTypes.Bandwidth.toLowerCase();
+    const plivo = providerTypes.Plivo.toLowerCase();
+    const twilio = providerTypes.Twilio.toLowerCase();
     const providerMap = {
       [twilio]: providerTypes.Twilio,
       [plivo]: providerTypes.Plivo,
