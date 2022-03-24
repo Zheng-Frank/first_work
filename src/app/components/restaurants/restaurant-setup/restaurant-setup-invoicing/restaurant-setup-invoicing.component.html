@@ -1,4 +1,31 @@
 <ng-container *ngIf="serviceSettingsFinished;else elseBlock">
+  <!-- start with tin -->
+  <div class="form-group" *ngIf="showMandatoryQuestions">
+    <label class="mb-0">TIN</label>
+    <div class="text-info" *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.tin_inquiry : invoicingSectionCallScript.ChineseCallScript.tin_inquiry}}
+    </div>
+    <div>
+      <b class="text-danger" *ngIf="!rtTIN">Attribute Missing</b>
+      <q-edit-label [value]="rtTIN" (edit)="onEditTinAndPayee($event, 'rtTIN')">
+      </q-edit-label>
+    </div>
+  </div>
+  <!-- end with tin -->
+  <!-- start with payee name -->
+  <div class="form-group" *ngIf="showMandatoryQuestions">
+    <label class="mb-0">Payee</label>
+    <div class="text-info" *ngIf="showCallScript">
+      {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.payee_inquiry : invoicingSectionCallScript.ChineseCallScript.payee_inquiry}}
+    </div>
+    <div>
+      <b class="text-danger" *ngIf="!payeeName">Attribute Missing</b>
+      <q-edit-label [value]="payeeName" (edit)="onEditTinAndPayee($event, 'payeeName')">
+      </q-edit-label>
+    </div>
+  </div>
+  <!-- end with payee name -->
+  <hr *ngIf="showMandatoryQuestions">
   <div class="text-info" *ngIf="showCallScript && (showToQmenuQuestion || showFromQmenuQuestion)">
     {{changeLanguageFlag === 'English'? invoicingSectionCallScript.EnglishCallScript.open_remark : invoicingSectionCallScript.ChineseCallScript.open_remark}}
   </div>
