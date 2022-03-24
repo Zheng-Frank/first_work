@@ -652,10 +652,18 @@ export class MyRestaurantComponent implements OnInit {
       row.invoices.reverse();
     });
 
-    await this.calcAcrossInvoices(acrossInvoicesMap);
+    await this.calcAcrossInvoices(acrossInvoicesMap, invoiceMap);
 
     // compute subtotal
     this.rows.map(row => {
+      row.invoiceSum = this.getInvoicesSummary(row.invoices);
+      let { earned, notEarned } = row.invoiceSum;
+      if (Helper.roundDecimal(earned) !== Helper.roundDecimal(row.earned)) {
+        console.log('earned not equal! ', row.restaurant._id, earned, row.earned || 0)
+      }
+      if (Helper.roundDecimal(notEarned) !== Helper.roundDecimal(row.notEarned)) {
+        console.log('not earned not equal! ', row.restaurant._id, notEarned, row.notEarned || 0)
+      }
       row.subtotal = (row.earned || 0) + (row.qualifiedSalesBase || 0) + (row.qualifiedSalesBonus || 0);
       row.unqualifiedSubtotal = (row.notEarned || 0) + (row.unqualifiedSalesBase || 0) + (row.unqualifiedSalesBonus || 0);
     });
@@ -716,7 +724,7 @@ export class MyRestaurantComponent implements OnInit {
     return nextD.toLocaleDateString('en-US', options) === nextDateStr;
   }
 
-  getCommissionPeriods(rt, feeSchedules, rateSchedules, timezone) {
+  getCommissionPeriods(feeSchedules, rateSchedules, timezone) {
     // periods: [{rate: 0.1, start: '2020-01-01', end: '2020-03-04'}, ...]
     let periods = this.commissionByRateSchedules(rateSchedules, timezone);
     if (feeSchedules && feeSchedules.length) {
@@ -783,12 +791,16 @@ export class MyRestaurantComponent implements OnInit {
     row.notCollected = 0;
     row.earned = 0;
     row.notEarned = 0;
-    let { rateSchedules, feeSchedules, googleAddress: { timezone }, _id } = row.restaurant;
-    let periods = this.getCommissionPeriods(_id, feeSchedules, rateSchedules, timezone);
+    let { rateSchedules, feeSchedules, googleAddress: { timezone } } = row.restaurant;
+    let periods = this.getCommissionPeriods(feeSchedules, rateSchedules, timezone);
     let latest = periods[0] || { rate: 0 };
     row.commission = latest.rate || 0;
     for (let i = 0; i < row.invoices.length; i++) {
       let invoice = row.invoices[i];
+      const commissionAdjustment = invoice.adjustment - invoice.transactionAdjustment;
+      // need to calculate feesForQmenu
+      let invoiceCommission = invoice.commission > 0 ? invoice.commission : invoice.commission + (invoice.feesForQmenu || 0);
+      invoice.counted = invoiceCommission - commissionAdjustment;
       let from = this.time2Date(invoice.fromDate, timezone);
       let to = this.time2Date(invoice.toDate, timezone);
       let period = periods.find(({start, end}) => {
@@ -797,18 +809,23 @@ export class MyRestaurantComponent implements OnInit {
       if (period) {
         // we found a period which can enclose this invoice,
         // for this invoice we can just use invoice's data
-        const commissionAdjustment = invoice.adjustment - invoice.transactionAdjustment;
-        // need to calculate feesForQmenu
-        let invoiceCommission = invoice.commission > 0 ? invoice.commission : invoice.commission + invoice.feesForQmenu;
-        let temp = invoiceCommission - commissionAdjustment;
         let { rate } = period;
         if (invoice.paid) {
-          row.collected += temp
-          row.earned += temp * rate;
+          row.collected += invoice.counted
+          row.earned += invoice.counted * rate;
         } else {
-          row.notCollected += temp;
-          row.notEarned += temp * rate;
+          row.notCollected += invoice.counted;
+          row.notEarned += invoice.counted * rate;
         }
+        invoice.schedules = [
+          {
+            duration: [
+              period.start.toLocaleDateString('en-US', {timeZone: timezone}),
+              period.end ? period.end.toLocaleDateString('en-US', {timeZone: timezone}) : 'now'
+            ].join(' ~ '),
+            total: invoice.counted, rate
+          }
+        ];
         continue;
       }
       const across = ({start, end}) => {
@@ -819,13 +836,13 @@ export class MyRestaurantComponent implements OnInit {
       if (periods.some(across)) {
         // this invoice across different periods, we need to calculate per order
         // we record all across invoices to batch query and calculate later
-        acrossInvoicesMap[invoice._id] = {row, periods, feeSchedules, paid: invoice.paid, timezone};
+        acrossInvoicesMap[invoice._id] = {row, periods, feeSchedules, timezone};
       }
     }
   }
 
-  async calcAcrossInvoices(invoicesMap) {
-    const ids = Object.keys(invoicesMap);
+  async calcAcrossInvoices(acrossInvoiceMap, invoicesMap) {
+    const ids = Object.keys(acrossInvoiceMap);
     if (ids.length <= 0) {
       return;
     }
@@ -843,9 +860,69 @@ export class MyRestaurantComponent implements OnInit {
       invoices.push(...data);
     }
     invoices.forEach(({_id, adjustments, orders}) => {
-      let {row, periods, feeSchedules, timezone, paid} = invoicesMap[_id];
-      this.calcCommissionPerOrder(row, {adjustments, orders, paid}, feeSchedules, timezone, periods);
+      let {row, periods, feeSchedules, timezone} = acrossInvoiceMap[_id];
+      this.calcCommissionByOrder(row, invoicesMap[_id], {adjustments, orders}, feeSchedules, timezone, periods);
     })
+  }
+
+  calcCommissionByOrder(row, invoice, ordersAndAdjustments, feeSchedules, timezone, periods) {
+    let { orders,  adjustments} = ordersAndAdjustments;
+    invoice.schedules = [];
+    invoice.counted = 0;
+    periods.forEach(p => {
+      let { rate } = p;
+      let ordersInPeriod = (orders || []).filter(o => {
+        let orderDate = this.time2Date(o.createdAt, timezone).valueOf();
+        return orderDate >= p.start.valueOf() && (!p.end || orderDate <= p.end.valueOf())
+      }).sort((a, b) => new Date(a.createdAt).valueOf() - new Date(b.createdAt).valueOf());
+      let adjsInPeriod = (adjustments || []).filter(a => {
+        if (!a.time) {
+          return false;
+        }
+        let adjustTime = this.time2Date(a.time, timezone).valueOf();
+        return adjustTime >= p.start.valueOf() && (!p.end || adjustTime <= p.end.valueOf())
+      });
+      let i = 0;
+      let tempO = ordersInPeriod.reduce((a, c) => {
+        // based on feesForQmenu and commission
+        let temp = this.getFeesForQmenu(c) + this.getOrderCommission(c, feeSchedules);
+        if (invoice.paid) {
+          row.collected += temp
+          row.earned += temp * rate;
+        } else {
+          row.notCollected += temp;
+          row.notEarned += temp * rate;
+        }
+        if (invoice._id === '5d1a9e53557253b6356e713f') {
+          console.log(i, c.createdAt, a, temp, a + temp)
+        }
+        i++;
+        return a + temp;
+      }, 0);
+      let tempA = adjsInPeriod.reduce((a, c) => {
+        let { amount, type } = c;
+        let temp = +(+amount).toFixed(2) || 0;
+        if (type === 'TRANSACTION') {
+          temp *= -1;
+        }
+        if (invoice.paid) {
+          row.collected -= temp
+          row.earned -= temp * rate;
+        } else {
+          row.notCollected -= temp;
+          row.notEarned -= temp * rate;
+        }
+        return a - temp;
+      }, 0);
+      invoice.counted += tempO + tempA;
+      invoice.schedules.push({
+        duration: [
+          p.start.toLocaleDateString('en-US', {timeZone: timezone}),
+          p.end ? p.end.toLocaleDateString('en-US', {timeZone: timezone}) : 'now'
+        ].join(' ~ '),
+        total: tempO + tempA, rate
+      })
+    });
   }
 
   calcCommissionPerOrder(row, invoice, feeSchedules, timezone, periods) {
@@ -896,11 +973,31 @@ export class MyRestaurantComponent implements OnInit {
     })
   }
 
+  getInvoicesSummary(invoices) {
+    let total = 0, paid = 0, counted = 0, earned = 0, notEarned = 0;
+    invoices.forEach(i => {
+      let temp = (i.commission > 0 ? i.commission : i.commission + i.feesForQmenu || 0) - (i.adjustment - i.transactionAdjustment);
+      total += temp;
+      let sales = (i.schedules || []).reduce((a, c) => a + c.total * c.rate, 0);
+      if (i.paid) {
+        paid += temp;
+        counted += i.counted || 0;
+        earned += sales;
+      } else {
+        notEarned += sales;
+      }
+      if (Number.isNaN(earned) || Number.isNaN(notEarned)) {
+        console.log(temp, sales, i)
+      }
+    });
+    return {total, paid, counted, earned, notEarned}
+  }
+
   getFeesForQmenu(order) {
     if (order.canceled) {
       return 0;
     }
-    return Helper.roundDecimal((order.fees || []).reduce((a, c) => a + (c.payee === 'QMENU' ? c.total : 0), 0))
+    return (order.fees || []).reduce((a, c) => a + (c.payee === 'QMENU' ? c.total : 0), 0);
   }
 
   getOrderCommission(order, feeSchedules) {
@@ -925,7 +1022,7 @@ export class MyRestaurantComponent implements OnInit {
         }
       });
     }
-    return Helper.roundDecimal(commission);
+    return commission;
   }
 
 
