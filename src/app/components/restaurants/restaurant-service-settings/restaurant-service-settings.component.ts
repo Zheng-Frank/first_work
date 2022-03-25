@@ -12,7 +12,7 @@ import { Restaurant } from '@qmenu/ui';
   styleUrls: ['./restaurant-service-settings.component.css']
 })
 export class RestaurantServiceSettingsComponent implements OnInit {
-  @Input() restaurant: Restaurant;
+  @Input() restaurant;
   editing = false;
 
   serviceTypes = ['Pickup', 'Delivery', 'Dine-in'];
@@ -103,7 +103,10 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     // Overall: For delivery settings, if courier is not Self delivery, the only available delivery setting is qMenu collections
 
     // if we return true, the option is disabled, if we return fale the option is enabled
-
+    //  Don't allow change to qMenu collect unless we have TIN 
+    if (method === 'QMENU' && this.shortForTinAndPayeeName()) {
+      return true
+    }
     if (!service || !this.restaurant || !this.restaurant.courier || !service.name || !method) {
       return false
     }
@@ -120,6 +123,10 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     } else {
       return true
     }
+  }
+
+  shortForTinAndPayeeName() {
+    return !this.restaurant.tin || !this.restaurant.payeeName;
   }
 
   toggleEditing() {
@@ -165,7 +172,9 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   }
 
   update() {
-
+    if (this.shortForTinAndPayeeName()) {
+      return this._global.publishAlert(AlertType.Danger, `Can not select "qMenu collect payment" until payee name and TIN entered`);
+    }
     const oldR = JSON.parse(JSON.stringify(this.restaurant));
     const newR = JSON.parse(JSON.stringify(this.restaurant));
 

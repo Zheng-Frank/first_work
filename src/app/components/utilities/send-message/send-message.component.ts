@@ -4,7 +4,6 @@ import { GlobalService } from 'src/app/services/global.service';
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from '../../../../environments/environment';
 import { DomSanitizer } from '@angular/platform-browser';
-
 enum EmailContentModes {
   Origin, Preview
 }
@@ -187,6 +186,47 @@ export class SendMessageComponent {
     }
     return htmlContent;
   }
+  // generate a sms html link and copy it to clipboard
+  async copySMSContent() {
+    let { inputs, smsContent, emailContent, smsPreview, uploadHtml } = this.template;
+    if (inputs) {
+      inputs.forEach(field => {
+        if (smsContent) {
+          smsContent = field.apply(smsContent, field.value);
+        }
+        if (smsPreview) {
+          smsPreview = field.apply(smsPreview, field.value);
+        }
+      });
+    }
+    let uploadParams = uploadHtml(smsPreview);
+    // some rt use sms to receive agreement, and need to generate a mediaUrl using email html content
+    if (uploadParams) {
+      const loadParameters = {
+        'content-type': uploadParams.contentType,
+        body: uploadParams.body
+      };
+      const formatParams = uploadParams.format;
+      smsContent = await this.generateFormatHtml(loadParameters, formatParams, smsContent);
+
+      if (!smsContent) {
+        return this._global.publishAlert(AlertType.Danger, 'Generate sms content fail due to network error !')
+      } else {
+        const handleCopy = (e: ClipboardEvent) => {
+          // clipboardData 可能是 null
+          if (e.clipboardData) {
+            e.clipboardData.setData('text/plain', smsContent);
+          }
+          e.preventDefault();
+          // removeEventListener 要传入第二个参数
+          document.removeEventListener('copy', handleCopy);
+        };
+        document.addEventListener('copy', handleCopy);
+        document.execCommand('copy');
+        this._global.publishAlert(AlertType.Success, 'the data of order has copyed to your clipboard ~', 1000);
+      }
+    }
+  }
 
   async send() {
     // fill inputs
@@ -200,7 +240,7 @@ export class SendMessageComponent {
           emailContent = field.apply(emailContent, field.value);
         }
         if (smsPreview) {
-          smsPreview = field.apply(emailContent, field.value);
+          smsPreview = field.apply(smsPreview, field.value);
         }
       });
     }
@@ -213,7 +253,7 @@ export class SendMessageComponent {
       };
       const formatParams = uploadParams.format;
       smsContent = await this.generateFormatHtml(loadParameters, formatParams, smsContent);
-      
+
       if (!smsContent) {
         return this._global.publishAlert(AlertType.Danger, 'Generate sms content fail due to network error !')
       }
@@ -254,7 +294,6 @@ export class SendMessageComponent {
         }
       }[target.type];
     });
-
     this._api.post(environment.qmenuApiUrl + 'events/add-jobs', jobs)
       .subscribe(
         () => {

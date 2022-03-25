@@ -273,6 +273,8 @@ import { Dashboard1099KComponent } from './components/system/1099k-dashboard/109
 import { MonitoringRtsWithoutAgreementComponent } from './components/monitoring/monitoring-rts-without-agreement/monitoring-rts-without-agreement.component';
 import { PhoneOrderingDashboardComponent } from './components/phone-ordering/phone-ordering-dashboard/phone-ordering-dashboard.component';
 import { RestaurantOtherAttachmentsComponent } from './components/restaurants/restaurant-other-attachments/restaurant-other-attachments.component';
+import { MornitoringSmsComponent } from './components/monitoring/mornitoring-sms/mornitoring-sms.component';
+import { MonitoringDeactivatedCustomersComponent } from './components/monitoring/monitoring-deactivated-customers/monitoring-deactivated-customers.component';
 
 
 @NgModule({
@@ -516,7 +518,9 @@ import { RestaurantOtherAttachmentsComponent } from './components/restaurants/re
     Dashboard1099KComponent,
     MonitoringRtsWithoutAgreementComponent,
     PhoneOrderingDashboardComponent,
-    RestaurantOtherAttachmentsComponent
+    RestaurantOtherAttachmentsComponent,
+    MornitoringSmsComponent,
+    MonitoringDeactivatedCustomersComponent
   ],
   imports: [
     BrowserModule,
