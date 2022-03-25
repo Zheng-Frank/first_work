@@ -138,7 +138,9 @@ const invoicingSectionCallScript = {
     send_inquiry: '而如果向 qMenu 付款，您更喜欢哪种方式？ 直接取款，通过信用卡付款，还是寄支票给qMenu呢？',
     recipient_inquiry: '请问，给您开支票时，收款人应该写[XXX]，是不是？ 我们把支票寄到餐馆地址，还是其他地址呢？',
     card_detail_inquiry: '好的，麻烦提供一下您的信用卡详细信息，我们需要记录该付款方式以便到时候付款给您……这里需要卡上的全名、卡号、CVV号（三位数）、和帐单地址',
-    bank_detail_inquiry: '好的，如果您不介意的话，麻烦提供一下您的银行账户详细信息……这里需要账户上的名字、路由号、和帐号号码'
+    bank_detail_inquiry: '好的，如果您不介意的话，麻烦提供一下您的银行账户详细信息……这里需要账户上的名字、路由号、和帐号号码',
+    tin_inquiry: `请问您的纳税人识别号是多少？`,
+    payee_inquiry: `你公司的收款人名称是什么？`
   },
   EnglishCallScript: {
     open_remark: `Alright, we're almost done! So, for invoicing, if qMenu collects more in payments than your restaurant owes in fees, we'll send you semi-monthly payouts. Otherwise, we'll just send you an invoice at the end of each month for the fees owed.`,
@@ -146,7 +148,9 @@ const invoicingSectionCallScript = {
     send_inquiry: 'And if sending a payment to qMenu, which method would you prefer? Direct withdrawal, paying via credit card, or sending us a check?',
     recipient_inquiry: 'So, when making out a check to you, the payee should be [XXX], right? And we send the checks to the restaurant address, or another address?',
     card_detail_inquiry: `Ok, and if you could provide me with your credit card details so we have that payment method on file……we'll need the name on the card, the card number, CVV number, and billing address`,
-    bank_detail_inquiry: `Ok, let me get those bank account details from you if you don't mind… we can start with the name on the account, then I'll need the routing and account numbers`
+    bank_detail_inquiry: `Ok, let me get those bank account details from you if you don't mind… we can start with the name on the account, then I'll need the routing and account numbers`,
+    tin_inquiry: `What is your TIN (Tax identification number)?`,
+    payee_inquiry: `What is your business’s payee name?`
   }
 }
 

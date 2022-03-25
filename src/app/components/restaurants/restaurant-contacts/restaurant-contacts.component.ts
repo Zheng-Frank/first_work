@@ -1,5 +1,4 @@
 import { Component, OnInit, Input, ViewChild, OnChanges, Output, EventEmitter } from '@angular/core';
-import { Restaurant } from '@qmenu/ui';
 import { ModalComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { ApiService } from "../../../services/api.service";
 import { PrunedPatchService } from "../../../services/prunedPatch.service";
@@ -34,7 +33,7 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
   matchingNotificationIndex;
 
   notes: string;
-  channelFieldDescriptors = [
+  channelFieldDescriptors: any[] = [
     {
       field: "type", //
       label: "Type",
@@ -48,24 +47,36 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
       ]
     },
     {
-      field: "value", //
+      field: "value",
       label: "Value",
       required: true,
       placeholder: 'eg. ‭4043829768‬',
       inputType: "text"
     },
     {
-      field: "notifications", //
-      label: "Notifications / Purpose",
+      field: "notifications",
+      label: "Notifications",
       required: false,
       inputType: "multi-select",
       items: [
         { object: "Order", text: "Incoming Orders", selected: false },
-        { object: "Invoice", text: "Invoice", selected: false },
-        { object: "Business", text: "Business Phone", selected: false }
+        { object: "Invoice", text: "Invoice", selected: false }
       ]
-    }
+    },
+
   ];
+
+  mainBizPhoneDescriptor = {field: 'isMainBizPhone', required: false, label: 'Main business phone', inputType: 'checkbox'};
+  providerDescriptor = {
+    field: "provider",
+    label: "Default provider",
+    required: false,
+    inputType: "single-select",
+    items: []
+  };
+  phoneProviders = [];
+  smsProviders = [];
+  faxProviders = [];
 
   languageDescriptor = {
     field: "language",
@@ -77,7 +88,6 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
       { object: "CHINESE", text: "Chinese", selected: false }
     ]
   };
-
   personFieldDescriptors = [
     {
       field: "title", //
@@ -116,8 +126,6 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
       ]
     }
   ];
-
-
   channelTypeToFaClassMap = {
     'Email': 'fas fa-envelope',
     'Phone': 'fas fa-phone-volume',
@@ -127,12 +135,16 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
 
   crm = "";
   crms = [];
-
+  settings = {} as any;
+  showProviders = false;
   Languages = { ENGLISH: 'English', CHINESE: 'Chinese' };
 
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) { }
 
-  ngOnInit() {
+  async ngOnInit() {
+    if (this.isAdminOrCsrManager()) {
+      await this.getSystemSettings();
+    }
     this.resetPersonFieldDescriptors();
     this.notes = this.restaurant.notes;
     this.getCrms();
@@ -141,6 +153,36 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
 
   ngOnChanges() {
     this.synchronizeNotificationData();
+  }
+
+  isAdminOrCsrManager() {
+    let { roles } = this._global.user;
+    return roles.includes('CSR_MANAGER') || roles.includes('ADMIN');
+  }
+
+  async getSystemSettings() {
+    const [setting] = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'system',
+      query: {},
+      projection: {
+        smsSettings: 1, faxSettings: 1, voiceSettings: 1
+      }
+    }).toPromise();
+    this.settings = setting;
+    let { smsSettings, voiceSettings, faxSettings } = setting;
+
+    this.phoneProviders = this.getProviders(voiceSettings);
+    this.smsProviders = this.getProviders(smsSettings);
+    this.faxProviders = this.getProviders(faxSettings)
+  }
+
+  getProviders({defaultProviderName, customized}) {
+    let data = customized.map(x => {
+      let value = `${x.providerName}(${x.phone})`;
+      return {object: value, text: value, selected: false};
+    });
+    data.push({object: defaultProviderName + '(Default)', text: defaultProviderName + '(Default)', selected: true});
+    return data;
   }
 
   synchronizeNotificationData() {
@@ -196,6 +238,31 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
     return (values || []).join(', ');
   }
 
+  showIsMainBizPhone({type, notifications}) {
+    return type === 'Phone' && (notifications || []).includes('Business');
+  }
+
+  showNotifications(value) {
+    return (value || []).filter(x => x !== 'Business').join(', ')
+  }
+
+  getProvider(channel) {
+    let { type, value } = channel;
+    let key = {SMS: 'smsSettings', 'Phone': 'voiceSettings', 'Fax': 'faxSettings'}[type];
+    if (!key) {
+      return;
+    }
+    if (!this.settings[key]) {
+      return;
+    }
+    let { customized, defaultProviderName } = this.settings[key];
+    let custom = customized.find(x => (x.toPhones || []).includes(value));
+    if (custom) {
+      return `${custom.providerName}(${custom.phone})`;
+    }
+    return `${defaultProviderName}(Default)`;
+  }
+
   editChannel(channel?: any) {
     if (!channel) {
       this.channelInEditing = {
@@ -209,6 +276,13 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
       this.channelInEditing.index = this.restaurant.channels.indexOf(channel);
       this.matchingNotificationIndex = (this.restaurant.orderNotifications || []).findIndex(n => n.channel.type === this.channelInEditing.type && n.channel.value === this.channelInEditing.value);
     }
+
+    if (this.channelInEditing.type === 'Phone' && this.channelInEditing.notifications) {
+      // @ts-ignore
+      this.channelInEditing.isMainBizPhone = this.channelInEditing.notifications.includes('Business')
+    }
+    // @ts-ignore
+    this.channelInEditing.provider = this.getProvider(this.channelInEditing);
     this.languageDescriptor.items.forEach(x => x.selected = false);
     this.channelFormChange();
     this.modalChannel.show();
@@ -257,49 +331,122 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
   }
 
   channelFormChange() {
-    if (this.channelInEditing.type === 'Phone') {
+    let { type } = this.channelInEditing;
+    if (type === 'Phone') {
       if (!this.channelFieldDescriptors.some(x => x.field === 'language')) {
         this.channelFieldDescriptors.push(this.languageDescriptor);
       }
+      if (!this.channelFieldDescriptors.some(x => x.field === 'isMainBizPhone')) {
+        this.channelFieldDescriptors.splice(1, 0, this.mainBizPhoneDescriptor);
+      }
     } else {
-      this.channelFieldDescriptors = this.channelFieldDescriptors.filter(x => x.field !== 'language');
+      this.channelFieldDescriptors = this.channelFieldDescriptors.filter(x => !['language', 'isMainBizPhone'].includes(x.field));
+    }
+    if (this.showProviders && type && type !== 'Email') {
+      this.providerDescriptor.items = {
+        Phone: this.phoneProviders, SMS: this.smsProviders, Fax: this.faxProviders
+      }[type];
+      if (!this.channelFieldDescriptors.some(x => x.field === 'provider')) {
+        this.channelFieldDescriptors.push(this.providerDescriptor);
+      }
+    } else {
+      this.channelFieldDescriptors = this.channelFieldDescriptors.filter(x => x.field !== 'provider');
     }
   }
 
 
   submitChannel(event: FormSubmit) {
+    // use a temp variable to keep data independent
+    let temp = JSON.parse(JSON.stringify(this.channelInEditing));
     // keep only digits for phone/sms/fax
-    if (['Phone', 'SMS', 'Fax'].indexOf(this.channelInEditing.type) >= 0) {
-      this.channelInEditing.value = this.channelInEditing.value.replace(/\D/g, '');
+    if (['Phone', 'SMS', 'Fax'].indexOf(temp.type) >= 0) {
+      temp.value = temp.value.replace(/\D/g, '');
     }
 
-    // currently language only support for Phone
-    if (this.channelInEditing.type !== 'Phone') {
-      delete this.channelInEditing.language;
+    // currently, language only support for Phone
+    if (temp.type !== 'Phone') {
+      delete temp.language;
     }
 
     const newChannels = (this.restaurant.channels || []).slice(0);
     if (this.channelInEditing.index === -1) {
-      newChannels.push(this.channelInEditing);
+      newChannels.push(temp);
     } else {
 
-      this.updatePeopleOnChannelChange('UPDATE', this.restaurant.channels[this.channelInEditing.index], this.channelInEditing);
-      newChannels[this.channelInEditing.index] = this.channelInEditing;
+      this.updatePeopleOnChannelChange('UPDATE', this.restaurant.channels[this.channelInEditing.index], temp);
+      newChannels[this.channelInEditing.index] = temp;
     }
 
     // we need to remove temp index!
-    delete this.channelInEditing.index;
+    delete temp.index;
 
-    this.updateOrderNotifications(this.channelInEditing)
+    this.updateOrderNotifications(temp)
+    if (this.showProviders) {
+      this.updateProviders(temp);
+    }
 
     this.patchDiff('channels', newChannels);
     this.channelBeforeEditing = null;
+    this.channelInEditing = {} as Channel;
     event.acknowledge(null);
     this.modalChannel.hide();
 
   }
 
+  updateProviders(channel) {
+    let settings = JSON.parse(JSON.stringify(this.settings));
+    let prev = this.channelBeforeEditing;
+    let prevKey = {SMS: 'smsSettings', 'Phone': 'voiceSettings', 'Fax': 'faxSettings'}[prev.type];
+    if (prevKey) {
+      // clean previous
+      let { customized } = settings[prevKey];
+      customized.forEach(x => {
+        if (x.toPhones && x.toPhones.includes(prev.value)) {
+          x.toPhones = x.toPhones.filter(p => p !== prev.value)
+        }
+      })
+      settings[prevKey].customized = customized
+    }
+    let curKey = {SMS: 'smsSettings', 'Phone': 'voiceSettings', 'Fax': 'faxSettings'}[channel.type];
+    if (curKey) {
+      // save current
+      let { customized, defaultProviderName } = settings[curKey];
+      if (channel.provider !== defaultProviderName + '(Default)') {
+        customized.forEach(p => {
+          let key = `${p.providerName}(${p.phone})`
+          if (key === channel.provider) {
+            if (!p.toPhones) {
+              p.toPhones = [];
+            }
+            p.toPhones.push(channel.value)
+          }
+        })
+        settings[curKey].customized = customized;
+      }
+    }
+    this._prunedPatch.patch(environment.qmenuApiUrl + "generic?resource=system", [{old: this.settings, new: settings}])
+      .subscribe(() => {
+        this.settings = settings;
+      }, e => {
+        console.log('update system failed...', e);
+        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+      })
+  }
+
   updateOrderNotifications(channel) {
+    if (channel.type === 'Phone') {
+      if (channel.isMainBizPhone) {
+        if (!(channel.notifications || []).includes('Business')) {
+          channel.notifications = channel.notifications || [];
+          channel.notifications.push('Business')
+        }
+      } else {
+        if ((channel.notifications || []).includes('Business')) {
+          channel.notifications = channel.notifications.filter(x => x !== 'Business');
+        }
+      }
+    }
+    delete channel.isMainBizPhone;
     const notificationsTurnedOn = !(this.channelBeforeEditing.notifications || []).includes('Order') && (channel.notifications || []).includes('Order');
     const notificationsTurnedOff = (this.channelBeforeEditing.notifications || []).includes('Order') && !(channel.notifications || []).includes('Order');
     const channelTypeChanged = this.channelBeforeEditing.type !== channel.type;
@@ -352,6 +499,16 @@ export class RestaurantContactsComponent implements OnInit, OnChanges {
       newNotifications.splice(notificationMatchIndex, 1);
       this.patchDiff('orderNotifications', newNotifications);
     }
+
+    // todo: how can we update system settings if user has no permission?
+    if (this.showProviders) {
+      let provider = this.getProvider(this.channelBeforeEditing);
+      if (!provider.includes('(Default)')) {
+        // for customized phones, we need update system settings
+        this.updateProviders({})
+      }
+    }
+
     this.patchDiff('channels', newChannels);
     event.acknowledge(null);
     this.modalChannel.hide();

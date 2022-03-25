@@ -93,15 +93,17 @@ export class RestaurantSetupInvoicingComponent implements OnInit {
   showFromQmenuQuestion = false;// decided to show question one, Restaurant → qMenu
   changeLanguageFlag = this._global.languageType;// this flag decides show English call script or Chinese
   showCallScript = false;// it will display call script when the switch is opened
-
+  rtTIN;
+  payeeName;
+  showMandatoryQuestions = false;
   constructor(private _global: GlobalService) { }
 
   async ngOnInit() {
     // await this.getRestaurantExample();
     this.init();
   }
-// make invoicingSectionCallScript from exporting becomes inner field of class RestaurantSetupInvoicingComponent
-  get invoicingSectionCallScript(){
+  // make invoicingSectionCallScript from exporting becomes inner field of class RestaurantSetupInvoicingComponent
+  get invoicingSectionCallScript() {
     return invoicingSectionCallScript;
   }
 
@@ -112,6 +114,7 @@ export class RestaurantSetupInvoicingComponent implements OnInit {
   init() {
     this.showFromQmenuQuestion = false;
     this.showToQmenuQuestion = false;
+    this.showMandatoryQuestions = false;
     // check service settings
     // service settings should contain both pickup and delivery service
     if (this.restaurant.serviceSettings && this.restaurant.serviceSettings.some(service => (service.name === 'Pickup' || service.name === 'Delivery') && this.isServiceEnabled(service))) {
@@ -119,6 +122,7 @@ export class RestaurantSetupInvoicingComponent implements OnInit {
       // Dose need to display two questions?
       if (this.restaurant.serviceSettings.some(service => (service.name === 'Pickup' || service.name === 'Delivery') && (service.paymentMethods || []).some(method => method === 'QMENU'))) {
         this.showFromQmenuQuestion = true;
+        this.showMandatoryQuestions = true; // show tin and payee name setup question
       }
       if (this.restaurant.serviceSettings.some(service => (service.name === 'Pickup' || service.name === 'Delivery') && (service.paymentMethods || []).some(method => this.toPaymentTypes.some(type => type === method)))) {
         this.showToQmenuQuestion = true;
@@ -138,15 +142,20 @@ export class RestaurantSetupInvoicingComponent implements OnInit {
       this.depositInfoModel.address = this.bankInfoModel.address = this.restaurant.googleAddress.formatted_address || '';
       let person = (this.restaurant.people || []).filter(p => (p.roles || []).some(r => r === 'Owner'))[0] || '';
       this.bankInfoModel.name = this.depositInfoModel.name = (person || {}).name;
+
+      if (this.showMandatoryQuestions) {
+        this.rtTIN = this.restaurant.tin;
+        this.payeeName = this.restaurant.payeeName;
+      }
     }
 
   }
 
-  hasReceivingPaymentMean(){
+  hasReceivingPaymentMean() {
     return (this.restaurant.paymentMeans || []).some(payment => (payment || {}).direction === paymentDirectionTypes.Receive);
   }
 
-  hasSendPaymentMean(){
+  hasSendPaymentMean() {
     return (this.restaurant.paymentMeans || []).some(payment => (payment || {}).direction === paymentDirectionTypes.Send);
   }
 
@@ -282,6 +291,17 @@ export class RestaurantSetupInvoicingComponent implements OnInit {
     this.done.emit({
       paymentMeans: activeRT.paymentMeans
     });
+  }
+
+  onEditTinAndPayee(event, field) {
+    let newObj = {};
+    if (field === 'rtTIN') {
+      newObj['tin'] = event.newValue;
+    }
+    if (field === 'payeeName') {
+      newObj['payeeName'] = event.newValue;
+    }
+    this.done.emit(newObj);
   }
 
 }

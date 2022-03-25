@@ -81,7 +81,7 @@
             {{getTotal('unqualifiedSubtotal') | currency:'USD':'symbol'}}
           </th>
         </tr>
-        <tr *ngIf="isSuperUser">
+        <tr *ngIf="isSuperUser()">
           <th class="text-right">
             ADMIN ONLY: Collected Commissions（总计）
           </th>
@@ -89,7 +89,7 @@
             {{getTotal('collected') | currency:'USD':'symbol'}}
           </th>
         </tr>
-        <tr *ngIf="isSuperUser">
+        <tr *ngIf="isSuperUser()">
           <th class="text-right">
             ADMIN ONLY: Not Collected Commissions（总计）
           </th>
