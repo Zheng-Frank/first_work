@@ -1,7 +1,8 @@
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { AlertType } from 'src/app/classes/alert-type';
 import { ApiService } from './../../../services/api.service';
 import { environment } from './../../../../environments/environment';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { GlobalService } from 'src/app/services/global.service';
 
 enum toOptionTypes {
@@ -25,6 +26,13 @@ enum happenedTypes {
   Custom_Range = 'Custom range'
 }
 
+enum smsTypes {
+  All = 'SMS Problem?',
+  Send_SMS = 'send-sms',
+  Send_Order_SMS = 'send-order-sms',
+  SMS_Login = 'sms-login'
+}
+
 @Component({
   selector: 'app-mornitoring-sms',
   templateUrl: './mornitoring-sms.component.html',
@@ -32,14 +40,16 @@ enum happenedTypes {
 })
 export class MornitoringSmsComponent implements OnInit {
 
+  @ViewChild('SMSProblemDetailModal') SMSProblemDetailModal: ModalComponent;
+
   rows = [];
   filteredRows = []; // the filter rows used to show types of sms problem.
   myColumnDescriptors = [
     {
-      label: 'Type'
+      label: 'Name'
     },
     {
-      label: 'From # (QM)'
+      label: 'Type'
     },
     {
       label: 'To # (RT/Customer)'
@@ -50,22 +60,18 @@ export class MornitoringSmsComponent implements OnInit {
       sort: (a, b) => new Date(a || 0).valueOf() - new Date(b || 0).valueOf()
     },
     {
-      label: 'Provider'
-    },
-    {
-      label: 'Current Provider'
-    },
-    {
       label: 'Error'
     }
   ];
   // filtered conditions
   toOptions = [toOptionTypes.All, toOptionTypes.To_RT, toOptionTypes.To_Customer];
   toOption = toOptionTypes.All;
-  providerOptions = [providerTypes.All, providerTypes.Twilio, providerTypes.Plivo, providerTypes.Bandwidth];
-  providerOption = providerTypes.All;
+  // providerOptions = [providerTypes.All, providerTypes.Twilio, providerTypes.Plivo, providerTypes.Bandwidth];
+  // providerOption = providerTypes.All;
   happenedOptions = [happenedTypes.Last_24_Hours, happenedTypes.Last_48_Hours, happenedTypes.Last_3_days, happenedTypes.Last_30_days, happenedTypes.Custom_Range];
   happenedOption = happenedTypes.Last_48_Hours;
+  smsTypeOptions = [smsTypes.All, smsTypes.Send_Order_SMS, smsTypes.Send_SMS, smsTypes.SMS_Login];
+  smsTypeOption = smsTypes.All;
   fromDate = '';
   toDate = '';
   searchFilter = '';
@@ -73,6 +79,7 @@ export class MornitoringSmsComponent implements OnInit {
   showAdvancedSearch: boolean = false;
   pagination = true;
   restaurants = [];
+  smsEvent;
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
@@ -246,7 +253,6 @@ export class MornitoringSmsComponent implements OnInit {
         ];
       }
     }
-    // a job has several event, and need to find the final one 
     const smsJobs = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: "job",
       aggregate: [
@@ -265,55 +271,54 @@ export class MornitoringSmsComponent implements OnInit {
         {
           $project: {
             name: 1,
+            'params.to': 1, // sms-prder-sms & send-sms
+            'params.phone': 1, // sms-login 
             logs: {
+              // a job has several event, and need to find the final one 
               $slice: ['$logs', -1]
-            }
+            },
+            createdAt: 1
           }
         }
       ]
     }, 10000);
-    // divided eventIds  
-    const eventIds = [];
     smsJobs.forEach(job => {
-      (job.logs || []).forEach(log => {
-        if (log.eventId && eventIds.indexOf(log.eventId) === -1) {
-          eventIds.push(log.eventId);
-        }
-      });
-    });
-    // the eventIds array is very large and need to slice it.
-    const split_arr = (arr, len) => {
-      var newArr = [];
-      for (let i = 0; i < arr.length; i += len) {
-        newArr.push(arr.slice(i, i + len));
+      let item = {
+        name: job.name,
+        to: job.params.phone ? job.params.phone : job.params.to,
+        type: this.getJobType(job.params.phone ? job.params.phone : job.params.to),
+        errorLogs: job.logs || [],
+        createdAt: new Date(job.createdAt)
       }
-      return newArr;
+      this.rows.push(item);
+    });
+    this.filterRows();
+  }
+
+  getJobType(phone) {
+    let restaurant = this.restaurants.filter(rt => (rt.channels || []).some(ch => ch.value === phone))[0];
+    let item = {
+      text: restaurant ? toOptionTypes.To_RT : toOptionTypes.To_Customer
     }
-    /* spell the following conditions
-     $or:[
-       {
-        _id: { $in:['xx','xx'] }
-       }
-     ]
-    */
-    let tempEventIds = split_arr(eventIds, Math.ceil(eventIds.length / 100));
-     let idsOrArr = [];
-     for (let i = 0; i < tempEventIds.length; i++) {
-       let item = {
-         _id: {
-           $in: tempEventIds[i]
-         }
-       }
-       idsOrArr.push(item);
-     }
-     console.log(JSON.stringify(idsOrArr));
-    // query fail sms event
-    const failedSMSEvents = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    if (item.text === toOptionTypes.To_RT) {
+      item['rtInfo'] = {
+        _id: restaurant._id,
+        name: restaurant.name
+      };
+    }
+    return item;
+  }
+
+  async showSMSProblemDetailModal(errorLogs) {
+    let errLog = errorLogs[errorLogs.length - 1];
+    const [event] = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'event',
       aggregate: [
         {
           $match: {
-            $or: idsOrArr
+            _id: {
+              $oid: errLog.eventId
+            }
           }
         },
         {
@@ -343,8 +348,10 @@ export class MornitoringSmsComponent implements OnInit {
           }
         }
       ],
-    }, 10000);
- 
+    }).toPromise();
+    if (!event) {
+      return this._global.publishAlert(AlertType.Danger, "can not load detail of this job!");
+    }
     const bandwidth = providerTypes.Bandwidth.toLowerCase();
     const plivo = providerTypes.Plivo.toLowerCase();
     const twilio = providerTypes.Twilio.toLowerCase();
@@ -353,35 +360,234 @@ export class MornitoringSmsComponent implements OnInit {
       [plivo]: providerTypes.Plivo,
       [bandwidth]: providerTypes.Bandwidth
     }
-    let providerKeys = Object.keys(providerMap);
-    failedSMSEvents.forEach(event => {
-      if (providerKeys.includes(event.providerName)) {
-        let item = {
-          provider: providerMap[event.providerName],
-          createdAt: new Date(event.createdAt),
-          error: this.getEventError(event)
-        }
-        if (event.providerName === bandwidth) {
-          item['fromNumber'] = this.getEventPhoneNumber(event.providerName, ((event.params.body[0] || {}).message || {}).from);
-          item['toNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body[0] || {}).to);
-          item['type'] = this.getEventType(event.providerName, (event.params.body[0] || {}).to);
-          item['currentProvider'] = providerMap[this.getCurrentProvider(event.providerName, event.params.body.to)];
-        } else if (event.providerName === plivo) {
-          item['fromNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body || {}).From);
-          item['toNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body || {}).To);
-          item['type'] = this.getEventType(event.providerName, (event.params.body || {}).To);
-          item['currentProvider'] = providerMap[this.getCurrentProvider(event.providerName, event.params.body.To)];
-        } else if (event.providerName === twilio) {
-          item['fromNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body || {}).From);
-          item['toNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body || {}).To);
-          item['type'] = this.getEventType(event.providerName, (event.params.body || {}).To);
-          item['currentProvider'] = providerMap[this.getCurrentProvider(event.providerName, event.params.body.To)];
-        }
-        this.rows.push(item);
-      }
-    });
-    this.filterRows();
+    this.smsEvent = {
+      provider: providerMap[event.providerName],
+      createdAt: new Date(event.createdAt),
+      error: this.getEventError(event)
+    }
+    if (event.providerName === bandwidth) {
+      this.smsEvent['fromNumber'] = this.getEventPhoneNumber(event.providerName, ((event.params.body[0] || {}).message || {}).from);
+      this.smsEvent['toNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body[0] || {}).to);
+      this.smsEvent['type'] = await this.getEventType(event.providerName, (event.params.body[0] || {}).to);
+      this.smsEvent['currentProvider'] = providerMap[this.getCurrentProvider(event.providerName, event.params.body.to)];
+    } else if (event.providerName === plivo) {
+      this.smsEvent['fromNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body || {}).From);
+      this.smsEvent['toNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body || {}).To);
+      this.smsEvent['type'] = await this.getEventType(event.providerName, (event.params.body || {}).To);
+      this.smsEvent['currentProvider'] = providerMap[this.getCurrentProvider(event.providerName, event.params.body.To)];
+    } else if (event.providerName === twilio) {
+      this.smsEvent['fromNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body || {}).From);
+      this.smsEvent['toNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body || {}).To);
+      this.smsEvent['type'] = await this.getEventType(event.providerName, (event.params.body || {}).To);
+      this.smsEvent['currentProvider'] = providerMap[this.getCurrentProvider(event.providerName, event.params.body.To)];
+    };
+    this.SMSProblemDetailModal.show();
   }
+
+
+  // async populateSMSProblems1() {
+  //   this.rows = [];
+  //   this.filteredRows = [];
+  //   // last 48 hours by default
+  //   let timeQuery = [
+  //     {
+  //       'createdAt': { $gt: new Date().valueOf() - 2 * 24 * 3600000 }
+  //     },
+  //     {
+  //       'createdAt': { $lt: new Date().valueOf() }
+  //     }
+  //   ];
+  //   if (this.showAdvancedSearch) {
+  //     if (this.happenedOption === happenedTypes.Last_24_Hours) {
+  //       timeQuery = [
+  //         {
+  //           'createdAt': { $gt: new Date().valueOf() - 1 * 24 * 3600000 }
+  //         },
+  //         {
+  //           'createdAt': { $lt: new Date().valueOf() }
+  //         }
+  //       ];
+  //     } else if (this.happenedOption === happenedTypes.Last_48_Hours) {
+  //       timeQuery = [
+  //         {
+  //           'createdAt': { $gt: new Date().valueOf() - 2 * 24 * 3600000 }
+  //         },
+  //         {
+  //           'createdAt': { $lt: new Date().valueOf() }
+  //         }
+  //       ];
+  //     } else if (this.happenedOption === happenedTypes.Last_3_days) {
+  //       timeQuery = [
+  //         {
+  //           'createdAt': { $gt: new Date().valueOf() - 3 * 24 * 3600000 }
+  //         },
+  //         {
+  //           'createdAt': { $lt: new Date().valueOf() }
+  //         }
+  //       ];
+  //     } else if (this.happenedOption === happenedTypes.Last_30_days) {
+  //       timeQuery = [
+  //         {
+  //           'createdAt': { $gt: new Date().valueOf() - 30 * 24 * 3600000 }
+  //         },
+  //         {
+  //           'createdAt': { $lt: new Date().valueOf() }
+  //         }
+  //       ];
+  //     } else if (this.happenedOption === happenedTypes.Custom_Range) {
+  //       if (!this.fromDate || !this.toDate) {
+  //         return this._global.publishAlert(AlertType.Danger, "please input a correct time date format!");
+  //       }
+  //       if (new Date(this.fromDate).valueOf() - new Date(this.toDate).valueOf() > 0) {
+  //         return this._global.publishAlert(AlertType.Danger, "Please input a correct date format, from time is less than or equals to time!");
+  //       }
+
+  //       timeQuery = [
+  //         {
+  //           'createdAt': { $gt: new Date(this.fromDate).valueOf() }
+  //         },
+  //         {
+  //           'createdAt': { $lt: new Date(this.toDate).valueOf() }
+  //         }
+  //       ];
+  //     }
+  //   }
+  //   // a job has several event, and need to find the final one 
+  //   const smsJobs = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+  //     resource: "job",
+  //     aggregate: [
+  //       {
+  //         $match: {
+  //           $or: [
+  //             { name: 'send-sms' },
+  //             { name: 'send-order-sms' },
+  //             { name: 'sms-login' }
+  //           ],
+  //           "logs.eventName": "sms-status",
+  //           "logs.status": "failed",
+  //           $and: timeQuery
+  //         }
+  //       },
+  //       {
+  //         $project: {
+  //           name: 1,
+  //           logs: {
+  //             $slice: ['$logs', -1]
+  //           }
+  //         }
+  //       }
+  //     ]
+  //   }, 10000);
+  //   // divided eventIds  
+  //   const eventIds = [];
+  //   smsJobs.forEach(job => {
+  //     (job.logs || []).forEach(log => {
+  //       if (log.eventId && eventIds.indexOf(log.eventId) === -1) {
+  //         eventIds.push(log.eventId);
+  //       }
+  //     });
+  //   });
+  //   // the eventIds array is very large and need to slice it.
+  //   const split_arr = (arr, len) => {
+  //     var newArr = [];
+  //     for (let i = 0; i < arr.length; i += len) {
+  //       newArr.push(arr.slice(i, i + len));
+  //     }
+  //     return newArr;
+  //   }
+  //   /* spell the following conditions
+  //    $or:[
+  //      {
+  //       _id: { $in:['xx','xx'] }
+  //      }
+  //    ]
+  //   */
+  //   let tempEventIds = split_arr(eventIds, Math.ceil(eventIds.length / 100));
+  //   let idsOrArr = [];
+  //   for (let i = 0; i < tempEventIds.length; i++) {
+  //     let item = {
+  //       _id: {
+  //         $in: tempEventIds[i]
+  //       }
+  //     }
+  //     idsOrArr.push(item);
+  //   }
+  //   console.log(JSON.stringify(idsOrArr));
+  //   // query fail sms event
+  //   const failedSMSEvents = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+  //     resource: 'event',
+  //     aggregate: [
+  //       {
+  //         $match: {
+  //           $or: idsOrArr
+  //         }
+  //       },
+  //       {
+  //         $project: {
+  //           /* bandwidth*/
+  //           // send status (error)
+  //           'params.body.description': 1, // bandwidth
+  //           // number
+  //           'params.body.message.from': 1, // bandwidth
+  //           'params.body.to': 1, // bandwidth
+
+  //           /* plivo */
+  //           // send status (error)
+  //           'params.body.Status': 1, // plivo
+  //           // number
+  //           'params.body.From': 1, // plivo and twilio
+  //           'params.body.To': 1, // plivo and twilio
+
+  //           /* twilio */
+  //           // send status (error)
+  //           'params.body.MessageStatus': 1, // twilio
+
+  //           // provider
+  //           providerName: '$params.providerName',
+  //           // date
+  //           createdAt: 1,
+  //         }
+  //       }
+  //     ],
+  //   }, 10000);
+
+  //   const bandwidth = providerTypes.Bandwidth.toLowerCase();
+  //   const plivo = providerTypes.Plivo.toLowerCase();
+  //   const twilio = providerTypes.Twilio.toLowerCase();
+  //   const providerMap = {
+  //     [twilio]: providerTypes.Twilio,
+  //     [plivo]: providerTypes.Plivo,
+  //     [bandwidth]: providerTypes.Bandwidth
+  //   }
+  //   let providerKeys = Object.keys(providerMap);
+  //   failedSMSEvents.forEach(event => {
+  //     if (providerKeys.includes(event.providerName)) {
+  //       let item = {
+  //         provider: providerMap[event.providerName],
+  //         createdAt: new Date(event.createdAt),
+  //         error: this.getEventError(event)
+  //       }
+  //       if (event.providerName === bandwidth) {
+  //         item['fromNumber'] = this.getEventPhoneNumber(event.providerName, ((event.params.body[0] || {}).message || {}).from);
+  //         item['toNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body[0] || {}).to);
+  //         item['type'] = this.getEventType(event.providerName, (event.params.body[0] || {}).to);
+  //         item['currentProvider'] = providerMap[this.getCurrentProvider(event.providerName, event.params.body.to)];
+  //       } else if (event.providerName === plivo) {
+  //         item['fromNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body || {}).From);
+  //         item['toNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body || {}).To);
+  //         item['type'] = this.getEventType(event.providerName, (event.params.body || {}).To);
+  //         item['currentProvider'] = providerMap[this.getCurrentProvider(event.providerName, event.params.body.To)];
+  //       } else if (event.providerName === twilio) {
+  //         item['fromNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body || {}).From);
+  //         item['toNumber'] = this.getEventPhoneNumber(event.providerName, (event.params.body || {}).To);
+  //         item['type'] = this.getEventType(event.providerName, (event.params.body || {}).To);
+  //         item['currentProvider'] = providerMap[this.getCurrentProvider(event.providerName, event.params.body.To)];
+  //       }
+  //       this.rows.push(item);
+  //     }
+  //   });
+  //   this.filterRows();
+  // }
 
   toggleShowAdvancedSearch() {
     this.showAdvancedSearch = !this.showAdvancedSearch;
@@ -403,15 +609,15 @@ export class MornitoringSmsComponent implements OnInit {
   filterRows() {
     this.filteredRows = this.rows;
     // filter by provider
-    if (this.providerOption !== providerTypes.All) {
-      if (this.providerOption === providerTypes.Bandwidth) {
-        this.filteredRows = this.filteredRows.filter(row => row.provider === providerTypes.Bandwidth);
-      } else if (this.providerOption === providerTypes.Plivo) {
-        this.filteredRows = this.filteredRows.filter(row => row.provider === providerTypes.Plivo);
-      } else if (this.providerOption === providerTypes.Twilio) {
-        this.filteredRows = this.filteredRows.filter(row => row.provider === providerTypes.Twilio);
-      }
-    }
+    // if (this.providerOption !== providerTypes.All) {
+    //   if (this.providerOption === providerTypes.Bandwidth) {
+    //     this.filteredRows = this.filteredRows.filter(row => row.provider === providerTypes.Bandwidth);
+    //   } else if (this.providerOption === providerTypes.Plivo) {
+    //     this.filteredRows = this.filteredRows.filter(row => row.provider === providerTypes.Plivo);
+    //   } else if (this.providerOption === providerTypes.Twilio) {
+    //     this.filteredRows = this.filteredRows.filter(row => row.provider === providerTypes.Twilio);
+    //   }
+    // }
     // filter by type 
     if (this.toOption !== toOptionTypes.All) {
       if (this.toOption === toOptionTypes.To_RT) {
@@ -432,6 +638,16 @@ export class MornitoringSmsComponent implements OnInit {
           return false;
         }
       });
+    }
+    // filter by sms types
+    if (this.smsTypeOption !== smsTypes.All) {
+      if (this.smsTypeOption === smsTypes.Send_Order_SMS) {
+        this.filteredRows = this.filteredRows.filter(row => row.name === smsTypes.Send_Order_SMS);
+      } else if (this.smsTypeOption === smsTypes.Send_SMS) {
+        this.filteredRows = this.filteredRows.filter(row => row.name === smsTypes.Send_SMS);
+      } else if (this.smsTypeOption === smsTypes.SMS_Login) {
+        this.filteredRows = this.filteredRows.filter(row => row.name === smsTypes.SMS_Login);
+      }
     }
   }
 
@@ -479,17 +695,31 @@ export class MornitoringSmsComponent implements OnInit {
     }
   }
 
-  getEventType(providerName, phone) {
+  async getEventType(providerName, phone) {
     let toPhone = this.getEventPhoneNumber(providerName, phone);
-    let restaurant = this.restaurants.filter(rt => (rt.channels || []).some(ch => ch.value === toPhone))[0];;
+    let restaurant = this.restaurants.filter(rt => (rt.channels || []).some(ch => ch.value === toPhone))[0];
     let item = {
       text: restaurant ? toOptionTypes.To_RT : toOptionTypes.To_Customer
     }
-    if (restaurant) {
+    if (item.text === toOptionTypes.To_RT) {
       item['rtInfo'] = {
         _id: restaurant._id,
         name: restaurant.name
       };
+    }
+    if (item.text === toOptionTypes.To_Customer) {
+      const [customer] = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'customer',
+        query: { phone: toPhone },
+        projection: { firstName: 1, lastName: 1, email: 1 },
+        limit: 1
+      }).toPromise();
+      if (customer) {
+        item['customerInfo'] = {
+          name: (customer.firstName || '') + ' ' + (customer.lastName || ''),
+          email: customer.email
+        }
+      }
     }
     return item;
   }
