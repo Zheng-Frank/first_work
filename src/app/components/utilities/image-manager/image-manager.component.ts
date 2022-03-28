@@ -1,13 +1,14 @@
 /* tslint:disable:max-line-length */
-import { AlertType } from '../../../classes/alert-type';
-import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
-import { ApiService } from '../../../services/api.service';
-import { environment } from '../../../../environments/environment';
-import { GlobalService } from '../../../services/global.service';
-import { ModalComponent, PagerComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-import { Helper } from '../../../classes/helper';
-import { HttpClient } from '@angular/common/http';
-import { ImageItem } from 'src/app/classes/image-item';
+import {AlertType} from '../../../classes/alert-type';
+import {Component, EventEmitter, OnInit, Output, ViewChild} from '@angular/core';
+import {ApiService} from '../../../services/api.service';
+import {environment} from '../../../../environments/environment';
+import {GlobalService} from '../../../services/global.service';
+import {ModalComponent, PagerComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
+import {Helper} from '../../../classes/helper';
+import {HttpClient} from '@angular/common/http';
+import {ImageItem} from 'src/app/classes/image-item';
+import {PrunedPatchService} from '../../../services/prunedPatch.service';
 
 enum OrderByTypes {
   None = 'Order by?',
@@ -82,13 +83,14 @@ export class ImageManagerComponent implements OnInit {
   selectedItem = '';
   uniqueImages: {url: string, stats: UniqueImageStats}[] = [];
   uniqueItems: {name: string, stats: UniqueItemStats}[] = [];
-  showUnique = false;
+  filteredUniqueImages = [];
+  filteredUniqueItems = [];
   image;
   showRemoveTip = false;
   rtIdNameMap = {};
   showAffectedRTs = false;
 
-  constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient) { }
+  constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient, private _prunedPatch: PrunedPatchService) { }
 
   async ngOnInit() {
     await this.getRtsWithMenuName();
@@ -110,15 +112,27 @@ export class ImageManagerComponent implements OnInit {
   getKeywordTypes() {
     return Object.values(KeywordTypes);
   }
-  paged(list) {
-    return list.slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize)
+
+  paged(keywordType) {
+    let list = {
+      [KeywordTypes.ImageUrl]: this.uniqueItemsByImage(),
+      [KeywordTypes.ItemName]: this.uniqueImagesByItem()
+    }[keywordType] || [];
+    return list.slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize);
   }
 
-  visibleMis() {
-    if (this.selectedImg) {
-      return this.filteredMis.filter(x => x.image && x.image.url === this.selectedImg);
+  uniqueImagesByItem() {
+    if (!this.selectedItem) {
+      return [];
     }
-    return this.filteredMis;
+    return this.uniqueImages.filter(x => x.stats.uniqueItems.has(this.selectedItem));
+  }
+
+  uniqueItemsByImage() {
+    if (!this.selectedImg) {
+      return [];
+    }
+    return this.uniqueItems.filter(x => x.stats.uniqueImages.has(this.selectedImg));
   }
 
   selectImg(url, clickable) {
@@ -127,8 +141,6 @@ export class ImageManagerComponent implements OnInit {
     }
     if (this.selectedImg !== url) {
       this.selectedImg = url;
-      // todo: this display filter logic need update
-      this.countUnique();
     }
   }
 
@@ -138,35 +150,23 @@ export class ImageManagerComponent implements OnInit {
     }
     if (this.selectedItem !== name) {
       this.selectedItem = name;
-      // todo: this display filter logic need update
-      this.countUnique();
     }
   }
 
-  keywordTypeChange() {
-    this.showUnique = false;
-    this.selectedImg = '';
-    this.selectedItem = '';
-    this.keyword = '';
-    this.countUnique();
-  }
-
   filterMi() {
-    this.showUnique = false;
     this.selectedImg = '';
     this.selectedItem = '';
-    let kw = this.keyword.trim(), kt = this.keywordType
+    let kw = this.keyword.trim();
     const match = str => (str || '').toLowerCase().includes(kw.toLowerCase());
-    this.filteredMis = this.mis.filter(item => {
-      return (kt === KeywordTypes.ItemName && match(item.mi.name)) || (kt === KeywordTypes.ImageUrl && item.image && match(item.image.url));
-    });
-    this.filteredMis.sort((b, a) => {
-      if (a.image && b.image) {
-        return a.image.allCount - b.image.allCount
-      }
-      return Number(!!a.image) - Number(!!b.image)
-    });
-    this.countUnique();
+    this.filteredUniqueItems = this.uniqueItems.filter(x => match(x.name));
+    this.filteredUniqueImages = this.uniqueImages.filter(x => match(x.url));
+    if (this.filteredUniqueImages.length > 0) {
+      this.selectedImg = this.filteredUniqueImages[0].url;
+    }
+    if (this.filteredUniqueItems.length > 0) {
+      this.selectedItem = this.filteredUniqueItems[0].name;
+    }
+    this.paginate(0);
   }
   paginate(index) {
     this.pageIndex = index;
@@ -767,13 +767,14 @@ export class ImageManagerComponent implements OnInit {
         item.image.allCount = countAll[item.image.url]
       }
     })
+    this.countUnique(this.mis);
     this.filterMi();
   }
 
-  countUnique() {
+  countUnique(list) {
     let images = {} as {[key: string]: UniqueImageStats};
     let items = {} as {[key: string]: UniqueItemStats};
-    this.visibleMis().forEach(({mi, rt, image}) => {
+    list.forEach(({mi, rt, image}) => {
       let tempItm = items[mi.name] || { usageCount: 0, uniqueImages: new Set(), uniqueRTs: new Set() };
       tempItm.usageCount++;
       if (image) {
@@ -787,40 +788,53 @@ export class ImageManagerComponent implements OnInit {
         images[url] = tempImg;
       }
       items[mi.name] = tempItm;
-    })
+    });
     this.uniqueImages = Object.entries(images).map(([url, stats]) => ({url, stats}))
       .sort((a, b) => b.stats.usageCount - a.stats.usageCount);
     this.uniqueItems = Object.entries(items).map(([name, stats]) => ({name, stats}))
       .sort((a, b) => b.stats.usageCount - a.stats.usageCount);
-    if (this.uniqueItems.length > 0) {
-      this.selectedItem = this.uniqueItems[0].name
-    }
-    if (this.uniqueImages.length > 0) {
-      this.selectedImg = this.uniqueImages[0].url;
-    }
-    this.showUnique = !!this.keyword.trim();
   }
 
   editMiImageItem(item, key) {
+    let url, name, used = 0, rts = new Set();
     if (key === 'url') {
-      this.image = {
-        url: this.selectedImg,
-        name: item.name,
-        rts: Array.from(item.stats.uniqueRTs),
-        used: item.stats.usageCount
-      }
+      url = this.selectedImg
+      name = item.name
     } else if (key === 'name') {
-      this.image = {
-        name: this.selectedItem,
-        url: item.url,
-        rts: Array.from(item.stats.uniqueRTs),
-        used: item.stats.usageCount
-      }
+      name = this.selectedItem
+      url = item.url;
     }
+
+    this.mis.forEach(x => {
+      if (x.mi.name === name && x.image && x.image.url === url) {
+        used++;
+        rts.add(x.rt._id);
+      }
+    });
+    this.image = {url, name, used, rts: Array.from(rts)};
     this.imageRemoveModal.show();
   }
 
-  removeMiImage() {
-    console.log(this.image)
+  async removeMiImage() {
+    let { url, name, rts } = this.image;
+    let rtsToUpdate = this.restaurants.filter(x => rts.includes(x._id));
+    let newRTs = JSON.parse(JSON.stringify(rtsToUpdate));
+    const patchPairs = newRTs.map(rt => {
+      let old = JSON.parse(JSON.stringify(rt))
+      rt.menus.forEach(menu => {
+        (menu.mcs || []).forEach(mc => {
+          (mc.mis || []).forEach(mi => {
+            if (mi.imageObjs && mi.imageObjs[0]) {
+              if (mi.name === name && url === mi.imageObjs[0].originalUrl) {
+                mi.imageObjs = [];
+              }
+            }
+          })
+        })
+      });
+      return {old, new: rt};
+    })
+    await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchPairs).toPromise();
+    this._global.publishAlert(AlertType.Success, "Images removed success!")
   }
 }

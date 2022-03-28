@@ -92,7 +92,7 @@
     <ng-container *ngIf="manageMode === manageModes.Common">
       <div class="row">
         <div class="col-auto mb-2">
-          <select class="form-control" [(ngModel)]="keywordType" (change)="keywordTypeChange()">
+          <select class="form-control" [(ngModel)]="keywordType">
             <option *ngFor="let type of getKeywordTypes()">{{type}}</option>
           </select>
         </div>
@@ -106,44 +106,44 @@
       <hr />
       <ng-container *ngIf="keywordType === keywordTypes.ItemName">
         <div class="unique-row">
-          <div class="name-item clickable" [ngClass]="{'selected': selectedItem === item.name}" *ngFor="let item of uniqueItems">
+          <div class="name-item clickable" [ngClass]="{'selected': selectedItem === item.name}" *ngFor="let item of filteredUniqueItems">
             <ng-container *ngTemplateOutlet="uniqueNameTpl; context:{item: item, clickable: true}"></ng-container>
           </div>
         </div>
         <hr />
         <div class="mb-2 mt-2 col">
-          <q-pager #myPager1 [numberOfRows]="uniqueImages.length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
+          <q-pager #myPager1 [numberOfRows]="uniqueImagesByItem().length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
         </div>
         <div class="row">
-          <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-4" *ngFor="let item of paged(uniqueImages)">
+          <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-4" *ngFor="let item of paged(keywordTypes.ItemName)">
             <div class="image-item list-item">
               <ng-container *ngTemplateOutlet="uniqueImageTpl; context:{item: item}"></ng-container>
             </div>
           </div>
         </div>
         <div class="mt-2 col">
-        '<q-pager #myPager2 [numberOfRows]="uniqueImages.length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
+        '<q-pager #myPager2 [numberOfRows]="uniqueImagesByItem().length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
       </div>
       </ng-container>
       <ng-container *ngIf="keywordType === keywordTypes.ImageUrl">
         <div class="unique-row">
-          <div class="image-item clickable"  [ngClass]="{'selected': selectedImg === item.url}" *ngFor="let item of uniqueImages">
+          <div class="image-item clickable"  [ngClass]="{'selected': selectedImg === item.url}" *ngFor="let item of filteredUniqueImages">
             <ng-container *ngTemplateOutlet="uniqueImageTpl; context:{item: item, clickable: true}"></ng-container>
           </div>
         </div>
         <hr />
         <div class="mb-2 mt-2 col">
-          <q-pager #myPager1 [numberOfRows]="uniqueItems.length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
+          <q-pager #myPager1 [numberOfRows]="uniqueItemsByImage().length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
         </div>
         <div class="row">
-          <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-4" *ngFor="let item of paged(uniqueItems)">
+          <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-4" *ngFor="let item of paged(keywordTypes.ImageUrl)">
             <div class="name-item list-item">
               <ng-container *ngTemplateOutlet="uniqueNameTpl; context:{item: item}"></ng-container>
             </div>
           </div>
         </div>
         <div class="mt-2 col">
-        <q-pager #myPager2 [numberOfRows]="uniqueItems.length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
+        <q-pager #myPager2 [numberOfRows]="uniqueItemsByImage().length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
       </div>
       </ng-container>
     </ng-container>
@@ -154,7 +154,7 @@
         <div class="image-url">{{item.url}}</div>
         <div class="image-line"><strong>Usage count: {{item.stats.usageCount}}</strong></div>
         <div class="image-line"><strong>Unique items: {{item.stats.uniqueItems.size}}</strong></div>
-        <div *ngIf="!clickable && selectedImg" class="text-left"><a class="btn-link" (click)="editMiImageItem(item, 'name')">Edit</a></div>
+        <div *ngIf="!clickable && selectedItem" class="text-left"><a class="btn-link" (click)="editMiImageItem(item, 'name')">Edit</a></div>
       </div>
     </ng-template>
 
@@ -165,7 +165,7 @@
           <strong>Count: {{item.stats.usageCount}}</strong>
           <strong>Unique images: {{item.stats.uniqueImages.size}}</strong>
         </div>
-        <div *ngIf="!clickable && selectedItem"><a class="btn-link" (click)="editMiImageItem(item, 'url')">Edit</a></div>
+        <div *ngIf="!clickable && selectedImg"><a class="btn-link" (click)="editMiImageItem(item, 'url')">Edit</a></div>
       </div>
     </ng-template>
 
