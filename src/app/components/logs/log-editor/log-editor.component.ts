@@ -45,7 +45,8 @@ export class LogEditorComponent implements OnInit, OnChanges {
     {value: 'online-agreement', label: 'Online Agreement'},
     {value: 'menu-setup', label: 'Menu Setup'},
     {value: 'payment-pickup-setup', label: 'Payment (Pickup order)'},
-    {value: 'payment-delivery-setup', label: 'Payment (Delivery order)'}
+    {value: 'payment-delivery-setup', label: 'Payment (Delivery order)'},
+    {value: 'request-complaint', label: 'Request/complaint'}
   ];
   myRestaurantPicker;
   assigneeList;
@@ -219,8 +220,8 @@ export class LogEditorComponent implements OnInit, OnChanges {
     return !this.log.username && !this.log.time;
   }
 
-  isAdmin() {
-    return this._global.user.roles.some(r => r === 'ADMIN');
+  isAdminAndCSRManager() {
+    return ['ADMIN', 'CSR_MANAGER'].some(role => this._global.user.roles.includes(role));
   }
 
   toggleAdjustmentType() {
