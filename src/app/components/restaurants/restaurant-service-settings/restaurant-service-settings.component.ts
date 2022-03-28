@@ -172,9 +172,6 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   }
 
   update() {
-    if (this.shortForTinAndPayeeName()) {
-      return this._global.publishAlert(AlertType.Danger, `Can not select "qMenu collect payment" until payee name and TIN entered`);
-    }
     const oldR = JSON.parse(JSON.stringify(this.restaurant));
     const newR = JSON.parse(JSON.stringify(this.restaurant));
 
