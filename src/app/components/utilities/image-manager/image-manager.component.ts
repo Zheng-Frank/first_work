@@ -148,7 +148,7 @@ export class ImageManagerComponent implements OnInit {
     let url = this.selectedImg;
     this.uniqueItemsByImage = this.uniqueItems.filter(x => x.stats.uniqueImages.has(this.selectedImg))
       .sort((a, b) => {
-        return this.nameUrlStats(b.name, url) - this.nameUrlStats(a.name, url);
+        return this.nameUrlStats(b.name, url).count - this.nameUrlStats(a.name, url).count;
       });
   }
 
@@ -158,8 +158,8 @@ export class ImageManagerComponent implements OnInit {
     }
     if (this.selectedImg !== url) {
       this.selectedImg = url;
-      this.filterUniqueItemsByImage();
     }
+    this.filterUniqueItemsByImage();
   }
 
   selectItem(name, clickable) {
@@ -168,8 +168,8 @@ export class ImageManagerComponent implements OnInit {
     }
     if (this.selectedItem !== name) {
       this.selectedItem = name;
-      this.filterUniqueImagesByItem();
     }
+    this.filterUniqueImagesByItem();
   }
 
   filterMi() {
@@ -826,8 +826,6 @@ export class ImageManagerComponent implements OnInit {
   }
 
   async removeMiImage() {
-
-    // todo: should we make exact match or do not care case ?
     let { url, name, rts } = this.image;
     let rtsToUpdate = this.restaurants.filter(x => rts.includes(x._id));
     let newRTs = JSON.parse(JSON.stringify(rtsToUpdate));
