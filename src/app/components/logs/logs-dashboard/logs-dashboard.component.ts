@@ -293,7 +293,7 @@ export class LogsDashboardComponent implements OnInit {
         });
         this._global.publishAlert(
           AlertType.Success,
-          'Successfully created new log.'
+          'Successfully update log.'
         );
 
         acknowledge(null);
