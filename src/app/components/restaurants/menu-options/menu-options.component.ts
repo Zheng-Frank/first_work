@@ -124,7 +124,7 @@ export class MenuOptionsComponent implements OnInit {
     try {
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: { _id: this.restaurant['_id'] },
-        new: { _id: this.restaurant['_id'], menus: sorted }
+        new: { _id: this.restaurant['_id'], menuOptions: sorted }
       }]).toPromise();
       this.restaurant.menuOptions = sorted;
       this._global.publishAlert(AlertType.Success, 'Success!');
