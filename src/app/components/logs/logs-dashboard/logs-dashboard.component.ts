@@ -33,11 +33,15 @@ export class LogsDashboardComponent implements OnInit {
   adjustmentOnly = false;
   last7DaysOnly = true;
   agent;
-  type;
+  
 
   restaurantLogs = [];
   agentList = [];
-  logTypes = [];
+  logTypes = ['force-qmenu-collect', 'gmb-call', 'hours-of-operation',
+   'qr-dine-in', 'weird-data-cleanup', 'cleanup-insisted', 'vip-follow-up',
+   'online-agreement', 'menu-setup', 'payment-pickup-setup', 'payment-delivery-setup',
+   'request-complaint'];
+  type = 'All';
   tierOptions = [TierTypes.All, TierTypes.Tier_1, TierTypes.Tier_2, TierTypes.Tier_3, TierTypes.VIP];
   tierOption = TierTypes.All;
 
@@ -53,7 +57,11 @@ export class LogsDashboardComponent implements OnInit {
 
   getTier(score) {
     // 30.2: avg days per month, 0.7: discount factor
-    let value = score * 30.2 * 0.7;
+    let value = (score || 0) * 30.2 * 0.7;
+
+    if (value > 125) { // VIP
+      return 0;
+    }
 
     if (value > 40) {
       return 1;
@@ -61,10 +69,9 @@ export class LogsDashboardComponent implements OnInit {
     if (value > 4) {
       return 2;
     }
-    if (value > 0) {
+    if (value >= 0) {
       return 3;
     }
-    return 0;
   }
 
   async populate() {
@@ -80,7 +87,7 @@ export class LogsDashboardComponent implements OnInit {
           "googleAddress.formatted_address": 1,
           score: 1
         }
-      }, 2000);
+      }, 3000);
 
       // convert log to type of Log
       this.restaurantList.map(r => {
@@ -177,9 +184,7 @@ export class LogsDashboardComponent implements OnInit {
     // one without time
     this.restaurantLogs.sort((rl1, rl2) => new Date(rl2.log.time || 0).valueOf() - new Date(rl1.log.time || 0).valueOf());
     this.agentList = this.restaurantLogs.map(l => l.log.username);
-    this.logTypes = this.restaurantLogs.map(l => l.log.type);
     this.agentList = Array.from(new Set(this.agentList)).sort().filter(e => e != null);
-    this.logTypes = Array.from(new Set(this.logTypes)).sort().filter(e => e != null);
 
     this.filteredResult = this.restaurantLogs.slice(0);
   }
@@ -216,7 +221,7 @@ export class LogsDashboardComponent implements OnInit {
       } else if (this.tierOption === TierTypes.Tier_3) {
         this.filteredResult = this.filteredResult.filter(l => l.restaurant.tier === 3);
       } else if (this.tierOption === TierTypes.VIP) {
-
+        this.filteredResult = this.filteredResult.filter(l => l.restaurant.tier === 0);
       }
     }
   }
