@@ -223,7 +223,7 @@
       </div>
 
       <div *ngIf="activeTab === 'Others'">
-        <app-restaurant-others [restaurant]="restaurant"></app-restaurant-others>
+        <app-restaurant-others [restaurant]="restaurant" [users]="knownUsers" [managers]="managers"></app-restaurant-others>
       </div>
 
     </div>

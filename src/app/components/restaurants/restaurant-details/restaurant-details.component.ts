@@ -210,6 +210,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   earliestInvoiceDueDate;
   hasGMBWebsite = false;
   hasGMBOwner = false;
+  managers = [];
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
     const tabVisibilityRolesMap = {
@@ -229,6 +230,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     };
 
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
+    console.log(this._global.user.roles, this.tabs)
 
     this._route.params.subscribe(
       params => {
@@ -791,7 +793,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     }
     this.now = new Date();
   }
-  //every item includes: user and his all managers
+  // every item includes: user and his all managers
   async getManagerAndUsers() {
     const users = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "user",
@@ -818,7 +820,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     if (this.id) {
       this.apiRequesting = true;
       const query = { _id: { $oid: this.id } };
-      const teamUsers = await this.getManagerAndUsers();
+      this.managers = await this.getManagerAndUsers();
       this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'restaurant',
         query: query,
@@ -839,7 +841,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
             (rt.rateSchedules).some(rs => rs.agent === 'invalid') ||
             (rt.rateSchedules || []).some(rs => rs.agent === this._global.user.username) ||
             // You are the administrator of any salesperson in this restaurant
-            teamUsers.some(user => (rt.rateSchedules || []).some(rs => rs.agent === user.username && (user.leaders || []).some(lead => lead.username === this._global.user.username)));
+            this.managers.some(user => (rt.rateSchedules || []).some(rs => rs.agent === user.username && (user.leaders || []).some(lead => lead.username === this._global.user.username)));
           this.readonly = !canEdit;
           // use encodeURLComponment to reformat the href of a link.
           // https://www.google.com/search?q={{restaurant.name}} {{restaurant.googleAddress.formatted_address}}
