@@ -4,6 +4,15 @@ import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
 import { AlertType } from "../../../classes/alert-type";
 import { Log } from "../../../classes/log";
+
+enum TierTypes {
+  All = 'Restaurant tier?',
+  Tier_1 = 'Tier 1',
+  Tier_2 = 'Tier 2',
+  Tier_3 = 'Tier 3',
+  VIP = 'VIP'
+}
+
 @Component({
   selector: 'app-logs-dashboard',
   templateUrl: './logs-dashboard.component.html',
@@ -24,12 +33,17 @@ export class LogsDashboardComponent implements OnInit {
   adjustmentOnly = false;
   last7DaysOnly = true;
   agent;
-  type;
+  
 
   restaurantLogs = [];
   agentList = [];
-  logTypes = [];
-
+  logTypes = ['force-qmenu-collect', 'gmb-call', 'hours-of-operation',
+   'qr-dine-in', 'weird-data-cleanup', 'cleanup-insisted', 'vip-follow-up',
+   'online-agreement', 'menu-setup', 'payment-pickup-setup', 'payment-delivery-setup',
+   'request-complaint'];
+  type = 'All';
+  tierOptions = [TierTypes.All, TierTypes.Tier_1, TierTypes.Tier_2, TierTypes.Tier_3, TierTypes.VIP];
+  tierOption = TierTypes.All;
 
   logInEditing = new Log();
   logInEditingOriginal;
@@ -41,66 +55,47 @@ export class LogsDashboardComponent implements OnInit {
     this.populate();
   }
 
+  getTier(score) {
+    // 30.2: avg days per month, 0.7: discount factor
+    let value = (score || 0) * 30.2 * 0.7;
+
+    if (value > 125) { // VIP
+      return 0;
+    }
+
+    if (value > 40) {
+      return 1;
+    }
+    if (value > 4) {
+      return 2;
+    }
+    if (value >= 0) {
+      return 3;
+    }
+  }
+
   async populate() {
     try {
-
-      // this.restaurantList = await this._api.get(environment.qmenuApiUrl + "generic", {
-      //   resource: "restaurant",
-      //   query: {
-      //     disabled: {
-      //       $ne: true
-      //     },
-      //     "logs": {
-      //       "$elemMatch": {
-      //         "time": {
-      //           "$gt": date
-      //         }
-      //       }
-      //     }
-      //   },
-      //   projection: {
-      //     name: 1,
-      //     alias: 1,
-      //     logs: { $slice: -5 },
-      //     logo: 1,
-      //     channels: 1,
-      //     "googleAddress.formatted_address": 1
-      //   },
-      //   limit: 6000
-      // }).toPromise();
-
-      //Retrieve all the logs inseat of limit out old logs
-      const restaurantBatchSize = 3800;
-      let restaurantSkip = 0;
-
-      while (true) {
-        const batch = await this._api.get(environment.qmenuApiUrl + 'generic', {
-          resource: 'restaurant',
-          projection: {
-            name: 1,
-            alias: 1,
-            logs: { $slice: -5 },
-            logo: 1,
-            channels: 1,
-            "googleAddress.formatted_address": 1
-          },
-          skip: restaurantSkip,
-          limit: restaurantBatchSize
-        }).toPromise();
-
-        this.restaurantList.push(...batch);
-
-        if (batch.length === 0) {
-          break;
+      this.restaurantList = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
+        projection: {
+          name: 1,
+          alias: 1,
+          logs: { $slice: -5 },
+          logo: 1,
+          'channels.value': 1,
+          "googleAddress.formatted_address": 1,
+          score: 1
         }
-        restaurantSkip += restaurantBatchSize;
-      }
+      }, 3000);
 
       // convert log to type of Log
       this.restaurantList.map(r => {
         if (r.logs) {
           r.logs = r.logs.map(log => new Log(log));
         }
+        // compute tier of rt
+        r['tier'] = this.getTier(r.score);
       });
 
       // sort logs
@@ -159,16 +154,13 @@ export class LogsDashboardComponent implements OnInit {
   computeFilteredLogs() {
     this.restaurantLogs = [];
     this.restaurantList.map(r => {
-      if (r.name === 'Demo') {
-        console.log(r.logs);
-      }
       (r.logs || []).map(log => {
         // apply filter to reduce possible sorting
         const filter = (this.searchFilter || '').toLowerCase();
         const b1 = !this.unresolvedOnly || !log.resolved;
         const b2 = b1 && (!filter || (r.name.toLowerCase().startsWith(filter)
           || (log.callerPhone || '').startsWith(filter)
-          || (r.channels && r.channels.some(c => c.value.startsWith(filter)))));
+          || (r.channels && r.channels.some(c => (c.value || '').startsWith(filter)))));
 
         const date = new Date();
         date.setDate(date.getDate() - (this.last7DaysOnly ? 7 : 70000));
@@ -192,9 +184,7 @@ export class LogsDashboardComponent implements OnInit {
     // one without time
     this.restaurantLogs.sort((rl1, rl2) => new Date(rl2.log.time || 0).valueOf() - new Date(rl1.log.time || 0).valueOf());
     this.agentList = this.restaurantLogs.map(l => l.log.username);
-    this.logTypes = this.restaurantLogs.map(l => l.log.type);
     this.agentList = Array.from(new Set(this.agentList)).sort().filter(e => e != null);
-    this.logTypes = Array.from(new Set(this.logTypes)).sort().filter(e => e != null);
 
     this.filteredResult = this.restaurantLogs.slice(0);
   }
@@ -221,6 +211,18 @@ export class LogsDashboardComponent implements OnInit {
     }
     if (this.type && this.type !== "All") {
       this.filteredResult = this.filteredResult.filter(l => l.log.type === this.type);
+    }
+    // filter tier options
+    if (this.tierOption !== TierTypes.All) {
+      if (this.tierOption === TierTypes.Tier_1) {
+        this.filteredResult = this.filteredResult.filter(l => l.restaurant.tier === 1);
+      } else if (this.tierOption === TierTypes.Tier_2) {
+        this.filteredResult = this.filteredResult.filter(l => l.restaurant.tier === 2);
+      } else if (this.tierOption === TierTypes.Tier_3) {
+        this.filteredResult = this.filteredResult.filter(l => l.restaurant.tier === 3);
+      } else if (this.tierOption === TierTypes.VIP) {
+        this.filteredResult = this.filteredResult.filter(l => l.restaurant.tier === 0);
+      }
     }
   }
 
@@ -291,7 +293,7 @@ export class LogsDashboardComponent implements OnInit {
         });
         this._global.publishAlert(
           AlertType.Success,
-          'Successfully created new log.'
+          'Successfully update log.'
         );
 
         acknowledge(null);
