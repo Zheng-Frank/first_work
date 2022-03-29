@@ -39,6 +39,8 @@ interface UniqueImageStats {usageCount: number, uniqueItems: Set<string>, unique
 
 interface UniqueItemStats {usageCount: number, uniqueImages: Set<string>, uniqueRTs: Set<string>}
 
+const nameUrl = (name, url) => (name || '').toLowerCase() + '-' + url;
+
 @Component({
   selector: 'app-image-manager',
   templateUrl: './image-manager.component.html',
@@ -85,9 +87,12 @@ export class ImageManagerComponent implements OnInit {
   uniqueItems: {name: string, stats: UniqueItemStats}[] = [];
   filteredUniqueImages = [];
   filteredUniqueItems = [];
+  uniqueImagesByItem = [];
+  uniqueItemsByImage = [];
   image;
   showRemoveTip = false;
   rtIdNameMap = {};
+  nameUrlMap = {};
   showAffectedRTs = false;
 
   constructor(private _api: ApiService, private _global: GlobalService, private _http: HttpClient, private _prunedPatch: PrunedPatchService) { }
@@ -115,24 +120,36 @@ export class ImageManagerComponent implements OnInit {
 
   paged(keywordType) {
     let list = {
-      [KeywordTypes.ImageUrl]: this.uniqueItemsByImage(),
-      [KeywordTypes.ItemName]: this.uniqueImagesByItem()
+      [KeywordTypes.ImageUrl]: this.uniqueItemsByImage,
+      [KeywordTypes.ItemName]: this.uniqueImagesByItem
     }[keywordType] || [];
     return list.slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize);
   }
 
-  uniqueImagesByItem() {
+  filterUniqueImagesByItem() {
     if (!this.selectedItem) {
-      return [];
+      this.uniqueImagesByItem = [];
     }
-    return this.uniqueImages.filter(x => x.stats.uniqueItems.has(this.selectedItem));
+    let name = this.selectedItem.toLowerCase();
+    this.uniqueImagesByItem = this.uniqueImages.filter(x => x.stats.uniqueItems.has(name))
+      .sort((a, b) => {
+        return this.nameUrlStats(name, b.url).count - this.nameUrlStats(name, a.url).count;
+      });
   }
 
-  uniqueItemsByImage() {
+  nameUrlStats(name, url) {
+    return this.nameUrlMap[nameUrl(name, url)] || {count: 0, rts: new Set()};
+  }
+
+  filterUniqueItemsByImage() {
     if (!this.selectedImg) {
-      return [];
+      this.uniqueItemsByImage = [];
     }
-    return this.uniqueItems.filter(x => x.stats.uniqueImages.has(this.selectedImg));
+    let url = this.selectedImg;
+    this.uniqueItemsByImage = this.uniqueItems.filter(x => x.stats.uniqueImages.has(this.selectedImg))
+      .sort((a, b) => {
+        return this.nameUrlStats(b.name, url) - this.nameUrlStats(a.name, url);
+      });
   }
 
   selectImg(url, clickable) {
@@ -141,6 +158,7 @@ export class ImageManagerComponent implements OnInit {
     }
     if (this.selectedImg !== url) {
       this.selectedImg = url;
+      this.filterUniqueItemsByImage();
     }
   }
 
@@ -150,6 +168,7 @@ export class ImageManagerComponent implements OnInit {
     }
     if (this.selectedItem !== name) {
       this.selectedItem = name;
+      this.filterUniqueImagesByItem();
     }
   }
 
@@ -161,10 +180,10 @@ export class ImageManagerComponent implements OnInit {
     this.filteredUniqueItems = this.uniqueItems.filter(x => match(x.name));
     this.filteredUniqueImages = this.uniqueImages.filter(x => match(x.url));
     if (this.filteredUniqueImages.length > 0) {
-      this.selectedImg = this.filteredUniqueImages[0].url;
+      this.selectImg(this.filteredUniqueImages[0].url, true)
     }
     if (this.filteredUniqueItems.length > 0) {
-      this.selectedItem = this.filteredUniqueItems[0].name;
+      this.selectItem(this.filteredUniqueItems[0].name, true)
     }
     this.paginate(0);
   }
@@ -742,7 +761,7 @@ export class ImageManagerComponent implements OnInit {
   miCount() {
     this.mis = [];
     this.rtIdNameMap = {};
-    let countName = {}, countAll = {};
+    this.nameUrlMap = {};
     this.restaurants.forEach(rt => {
       this.rtIdNameMap[rt._id] = rt.name;
       (rt.menus || []).forEach(menu => {
@@ -752,21 +771,17 @@ export class ImageManagerComponent implements OnInit {
             if (mi.imageObjs && mi.imageObjs[0]) {
               let url = mi.imageObjs[0].originalUrl;
               item.image = {url}
-              let key = mi.name.toLowerCase() + '-' + url;
-              countName[key] = (countName[key] || 0) + 1;
-              countAll[url] = (countAll[url] || 0) + 1
+              let key = nameUrl(mi.name, url);
+              let temp = this.nameUrlMap[key] || { count: 0, rts: new Set() };
+              temp.count++;
+              temp.rts.add(rt._id)
+              this.nameUrlMap[key] = temp;
             }
             this.mis.push(item)
           })
         })
       })
     });
-    this.mis.forEach(item => {
-      if (item.image) {
-        item.image.nameCount = countName[item.mi.name.toLowerCase() + '-' + item.image.url];
-        item.image.allCount = countAll[item.image.url]
-      }
-    })
     this.countUnique(this.mis);
     this.filterMi();
   }
@@ -775,7 +790,8 @@ export class ImageManagerComponent implements OnInit {
     let images = {} as {[key: string]: UniqueImageStats};
     let items = {} as {[key: string]: UniqueItemStats};
     list.forEach(({mi, rt, image}) => {
-      let tempItm = items[mi.name] || { usageCount: 0, uniqueImages: new Set(), uniqueRTs: new Set() };
+      let nameKey = (mi.name || '').toLowerCase();
+      let tempItm = items[nameKey] || { usageCount: 0, uniqueImages: new Set(), uniqueRTs: new Set() };
       tempItm.usageCount++;
       if (image) {
         let {url} = image;
@@ -783,11 +799,11 @@ export class ImageManagerComponent implements OnInit {
         tempItm.uniqueRTs.add(rt._id)
         let tempImg = images[url] || { usageCount: 0, uniqueItems: new Set(), uniqueRTs: new Set() };
         tempImg.usageCount++;
-        tempImg.uniqueItems.add(mi.name);
+        tempImg.uniqueItems.add(nameKey);
         tempImg.uniqueRTs.add(rt._id);
         images[url] = tempImg;
       }
-      items[mi.name] = tempItm;
+      items[nameKey] = tempItm;
     });
     this.uniqueImages = Object.entries(images).map(([url, stats]) => ({url, stats}))
       .sort((a, b) => b.stats.usageCount - a.stats.usageCount);
@@ -796,7 +812,7 @@ export class ImageManagerComponent implements OnInit {
   }
 
   editMiImageItem(item, key) {
-    let url, name, used = 0, rts = new Set();
+    let url, name;
     if (key === 'url') {
       url = this.selectedImg
       name = item.name
@@ -804,18 +820,14 @@ export class ImageManagerComponent implements OnInit {
       name = this.selectedItem
       url = item.url;
     }
-
-    this.mis.forEach(x => {
-      if (x.mi.name === name && x.image && x.image.url === url) {
-        used++;
-        rts.add(x.rt._id);
-      }
-    });
-    this.image = {url, name, used, rts: Array.from(rts)};
+    let stats = this.nameUrlStats(name, url);
+    this.image = {url, name, used: stats.count, rts: Array.from(stats.rts)};
     this.imageRemoveModal.show();
   }
 
   async removeMiImage() {
+
+    // todo: should we make exact match or do not care case ?
     let { url, name, rts } = this.image;
     let rtsToUpdate = this.restaurants.filter(x => rts.includes(x._id));
     let newRTs = JSON.parse(JSON.stringify(rtsToUpdate));
@@ -825,7 +837,7 @@ export class ImageManagerComponent implements OnInit {
         (menu.mcs || []).forEach(mc => {
           (mc.mis || []).forEach(mi => {
             if (mi.imageObjs && mi.imageObjs[0]) {
-              if (mi.name === name && url === mi.imageObjs[0].originalUrl) {
+              if (mi.name && mi.name.toLowerCase() === name && url === mi.imageObjs[0].originalUrl) {
                 mi.imageObjs = [];
               }
             }
@@ -835,6 +847,8 @@ export class ImageManagerComponent implements OnInit {
       return {old, new: rt};
     })
     await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchPairs).toPromise();
-    this._global.publishAlert(AlertType.Success, "Images removed success!")
+    this._global.publishAlert(AlertType.Success, "Images removed success!");
+    this.imageRemoveModal.hide();
+    this.image = null;
   }
 }
