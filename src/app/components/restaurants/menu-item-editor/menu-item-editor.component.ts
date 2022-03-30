@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnChanges, OnInit, Output, ViewChild} from '@angular/core';
-import {Item, MenuOption, Mi} from '@qmenu/ui';
+import {Item, MenuOption, Mi, Helper as QMenuUIHelper} from '@qmenu/ui';
 import {SelectorComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
 import {Helper} from '../../../classes/helper';
 import {Router} from '@angular/router';
@@ -16,6 +16,7 @@ declare var $: any;
 })
 export class MenuItemEditorComponent implements OnInit, OnChanges {
     mi: Mi;
+    @Input() translations = [];
     @Input() miNames: string[] = [];
     @Input() sizeNames: string[] = [];
     @Input() menuOptions: MenuOption[] = [];
@@ -32,6 +33,10 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
     @ViewChild('sweetSelector') sweetSelector: SelectorComponent;
     @ViewChild('startupActionSelector') startupActionSelector: SelectorComponent;
 
+    editingTranslations = [];
+    editingTranslationIndex = -1;
+    editingTranslation;
+    hideTranslations = true;
     uploadImageError: string;
     availabilityValues = ['Available', 'Unavailable'];
 
@@ -97,9 +102,17 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
         // create a copy of selected Mi and assign old category to it
         const category = this.mi.category;
         this.mi = new Mi(mi);
+        // add temporarily translation for selecting mi
+        this.editingTranslationIndex = this.existingMis.findIndex(mi=> mi.id === this.mi.id);
+        if(this.editingTranslationIndex === -1) { // may be not find exisiting translations then add a new one
+            let translation = QMenuUIHelper.extractNameTranslation(mi.name) || {en: ''};
+            // temporarily add translation to mi for convenient use;
+            let { en, zh } = translation;
+            this.editingTranslation = (this.translations || []).find(x => x.EN === en) || {EN: en, ZH: zh};
+        }
         this.mi.id = undefined;
         this.mi.category = category;
-
+        
         this.finishedChoosingStartupAction = true;
         // we want to top of the modal after a selection
         $('.modal').animate({ scrollTop: 0 }, 'slow');
@@ -117,6 +130,16 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
         this.menuOptions = menuOptions || [];
         this.mcSelectedMenuOptionIds = mcSelectedMenuOptionIds || [];
         this.mi = mi;
+        // add temporarily translation for selecting mi
+        this.editingTranslationIndex = this.existingMis.findIndex(mi=> mi.id === this.mi.id);
+        
+        if(this.editingTranslationIndex === -1) { // may be not find exisiting translations then add a new one
+            let translation = QMenuUIHelper.extractNameTranslation(mi.name) || {en: ''};
+            // temporarily add translation to mi for convenient use;
+            let { en, zh } = translation;
+            this.editingTranslation = (this.translations || []).find(x => x.EN === en) || {EN: en, ZH: zh};
+        }
+        
         //reset other values
         this.startupAction = undefined;  //'Yes', 'No', or undefined
         this.finishedChoosingStartupAction = false;
@@ -144,6 +167,12 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
 
     setExistingMis(mis) {
         this.existingMis = mis;
+        this.existingMis.forEach((mi, i) => {
+            let translation = QMenuUIHelper.extractNameTranslation(mi.name) || {en: ''};
+            // temporarily add translation to mi for convenient use;
+            let { en, zh } = translation;
+            this.editingTranslations[i] = (this.translations || []).find(x => x.EN === en) || {EN: en, ZH: zh};
+          });
     }
 
     deleteImage(img) {
@@ -262,7 +291,12 @@ export class MenuItemEditorComponent implements OnInit, OnChanges {
             delete this.mi.menuOptionIds;
         }
         this.mi.name = Helper.shrink(this.mi.name);
-        this.onDone.emit(this.mi);
+        // add a new item if it doesn't exist in existing translations
+        if(this.editingTranslationIndex === -1) {
+            this.editingTranslations.push(this.editingTranslation);
+        }
+        
+        this.onDone.emit({mi: this.mi, updatedTranslations: this.editingTranslations});
     }
 
     cancel() {

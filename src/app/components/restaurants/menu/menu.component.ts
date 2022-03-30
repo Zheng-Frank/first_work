@@ -367,6 +367,8 @@ export class MenuComponent implements OnInit {
       miCopy = new Mi(params.mi);
     }
     this.miEditor.setMi(miCopy, this.restaurant.menuOptions, params.mc.menuOptionIds);
+    this.miEditor.editingTranslationIndex = -1;
+    this.miEditor.hideTranslations = true;
     this.miModal.show();
   }
 
@@ -380,10 +382,10 @@ export class MenuComponent implements OnInit {
     return miCopy;
   }
 
-  miDone(mi: Mi) {
+  miDone({mi, updatedTranslations}) {
     // id == update, no id === new
     let action = mi.id ? 'UPDATE' : 'CREATE';
-    let { menus } = this.restaurant;
+    let { translations, menus } = this.restaurant;
     const newMenus = JSON.parse(JSON.stringify(menus));
 
     // in case there is category, we search for it
@@ -425,13 +427,23 @@ export class MenuComponent implements OnInit {
         }
       });
     }
-
+    // generate new translations
+    let newTrans = translations || [];
+    updatedTranslations.forEach(translation => {
+      let { EN, ZH } = translation;
+      let tmp = newTrans.find(x => x.EN === EN);
+      if (tmp) {
+        tmp.ZH = ZH;
+      } else if (ZH) {
+        newTrans.push({EN, ZH});
+      }
+    })
     // bug: mi's sizeOptions tied to optionsEditor, which will cause side effects of adding one extra item automatically
     // temp fix to use cleanMiCopy
     const cleanMiCopy = this.cleanMiCopy(mi);
     this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
         old: {_id: this.restaurant['_id']},
-        new: {_id: this.restaurant['_id'], menus: newMenus}
+        new: {_id: this.restaurant['_id'], menus: newMenus, translations: newTrans }
       }])
       .subscribe(
         result => {
