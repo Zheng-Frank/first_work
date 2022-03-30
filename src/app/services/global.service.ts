@@ -580,7 +580,7 @@ export class GlobalService {
           name: "Logs",
           href: "#/logs",
           fa: "fas fa-history",
-          accessibleRoles: ["ADMIN", "MARKETER_MANAGER", "GMB", "CSR", 'CSR_MANAGER', "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"]
+          accessibleRoles: ["ADMIN", "MARKETER_MANAGER", "MARKETER", "GMB", "CSR", 'CSR_MANAGER', "ACCOUNTANT", "MENU_EDITOR", "DRIVER", "RATE_EDITOR"]
         },
         {
           name: "Invoices",

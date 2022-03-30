@@ -592,4 +592,10 @@ export class Helper {
       saveAs(new Blob([lines.join('\n')], { type: "application/octet-stream" }), filename);
     }
 
+  // see https://stackoverflow.com/questions/11832914/round-to-at-most-2-decimal-places-only-if-necessary
+  // mainly to address 1.005 round issue, should be 1.01, but will get 1 without epsilon added
+  static roundDecimal(num) {
+    return Math.round((num + Number.EPSILON) * 100) / 100;
+  }
+
 }

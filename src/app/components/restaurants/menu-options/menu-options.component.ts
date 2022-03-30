@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, Input } from '@angular/core';
-import { MenuOption, Restaurant, Menu } from '@qmenu/ui';
+import { MenuOption, Restaurant } from '@qmenu/ui';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 
 import { ApiService } from '../../../services/api.service';
@@ -16,46 +16,13 @@ import {PrunedPatchService} from '../../../services/prunedPatch.service';
 export class MenuOptionsComponent implements OnInit {
   @Input() restaurant: Restaurant;
   @ViewChild('menuOptionEditingModal') menuOptionEditingModal: ModalComponent;
-
+  @ViewChild('adjustOrderModal') adjustOrderModal: ModalComponent;
   editingTitle: string = null;
-
   menuOptionInEditing = new MenuOption();
 
   constructor(private _api: ApiService, private _prunedPatch: PrunedPatchService, private _global: GlobalService) { }
 
   ngOnInit() {
-  }
-
-  getMenuOptions() {
-    if (this.restaurant) {
-      return [...this.restaurant.menuOptions].sort((i1, i2) => {
-        if (i1.name < i2.name) {
-          return -1;
-        }
-        if (i1.name > i2.name) {
-          return 1;
-        }
-        return 0;
-      });
-
-    }
-    return [];
-    // let mock = [];
-    // mock.push({
-    //   id: '123',
-    //   name: 'Select rice',
-    //   items: [{ name: 'streamed', price: '0' }, { name: 'fried', price: '1.0' }, { name: 'thai', price: '2.0' }],
-    //   minSelection: 1,
-    //   maxSelection: 1
-    // });
-    // mock.push({
-    //   id: '234',
-    //   name: 'Select rice',
-    //   items: [{ name: 'streamed', price: '0' }, { name: 'fried', price: '1.0' }, { name: 'thai', price: '2.0' }],
-    //   minSelection: 0,
-    //   maxSelection: -1
-    // });
-    // return mock;
   }
 
   copyMenuOption(mo: MenuOption) {
@@ -107,8 +74,6 @@ export class MenuOptionsComponent implements OnInit {
         }
       }
     }
-    // mo is sorted by name for display, in this situation,
-    // prunedPatch need more carefully compare and have no much value to reduce log
     this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {_id: this.restaurant['_id']},
@@ -138,9 +103,6 @@ export class MenuOptionsComponent implements OnInit {
       name: mo.name
     }));
     const newMenuOptions = oldMenuOptions.filter(mo => mo.id !== menuOption.id);
-    // mo is sorted by name for display, in this situation,
-    // prunedPatch need more carefully compare and have no much value to reduce log
-    // menu options used here is mapped to name and id, must set both old and new to compare the real diff
     this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
         old: {_id: this.restaurant['_id'], menuOptions: oldMenuOptions},
         new: {_id: this.restaurant['_id'], menuOptions: newMenuOptions}
@@ -158,4 +120,18 @@ export class MenuOptionsComponent implements OnInit {
     this.menuOptionEditingModal.hide();
   }
 
+  async sortMenuOptions(sorted) {
+    try {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
+        old: { _id: this.restaurant['_id'] },
+        new: { _id: this.restaurant['_id'], menuOptions: sorted }
+      }]).toPromise();
+      this.restaurant.menuOptions = sorted;
+      this._global.publishAlert(AlertType.Success, 'Success!');
+      this.adjustOrderModal.hide();
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, 'Failed!');
+    }
+  }
 }
