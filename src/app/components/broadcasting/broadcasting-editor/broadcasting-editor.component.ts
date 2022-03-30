@@ -51,7 +51,8 @@ export class BroadcastingEditorComponent implements OnInit {
   }
 
   canAddBroadcast() {
-    return !!this.broadcast.name && !!this.broadcast.template;
+    const { name, template, mustAgree, affirmOption, dismissOption } = this.broadcast;
+    return !!name && !!template && !!affirmOption && (!!mustAgree || !!dismissOption);
   }
 
   async getRestaurant(rtId) {
@@ -133,7 +134,7 @@ export class BroadcastingEditorComponent implements OnInit {
 
   showBroadcastModal(broadcast) {
     this.broadcastModalTitle = broadcast === null ? 'Add New Broadcast' : 'Edit Broadcast';
-    this.broadcast = broadcast === null ? { } : { ...broadcast};
+    this.broadcast = broadcast === null ? { mustAgree: false } : { ...broadcast};
     this.broadcastModal.show();
   }
 

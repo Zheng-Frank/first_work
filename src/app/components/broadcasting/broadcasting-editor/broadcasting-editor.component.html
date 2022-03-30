@@ -72,7 +72,7 @@
 
       <div class="row d-flex align-items-center mb-2">
         <div class="col-4">
-          <label> Affirm Option: </label>
+          <label> Affirm Option: <span class="text-danger">*</span></label>
         </div>
         <div class="col-8">
           <input type="text" class="form-control" maxlength="10" [(ngModel)]="broadcast.affirmOption">
@@ -81,7 +81,7 @@
 
       <div class="row d-flex align-items-center mb-2" *ngIf="!broadcast.mustAgree">
         <div class="col-4">
-          <label> Dismiss Option: </label>
+          <label> Dismiss Option: <span class="text-danger">*</span></label>
         </div>
         <div class="col-8">
           <input type="text" class="form-control" maxlength="10" [(ngModel)]="broadcast.dismissOption">
