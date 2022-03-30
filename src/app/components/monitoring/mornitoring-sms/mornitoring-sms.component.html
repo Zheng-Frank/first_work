@@ -13,11 +13,6 @@
       <input [qDebounce]="500" (debounce)="debounce($event)" type="text" class="form-control my-2 mx-2 search-input"
         placeholder="RT name or RT ID" [(ngModel)]="searchFilter">
       <!-- end with search input -->
-      <!-- start with provider -->
-      <!-- <select class="form-control my-2 mx-2" [(ngModel)]="providerOption" (change)="filterRows()">
-        <option *ngFor="let option of providerOptions"> {{option}} </option>
-      </select> -->
-      <!-- end with provider -->
       <!-- start with sms problem type -->
       <select class="form-control my-2 mx-2" [(ngModel)]="smsTypeOption" (change)="filterRows()">
         <option *ngFor="let option of smsTypeOptions"> {{option}} </option>
