@@ -40,29 +40,15 @@
         </datalist>
       </div>
       <!-- start with translations -->
-      <label>Hide Translations
-        <input type="checkbox" [(ngModel)]="hideTranslations" class="ml-1" />
-      </label>
+      <h6 class="mb-1 text-primary" role="button" (click)="hideTranslations = !hideTranslations">{{ hideTranslations?'Show Translations...':'Hide Translations...'}}</h6>
       <ng-container *ngIf="!hideTranslations">
         <div class="mi-translation row">
           <label class="col-form-label col-form-label-sm">English Name</label>
-          <ng-container *ngIf="editingTranslationIndex !== -1;else notExistENBlock">
-            <input type="text" [(ngModel)]="editingTranslations[editingTranslationIndex].EN"
-              class="form-control form-control-sm">
-          </ng-container>
-          <ng-template #notExistENBlock>
-            <input type="text" [(ngModel)]="editingTranslation.EN" class="form-control form-control-sm">
-          </ng-template>
+          <input type="text" [(ngModel)]="editingTranslation.EN" class="form-control form-control-sm">
         </div>
         <div class="mi-translation row my-2">
           <label class="col-form-label col-form-label-sm zh">中文名称</label>
-          <ng-container *ngIf="editingTranslationIndex !== -1;else notExistZHBlock">
-            <input type="text" [(ngModel)]="editingTranslations[editingTranslationIndex].ZH"
-              class="form-control form-control-sm">
-          </ng-container>
-          <ng-template #notExistZHBlock>
-            <input type="text" [(ngModel)]="editingTranslation.ZH" class="form-control form-control-sm">
-          </ng-template>
+          <input type="text" [(ngModel)]="editingTranslation.ZH" class="form-control form-control-sm">
         </div>
       </ng-container>
       <!-- end with translations -->
@@ -106,29 +92,16 @@
         </datalist>
       </div>
       <!-- start with translations -->
-      <label>Hide Translations
-        <input type="checkbox" [(ngModel)]="hideTranslations" class="ml-1" />
-      </label>
+     <!-- start with translations -->
+     <h6 class="mb-1 text-primary" role="button" (click)="hideTranslations = !hideTranslations">{{ hideTranslations?'Show Translations...':'Hide Translations...'}}</h6>
       <ng-container *ngIf="!hideTranslations">
         <div class="mi-translation row">
           <label class="col-form-label col-form-label-sm">English Name</label>
-          <ng-container *ngIf="editingTranslationIndex !== -1;else notExistENBlock">
-            <input type="text" [(ngModel)]="editingTranslations[editingTranslationIndex].EN"
-              class="form-control form-control-sm">
-          </ng-container>
-          <ng-template #notExistENBlock>
-            <input type="text" [(ngModel)]="editingTranslation.EN" class="form-control form-control-sm">
-          </ng-template>
+          <input type="text" [(ngModel)]="editingTranslation.EN" class="form-control form-control-sm">
         </div>
         <div class="mi-translation row my-2">
           <label class="col-form-label col-form-label-sm zh">中文名称</label>
-          <ng-container *ngIf="editingTranslationIndex !== -1;else notExistZHBlock">
-            <input type="text" [(ngModel)]="editingTranslations[editingTranslationIndex].ZH"
-              class="form-control form-control-sm">
-          </ng-container>
-          <ng-template #notExistZHBlock>
-            <input type="text" [(ngModel)]="editingTranslation.ZH" class="form-control form-control-sm">
-          </ng-template>
+          <input type="text" [(ngModel)]="editingTranslation.ZH" class="form-control form-control-sm">
         </div>
       </ng-container>
       <!-- end with translations -->

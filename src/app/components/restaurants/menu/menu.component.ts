@@ -344,7 +344,6 @@ export class MenuComponent implements OnInit {
 
   // -----------------Mi section--------------
   editMi(params) {
-    let menu = this.menu;
     let miCopy: Mi;
     if (!params.mi) {
       miCopy = new Mi();
@@ -367,7 +366,6 @@ export class MenuComponent implements OnInit {
       miCopy = new Mi(params.mi);
     }
     this.miEditor.setMi(miCopy, this.restaurant.menuOptions, params.mc.menuOptionIds);
-    this.miEditor.editingTranslationIndex = -1;
     this.miEditor.hideTranslations = true;
     this.miModal.show();
   }
@@ -382,7 +380,7 @@ export class MenuComponent implements OnInit {
     return miCopy;
   }
 
-  miDone({mi, updatedTranslations}) {
+  miDone({mi, updatedTranslation}) {
     // id == update, no id === new
     let action = mi.id ? 'UPDATE' : 'CREATE';
     let { translations, menus } = this.restaurant;
@@ -429,15 +427,14 @@ export class MenuComponent implements OnInit {
     }
     // generate new translations
     let newTrans = translations || [];
-    updatedTranslations.forEach(translation => {
-      let { EN, ZH } = translation;
-      let tmp = newTrans.find(x => x.EN === EN);
-      if (tmp) {
-        tmp.ZH = ZH;
-      } else if (ZH) {
-        newTrans.push({EN, ZH});
-      }
-    })
+    let { EN, ZH } = updatedTranslation;
+    let tmp = newTrans.find(x => x.EN === EN);
+    if (tmp) {
+      tmp.ZH = ZH;
+    } else if (ZH) {
+      newTrans.push({EN, ZH});
+    }
+   
     // bug: mi's sizeOptions tied to optionsEditor, which will cause side effects of adding one extra item automatically
     // temp fix to use cleanMiCopy
     const cleanMiCopy = this.cleanMiCopy(mi);
