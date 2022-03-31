@@ -430,10 +430,11 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   getInactiveField() {
+    // default to use ActivityInLast30Days
     return {
       [ActiveDefinitions.ActivityInLast30Days]: 'inactive',
       [ActiveDefinitions.NotDisabled]: 'disabled'
-    }[this.filters.activeDefinition] || 'disabled';
+    }[this.filters.activeDefinition] || 'inactive';
   }
 
   filter() {
