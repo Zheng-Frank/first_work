@@ -11,7 +11,13 @@ enum PlatformOptions {
   Both = 'Both'
 }
 
+enum ActiveDefinitions {
+  NotDisabled = 'Not disabled',
+  ActivityInLast30Days = 'Activity in last 30 days'
+}
+
 enum StatusOptions {
+  UpOnly = 'Active only',
   EitherUp = 'Active in at least Q or B',
   BothUp = 'Active both',
   QmUp = 'Active QM',
@@ -87,7 +93,8 @@ export class QmBmSstDashboardComponent implements OnInit {
   filters = {
     keyword: '',
     platform: '',
-    status: StatusOptions.EitherUp.toString(),
+    status: StatusOptions.UpOnly.toString(),
+    activeDefinition: ActiveDefinitions.ActivityInLast30Days.toString(),
     hasPlaceId: '',
     sameName: '',
     tier: '',
@@ -117,7 +124,9 @@ export class QmBmSstDashboardComponent implements OnInit {
   bmRTs = [];
   unionRTs = [];
   qmRTsPlaceDict = {};
+  qmRTsPhoneDict = {};
   bmRTsPlaceDict = {};
+  bmRTsPhoneDict = {};
   showPricing = false;
   showPhones = false;
   showOtherContacts = false;
@@ -156,6 +165,7 @@ export class QmBmSstDashboardComponent implements OnInit {
   dropdowns(key) {
     return Object.values({
       platform: PlatformOptions,
+      active_definition: ActiveDefinitions,
       status: StatusOptions,
       tier: TierOptions,
       place_id: PlaceIdOptions,
@@ -207,10 +217,24 @@ export class QmBmSstDashboardComponent implements OnInit {
         gmbWebsiteOwnerDict[place_id + cid] = gmbOwner
       })
 
+      let date = new Date();
+      date.setDate(date.getDate() - 30);
+      const rtsHasOrder = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'order',
+        aggregate: [
+          {$match: {createdAt: {$gte: {$date: date}}}},
+          {$group: {_id: {rt: '$restaurant'}}},
+          {$project: {rtId: "$_id.rt", _id: 0}}
+        ]
+      }).toPromise();
+      let rtsHasOrderSet = new Set(rtsHasOrder.map(x => x.rtId));
+
       this.qmRTs.forEach(rt => {
         if (rt.place_id) {
           this.qmRTsPlaceDict[rt.place_id] = rt;
         }
+        // active: has order in last 30 days
+        rt.inactive = !rtsHasOrderSet.has(rt._id);
         rt.tier = this.getTier(rt.score)
 
         if (rt.gmbOwnerHistory && rt.gmbOwnerHistory.length > 0) {
@@ -221,6 +245,16 @@ export class QmBmSstDashboardComponent implements OnInit {
         }
         rt.hasGMBWebsite = gmbWebsiteOwnerDict[rt.place_id + rt.cid] === 'qmenu'
         rt.postmatesAvailable = this.postmatesAvailable(rt)
+        if (rt.channels && rt.channels.length > 0) {
+          let mainChannel = rt.channels.find(({type, notifications}) => type === 'Phone' && (notifications || []).includes('Business'));
+          if (!mainChannel) {
+            mainChannel = rt.channels.find(({type}) => type === 'Phone');
+          }
+          if (mainChannel) {
+            rt.mainPhone = mainChannel.value;
+            this.qmRTsPhoneDict[rt.mainPhone] = rt;
+          }
+        }
       })
       // --- BeyondMenu restaurants
       let bmRTs = await this._api.post(environment.gmbNgrok + 'get-bm-restaurant').toPromise();
@@ -253,6 +287,7 @@ export class QmBmSstDashboardComponent implements OnInit {
           bowner: 'beyondmenu',
           bhasGmb: item.IsBmGmbControl,
           bchannels: channels,
+          bmainPhone: item.Phone1,
           createdAt: item.createdAt,
           btier: Math.floor((TierDec2021 + TierNov2021 + TierOct2021) / 3),
           bpricing: pricing
@@ -261,11 +296,16 @@ export class QmBmSstDashboardComponent implements OnInit {
         if (place_id) {
           this.bmRTsPlaceDict[place_id] = data;
         }
+        if (item.Phone1) {
+          this.bmRTsPhoneDict[item.Phone1] = data;
+        }
         return data;
       });
-      let bmOnly = this.bmRTs.filter(({bplace_id}) => !bplace_id || !this.qmRTsPlaceDict[bplace_id]);
+      // 1. Match by google place_id (already the case)
+      // 2. followed by main phone number to the extent the first type of matching didn't produce a match.
+      let bmOnly = this.bmRTs.filter(({bplace_id, bmainPhone}) => (!bplace_id || !this.qmRTsPlaceDict[bplace_id]) && (!bmainPhone || !this.qmRTsPhoneDict[bmainPhone]));
       this.unionRTs = [...this.qmRTs, ...bmOnly].map(x => {
-        let item = {...x, ...(this.bmRTsPlaceDict[x.place_id]) || {}};
+        let item = {...x, ...(this.bmRTsPlaceDict[x.place_id]) || this.bmRTsPhoneDict[x.mainPhone] || {}};
         item.worthy = item._bid && (item.bdisabled || !item.bhasGmb);
         item.bworthy = item._id && (item.disabled || (!item.hasGmb && !item.hasGMBWebsite))
         return item;
@@ -337,6 +377,16 @@ export class QmBmSstDashboardComponent implements OnInit {
     return 0;
   }
 
+  getPlaceId(row) {
+    if (row.place_id && !row.hide) {
+      return row.place_id;
+    }
+    if (row.bplace_id && !row.bhide) {
+      return row.bplace_id;
+    }
+    return 'N/A';
+  }
+
   getTierColor(tier = 0, btier = 0) {
     return ['', "bg-success", "bg-warning", "bg-danger"][Math.min(tier, btier) || Math.max(tier, btier)]
   }
@@ -379,6 +429,13 @@ export class QmBmSstDashboardComponent implements OnInit {
     return list;
   }
 
+  getInactiveField() {
+    return {
+      [ActiveDefinitions.ActivityInLast30Days]: 'inactive',
+      [ActiveDefinitions.NotDisabled]: 'disabled'
+    }[this.filters.activeDefinition] || 'disabled';
+  }
+
   filter() {
     let {
       platform, status, tier, hasPlaceId,
@@ -398,30 +455,39 @@ export class QmBmSstDashboardComponent implements OnInit {
         break;
     }
 
+    let inActiveField = this.getInactiveField();
     switch (status) {
+      case StatusOptions.UpOnly:
+        list = list.filter(row => (row._id && !row[inActiveField]) || (row._bid && !row.bdisabled))
+          .map(row => ({
+            ...row,
+            hide: row._id && row[inActiveField],
+            bhide: row._bid && row.bdisabled
+          }));
+        break;
       case StatusOptions.EitherUp:
-        list = list.filter(row => (row._id && !row.disabled) || (row._bid && !row.bdisabled));
+        list = list.filter(row => (row._id && !row[inActiveField]) || (row._bid && !row.bdisabled));
         break;
       case StatusOptions.BothUp:
-        list = list.filter(row => row._id && !row.disabled && row._bid && !row.bdisabled);
+        list = list.filter(row => row._id && !row[inActiveField] && row._bid && !row.bdisabled);
         break;
       case StatusOptions.QmUp:
-        list = list.filter(row => row._id && !row.disabled);
+        list = list.filter(row => row._id && !row[inActiveField]);
         break;
       case StatusOptions.BmUp:
         list = list.filter(row => row._bid && !row.bdisabled);
         break;
       case StatusOptions.BmUpQmDown:
-        list = list.filter(row => row._id && row._bid && !row.bdisabled && row.disabled);
+        list = list.filter(row => row._id && row._bid && !row.bdisabled && row[inActiveField]);
         break;
       case StatusOptions.QmUpBmDown:
-        list = list.filter(row => row._id && row._bid && !row.disabled && row.bdisabled);
+        list = list.filter(row => row._id && row._bid && !row[inActiveField] && row.bdisabled);
         break;
       case StatusOptions.BothDown:
-        list = list.filter(row => row._id && row.bdisabled && row._bid && row.disabled);
+        list = list.filter(row => row._id && row.bdisabled && row._bid && row[inActiveField]);
         break;
       case StatusOptions.QmDown:
-        list = list.filter(row => row._id && row.disabled);
+        list = list.filter(row => row._id && row[inActiveField]);
         break;
       case StatusOptions.BmDown:
         list = list.filter(row => row._bid && row.bdisabled);
@@ -519,8 +585,9 @@ export class QmBmSstDashboardComponent implements OnInit {
         || (digits && ((channels || []).some(p => p.type === 'Phone' && p.value.includes(digits)) || (bchannels || []).some(p => p.value.includes(digits))))
       })
     }
-    this.filteredRows = list
-    this.calcSummary()
+    this.filteredRows = list;
+    console.log(list);
+    this.calcSummary();
     this.paginate(0)
   }
 
@@ -528,9 +595,9 @@ export class QmBmSstDashboardComponent implements OnInit {
     return this.filteredRows.slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize)
   }
 
-  groupChannels({channels, bchannels}, type) {
-    let qmWhole = (channels || []).filter(c => c.type === type).map(c => c.value);
-    let bmWhole = (bchannels || []).filter(c => c.type === type).map(c => c.value);
+  groupChannels({channels, bchannels, hide, bhide}, type) {
+    let qmWhole = hide ? [] : (channels || []).filter(c => c.type === type).map(c => c.value);
+    let bmWhole = bhide ? [] : (bchannels || []).filter(c => c.type === type).map(c => c.value);
     let whole = Array.from(new Set([...qmWhole, ...bmWhole]))
     let shared = whole.filter(p => qmWhole.includes(p) && bmWhole.includes(p));
     let qmOnly = qmWhole.filter(p => !shared.includes(p));
@@ -551,6 +618,7 @@ export class QmBmSstDashboardComponent implements OnInit {
   clearFilter() {
     this.filters = {
       keyword: '',
+      activeDefinition: '',
       status: '',
       platform: '',
       hasPlaceId: '',
