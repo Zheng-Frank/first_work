@@ -636,7 +636,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
   async diagnose() {
     try {
-      //await this._api.post(environment.appApiUrl + 'utils/diagnose-restaurant', { _id: this.restaurant._id }).toPromise();
+      await this._api.post(environment.appApiUrl + 'utils/diagnose-restaurant', { _id: this.restaurant._id }).toPromise();
       this.populateRTDiagnostics();
     } catch (error) {
       console.log(error);
