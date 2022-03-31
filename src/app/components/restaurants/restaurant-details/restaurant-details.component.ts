@@ -203,7 +203,9 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     deliveryTimeEstimate: 'Time Estimate for Delivery',
     deliverySettings: 'Delivery Settings',
     preferredLanguage: 'Preferred Language',
-    "online-service-agreement": "Service agreement not sent"
+    "online-service-agreement": "Service agreement not sent",
+    rtTIN: '1099K information (TIN)',
+    payeeName: '1099K information (Payee)'
   };
   invoicesCount = 0;
   openDate;
@@ -634,7 +636,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
   async diagnose() {
     try {
-      await this._api.post(environment.appApiUrl + 'utils/diagnose-restaurant', { _id: this.restaurant._id }).toPromise();
+      //await this._api.post(environment.appApiUrl + 'utils/diagnose-restaurant', { _id: this.restaurant._id }).toPromise();
       this.populateRTDiagnostics();
     } catch (error) {
       console.log(error);
@@ -668,6 +670,9 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
             if (error.indexOf(key) !== -1 && this.isMissingError(error) && missing.indexOf(this.warningMap[key]) === -1) {
               missing.push(this.warningMap[key]);
             }
+            if(r.name === 'web' && key === 'qmenuWebsite' && this.isMissingError(error) && missing.indexOf(this.warningMap[key]) === -1){
+              missing.push(this.warningMap[key]);
+            }
           });
         });
       });
@@ -683,7 +688,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       'should have required property',
       'it is missing',
       'should NOT be shorter than 1 characters',
-      'Service agreement not sent'
+      'Service agreement not sent',
+      'must NOT have fewer than 1 characters'
     ].some(errMsg => error.indexOf(errMsg) >= 0);
   }
 
