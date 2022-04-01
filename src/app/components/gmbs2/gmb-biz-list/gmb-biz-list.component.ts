@@ -23,6 +23,14 @@ enum InsistedFilterTypes {
   InsistResrvationUrl = 'Insist Reservation Url'
 }
 
+enum TierTypes {
+  All = 'Restaurant tier?',
+  Tier_1 = 'Tier 1',
+  Tier_2 = 'Tier 2',
+  Tier_3 = 'Tier 3',
+  VIP = 'VIP'
+}
+
 @Component({
   selector: 'app-gmb-biz-list',
   templateUrl: './gmb-biz-list.component.html',
@@ -48,6 +56,8 @@ export class GmbBizListComponent implements OnInit {
   agent = "Sales agent";
 
   managedWebsite = 'Manged website';
+  tierOptions = [TierTypes.All, TierTypes.Tier_1, TierTypes.Tier_2, TierTypes.Tier_3, TierTypes.VIP];
+  tierOption = TierTypes.All;
 
   isAdmin = false;
   constructor(private _api: ApiService, private _global: GlobalService, private _gmb3: Gmb3Service) {
@@ -55,6 +65,25 @@ export class GmbBizListComponent implements OnInit {
     this.isAdmin = _global.user.roles.some(r => r === 'ADMIN');
   }
   ngOnInit() {
+  }
+
+  getTier(score) {
+    // 30.2: avg days per month, 0.7: discount factor
+    let value = (score || 0) * 30.2 * 0.7;
+
+    if (value > 125) { // VIP
+      return 0;
+    }
+
+    if (value > 40) {
+      return 1;
+    }
+    if (value > 4) {
+      return 2;
+    }
+    if (value >= 0) {
+      return 3;
+    }
   }
 
   async refresh() {
@@ -234,6 +263,11 @@ export class GmbBizListComponent implements OnInit {
 
     // if a row has no restaurant._id && cid !== 0 &&  status === Published or Suspended
     this.rows = this.rows.filter(r => r.restaurant._id || (r.accountLocations.some(al => al.location.cid && al.location.cid.length > 3 && al.location.status === 'Published' || al.location.status === 'Suspended')));
+    // generate tier data
+    this.rows.forEach(row => {
+      // compute tier of rt
+      row.restaurant['tier'] = this.getTier(row.restaurant.score);
+    });
     this.filter();
 
   }
@@ -311,7 +345,9 @@ export class GmbBizListComponent implements OnInit {
       case 'secondary listing':
         this.filteredRows = this.filteredRows.filter(r => r.restaurant.googleListing && r.accountLocations.some(al => al.location.cid !== r.restaurant.googleListing.cid));
         break;
-
+      case 'not published':
+        this.filteredRows = this.filteredRows.filter(r => !r.accountLocations.some(al => al.location.status === 'Published'));
+        break;
       default:
         break;
     }
@@ -442,7 +478,18 @@ export class GmbBizListComponent implements OnInit {
         break;
     }
 
-
+    // filter tier options
+    if (this.tierOption !== TierTypes.All) {
+      if (this.tierOption === TierTypes.Tier_1) {
+        this.filteredRows = this.filteredRows.filter(row => row.restaurant.tier === 1);
+      } else if (this.tierOption === TierTypes.Tier_2) {
+        this.filteredRows = this.filteredRows.filter(row => row.restaurant.tier === 2);
+      } else if (this.tierOption === TierTypes.Tier_3) {
+        this.filteredRows = this.filteredRows.filter(row => row.restaurant.tier === 3);
+      } else if (this.tierOption === TierTypes.VIP) {
+        this.filteredRows = this.filteredRows.filter(row => row.restaurant.tier === 0);
+      }
+    }
 
   }
 
