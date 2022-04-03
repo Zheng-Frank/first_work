@@ -25,10 +25,33 @@
 
 .unique-row {
   width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   white-space: nowrap;
   padding: 10px 0;
+}
+
+.unique-row-arrow {
+  width: 36px;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 36px;
+}
+
+.unique-row-arrow.disabled {
+  cursor: default;
+  opacity: 0.3;
+}
+
+.unique-row-content {
+  width: calc(100% - 80px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .image-item {
@@ -93,13 +116,20 @@
   cursor: pointer;
 }
 
-.image-item .image-url {
+.image-url {
   text-align: left;
-  white-space: pre-line;
   word-break: break-all;
   font-size: 12px;
   width: 100%;
   padding: 3px 0;
+  text-overflow:ellipsis;
+  overflow:hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  /* autoprefixer: ignore next */
+  -webkit-box-orient: vertical;
+  white-space: normal;
+  max-height: 60px;
 }
 
 .image-item .image-line {
