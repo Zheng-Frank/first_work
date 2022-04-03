@@ -27,6 +27,13 @@
       </div>
 
       <div class="col-auto mb-3">
+        <select class="form-control custom-select" [(ngModel)]="filters.activeDefinition" (change)="filter()">
+          <option [ngValue]="''">Active definition?</option>
+          <option *ngFor="let opt of dropdowns('active_definition')" [ngValue]="opt">{{opt}}</option>
+        </select>
+      </div>
+
+      <div class="col-auto mb-3">
         <select class="form-control custom-select" [(ngModel)]="filters.hasPlaceId" (change)="filter()">
           <option [ngValue]="''">Has place_id?</option>
           <option *ngFor="let opt of dropdowns('place_id')" [ngValue]="opt">{{opt}}</option>
@@ -181,36 +188,41 @@
           <td rowspan="2" class="td-dot"><span class="dot {{getTierColor(row.tier, row.btier)}}"></span></td>
           <td rowspan="2">
             <div class="d-flex align-items-center">
-              <ng-container *ngIf="row._id">
+              <ng-container *ngIf="row._id && !row.hide">
                 <span class="qm-icon mr-1"></span>
                 <a class="mr-2" [routerLink]="'/restaurants/' + row._id" *ngIf="row.name !== row.bname">{{row.name}}</a>
               </ng-container>
-              <ng-container *ngIf="row._bid">
+              <ng-container *ngIf="row._bid && !row.bhide">
                 <span class="bm-icon mr-1"></span>
                 <a [routerLink]="'/restaurants/' + row._id" *ngIf="row.name === row.bname">{{row.name}}</a>
                 <span *ngIf="row.name !== row.bname">{{row.bname}}</span>
               </ng-container>
             </div>
             <div>
-              <div>palce_id: {{row.place_id || row.bplace_id || 'N/A'}}</div>
-              <div *ngIf="row._id">
+              <div>place_id: {{getPlaceId(row)}}</div>
+              <div *ngIf="row._id && !row.hide">
                 QM: Tier {{row.tier || 'N/A'}}, ID: {{row._id}},
                 <ng-container *ngIf="row.createdAt">created: {{row.createdAt | dateTz: "yyyy-MM-dd": "America/New_York"}}</ng-container>,
                 domain: <a *ngIf="row.website" [href]="row.website">{{row.website}}</a>
               </div>
-              <ng-container *ngIf="row._bid">
+              <ng-container *ngIf="row._bid && !row.bhide">
                 <div>BM: Tier {{row.btier || 'N/A'}}, ID: {{row._bid}}, <ng-container *ngIf="row.createdAt">created: {{row.createdAt | dateTz: "YYYY-MM-DD": "America/New_York"}}</ng-container>, domain: <a [href]="row.bwebsite">{{row.bwebsite}}</a></div>
                 <div *ngIf="showPricing">BM Pricing: {{row.bpricing}}</div>
               </ng-container>
             </div>
-            <div>Address: <span class="mr-1" *ngIf="row.address">{{row.address}} (QM)</span>/<span class="ml-1" *ngIf="row.baddress">{{row.baddress}} (BM)</span></div>
+            <div>
+              Address:
+              <span class="mr-1" *ngIf="row.address && !row.hide">{{row.address}} (QM)</span>
+              <ng-container *ngIf="row.address && !row.hide && row.baddress && !row.bhide">/</ng-container>
+              <span class="ml-1" *ngIf="row.baddress && !row.bhide">{{row.baddress}} (BM)</span>
+            </div>
             <div *ngIf="showPhones">Phone: {{groupChannels(row, 'Phone')}}</div>
             <div *ngIf="showOtherContacts">Emails: {{groupChannels(row, 'Email')}} / Fax: {{groupChannels(row, 'Fax')}}</div>
           </td>
           <td class="td-icon-top">
             <div class="d-flex flex-column align-items-end">
               <span *ngIf="showSalesWorthiness" [innerHTML]="getWorthy(row)"></span>
-              <ng-container *ngIf="showPostmatesStatus">
+              <ng-container *ngIf="showPostmatesStatus && !row.hide">
                 <img class="pm-green" *ngIf="row.courier === 'Postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
                 <img class="pm-grey" *ngIf="row.courier != 'Postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
               </ng-container>
@@ -221,8 +233,8 @@
           <td class="td-icon-bottom">
             <div class="d-inline-flex align-items-center">
               <i class="fab fa-google mr-2"></i>
-              <span class="qm-icon" *ngIf="row.hasGmb"></span>
-              <span class="bm-icon" *ngIf="row.bhasGmb"></span>
+              <span class="qm-icon" *ngIf="row.hasGmb && !row.hide"></span>
+              <span class="bm-icon" *ngIf="row.bhasGmb && !row.bhide"></span>
               <span class="text-danger" *ngIf="!row.hasGmb && !row.bhasGmb">&#10008;</span>
             </div>
           </td>
@@ -240,5 +252,4 @@
     </tfoot>
   </table>
 </div>
-
 
