@@ -1,10 +1,10 @@
+import { Helper } from 'src/app/classes/helper';
 import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from '../../../services/global.service';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { AlertType } from 'src/app/classes/alert-type';
-import { Helper } from 'src/app/classes/helper';
 
 enum SkipFilterTypes {
   Title = 'Skip GMB?',
@@ -67,25 +67,6 @@ export class GmbBizListComponent implements OnInit {
   ngOnInit() {
   }
 
-  getTier(score) {
-    // 30.2: avg days per month, 0.7: discount factor
-    let value = (score || 0) * 30.2 * 0.7;
-
-    if (value > 125) { // VIP
-      return 0;
-    }
-
-    if (value > 40) {
-      return 1;
-    }
-    if (value > 4) {
-      return 2;
-    }
-    if (value >= 0) {
-      return 3;
-    }
-  }
-
   async refresh() {
     // restaurants -> gmbBiz -> published status
     const rtQuery = this._api.getBatch(environment.qmenuApiUrl + "generic", {
@@ -112,7 +93,8 @@ export class GmbBizListComponent implements OnInit {
         "web.useBizMenuUrl": 1,
         "web.useBizOrderAheadUrl": 1,
         "web.useBizReservationUrl": 1,
-        "web.ignoreGmbOwnershipRequest": 1
+        "web.ignoreGmbOwnershipRequest": 1,
+        "computed.tier.ordersPerMonth": 1
       }
     }, 8000);
     const gmbBizQuery = this._api.get(environment.qmenuApiUrl + "generic", {
@@ -266,7 +248,7 @@ export class GmbBizListComponent implements OnInit {
     // generate tier data
     this.rows.forEach(row => {
       // compute tier of rt
-      row.restaurant['tier'] = this.getTier(row.restaurant.score);
+      row.restaurant['tier'] = Helper.getTier(((row.restaurant.computed || {}).tier || {}).ordersPerMonth);
     });
     this.filter();
 

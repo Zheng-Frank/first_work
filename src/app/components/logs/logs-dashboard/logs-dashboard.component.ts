@@ -1,3 +1,4 @@
+import { Helper } from 'src/app/classes/helper';
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
@@ -55,25 +56,6 @@ export class LogsDashboardComponent implements OnInit {
     this.populate();
   }
 
-  getTier(score) {
-    // 30.2: avg days per month, 0.7: discount factor
-    let value = (score || 0) * 30.2 * 0.7;
-
-    if (value > 125) { // VIP
-      return 0;
-    }
-
-    if (value > 40) {
-      return 1;
-    }
-    if (value > 4) {
-      return 2;
-    }
-    if (value >= 0) {
-      return 3;
-    }
-  }
-
   async populate() {
     try {
       this.restaurantList = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
@@ -85,7 +67,7 @@ export class LogsDashboardComponent implements OnInit {
           logo: 1,
           'channels.value': 1,
           "googleAddress.formatted_address": 1,
-          score: 1
+          "computed.tier.ordersPerMonth": 1
         }
       }, 3000);
 
@@ -95,7 +77,7 @@ export class LogsDashboardComponent implements OnInit {
           r.logs = r.logs.map(log => new Log(log));
         }
         // compute tier of rt
-        r['tier'] = this.getTier(r.score);
+        r['tier'] = Helper.getTier(((r.computed || {}).tier || {}).ordersPerMonth);
       });
 
       // sort logs

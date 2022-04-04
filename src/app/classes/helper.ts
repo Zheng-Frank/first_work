@@ -10,6 +10,22 @@ export class Helper {
 
     static FULL_DATETIME_LOCALE_OPTS = FULL_LOCALE_OPTS;
 
+    // compute tier of a rt by orderPerMonth, or gmbPositive score value or other input param
+    static getTier(value = 0) {
+        if (value > 125) { // VIP
+            return 0;
+          }
+          if (value > 40) {
+            return 1;
+          }
+          if (value > 4) {
+            return 2;
+          }
+          if (value >= 0) {
+            return 3;
+          }
+    }  
+
     // try to wait until a given resource is ready (useful when upload an image but not knowing when the image is ready)
     static async waitUtilImageExists(url: string, timeout = 10000) {
         const timeoutT = new Date(new Date().valueOf() + timeout);

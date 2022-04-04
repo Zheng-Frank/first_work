@@ -1,8 +1,14 @@
+import { Helper } from './../../../classes/helper';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from '../../../services/global.service';
 import { AlertType } from '../../../classes/alert-type';
+
+enum modeTypes {
+  Regular = 'Regular',
+  Tier_1_Potential = 'Tier 1 Potential'
+}
 
 @Component({
   selector: 'app-gmb-lost-list',
@@ -16,6 +22,8 @@ export class GmbLostListComponent implements OnInit {
   filteredRows = [];
 
   pagination: boolean = true;
+  modeOptions = [modeTypes.Regular, modeTypes.Tier_1_Potential];
+  modeOption = modeTypes.Regular;
   statusOptions;
   selectedStatus = "All";
   gmbOwnerOptions = [];
@@ -39,6 +47,9 @@ export class GmbLostListComponent implements OnInit {
       label: "Score",
       paths: ['score'],
       sort: (a, b) => (a || 0) > (b || 0) ? 1 : ((a || 0) < (b || 0) ? -1 : 0)
+    },
+    {
+      label: 'GMB-Postive Score'
     },
     {
       label: "Lost",
@@ -116,7 +127,8 @@ export class GmbLostListComponent implements OnInit {
         "gmbOwnerHistory": { $slice: 1 },
         name: 1,
         score: 1,
-        disabled: 1
+        disabled: 1,
+        'computed.gmbPositiveScore.value': 1
       }
     }, 6000);
 
@@ -220,6 +232,11 @@ export class GmbLostListComponent implements OnInit {
       this.averageLossesPerDay = Math.ceil(this.numberOfRestaurant / (1 + (lastLostdate.valueOf() - firstLostDate.valueOf()) / (24 * 3600000)));
 
       this.rows = dict.filter(r => !r.disabled);
+      // gnerate a temp score to record tier condition of rt in gmb 
+      this.rows.forEach(row => {
+        row.gmbPositiveScore = ((row.computed || {}).gmbPositiveScore || {}).value;
+        row.gmbTier = Helper.getTier(row.gmbPositiveScore);
+      });
       this.filter();
     }
 
@@ -244,6 +261,10 @@ export class GmbLostListComponent implements OnInit {
     }
     if (this.selectedGmbOwner !== "All") {
       this.filteredRows = this.filteredRows.filter(entry => entry.owner === this.selectedGmbOwner);
+    }
+    // filter gmb tier options
+    if (this.modeOption === modeTypes.Tier_1_Potential) {
+      this.filteredRows = this.filteredRows.filter(row => row.gmbTier === 1);
     }
     // Update number of restaurants shown
     this.numberOfRestaurant = this.filteredRows.length;

@@ -1,3 +1,4 @@
+import { Helper } from 'src/app/classes/helper';
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {ApiService} from "../../../services/api.service";
 import {environment} from "../../../../environments/environment";
@@ -202,6 +203,7 @@ export class QmBmSstDashboardComponent implements OnInit {
               createdAt: "$createdAt",
               owner: "$googleListing.gmbOwner",
               channels: 1,
+              "computed.tier.ordersPerMonth": 1
             }
           }
         ],
@@ -235,8 +237,8 @@ export class QmBmSstDashboardComponent implements OnInit {
         }
         // active: has order in last 30 days
         rt.inactive = !rtsHasOrderSet.has(rt._id);
-        rt.tier = this.getTier(rt.score)
-
+        rt.tier = Helper.getTier(((rt.computed || {}).tier || {}).ordersPerMonth);
+        
         if (rt.gmbOwnerHistory && rt.gmbOwnerHistory.length > 0) {
           rt.gmbOwnerHistory.sort((a, b) => new Date(b.time).valueOf() - new Date(a.time).valueOf());
           rt.hasGmb = rt.gmbOwnerHistory[0].gmbOwner === 'qmenu';
@@ -357,24 +359,6 @@ export class QmBmSstDashboardComponent implements OnInit {
     });
     let minDistance = Math.min(...distances), index = distances.indexOf(minDistance);
     return minDistance < 0.5 && (['V1', 'V2', 'V3', 'V4'].includes(this.viabilities[index].Viability));
-  }
-
-  getTier(score) {
-    // 30.2: avg days per month, 0.7: discount factor
-    let value = (score || 0) * 30.2 * 0.7;
-    if (value > 40) {
-      return 1;
-    }
-    if (value > 4) {
-      return 2;
-    }
-    // count 0 to tier 3
-    if (value >= 0) {
-      return 3;
-    }
-    // data incorrect!!!, log it out.
-    console.log('score ', score)
-    return 0;
   }
 
   getPlaceId(row) {
