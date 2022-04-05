@@ -21,6 +21,7 @@
 
 <div class="text-left my-text-small">updated: {{ item.updatedAt | ago : now}}</div>
 <div>
+  <button class="btn btn-link pl-0 py-0" (click)="copy()">copy</button>
   <button class="btn btn-link pl-0 py-0" (click)="displayingMore = !displayingMore" *ngIf="displayingMore || getRows().length < item.rows.length">{{displayingMore ? 'less...' : 'more...'}}</button>
   <button class="btn btn-link pl-0 py-0" (click)="displayingJson = !displayingJson">view json...</button>
 </div>
