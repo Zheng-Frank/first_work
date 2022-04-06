@@ -152,9 +152,6 @@ export class QmBmSstDashboardComponent implements OnInit {
     }
   };
   kpi = {};
-  kpiLists = {
-    normal: []
-  }
 
   constructor(private _api: ApiService) { }
 
