@@ -2,7 +2,8 @@ import {Component, OnInit, ViewChild} from '@angular/core';
 import {ApiService} from "../../../services/api.service";
 import {environment} from "../../../../environments/environment";
 import {PagerComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
-
+import {Helper} from '../../../classes/helper';
+import { saveAs } from "file-saver/FileSaver";
 declare var $: any;
 
 enum PlatformOptions {
@@ -79,6 +80,12 @@ enum SalesWorthinessOptions {
   NotWorthy = 'NOT Sales-worthy'
 }
 
+enum KPIPeriodOptions {
+  Yearly = 'Yearly',
+  Quarterly = 'Quarterly',
+  Monthly = 'Monthly'
+}
+
 @Component({
   selector: 'app-qm-bm-sst-dashboard',
   templateUrl: './qm-bm-sst-dashboard.component.html',
@@ -131,8 +138,20 @@ export class QmBmSstDashboardComponent implements OnInit {
   showPhones = false;
   showOtherContacts = false;
   showSummary = false;
+  showKPI = false;
   showPostmatesStatus = false;
-  showSalesWorthiness = false
+  showSalesWorthiness = false;
+  kpiFilters = {
+    normal: {
+      platform: PlatformOptions.Both,
+      period: KPIPeriodOptions.Yearly
+    },
+    over: {
+      platform: PlatformOptions.Both,
+      period: KPIPeriodOptions.Yearly
+    }
+  };
+  kpi = {};
 
   constructor(private _api: ApiService) { }
 
@@ -140,6 +159,166 @@ export class QmBmSstDashboardComponent implements OnInit {
     $("[data-toggle='tooltip']").tooltip();
     await this.getViabilities();
     await this.preload();
+    await this.getUnifiedStats();
+  }
+
+  getKPIHeaders(type: 'normal' | 'over') {
+    return Object.keys(this.kpi[this.kpiFilters[type].period]);
+  }
+
+  kpiNormalDownload() {
+    let [gmvs, ocs, ars, aovs] = this.getKpiNormalList();
+    let { period } = this.kpiFilters.normal;
+    let headers = Object.keys(this.kpi[period]);
+    let lines = [['', ...headers].join(',')];
+    lines.push(['GMV $', ...gmvs].join(','));
+    lines.push(['Order count', ...ocs].join(','));
+    lines.push(['Active RT count', ...ars].join(','));
+    lines.push(['AOV $', ...aovs].join(','));
+    let filename = period + '_kpi_stats_part_1.csv';
+    saveAs(new Blob([lines.join('\n')], { type: "application/octet-stream" }), filename);
+  }
+
+  kpiOverDownload() {
+    let [gmvs, ocs, ars, aovs] = this.getKpiOverList();
+    let { period } = this.kpiFilters.over;
+    let headers = Object.keys(this.kpi[period]);
+    let lines = [['', ...headers].join(',')];
+    let label = this.getKpiLabel();
+    lines.push(['GMV ' + label, ...gmvs.map(x => Helper.roundDecimal(x * 100) + '%')].join(','));
+    lines.push(['Order count ' + label, ...ocs.map(x => Helper.roundDecimal(x * 100) + '%')].join(','));
+    lines.push(['Active RT count ' + label, ...ars.map(x => Helper.roundDecimal(x * 100) + '%')].join(','));
+    lines.push(['AOV ' + label, ...aovs.map(x => Helper.roundDecimal(x * 100) + '%')].join(','));
+    let filename = period + '_kpi_stats_part_2.csv';
+    saveAs(new Blob([lines.join('\n')], { type: "application/octet-stream" }), filename);
+  }
+
+  getKpiNormalList() {
+    let { period, platform } = this.kpiFilters.normal;
+    let headers = Object.keys(this.kpi[period]);
+    let gmvs = [], ocs = [], aovs = [], ars = [];
+    headers.forEach(key => {
+      let { gmv, oc, ar } = this.kpi[period][key];
+      let tmpGmv = this.getKpiDataByPlatform(gmv, platform);
+      let tmpOc = this.getKpiDataByPlatform(oc, platform);
+      let tmpAr = this.getKpiDataByPlatform(ar, platform);
+      gmvs.push(Helper.roundDecimal(tmpGmv));
+      ocs.push(tmpOc);
+      ars.push(tmpAr);
+      aovs.push(Helper.roundDecimal((tmpGmv / tmpOc)));
+    })
+    return [gmvs, ocs, ars, aovs];
+  }
+
+  getKpiDataByPlatform(data, platform) {
+    return {
+      [PlatformOptions.BmOnly]: data.bm,
+      [PlatformOptions.QmOnly]: data.qm,
+      [PlatformOptions.Both]: data.bm + data.qm
+    }[platform];
+  }
+
+  getKpiLabel() {
+    return { [KPIPeriodOptions.Yearly]: 'YoY', [KPIPeriodOptions.Quarterly]: 'QoQ', [KPIPeriodOptions.Monthly]: 'MoM' }[this.kpiFilters.over.period];
+  }
+
+  getKpiOverList() {
+    let { period, platform } = this.kpiFilters.over;
+    let headers = Object.keys(this.kpi[period]);
+    let gmvs = [], ocs = [], aovs = [], ars = [];
+    for (let i = 0; i < headers.length; i++) {
+      let cur = headers[i], prev = headers[i - 1];
+      let { gmv, oc, ar } = this.kpi[period][cur];
+      let curGmv = this.getKpiDataByPlatform(gmv, platform);
+      let curOc = this.getKpiDataByPlatform(oc, platform);
+      let curAov = curGmv / curOc;
+      let curAr = this.getKpiDataByPlatform(ar, platform);
+      if (prev) {
+        let prevTmp = this.kpi[period][prev];
+        let prevGmv = this.getKpiDataByPlatform(prevTmp.gmv, platform);
+        let prevOc = this.getKpiDataByPlatform(prevTmp.oc, platform);
+        let prevAr = this.getKpiDataByPlatform(prevTmp.ar, platform);
+        gmvs.push((curGmv - prevGmv) / prevGmv);
+        ocs.push((curOc - prevOc) / prevOc);
+        let prevAov = prevGmv / prevOc;
+        aovs.push((curAov - prevAov) / prevAov);
+        ars.push((curAr - prevAr) / prevAr);
+      } else {
+        gmvs.push(1);
+        ocs.push(1);
+        aovs.push(1);
+        ars.push(1);
+      }
+    }
+    return [gmvs, ocs, ars, aovs];
+  }
+
+  async getUnifiedData() {
+    let data = [], skip = 0, size = 4000;
+    const ocs = ["OC201901", "OC201902", "OC201903", "OC201904", "OC201905", "OC201906", "OC201907", "OC201908", "OC201909", "OC201910", "OC201911", "OC201912", "OC202001", "OC202002", "OC202003", "OC202004", "OC202005", "OC202006", "OC202007", "OC202008", "OC202009", "OC202010", "OC202011", "OC202012", "OC202101", "OC202102", "OC202103", "OC202104", "OC202105", "OC202106", "OC202107", "OC202108", "OC202109", "OC202110", "OC202111", "OC202112", "OC202201", "OC202202", "OC202203"];
+    const gmvs = ["GMV201901", "GMV201902", "GMV201903", "GMV201904", "GMV201905", "GMV201906", "GMV201907", "GMV201908", "GMV201909", "GMV201910", "GMV201911", "GMV201912", "GMV202001", "GMV202002", "GMV202003", "GMV202004", "GMV202005", "GMV202006", "GMV202007", "GMV202008", "GMV202009", "GMV202010", "GMV202011", "GMV202012", "GMV202101", "GMV202102", "GMV202103", "GMV202104", "GMV202105", "GMV202106", "GMV202107", "GMV202108", "GMV202109", "GMV202110", "GMV202111", "GMV202112", "GMV202201", "GMV202202", "GMV202203"];
+    let payload = {_id: 0, bm_id: 1, matched_qm_id: 1};
+    [...ocs, ...gmvs].forEach(f => payload[f] = 1);
+    while (true) {
+      const temp = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
+        method: 'get',
+        resource: 'unified_koreanbbq',
+        query: {_id: {$exists: true}}, // any items
+        payload, skip,
+        limit: size
+      }).toPromise();
+      if (temp.length > 0) {
+        data.push(...temp);
+        skip += size;
+      } else {
+        break;
+      }
+    }
+    return data;
+  }
+
+  async getUnifiedStats() {
+    const data = await this.getUnifiedData();
+    const dict = {[KPIPeriodOptions.Yearly]: {}, [KPIPeriodOptions.Monthly]: {}, [KPIPeriodOptions.Quarterly]: {}};
+    const accumulate = (cat: KPIPeriodOptions, key, {bid, qid, oc, gmv}) => {
+      let temp = dict[cat][key] || { gmv: {qm: 0, bm: 0}, oc: {qm: 0, bm: 0}, ar: {qm: new Set(), bm: new Set()} };
+      if (bid) {
+        temp.oc.bm += oc;
+        temp.gmv.bm += gmv;
+        if (oc > 0) {
+          temp.ar.bm.add(bid);
+        }
+      }
+      if (qid) {
+        temp.oc.qm += oc;
+        temp.gmv.qm += gmv;
+        if (oc > 0) {
+          temp.ar.qm.add(qid);
+        }
+      }
+      dict[cat][key] = temp;
+    }
+    const getMonths = (fields: string[]): string[] => Array.from(new Set(fields.map(f => f.replace(/\D+/, '')))).filter(x => !!x);
+
+    const Months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    data.forEach(row => {
+      let months = getMonths(Object.keys(row));
+      months.forEach(ym => {
+        let tmp = {bid: row.bm_id, qid: row.matched_qm_id, oc: row[`OC${ym}`] || 0, gmv: row[`GMV${ym}`] || 0};
+        let year = ym.substr(0, 4), mon = ym.substr(4);
+        let quarter = Math.ceil(Number(mon) / 3), shortYear = year.substr(2);
+        accumulate(KPIPeriodOptions.Monthly, shortYear + ' ' + Months[Number(mon) - 1], tmp);
+        accumulate(KPIPeriodOptions.Quarterly, shortYear + ' ' + 'Q' + quarter, tmp);
+        accumulate(KPIPeriodOptions.Yearly, year, tmp);
+      })
+    });
+    [KPIPeriodOptions.Yearly, KPIPeriodOptions.Quarterly, KPIPeriodOptions.Monthly].forEach(cat => {
+      // @ts-ignore
+      Object.entries(dict[cat]).forEach(([period, {ar: {qm, bm}}]) => {
+        dict[cat][period].ar = {qm: qm.size, bm: bm.size};
+      })
+    })
+    this.kpi = dict;
   }
 
   countByTier(list, tier) {
@@ -174,7 +353,8 @@ export class QmBmSstDashboardComponent implements OnInit {
       postmates: PostmatesOptions,
       pricing: PricingOptions,
       perspective: SalesPerspectiveOptions,
-      worthiness: SalesWorthinessOptions
+      worthiness: SalesWorthinessOptions,
+      kpi_period: KPIPeriodOptions
     }[key])
   }
 
@@ -373,7 +553,7 @@ export class QmBmSstDashboardComponent implements OnInit {
       return 3;
     }
     // data incorrect!!!, log it out.
-    console.log('score ', score)
+    console.error('score ', score)
     return 0;
   }
 
@@ -587,7 +767,6 @@ export class QmBmSstDashboardComponent implements OnInit {
       })
     }
     this.filteredRows = list;
-    console.log(list);
     this.calcSummary();
     this.paginate(0)
   }

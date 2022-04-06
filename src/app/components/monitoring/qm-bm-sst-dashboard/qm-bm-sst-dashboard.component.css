@@ -54,3 +54,24 @@
 .td-icon-top img.pm-green {
   filter: opacity(0.6) drop-shadow(0 0 0 #00ff78);
 }
+
+.scroll-table-container {
+  display: flex;
+}
+.scroll-table-container th, .scroll-table-container td {
+  word-break: keep-all;
+  white-space: nowrap;
+}
+
+.scroll-table-container .left {
+  width: 150px;
+}
+
+.scroll-table-container .right {
+  width: calc(100% - 150px);
+  overflow-x: scroll;
+}
+
+.text-transparent {
+  color: transparent;
+}
