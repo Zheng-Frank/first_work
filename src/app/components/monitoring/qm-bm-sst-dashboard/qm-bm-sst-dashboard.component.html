@@ -194,6 +194,7 @@
           <tbody>
             <tr><td>GMV $</td></tr>
             <tr><td>Order count</td></tr>
+            <tr><td>Active RT count</td></tr>
             <tr><td>AOV $</td></tr>
           </tbody>
         </table>
@@ -201,8 +202,10 @@
           <table class="table table-bordered table-sm">
             <thead><tr><th *ngFor="let item of getKPIHeaders('normal')">{{item}}</th></tr></thead>
             <tbody>
-              <tr *ngFor="let values of getKpiNormalList()">
-                <td *ngFor="let value of values">{{value}}</td>
+              <tr *ngFor="let values of getKpiNormalList(); let i = index;">
+                <td *ngFor="let value of values">
+                  <ng-container *ngIf="[0, 3].includes(i)">$</ng-container>{{value | number}}
+                </td>
               </tr>
             </tbody>
           </table>
@@ -227,6 +230,7 @@
           <tbody>
             <tr><td>GMV {{getKpiLabel()}}</td></tr>
             <tr><td>Order count {{getKpiLabel()}}</td></tr>
+            <tr><td>Active RT count</td></tr>
             <tr><td>AOV {{getKpiLabel()}}</td></tr>
           </tbody>
         </table>
