@@ -2,6 +2,7 @@ import {Component, OnInit, ViewChild} from '@angular/core';
 import {ApiService} from "../../../services/api.service";
 import {environment} from "../../../../environments/environment";
 import {PagerComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
+import {Helper} from '../../../classes/helper';
 
 declare var $: any;
 
@@ -79,6 +80,12 @@ enum SalesWorthinessOptions {
   NotWorthy = 'NOT Sales-worthy'
 }
 
+enum KPIPeriodOptions {
+  Yearly = 'Yearly',
+  Quarterly = 'Quarterly',
+  Monthly = 'Monthly'
+}
+
 @Component({
   selector: 'app-qm-bm-sst-dashboard',
   templateUrl: './qm-bm-sst-dashboard.component.html',
@@ -131,15 +138,127 @@ export class QmBmSstDashboardComponent implements OnInit {
   showPhones = false;
   showOtherContacts = false;
   showSummary = false;
+  showKPI = false;
   showPostmatesStatus = false;
-  showSalesWorthiness = false
+  showSalesWorthiness = false;
+  kpiFilters = {
+    normal: {
+      platform: PlatformOptions.Both,
+      period: KPIPeriodOptions.Yearly
+    },
+    over: {
+      platform: PlatformOptions.Both,
+      period: KPIPeriodOptions.Yearly
+    }
+  };
+  kpi = {};
+  kpiLists = {
+    normal: []
+  }
 
   constructor(private _api: ApiService) { }
 
   async ngOnInit() {
     $("[data-toggle='tooltip']").tooltip();
+    await this.getUnifiedStats();
     await this.getViabilities();
     await this.preload();
+  }
+
+  getKPIHeaders(type: 'normal' | 'over') {
+    return Object.keys(this.kpi[this.kpiFilters[type].period]);
+  }
+
+  getKpiNormalList() {
+    let { period, platform } = this.kpiFilters.normal;
+    let headers = Object.keys(this.kpi[period]);
+    let gmvs = [], ocs = [], aovs = [];
+    headers.forEach(key => {
+      let { gmv, oc } = this.kpi[period][key];
+      let tmpGmv = this.getKpiDataByPlatform(gmv, platform);
+      let tmpOc = this.getKpiDataByPlatform(oc, platform);
+      gmvs.push(Helper.roundDecimal(tmpGmv));
+      ocs.push(Helper.roundDecimal(tmpOc));
+      aovs.push(Helper.roundDecimal((tmpGmv / tmpOc)));
+    })
+    return [gmvs, ocs, aovs];
+  }
+
+  getKpiDataByPlatform(data, platform) {
+    return {
+      [PlatformOptions.BmOnly]: data.bm,
+      [PlatformOptions.QmOnly]: data.qm,
+      [PlatformOptions.Both]: data.bm + data.qm
+    }[platform];
+  }
+
+  getKpiLabel() {
+    return { [KPIPeriodOptions.Yearly]: 'YoY', [KPIPeriodOptions.Quarterly]: 'QoQ', [KPIPeriodOptions.Monthly]: 'MoM' }[this.kpiFilters.over.period];
+  }
+
+  getKpiOverList() {
+    let { period, platform } = this.kpiFilters.over;
+    let headers = Object.keys(this.kpi[period]);
+    let gmvs = [], ocs = [], aovs = [];
+    for (let i = 0; i < headers.length; i++) {
+      let cur = headers[i], prev = headers[i - 1];
+      let { gmv, oc } = this.kpi[period][cur];
+      let curGmv = this.getKpiDataByPlatform(gmv, platform);
+      let curOc = this.getKpiDataByPlatform(oc, platform);
+      let curAov = curGmv / curOc;
+      if (prev) {
+        let prevTmp = this.kpi[period][prev];
+        let prevGmv = this.getKpiDataByPlatform(prevTmp.gmv, platform);
+        let prevOc = this.getKpiDataByPlatform(prevTmp.oc, platform);
+        gmvs.push((curGmv - prevGmv) / prevGmv);
+        ocs.push((curOc - prevOc) / prevOc);
+        let prevAov = prevGmv / prevOc;
+        aovs.push((curAov - prevAov) / prevAov);
+      } else {
+        gmvs.push(1);
+        ocs.push(1);
+        aovs.push(1)
+      }
+    }
+    return [gmvs, ocs, aovs];
+  }
+
+  async getUnifiedStats() {
+    const data = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
+      method: 'get',
+      resource: 'bmq-uni-restaurants',
+      query: {_id: {$exists: true}}, // any items
+      payload: {_id: 0},
+      limit: 100000000 // no limit
+    }).toPromise();
+    const dict = {[KPIPeriodOptions.Yearly]: {}, [KPIPeriodOptions.Monthly]: {}, [KPIPeriodOptions.Quarterly]: {}};
+    const accumulate = (cat: KPIPeriodOptions, key, {bid, qid, oc, gmv}) => {
+      let temp = dict[cat][key] || { gmv: {qm: 0, bm: 0}, oc: {qm: 0, bm: 0} };
+      if (bid) {
+        temp.oc.bm += oc || 0;
+        temp.gmv.bm += gmv || 0;
+      }
+      if (qid) {
+        temp.oc.qm += oc || 0;
+        temp.gmv.qm += gmv || 0;
+      }
+      dict[cat][key] = temp;
+    }
+    const getMonths = (fields: string[]): string[] => Array.from(new Set(fields.map(f => f.replace(/\D+/, '')))).filter(x => !!x);
+
+    const Months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    data.forEach(row => {
+      let months = getMonths(Object.keys(row));
+      months.forEach(ym => {
+        let tmp = {bid: row.bm_id, qid: row.matched_qm_id, oc: row[`OC${ym}`], gmv: row[`GMV${ym}`]};
+        let year = ym.substr(0, 4), mon = ym.substr(4);
+        let quarter = Math.ceil(Number(mon) / 3), shortYear = year.substr(2);
+        accumulate(KPIPeriodOptions.Monthly, shortYear + ' ' + Months[Number(mon) - 1], tmp);
+        accumulate(KPIPeriodOptions.Quarterly, shortYear + ' ' + 'Q' + quarter, tmp);
+        accumulate(KPIPeriodOptions.Yearly, year, tmp);
+      })
+    });
+    this.kpi = dict;
   }
 
   countByTier(list, tier) {
@@ -174,7 +293,8 @@ export class QmBmSstDashboardComponent implements OnInit {
       postmates: PostmatesOptions,
       pricing: PricingOptions,
       perspective: SalesPerspectiveOptions,
-      worthiness: SalesWorthinessOptions
+      worthiness: SalesWorthinessOptions,
+      kpi_period: KPIPeriodOptions
     }[key])
   }
 
@@ -373,7 +493,7 @@ export class QmBmSstDashboardComponent implements OnInit {
       return 3;
     }
     // data incorrect!!!, log it out.
-    console.log('score ', score)
+    console.error('score ', score)
     return 0;
   }
 
@@ -587,7 +707,6 @@ export class QmBmSstDashboardComponent implements OnInit {
       })
     }
     this.filteredRows = list;
-    console.log(list);
     this.calcSummary();
     this.paginate(0)
   }
