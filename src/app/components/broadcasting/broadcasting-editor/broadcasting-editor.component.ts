@@ -31,7 +31,9 @@ export class BroadcastingEditorComponent implements OnInit {
         _id: 1,
         name: 1,
         template: 1,
-        mustAgree: 1
+        mustAgree: 1,
+        affirmOption: 1,
+        dismissOption: 1
       },
       limit: 500
     }).toPromise();
@@ -49,7 +51,8 @@ export class BroadcastingEditorComponent implements OnInit {
   }
 
   canAddBroadcast() {
-    return !!this.broadcast.name && !!this.broadcast.template && this.broadcast.mustAgree;
+    const { name, template, mustAgree, affirmOption, dismissOption } = this.broadcast;
+    return !!name && !!template && !!affirmOption && (!!mustAgree || !!dismissOption);
   }
 
   async getRestaurant(rtId) {
@@ -107,9 +110,12 @@ export class BroadcastingEditorComponent implements OnInit {
     try {
       const broadcastData = {
         ...this.broadcast,
-        createAt: new Date(),
-        mustAgree: this.broadcast.mustAgree === 'Yes'
+        createAt: new Date()
       };
+
+      if (broadcastData.mustAgree) {
+        delete broadcastData.dismissOption;
+      }
 
       const [createdBroadcast] = await this._api.post(environment.qmenuApiUrl + 'generic?resource=broadcast', [broadcastData]).toPromise();
 
@@ -128,7 +134,7 @@ export class BroadcastingEditorComponent implements OnInit {
 
   showBroadcastModal(broadcast) {
     this.broadcastModalTitle = broadcast === null ? 'Add New Broadcast' : 'Edit Broadcast';
-    this.broadcast = broadcast === null ? { mustAgree: 'No' } : { ...broadcast};
+    this.broadcast = broadcast === null ? { mustAgree: false } : { ...broadcast};
     this.broadcastModal.show();
   }
 
