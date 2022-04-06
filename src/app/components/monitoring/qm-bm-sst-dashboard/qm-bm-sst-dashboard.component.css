@@ -71,3 +71,7 @@
   width: calc(100% - 150px);
   overflow-x: scroll;
 }
+
+.text-transparent {
+  color: transparent;
+}
