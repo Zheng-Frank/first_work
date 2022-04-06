@@ -3,7 +3,7 @@ import {ApiService} from "../../../services/api.service";
 import {environment} from "../../../../environments/environment";
 import {PagerComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
 import {Helper} from '../../../classes/helper';
-
+import { saveAs } from "file-saver/FileSaver";
 declare var $: any;
 
 enum PlatformOptions {
@@ -169,6 +169,33 @@ export class QmBmSstDashboardComponent implements OnInit {
     return Object.keys(this.kpi[this.kpiFilters[type].period]);
   }
 
+  kpiNormalDownload() {
+    let [gmvs, ocs, ars, aovs] = this.getKpiNormalList();
+    let { period } = this.kpiFilters.normal;
+    let headers = Object.keys(this.kpi[period]);
+    let lines = [['', ...headers].join(',')];
+    lines.push(['GMV $', ...gmvs].join(','));
+    lines.push(['Order count', ...ocs].join(','));
+    lines.push(['Active RT count', ...ars].join(','));
+    lines.push(['AOV $', ...aovs].join(','));
+    let filename = period + '_kpi_stats_part_1.csv';
+    saveAs(new Blob([lines.join('\n')], { type: "application/octet-stream" }), filename);
+  }
+
+  kpiOverDownload() {
+    let [gmvs, ocs, ars, aovs] = this.getKpiOverList();
+    let { period } = this.kpiFilters.over;
+    let headers = Object.keys(this.kpi[period]);
+    let lines = [['', ...headers].join(',')];
+    let label = this.getKpiLabel();
+    lines.push(['GMV ' + label, ...gmvs.map(x => Helper.roundDecimal(x * 100) + '%')].join(','));
+    lines.push(['Order count ' + label, ...ocs.map(x => Helper.roundDecimal(x * 100) + '%')].join(','));
+    lines.push(['Active RT count ' + label, ...ars.map(x => Helper.roundDecimal(x * 100) + '%')].join(','));
+    lines.push(['AOV ' + label, ...aovs.map(x => Helper.roundDecimal(x * 100) + '%')].join(','));
+    let filename = period + '_kpi_stats_part_2.csv';
+    saveAs(new Blob([lines.join('\n')], { type: "application/octet-stream" }), filename);
+  }
+
   getKpiNormalList() {
     let { period, platform } = this.kpiFilters.normal;
     let headers = Object.keys(this.kpi[period]);
@@ -230,10 +257,11 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   async getUnifiedData() {
-    let data = [], skip = 0, size = 2000;
-    const fields = ["OC201901", "OC201902", "OC201903", "OC201904", "OC201905", "OC201906", "OC201907", "OC201908", "OC201909", "OC201910", "OC201911", "OC201912", "OC202001", "OC202002", "OC202003", "OC202004", "OC202005", "OC202006", "OC202007", "OC202008", "OC202009", "OC202010", "OC202011", "OC202012", "OC202101", "OC202102", "OC202103", "OC202104", "OC202105", "OC202106", "OC202107", "OC202108", "OC202109", "OC202110", "OC202111", "OC202112", "OC202201", "OC202202", "OC202203", "GMV201901", "GMV201902", "GMV201903", "GMV201904", "GMV201905", "GMV201906", "GMV201907", "GMV201908", "GMV201909", "GMV201910", "GMV201911", "GMV201912", "GMV202001", "GMV202002", "GMV202003", "GMV202004", "GMV202005", "GMV202006", "GMV202007", "GMV202008", "GMV202009", "GMV202010", "GMV202011", "GMV202012", "GMV202101", "GMV202102", "GMV202103", "GMV202104", "GMV202105", "GMV202106", "GMV202107", "GMV202108", "GMV202109", "GMV202110", "GMV202111", "GMV202112", "GMV202201", "GMV202202", "GMV202203"];
+    let data = [], skip = 0, size = 2500;
+    const ocs = ["OC201901", "OC201902", "OC201903", "OC201904", "OC201905", "OC201906", "OC201907", "OC201908", "OC201909", "OC201910", "OC201911", "OC201912", "OC202001", "OC202002", "OC202003", "OC202004", "OC202005", "OC202006", "OC202007", "OC202008", "OC202009", "OC202010", "OC202011", "OC202012", "OC202101", "OC202102", "OC202103", "OC202104", "OC202105", "OC202106", "OC202107", "OC202108", "OC202109", "OC202110", "OC202111", "OC202112", "OC202201", "OC202202", "OC202203"];
+    const gmvs = ["GMV201901", "GMV201902", "GMV201903", "GMV201904", "GMV201905", "GMV201906", "GMV201907", "GMV201908", "GMV201909", "GMV201910", "GMV201911", "GMV201912", "GMV202001", "GMV202002", "GMV202003", "GMV202004", "GMV202005", "GMV202006", "GMV202007", "GMV202008", "GMV202009", "GMV202010", "GMV202011", "GMV202012", "GMV202101", "GMV202102", "GMV202103", "GMV202104", "GMV202105", "GMV202106", "GMV202107", "GMV202108", "GMV202109", "GMV202110", "GMV202111", "GMV202112", "GMV202201", "GMV202202", "GMV202203"];
     let payload = {_id: 0, bm_id: 1, matched_qm_id: 1};
-    fields.forEach(f => payload[f] = 1);
+    [...ocs, ...gmvs].forEach(f => payload[f] = 1);
     while (true) {
       const temp = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
         method: 'get',

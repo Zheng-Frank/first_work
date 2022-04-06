@@ -187,6 +187,9 @@
             <option *ngFor="let opt of dropdowns('kpi_period')" [ngValue]="opt">{{opt}}</option>
           </select>
         </div>
+        <div class="col-auto">
+          <a class="btn btn-link" (click)="kpiNormalDownload()">Download CSV</a>
+        </div>
       </div>
       <div class="scroll-table-container">
         <table class="table table-bordered left table-sm">
@@ -223,6 +226,9 @@
             <option *ngFor="let opt of dropdowns('kpi_period')" [ngValue]="opt">{{opt}}</option>
           </select>
         </div>
+        <div class="col-auto">
+          <a class="btn btn-link" (click)="kpiOverDownload()">Download CSV</a>
+        </div>
       </div>
       <div class="scroll-table-container">
         <table class="table table-bordered left table-sm">
@@ -239,7 +245,7 @@
             <thead><tr><th *ngFor="let item of getKPIHeaders('over')">{{item}}</th></tr></thead>
             <tbody>
               <tr *ngFor="let values of getKpiOverList()">
-                <td *ngFor="let value of values">{{value | percent}}</td>
+                <td *ngFor="let value of values">{{value | percent: '1.0-2'}}</td>
               </tr>
             </tbody>
           </table>
