@@ -1,8 +1,12 @@
-<h2 class="text-center pb-1">Menu Options</h2>
+<h2 class="text-center pb-1">
+  Menu Options
+  <div class="mt-2">
+    <a class="btn btn-link" (click)="adjustOrderModal.show()">Adjust Orders</a>
+  </div>
+</h2>
 <div class="container-fluid">
   <div class="row">
-    <div *ngFor="let mo of getMenuOptions()" class="col-sm-6">
-
+    <div *ngFor="let mo of restaurant.menuOptions" class="col-sm-6">
       <div class="mycard">
         <app-menu-option-viewer [menuOption]="mo"></app-menu-option-viewer>
         <div >
@@ -17,13 +21,24 @@
     <button (click)="editMenuOption(null)" class="btn btn-primary btn-block">Add New</button>
   </div>
 
-  <q-modal #menuOptionEditingModal>
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-      <span aria-hidden="true">×</span>
-    </button>
-    <h4 class="text-center">{{editingTitle}}</h4>
-    <hr>
-    <app-menu-option-editor [menuOption]="menuOptionInEditing" #menuOptionEditor (submit)="moDone($event)" (cancel)="moCancel($event)"
-      (remove)="moDelete(menuOptionInEditing)"></app-menu-option-editor>
-  </q-modal>
 </div>
+
+<q-modal #adjustOrderModal >
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">×</span>
+  </button>
+  <h4 class="text-center">Adjust Menu Options Order</h4>
+  <hr>
+  <app-item-sorter [items]="restaurant.menuOptions" [labelField]="'name'"
+                   (sort)="sortMenuOptions($event)" (cancel)="adjustOrderModal.hide()">
+  </app-item-sorter>
+</q-modal>
+<q-modal #menuOptionEditingModal>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">×</span>
+  </button>
+  <h4 class="text-center">{{editingTitle}}</h4>
+  <hr>
+  <app-menu-option-editor [menuOption]="menuOptionInEditing" #menuOptionEditor (submit)="moDone($event)" (cancel)="moCancel($event)"
+    (remove)="moDelete(menuOptionInEditing)"></app-menu-option-editor>
+</q-modal>

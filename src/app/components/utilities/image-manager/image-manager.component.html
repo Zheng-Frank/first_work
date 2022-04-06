@@ -6,42 +6,12 @@
       <ng-container *ngIf="manageMode === manageModes.Standard">
         ({{filterRows.length}} items, {{getItemWithImageCount()}} with images)
       </ng-container>
-      <ng-container *ngIf="manageMode === manageModes.Common">
-        ({{filteredMis.length}} items, {{countMiWithImage()}} with images)
-      </ng-container>
     </div>
   </h2>
   <div class="card-body">
-    <div class="row">
-      <div class="col-auto mb-2">
-        <select [(ngModel)]="manageMode" class="form-control">
-          <option *ngFor="let type of getManageModes()">{{type}}</option>
-        </select>
-      </div>
-      <ng-container *ngIf="manageMode === manageModes.Common">
-        <div class="col-auto mb-2">
-          <select class="form-control" [(ngModel)]="keywordType">
-            <option *ngFor="let type of getKeywordTypes()">{{type}}</option>
-          </select>
-        </div>
-        <div class="col-auto mb-2">
-          <input type="text" class="form-control" [(ngModel)]="keyword" >
-        </div>
-        <div class="col-auto mb-2">
-        <select [(ngModel)]="commonOrderBy" class="form-control">
-          <option *ngFor="let type of commonOrderBys">{{type}}</option>
-        </select>
-      </div>
-        <div class="col-auto mb-2">
-        <select [(ngModel)]="hasImageMode" class="form-control">
-          <option *ngFor="let type of hasImageModes">{{type}}</option>
-        </select>
-      </div>
-        <div class="col-auto mb-2">
-          <button class="btn btn-primary" (click)="filterMi()">Search</button>
-        </div>
-      </ng-container>
-      <ng-container *ngIf="manageMode === manageModes.Standard">
+    <q-simple-radio [(ngModel)]="manageMode" [equalWidth]="true" [values]="getManageModes()"></q-simple-radio>
+    <ng-container *ngIf="manageMode === manageModes.Standard">
+      <div class="row">
         <div class="col-auto mb-2">
           <select [(ngModel)]="cuisineType" class="form-control" (change)="filter()">
             <option value="">Cuisine type?</option>
@@ -53,10 +23,12 @@
             <option *ngFor="let type of orderBys">{{type}}</option>
           </select>
         </div>
-      </ng-container>
-    </div>
-    <hr />
-    <ng-container *ngIf="manageMode === manageModes.Standard">
+        <div class="col-auto mb-2">
+          <select [(ngModel)]="hasImageMode" class="form-control" (change)="filter()">
+            <option *ngFor="let type of hasImageModes">{{type}}</option>
+          </select>
+        </div>
+      </div>
       <div class="mt-2 mb-2 text-right">
         <button class="btn btn-link" (click)="mergeDuplicates()" [qLoading]="merging">Merge Duplicates</button>
         <button class="btn btn-link" (click)="normalizeAliases()" [qLoading]="normalizing">Normalize Aliases</button>
@@ -64,7 +36,9 @@
         <button class="btn btn-link" (click)="syncFromMenuItems()" [qLoading]="syncing">Sync from Latest
           Menu Items</button>
         <button class="btn btn-primary" (click)="openAddRecordsModal()">+ Add New</button>
+        <button class="btn btn-primary" (click)="reload()">Reload</button>
       </div>
+      <hr />
       <table *ngIf="manageMode === manageModes.Standard" class="table table-striped">
         <tr><th></th><th>Menu Names</th><th>Images</th><th>Delete</th></tr>
         <tr *ngFor="let row of filterRows; let i = index">
@@ -114,41 +88,143 @@
       </table>
     </ng-container>
     <ng-container *ngIf="manageMode === manageModes.Common">
-      <ng-container *ngIf="showUniqueImages">
-        <div class="unique-images mb-2">
-          <div class="image-item" [ngClass]="{'selected': selectedImg === item.url}" *ngFor="let item of uniqueImages()">
-            <img (click)="selectImg(item.url)" [src]="item.url" />
-            <div class="image-url">{{item.url}}</div>
-            <div class="image-url"><strong>Frequency for searched: {{item.frequency}}</strong></div>
+      <div class="row">
+        <div class="col-auto mb-2">
+          <select class="form-control" [(ngModel)]="keywordType">
+            <option *ngFor="let type of getKeywordTypes()">{{type}}</option>
+          </select>
+        </div>
+        <div class="col-4 mb-2">
+          <input type="text" class="form-control" [(ngModel)]="keyword" >
+        </div>
+        <div class="col-auto mb-2">
+          <button class="btn btn-primary" (click)="filterMi()">Search</button>
+        </div>
+      </div>
+      <hr />
+      <ng-container *ngIf="keywordType === keywordTypes.ItemName">
+        <div class="unique-row">
+          <div class="unique-row-arrow" [ngClass]="{'disabled': uniqueRowPageIndex <= 0}" (click)="uniquePaginate(filteredUniqueImages, -1)">
+            <i class="fa fa-angle-left"></i>
+          </div>
+          <div class="row unique-row-content">
+            <div class="col-2" *ngFor="let item of uniquePaged(filteredUniqueItems)">
+              <div class="name-item clickable" [ngClass]="{'selected': selectedItem === item.name}" >
+                <ng-container *ngTemplateOutlet="uniqueNameTpl; context:{item: item, clickable: true}"></ng-container>
+              </div>
+            </div>
+          </div>
+          <div class="unique-row-arrow" [ngClass]="{'disabled': uniquePageEnd(filteredUniqueImages)}" (click)="uniquePaginate(filteredUniqueImages, 1)">
+            <i class="fa fa-angle-right"></i>
           </div>
         </div>
         <hr />
-      </ng-container>
-      <div class="mb-2 mt-2 col">
-        <q-pager #myPager1 [numberOfRows]="visibleMis().length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
-      </div>
-      <div class="row">
-        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-4" *ngFor="let item of paged()">
-          <div class="menu-item">
-            <div class="title">RT: {{item.rt.name}}</div>
-            <div><a target="_blank" [routerLink]="'/restaurants/' + item.rt._id">{{item.rt._id}}</a></div>
-            <div>{{item.menu.name}} > {{item.mc.name}} > {{item.mi.name}}</div>
-            <ng-container *ngIf="item.image">
-              <div><img [src]="item.image.url" /></div>
-              <div>{{item.image.url}}</div>
-              <div>Frequency: {{item.image.nameCount}} (for this item name), {{item.image.allCount}} (overall)</div>
-            </ng-container>
-            <div class="footer">
-              <a class="btn-link" (click)="editMi(item)">Edit Item</a>
-              <a *ngIf="item.image" class="btn-link" (click)="removeMiImage(item)">Remove Image</a>
+        <div class="mb-2 mt-2 col">
+          <q-pager #myPager1 [numberOfRows]="uniqueImagesByItem.length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
+        </div>
+        <div class="row">
+          <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-4" *ngFor="let item of paged(keywordTypes.ItemName)">
+            <div class="image-item list-item">
+              <ng-container *ngTemplateOutlet="uniqueImageTpl; context:{item: item}"></ng-container>
             </div>
           </div>
         </div>
+        <div class="mt-2 col">
+        '<q-pager #myPager2 [numberOfRows]="uniqueImagesByItem.length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
       </div>
-      <div class="mt-2 col">
-        '<q-pager #myPager2 [numberOfRows]="filteredMis.length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
+      </ng-container>
+      <ng-container *ngIf="keywordType === keywordTypes.ImageUrl">
+        <div class="unique-row">
+          <div class="unique-row-arrow" [ngClass]="{'disabled': uniqueRowPageIndex <= 0}" (click)="uniquePaginate(filteredUniqueImages, -1)">
+            <i class="fa fa-angle-left"></i>
+          </div>
+          <div class="row unique-row-content">
+            <div class="col-2" *ngFor="let item of uniquePaged(filteredUniqueImages)">
+              <div class="image-item clickable"  [ngClass]="{'selected': selectedImg === item.url}">
+                <ng-container *ngTemplateOutlet="uniqueImageTpl; context:{item: item, clickable: true}"></ng-container>
+              </div>
+            </div>
+          </div>
+          <div class="unique-row-arrow" [ngClass]="{'disabled': uniquePageEnd(filteredUniqueImages)}" (click)="uniquePaginate(filteredUniqueImages, 1)">
+            <i class="fa fa-angle-right"></i>
+          </div>
+        </div>
+        <hr />
+        <div class="mb-2 mt-2 col">
+          <q-pager #myPager1 [numberOfRows]="uniqueItemsByImage.length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
+        </div>
+        <div class="row">
+          <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-4" *ngFor="let item of paged(keywordTypes.ImageUrl)">
+            <div class="name-item list-item">
+              <ng-container *ngTemplateOutlet="uniqueNameTpl; context:{item: item}"></ng-container>
+            </div>
+          </div>
+        </div>
+        <div class="mt-2 col">
+        <q-pager #myPager2 [numberOfRows]="uniqueItemsByImage.length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
       </div>
+      </ng-container>
     </ng-container>
+
+    <ng-template #uniqueImageTpl let-item="item" let-clickable="clickable">
+      <div>
+        <img (click)="selectImg(item.url, clickable)" [src]="item.url" />
+        <div class="image-url">{{item.url}}</div>
+        <div><a class="btn-link" (click)="copy(item.url)">Copy URL</a></div>
+        <div class="image-line" *ngIf="!clickable">
+          <strong>Usage in current item: {{nameUrlStats(selectedItem, item.url).count}}</strong>
+        </div>
+        <div class="image-line"><strong>Total usage count: {{item.stats.usageCount}}</strong></div>
+        <div class="image-line"><strong>Total unique items: {{item.stats.uniqueItems.size}}</strong></div>
+        <div *ngIf="!clickable && selectedItem" class="text-left"><a class="btn-link" (click)="editMiImageItem(item, 'name')">Edit</a></div>
+      </div>
+    </ng-template>
+
+    <ng-template #uniqueNameTpl let-item="item" let-clickable="clickable">
+      <div (click)="selectItem(item.name, clickable)">
+        <h5 class="item-name"><strong>{{item.name}}</strong></h5>
+        <div class="item-line">
+          <strong *ngIf="!clickable">Usage in current image: {{nameUrlStats(item.name, selectedImg).count}}</strong>
+          <strong>Total usage Count: {{item.stats.usageCount}}</strong>
+          <strong>Total unique images: {{item.stats.uniqueImages.size}}</strong>
+        </div>
+        <div *ngIf="!clickable && selectedImg"><a class="btn-link" (click)="editMiImageItem(item, 'url')">Edit</a></div>
+      </div>
+    </ng-template>
+
+    <q-modal #imageRemoveModal>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">×</span>
+      </button>
+      <div class="edit-item" *ngIf="!!image">
+        <div class="caption">
+          This image <pre>{{image.url}}</pre> is used <strong>{{image.used}}</strong> times for menu items with the name "{{image.name}}" across <strong>{{image.rts.length}}</strong> Qmenu restaurants.
+        </div>
+        <div class="edit-image">
+          <img [src]="image.url" />
+        </div>
+        <div class="footer">
+          <button class="btn btn-block btn-primary" (click)="showRemoveTip = true">Remove image</button>
+          <div *ngIf="showRemoveTip">
+            <div class="text-danger mt-2 mb-2">Are you sure? This action will remove all instances of this image on items named "{{image.name}}", and CANNOT be undone.</div>
+            <div class="d-flex justify-content-between">
+              <button class="btn btn-primary" (click)="removeMiImage()">I'm sure</button>
+              <button class="btn btn-secondary" (click)="showRemoveTip = false">Cancel</button>
+            </div>
+          </div>
+        </div>
+        <hr />
+        <div (click)="showAffectedRTs = !showAffectedRTs" class="d-flex align-items-center justify-content-end">
+          <a class="btn btn-link">{{showAffectedRTs ? 'Hide': 'View'}} affected restaurants</a>
+          <i class="text-primary fa fa-chevron-{{showAffectedRTs ? 'up': 'down'}}"></i>
+        </div>
+        <div class="affected-rts" *ngIf="showAffectedRTs">
+          <div class="d-flex align-items-center justify-content-end" *ngFor="let rtId of image.rts">
+            {{rtIdNameMap[rtId]}} / <a target="_blank" [routerLink]="'/restaurants/' + rtId" class="ml-1 btn-link">{{rtId}}</a>
+          </div>
+        </div>
+      </div>
+    </q-modal>
 
     <q-modal #modalZoom *ngIf="clickedMi">
       <div class="modal-header" data-dismiss="modal">
@@ -208,9 +284,5 @@
     </q-modal>
     <!-- end with add new record modal -->
 
-    <q-modal #miModal>
-    <!--size names: if use get method, it keeps changing detection-->
-      <app-menu-item-editor #miEditor (onDone)="miDone($event)" (onCancel)="miCancel()" (onDelete)="miDelete($event)"></app-menu-item-editor>
-    </q-modal>
   </div>
 </div>

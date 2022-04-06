@@ -18,5 +18,6 @@ export const environment = {
   fattmerchantWebToken: 'qMenu-Inc-71e10ca6d824',
   testOrderId: "5c720fd092edbd4b28883ee1",
   shortUrlBase: "https://qmenu.biz/",
-  customerPWAUrl: "https://qmenu.us/#/"
+  customerPWAUrl: "https://qmenu.us/#/",
+  biApiUrl: "https://7o8zst97y6.execute-api.us-east-1.amazonaws.com/prod/",
 };

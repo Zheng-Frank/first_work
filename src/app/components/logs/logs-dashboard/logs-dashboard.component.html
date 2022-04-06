@@ -31,6 +31,11 @@
             <option>All</option>
             <option *ngFor="let type of logTypes">{{type}}</option>
         </select>
+        <!-- start with tier filter -->
+        <select [(ngModel)]="tierOption" class="ml-2" (change)="filterBySelection()">
+            <option *ngFor="let option of tierOptions">{{option}}</option>
+        </select>
+        <!-- end with tier filter -->
     </div>
     <div class="float-right">
         <div class="pb-2">

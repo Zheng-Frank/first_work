@@ -25,4 +25,22 @@ export class DashboardItemComponent implements OnInit {
     }
   }
 
+  copy() {
+    const contents = [
+      (this.item.headers || []).join('\t'),
+      ...this.item.rows.map(r => r.join('\t'))
+    ];
+    const text = contents.join('\n');
+    const handleCopy = (e: ClipboardEvent) => {
+      // clipboardData 可能是 null
+      e.clipboardData && e.clipboardData.setData('text/plain', text);
+      e.preventDefault();
+      // removeEventListener 要传入第二个参数
+      document.removeEventListener('copy', handleCopy);
+    };
+    document.addEventListener('copy', handleCopy);
+    document.execCommand('copy');
+    alert('data copied to clipboard');
+  }
+
 }

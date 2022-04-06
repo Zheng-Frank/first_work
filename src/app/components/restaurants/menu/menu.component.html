@@ -74,7 +74,7 @@
 </q-modal>
 <q-modal #miModal>
   <!--size names: if use get method, it keeps changing detection-->
-  <app-menu-item-editor #miEditor (onDone)="miDone($event)" (onCancel)="miCancel($event)" (onDelete)="miDelete($event)"
+  <app-menu-item-editor #miEditor [translations]="restaurant.translations" (onDone)="miDone($event)" (onCancel)="miCancel($event)" (onDelete)="miDelete($event)"
     (onVisitMenuOptions)="visitMenuOptions()"></app-menu-item-editor>
 </q-modal>
 

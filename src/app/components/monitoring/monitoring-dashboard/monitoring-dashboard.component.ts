@@ -41,5 +41,21 @@ export class MonitoringDashboardComponent implements OnInit {
       limit: 10000
     }).toPromise());
     this.dashboardItems.push(...dashboardItems);
+    // 3/27/2022: get from BI database
+    const biDashboardItems = await this._api
+      .post(environment.biApiUrl + "smart-restaurant/api", {
+        method: 'get',
+        resource: 'dashboard-item',
+        query: { _id: { $exists: true } }, // any items
+        payload: {
+          title: 1,
+          headers: 1,
+          rows: 1,
+          details: 1
+        },
+        limit: 100000000 // no limit
+      })
+      .toPromise();
+    this.dashboardItems.push(...biDashboardItems);
   }
 }

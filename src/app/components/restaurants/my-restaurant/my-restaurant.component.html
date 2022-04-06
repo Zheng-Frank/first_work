@@ -81,7 +81,7 @@
             {{getTotal('unqualifiedSubtotal') | currency:'USD':'symbol'}}
           </th>
         </tr>
-        <tr *ngIf="isSuperUser">
+        <tr *ngIf="isSuperUser()">
           <th class="text-right">
             ADMIN ONLY: Collected Commissions（总计）
           </th>
@@ -89,7 +89,7 @@
             {{getTotal('collected') | currency:'USD':'symbol'}}
           </th>
         </tr>
-        <tr *ngIf="isSuperUser">
+        <tr *ngIf="isSuperUser()">
           <th class="text-right">
             ADMIN ONLY: Not Collected Commissions（总计）
           </th>
@@ -128,6 +128,9 @@
     <td class="text-nowrap {{row.restaurant.disabled ? 'app-muted' : ''}}">
       <a target="_blank" href="#/restaurants/{{row.restaurant._id}}">{{row.restaurant.name}}</a>
       <div>
+        <small>{{row.restaurant._id}}</small>
+      </div>
+      <div>
         <small>{{row.restaurant.googleAddress?.formatted_address | removeUsa}}</small>
       </div>
     </td>
@@ -138,14 +141,31 @@
         <i class="fas fa-caret-down"></i>
       </button>
       <table class="table table-borderless table-sm" *ngIf="row.showDetails">
+        <tr>
+          <th colspan="3">
+            Total: {{row.invoiceSum.total | money}},
+            collected: {{row.invoiceSum.paid | money}},
+            counted: {{row.invoiceSum.counted | money}},
+            earned: {{row.invoiceSum.earned | money}},
+            notEarned: {{row.invoiceSum.notEarned | money}}
+          </th>
+        </tr>
         <tr *ngFor="let invoice of row.invoices" class="{{isRolledOrPaid(invoice) ? 'text-success' : 'text-danger'}}">
           <td>
             <a target="_blank" href="#/invoices/{{invoice._id}}">{{invoice.fromDate | date:'MMM d yyyy'}} -
               {{invoice.toDate | date:'MMM d'}}</a>
           </td>
           <td>
-            {{(invoice.commission >0 ? invoice.commission: invoice.commission + invoice.feesForQmenu || 0) - (invoice.adjustment - invoice.transactionAdjustment) | currency:'USD':'symbol'}}
+            {{(invoice.commission >0 ? invoice.commission: invoice.commission + (invoice.feesForQmenu || 0)) - (invoice.adjustment - invoice.transactionAdjustment) | currency:'USD':'symbol'}}
           </td>
+          <th>
+            <div *ngFor="let p of (invoice.schedules || [])">
+              <span>
+                {{p.total | money}} &times; {{p.rate}} = {{p.total * p.rate | money}}
+              </span>
+              <span class="text-info ml-2">{{p.duration}}</span>
+            </div>
+          </th>
         </tr>
       </table>
     </td>
