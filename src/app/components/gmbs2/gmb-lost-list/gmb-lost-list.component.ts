@@ -128,7 +128,7 @@ export class GmbLostListComponent implements OnInit {
         name: 1,
         score: 1,
         disabled: 1,
-        'computed.gmbPositiveScore.value': 1
+        'computed.gmbPositiveScore.ordersPerMonth': 1
       }
     }, 6000);
 
@@ -234,7 +234,7 @@ export class GmbLostListComponent implements OnInit {
       this.rows = dict.filter(r => !r.disabled);
       // gnerate a temp score to record tier condition of rt in gmb 
       this.rows.forEach(row => {
-        row.gmbPositiveScore = ((row.computed || {}).gmbPositiveScore || {}).value;
+        row.gmbPositiveScore = ((row.computed || {}).gmbPositiveScore || {}).ordersPerMonth;
         row.gmbTier = Helper.getTier(row.gmbPositiveScore);
       });
       this.filter();

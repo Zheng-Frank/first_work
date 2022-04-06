@@ -10,7 +10,7 @@ export class Helper {
 
     static FULL_DATETIME_LOCALE_OPTS = FULL_LOCALE_OPTS;
 
-    // compute tier of a rt by orderPerMonth, or gmbPositive score value or other input param
+    // compute tier of a rt by orderPerMonth or other input param
     static getTier(value = 0) {
         if (value > 125) { // VIP
             return 0;
