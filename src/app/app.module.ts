@@ -275,6 +275,7 @@ import { PhoneOrderingDashboardComponent } from './components/phone-ordering/pho
 import { RestaurantOtherAttachmentsComponent } from './components/restaurants/restaurant-other-attachments/restaurant-other-attachments.component';
 import { MornitoringSmsComponent } from './components/monitoring/mornitoring-sms/mornitoring-sms.component';
 import { MonitoringDeactivatedCustomersComponent } from './components/monitoring/monitoring-deactivated-customers/monitoring-deactivated-customers.component';
+import { MonitoringRtsWithPaymentCollectComponent } from './components/monitoring/monitoring-rts-with-payment-collect/monitoring-rts-with-payment-collect.component';
 
 
 @NgModule({
@@ -520,7 +521,8 @@ import { MonitoringDeactivatedCustomersComponent } from './components/monitoring
     PhoneOrderingDashboardComponent,
     RestaurantOtherAttachmentsComponent,
     MornitoringSmsComponent,
-    MonitoringDeactivatedCustomersComponent
+    MonitoringDeactivatedCustomersComponent,
+    MonitoringRtsWithPaymentCollectComponent
   ],
   imports: [
     BrowserModule,

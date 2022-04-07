@@ -1,3 +1,4 @@
+import { MonitoringRtsWithPaymentCollectComponent } from './components/monitoring/monitoring-rts-with-payment-collect/monitoring-rts-with-payment-collect.component';
 import { MonitoringDeactivatedCustomersComponent } from './components/monitoring/monitoring-deactivated-customers/monitoring-deactivated-customers.component';
 import { MonitoringRtsWithoutAgreementComponent } from './components/monitoring/monitoring-rts-without-agreement/monitoring-rts-without-agreement.component';
 import { MonitoringVipRestaurantsComponent } from './components/monitoring/monitoring-vip-restaurants/monitoring-vip-restaurants.component';
@@ -198,11 +199,12 @@ const routes: Routes = [
   { path: 'dine-in-orders', component: MonitoringDineInOrdersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'qm-bm-sst', component: QmBmSstDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MARKETER', 'MARKETER_INTERNAL', 'SST_USER'] } },
   { path: '1099k-dashboard', component: Dashboard1099KComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
-  { path: 'rts-without-agreement', component: MonitoringRtsWithoutAgreementComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR'] } },
+  { path: 'rts-without-agreement', component: MonitoringRtsWithoutAgreementComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'phone-ordering', component: PhoneOrderingDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'sms-problems', component: MornitoringSmsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR_MANAGER'] } },
   { path: 'deactivated-customers', component: MonitoringDeactivatedCustomersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
- 
+  { path: 'rts-with-payment-collect', component: MonitoringRtsWithPaymentCollectComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
+  
   { path: '**', redirectTo: '/home' }
 
 ];
