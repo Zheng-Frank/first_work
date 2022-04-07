@@ -16,7 +16,7 @@ enum pmtCollectTypes {
 enum printCCTypes {
   All = 'Print All CC Info?',
   Print_CC = 'Print CC',
-  Don_Not_CC = 'Don not print CC'
+  Don_Not_CC = 'Do not print CC'
 }
 // paymentDescriptionMap = {
 //   'CASH': 'Cash',
