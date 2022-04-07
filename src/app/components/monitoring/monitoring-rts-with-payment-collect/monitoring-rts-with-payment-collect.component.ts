@@ -71,7 +71,7 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
           $project: {
             name: 1,
             serviceSettings: 1,
-            printAllCCInfo: 1
+            hidePrintingCCInfo: 1
           }
         },
         {
@@ -102,9 +102,9 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     // filter by printCCOption
     if (this.printCCOption !== printCCTypes.All) {
       if (this.printCCOption === printCCTypes.Don_Not_CC) {
-        this.filteredRows = this.filteredRows.filter(row => !row.printAllCCInfo);
+        this.filteredRows = this.filteredRows.filter(row => !row.hidePrintingCCInfo);
       } else if (this.printCCOption === printCCTypes.Print_CC) {
-        this.filteredRows = this.filteredRows.filter(row => row.printAllCCInfo);
+        this.filteredRows = this.filteredRows.filter(row => row.hidePrintingCCInfo);
       }
     }
   }
@@ -113,7 +113,7 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
       {
         old: { _id: rt._id },
-        new: { _id: rt._id, printAllCCInfo: rt.printAllCCInfo },
+        new: { _id: rt._id, hidePrintingCCInfo: rt.hidePrintingCCInfo },
       }
     ]).subscribe(results => {
       this._global.publishAlert(AlertType.Success, `${rt.name} updated!`);

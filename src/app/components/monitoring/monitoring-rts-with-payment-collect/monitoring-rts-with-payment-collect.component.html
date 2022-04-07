@@ -34,7 +34,7 @@
             {{service.name}}: {{(service.paymentMethods || []).join(', ') || 'N/A'}}
           </div>
           <div>
-            <q-toggle [(ngModel)]="r.printAllCCInfo" (change)="toggleEnabled(r, $event)"></q-toggle>
+            <q-toggle [(ngModel)]="r.hidePrintingCCInfo" (change)="toggleEnabled(r, $event)"></q-toggle>
             <span>Print All CC Info</span> 
           </div>
         </td>
