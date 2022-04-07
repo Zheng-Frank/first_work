@@ -25,7 +25,7 @@
         <td>{{filteredRows.indexOf(r) + 1}}</td>
         <td>
           <div>
-            <a class="mr-2" routerLink="/restaurants/{{r['_id']}}">{{r.name}}</a>
+            <a class="mr-2" target="_blank" routerLink="/restaurants/{{r['_id']}}">{{r.name}}</a>
           </div>
           <div>{{r._id}}</div>
         </td>
@@ -34,7 +34,7 @@
             {{service.name}}: {{(service.paymentMethods || []).join(', ') || 'N/A'}}
           </div>
           <div>
-            <q-toggle [(ngModel)]="r.hidePrintingCCInfo" (change)="toggleEnabled(r, $event)"></q-toggle>
+            <q-toggle [(ngModel)]="r.showPrintingCCInfo" (change)="toggleEnabled(r, $event)"></q-toggle>
             <span>Print All CC Info</span> 
           </div>
         </td>

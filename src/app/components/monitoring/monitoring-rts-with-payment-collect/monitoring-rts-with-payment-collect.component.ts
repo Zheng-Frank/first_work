@@ -80,6 +80,10 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
       ]
     }).toPromise();
     this.rows = restaurants;
+    // add a temp new property showPrintingCCInfo to control q-toggle
+    this.rows.forEach(row => {
+      row.showPrintingCCInfo = !row.hidePrintingCCInfo;
+    });
     this.filterRTs();
   }
 
@@ -102,14 +106,15 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     // filter by printCCOption
     if (this.printCCOption !== printCCTypes.All) {
       if (this.printCCOption === printCCTypes.Don_Not_CC) {
-        this.filteredRows = this.filteredRows.filter(row => row.hidePrintingCCInfo);
+        this.filteredRows = this.filteredRows.filter(row => !row.showPrintingCCInfo);
       } else if (this.printCCOption === printCCTypes.Print_CC) {
-        this.filteredRows = this.filteredRows.filter(row => !row.hidePrintingCCInfo);
+        this.filteredRows = this.filteredRows.filter(row => row.showPrintingCCInfo);
       }
     }
   }
 
   async toggleEnabled(rt, event) {
+    rt.hidePrintingCCInfo = !rt.showPrintingCCInfo;
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
       {
         old: { _id: rt._id },
@@ -118,9 +123,9 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     ]).subscribe(results => {
       this._global.publishAlert(AlertType.Success, `${rt.name} updated!`);
     },
-    error => {
-      this._global.publishAlert(AlertType.Danger, error);
-    });
+      error => {
+        this._global.publishAlert(AlertType.Danger, error);
+      });
   }
 
 
