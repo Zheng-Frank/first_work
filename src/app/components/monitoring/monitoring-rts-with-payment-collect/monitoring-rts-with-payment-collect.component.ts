@@ -102,9 +102,9 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     // filter by printCCOption
     if (this.printCCOption !== printCCTypes.All) {
       if (this.printCCOption === printCCTypes.Don_Not_CC) {
-        this.filteredRows = this.filteredRows.filter(row => !row.hidePrintingCCInfo);
-      } else if (this.printCCOption === printCCTypes.Print_CC) {
         this.filteredRows = this.filteredRows.filter(row => row.hidePrintingCCInfo);
+      } else if (this.printCCOption === printCCTypes.Print_CC) {
+        this.filteredRows = this.filteredRows.filter(row => !row.hidePrintingCCInfo);
       }
     }
   }
