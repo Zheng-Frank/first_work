@@ -289,7 +289,7 @@ export class QmBmSstDashboardComponent implements OnInit {
     const data = await this.getUnifiedData();
     const dict = {[KPIPeriodOptions.Yearly]: {}, [KPIPeriodOptions.Monthly]: {}, [KPIPeriodOptions.Quarterly]: {}};
     const accumulate = (cat: KPIPeriodOptions, key, {id, bid, qid, oc, gmv}) => {
-      let temp = dict[cat][key] || { gmv: {qm: 0, bm: 0}, oc: {qm: 0, bm: 0, both: 0}, ar: {qm: new Set(), bm: new Set(), both: new Set()} };
+      let temp = dict[cat][key] || { gmv: {qm: 0, bm: 0, both: 0}, oc: {qm: 0, bm: 0, both: 0}, ar: {qm: new Set(), bm: new Set(), both: new Set()} };
       if (bid) {
         temp.oc.bm += oc;
         temp.gmv.bm += gmv;
@@ -305,7 +305,7 @@ export class QmBmSstDashboardComponent implements OnInit {
         }
       }
       temp.oc.both += oc;
-      temp.gmv.both += oc;
+      temp.gmv.both += gmv;
       if (oc > 0) {
         temp.ar.both.add(id);
       }
@@ -389,7 +389,6 @@ export class QmBmSstDashboardComponent implements OnInit {
               address: "$googleAddress.formatted_address",
               cid: '$googleListing.cid',
               disabled: 1,
-              gmbOwnerHistory: 1,
               website: "$web.qmenuWebsite",
               name: 1,
               courier: '$courier.name',
@@ -402,7 +401,7 @@ export class QmBmSstDashboardComponent implements OnInit {
             }
           }
         ],
-      }, 4000));
+      }, 6000));
 
       const gmbBiz = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbBiz',
@@ -448,13 +447,6 @@ export class QmBmSstDashboardComponent implements OnInit {
 
         rt.hasGmb = (gmbWebsiteOwnerDict[key] || gmbWebsiteOwnerDict[rt._id + rt.cid]) && accounts.some(acc => (acc.locations || []).some(loc => loc.cid === rt.cid && loc.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].includes(loc.role)))
         rt.hasGMBWebsite = gmbWebsiteOwnerDict[key] === 'qmenu' || gmbWebsiteOwnerDict[rt._id + rt.cid] === 'qmenu';
-        if (rt.gmbOwnerHistory && rt.gmbOwnerHistory.length > 0) {
-          let bmOwner = rt.gmbOwnerHistory.find(x => x.gmbOwner === 'beyondmenu');
-          if (bmOwner) {
-            rt.bgmbWebsite = bmOwner.gmbWebsite;
-            rt.bhasGMBWebsite = gmbWebsiteDict[key] === bmOwner.gmbWebsite;
-          }
-        }
 
         rt.postmatesAvailable = this.postmatesAvailable(rt)
         if (rt.channels && rt.channels.length > 0) {
@@ -468,7 +460,6 @@ export class QmBmSstDashboardComponent implements OnInit {
           }
         }
       });
-      console.log('qm disabled has gmb...', this.qmRTs.filter(x => x.disabled && x.hasGmb));
       // --- BeyondMenu restaurants
       let bmRTs = await this._api.post(environment.gmbNgrok + 'get-bm-restaurant').toPromise();
       this.bmRTsPlaceDict = {};
@@ -514,7 +505,6 @@ export class QmBmSstDashboardComponent implements OnInit {
         }
         return data;
       });
-      console.log('bm disabled has gmb...', this.bmRTs.filter(x => x.bdisabled && x.bhasGmb));
       // 1. Match by google place_id (already the case)
       // 2. followed by main phone number to the extent the first type of matching didn't produce a match.
       let bmOnly = this.bmRTs.filter(({bplace_id, bmainPhone}) => (!bplace_id || !this.qmRTsPlaceDict[bplace_id]) && (!bmainPhone || !this.qmRTsPhoneDict[bmainPhone]));
@@ -762,6 +752,7 @@ export class QmBmSstDashboardComponent implements OnInit {
         break;
     }
 
+    // currently, we cannot detect if beyondmenu has gmbwebsite
     switch (gmbWebsite) {
       case GMBWebsiteOptions.Bm:
         list = list.filter(rt => rt.bhasGMBWebsite)
