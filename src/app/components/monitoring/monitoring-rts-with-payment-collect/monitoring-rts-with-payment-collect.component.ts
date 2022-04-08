@@ -12,13 +12,19 @@ enum pmtCollectTypes {
   Rt_Stripe = 'RT Stripe',
   qMenu_Collect = 'qMenu Collect',
   Swipe_In_Person = 'Swipe in person'
-}
+};
+
+enum pciDisplayTypes {
+  All = 'Select PCI Settings Filter',
+  Hide_Non_PCI = 'PCI Compliant RTs',
+  Show_Non_PCI = 'PCI Non-Compliant RTs'
+};
 
 enum printCCTypes {
-  All = 'Print All CC Info?',
+  All = 'Select CC Print Filter',
   Print_CC = 'Print CC',
-  Don_Not_CC = 'Do not print CC'
-}
+  Dont_Print_CC = 'Do not print CC'
+};
 // paymentDescriptionMap = {
 //   'CASH': 'Cash',
 //   'IN_PERSON': 'Credit card: swipe in-person',
@@ -32,9 +38,9 @@ enum pmyMethodTypes {
   Qmenu = 'QMENU',
   Key_In = 'KEY_IN',
   Stripe = 'STRIPE'
-}
+};
 
-const alphabet = (a, b) => (a || '').localeCompare(b || '');
+const sortAlphabetical = (a, b) => (a || '').localeCompare(b || '');
 
 @Component({
   selector: 'app-monitoring-rts-with-payment-collect',
@@ -46,14 +52,17 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   restaurants = [];
   restaurantsColumnDescriptors = [
     { label: '#' },
-    { label: 'Restaurant', paths: ['name'], sort: alphabet },
+    { label: 'Restaurant', paths: ['name'], sort: sortAlphabetical },
     { label: 'Payment' },
   ];
 
   pmtCollectOptions = [pmtCollectTypes.All, pmtCollectTypes.Cash, pmtCollectTypes.Key_In, pmtCollectTypes.Rt_Stripe, pmtCollectTypes.qMenu_Collect, pmtCollectTypes.Swipe_In_Person];
   pmtCollectOption = pmtCollectTypes.All;
-  printCCOptions = [printCCTypes.All, printCCTypes.Print_CC, printCCTypes.Don_Not_CC];
+  printCCOptions = [printCCTypes.All, printCCTypes.Print_CC, printCCTypes.Dont_Print_CC];
   printCCOption = printCCTypes.All;
+  pciDisplayOptions = [pciDisplayTypes.All, pciDisplayTypes.Hide_Non_PCI, pciDisplayTypes.Show_Non_PCI];
+  pciDisplayOption = pciDisplayTypes.All;
+
   rows = [];
   filteredRows = [];
 
@@ -108,10 +117,19 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     }
     // filter by printCCOption
     if (this.printCCOption !== printCCTypes.All) {
-      if (this.printCCOption === printCCTypes.Don_Not_CC) {
+      if (this.printCCOption === printCCTypes.Dont_Print_CC) {
         this.filteredRows = this.filteredRows.filter(row => !row.showPrintingCCInfo);
       } else if (this.printCCOption === printCCTypes.Print_CC) {
         this.filteredRows = this.filteredRows.filter(row => row.showPrintingCCInfo);
+      }
+    }
+
+    // filter by PCI status
+    if (this.pciDisplayOption !== pciDisplayTypes.All) {
+      if (this.pciDisplayOption === pciDisplayTypes.Show_Non_PCI) {
+        this.filteredRows = this.filteredRows.filter(row => row.showNonPCIData);
+      } else if (this.pciDisplayOption === pciDisplayTypes.Hide_Non_PCI) {
+        this.filteredRows = this.filteredRows.filter(row => !row.showNonPCIData);
       }
     }
   }
@@ -133,7 +151,7 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
         this._global.publishAlert(AlertType.Danger, error);
       });
 
-      // RT may have changed category after the toggle, so we should re-filter
-      this.filterRTs();
+    // RT may have changed category after the toggle, so we should re-filter
+    this.filterRTs();
   }
 }

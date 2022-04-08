@@ -15,6 +15,11 @@
         </select>
       </div>
       <div class="col-auto mb-3">
+        <select [(ngModel)]="pciDisplayOption" class="form-control" (change)="filterRTs()">
+          <option *ngFor="let option of pciDisplayOptions">{{option}}</option>
+        </select>
+      </div>
+      <div class="col-auto mb-3">
         <button class="btn btn-primary" (click)="populateRTsByPmtCollect()"><i class="fas fa-sync"></i> Reload</button>
       </div>
     </div>
