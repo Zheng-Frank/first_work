@@ -1,0 +1,16 @@
+<div class="card">
+  <ul class="nav nav-tabs app-tab">
+    <li class="nav-item" *ngFor="let tab of tabs">
+      <a class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
+         style="cursor: pointer;">{{tab}}</a>
+    </li>
+  </ul>
+  <div class="card-body">
+    <div *ngIf="activeTab === 'MenuOptions'">
+      <app-menu-options [restaurant]="restaurant"></app-menu-options>
+    </div>
+    <div *ngIf="activeTab === 'AddOns'">
+      <app-addons [restaurant]="restaurant"></app-addons>
+    </div>
+  </div>
+</div>
