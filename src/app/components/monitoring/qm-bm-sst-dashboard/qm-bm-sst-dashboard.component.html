@@ -62,7 +62,7 @@
       <div class="col-auto mb-3">
         <select class="form-control custom-select" [(ngModel)]="filters.gmbWebsite" (change)="filter()">
           <option [ngValue]="''">GMB Website?</option>
-          <option *ngFor="let opt of dropdowns('gmb_website')" [ngValue]="opt">{{opt}}</option>
+          <option *ngFor="let opt of dropdowns('gmb_website')" [disabled]="opt.includes('BM')" [ngValue]="opt">{{opt}}</option>
         </select>
       </div>
 <!--      <div class="col-auto mb-3">-->
@@ -124,8 +124,8 @@
           <th>Tier 3</th>
           <th>
             <div class="edit-label-cell">
-              <q-edit-label [value]="sumOPMLevel" (edit)="sumOPMLevel = $event.value"></q-edit-label>
-              <span class="suffix">orders/mon</span>
+              <q-edit-label [value]="sumOPMLevel" (edit)="sumOPMLevel = $event.newValue"></q-edit-label>
+              <span class="suffix">orders/mo</span>
             </div>
           </th>
         </tr>
@@ -343,13 +343,13 @@
           <td class="td-icon-bottom">
             <div class="d-inline-flex align-items-center">
               <i class="fab fa-google mr-2"></i>
-              <span class="logo qm-icon" *ngIf="row.hasGmb && !row.hide" [ngClass]="{'mr-2': row.bhasGmb && !row.bhide}">
-                <i *ngIf="row.hasGMBWebsite" class="fas fa-globe"></i>
-              </span>
-              <span class="logo bm-icon" *ngIf="row.bhasGmb && !row.bhide">
-                <i *ngIf="row.bhasGMBWebsite" class="fas fa-globe"></i>
-              </span>
+              <span class="logo qm-icon" *ngIf="row.hasGmb" [ngClass]="{'mr-2': row.bhasGmb}"></span>
+              <span class="logo bm-icon" *ngIf="row.bhasGmb"></span>
               <span class="text-danger" *ngIf="!row.hasGmb && !row.bhasGmb">&#10008;</span>
+              <i class="fas fa-globe mr-2 ml-3"></i>
+              <span class="logo qm-icon" *ngIf="row.hasGMBWebsite" [ngClass]="{'mr-2': row.bhasGMBWebsite}"></span>
+              <span class="logo bm-icon" *ngIf="row.bhasGMBWebsite"></span>
+              <span class="text-danger" *ngIf="!row.hasGMBWebsite && !row.bhasGMBWebsite">&#10008;</span>
             </div>
           </td>
         </tr>

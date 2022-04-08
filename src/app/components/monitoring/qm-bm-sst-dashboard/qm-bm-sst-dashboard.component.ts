@@ -222,7 +222,7 @@ export class QmBmSstDashboardComponent implements OnInit {
     return {
       [PlatformOptions.BmOnly]: data.bm,
       [PlatformOptions.QmOnly]: data.qm,
-      [PlatformOptions.Both]: data.bm + data.qm
+      [PlatformOptions.Both]: data.both
     }[platform];
   }
 
@@ -262,10 +262,10 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   async getUnifiedData() {
-    let data = [], skip = 0, size = 4000;
+    let data = [], skip = 0, size = 3000;
     const ocs = ["OC201901", "OC201902", "OC201903", "OC201904", "OC201905", "OC201906", "OC201907", "OC201908", "OC201909", "OC201910", "OC201911", "OC201912", "OC202001", "OC202002", "OC202003", "OC202004", "OC202005", "OC202006", "OC202007", "OC202008", "OC202009", "OC202010", "OC202011", "OC202012", "OC202101", "OC202102", "OC202103", "OC202104", "OC202105", "OC202106", "OC202107", "OC202108", "OC202109", "OC202110", "OC202111", "OC202112", "OC202201", "OC202202", "OC202203"];
     const gmvs = ["GMV201901", "GMV201902", "GMV201903", "GMV201904", "GMV201905", "GMV201906", "GMV201907", "GMV201908", "GMV201909", "GMV201910", "GMV201911", "GMV201912", "GMV202001", "GMV202002", "GMV202003", "GMV202004", "GMV202005", "GMV202006", "GMV202007", "GMV202008", "GMV202009", "GMV202010", "GMV202011", "GMV202012", "GMV202101", "GMV202102", "GMV202103", "GMV202104", "GMV202105", "GMV202106", "GMV202107", "GMV202108", "GMV202109", "GMV202110", "GMV202111", "GMV202112", "GMV202201", "GMV202202", "GMV202203"];
-    let payload = {_id: 0, bm_id: 1, matched_qm_id: 1};
+    let payload = {_id: 1, bm_id: 1, matched_qm_id: 1};
     [...ocs, ...gmvs].forEach(f => payload[f] = 1);
     while (true) {
       const temp = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
@@ -288,21 +288,26 @@ export class QmBmSstDashboardComponent implements OnInit {
   async getUnifiedStats() {
     const data = await this.getUnifiedData();
     const dict = {[KPIPeriodOptions.Yearly]: {}, [KPIPeriodOptions.Monthly]: {}, [KPIPeriodOptions.Quarterly]: {}};
-    const accumulate = (cat: KPIPeriodOptions, key, {bid, qid, oc, gmv}) => {
-      let temp = dict[cat][key] || { gmv: {qm: 0, bm: 0}, oc: {qm: 0, bm: 0}, ar: {qm: new Set(), bm: new Set()} };
+    const accumulate = (cat: KPIPeriodOptions, key, {id, bid, qid, oc, gmv}) => {
+      let temp = dict[cat][key] || { gmv: {qm: 0, bm: 0, both: 0}, oc: {qm: 0, bm: 0, both: 0}, ar: {qm: new Set(), bm: new Set(), both: new Set()} };
       if (bid) {
         temp.oc.bm += oc;
         temp.gmv.bm += gmv;
         if (oc > 0) {
-          temp.ar.bm.add(bid);
+          temp.ar.bm.add(id);
         }
       }
       if (qid) {
         temp.oc.qm += oc;
         temp.gmv.qm += gmv;
         if (oc > 0) {
-          temp.ar.qm.add(qid);
+          temp.ar.qm.add(id);
         }
+      }
+      temp.oc.both += oc;
+      temp.gmv.both += gmv;
+      if (oc > 0) {
+        temp.ar.both.add(id);
       }
       dict[cat][key] = temp;
     }
@@ -312,7 +317,7 @@ export class QmBmSstDashboardComponent implements OnInit {
     data.forEach(row => {
       let months = getMonths(Object.keys(row));
       months.forEach(ym => {
-        let tmp = {bid: row.bm_id, qid: row.matched_qm_id, oc: row[`OC${ym}`] || 0, gmv: row[`GMV${ym}`] || 0};
+        let tmp = {id: row._id, bid: row.bm_id, qid: row.matched_qm_id, oc: row[`OC${ym}`] || 0, gmv: row[`GMV${ym}`] || 0};
         let year = ym.substr(0, 4), mon = ym.substr(4);
         let quarter = Math.ceil(Number(mon) / 3), shortYear = year.substr(2);
         accumulate(KPIPeriodOptions.Monthly, shortYear + ' ' + Months[Number(mon) - 1], tmp);
@@ -322,8 +327,8 @@ export class QmBmSstDashboardComponent implements OnInit {
     });
     [KPIPeriodOptions.Yearly, KPIPeriodOptions.Quarterly, KPIPeriodOptions.Monthly].forEach(cat => {
       // @ts-ignore
-      Object.entries(dict[cat]).forEach(([period, {ar: {qm, bm}}]) => {
-        dict[cat][period].ar = {qm: qm.size, bm: bm.size};
+      Object.entries(dict[cat]).forEach(([period, {ar: {qm, bm, both}}]) => {
+        dict[cat][period].ar = {qm: qm.size, bm: bm.size, both: both.size};
       })
     })
     this.kpi = dict;
@@ -384,8 +389,6 @@ export class QmBmSstDashboardComponent implements OnInit {
               address: "$googleAddress.formatted_address",
               cid: '$googleListing.cid',
               disabled: 1,
-              'gmbOwnerHistory.time': 1,
-              'gmbOwnerHistory.gmbOwner': 1,
               website: "$web.qmenuWebsite",
               name: 1,
               courier: '$courier.name',
@@ -398,17 +401,28 @@ export class QmBmSstDashboardComponent implements OnInit {
             }
           }
         ],
-      }, 5000));
+      }, 6000));
 
       const gmbBiz = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbBiz',
-        projection: {cid: 1, gmbOwner: 1, place_id: 1},
+        projection: {cid: 1, gmbOwner: 1, qmenuId: 1, place_id: 1, gmbWebsite: 1},
         limit: 1000000000
       }).toPromise();
-      let gmbWebsiteOwnerDict = {};
-      gmbBiz.forEach(({cid, place_id, gmbOwner}) => {
-        gmbWebsiteOwnerDict[place_id + cid] = gmbOwner
+      let gmbWebsiteOwnerDict = {}, gmbWebsiteDict = {};
+      gmbBiz.forEach(({cid, place_id, qmenuId, gmbOwner, gmbWebsite}) => {
+        let key = place_id + cid;
+        gmbWebsiteOwnerDict[key] = gmbOwner;
+        if (qmenuId) {
+          gmbWebsiteOwnerDict[qmenuId + cid] = gmbOwner;
+        }
+        gmbWebsiteDict[key] = gmbWebsite;
       })
+
+      const accounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+        resource: 'gmbAccount',
+        query: {},
+        projection: {'locations.cid': 1, 'locations.status': 1, 'locations.role': 1}
+      }, 500);
 
       let date = new Date();
       date.setDate(date.getDate() - 30);
@@ -426,17 +440,14 @@ export class QmBmSstDashboardComponent implements OnInit {
         if (rt.place_id) {
           this.qmRTsPlaceDict[rt.place_id] = rt;
         }
+        let key = rt.place_id + rt.cid;
         // active: has order in last 30 days
         rt.inactive = !rtsHasOrderSet.has(rt._id);
         rt.tier = this.getTier(rt.ordersPerMonth)
 
-        if (rt.gmbOwnerHistory && rt.gmbOwnerHistory.length > 0) {
-          rt.gmbOwnerHistory.sort((a, b) => new Date(b.time).valueOf() - new Date(a.time).valueOf());
-          rt.hasGmb = rt.gmbOwnerHistory[0].gmbOwner === 'qmenu';
-        } else {
-          rt.hasGmb = false
-        }
-        rt.hasGMBWebsite = gmbWebsiteOwnerDict[rt.place_id + rt.cid] === 'qmenu'
+        rt.hasGmb = (gmbWebsiteOwnerDict[key] || gmbWebsiteOwnerDict[rt._id + rt.cid]) && accounts.some(acc => (acc.locations || []).some(loc => loc.cid === rt.cid && loc.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].includes(loc.role)))
+        rt.hasGMBWebsite = gmbWebsiteOwnerDict[key] === 'qmenu' || gmbWebsiteOwnerDict[rt._id + rt.cid] === 'qmenu';
+
         rt.postmatesAvailable = this.postmatesAvailable(rt)
         if (rt.channels && rt.channels.length > 0) {
           let mainChannel = rt.channels.find(({type, notifications}) => type === 'Phone' && (notifications || []).includes('Business'));
@@ -448,7 +459,7 @@ export class QmBmSstDashboardComponent implements OnInit {
             this.qmRTsPhoneDict[rt.mainPhone] = rt;
           }
         }
-      })
+      });
       // --- BeyondMenu restaurants
       let bmRTs = await this._api.post(environment.gmbNgrok + 'get-bm-restaurant').toPromise();
       this.bmRTsPlaceDict = {};
@@ -476,7 +487,6 @@ export class QmBmSstDashboardComponent implements OnInit {
           baddress: `${item.Address}, ${item.City || ''}, ${item.State || ''} ${item.ZipCode || ''}`.trim(),
           bdisabled: !item.Active,
           bwebsite: item.CustomerDomainName,
-          bhasGMBWebsite: item.CustomerDomainName && item.IsBmGmbControl, // todo: logic to be confirmed
           bname: item.BusinessName,
           bowner: 'beyondmenu',
           bhasGmb: item.IsBmGmbControl,
@@ -504,6 +514,7 @@ export class QmBmSstDashboardComponent implements OnInit {
         item.bworthy = item._id && (item.disabled || (!item.hasGmb && !item.hasGMBWebsite))
         return item;
       });
+      console.log('gmb conflict...', this.unionRTs.filter(x => x.hasGmb && x.bhasGmb).map(({_id, _bid}) => ({_id, _bid})));
       this.filter();
     } catch (error) {
       console.error(error);
@@ -741,6 +752,7 @@ export class QmBmSstDashboardComponent implements OnInit {
         break;
     }
 
+    // currently, we cannot detect if beyondmenu has gmbwebsite
     switch (gmbWebsite) {
       case GMBWebsiteOptions.Bm:
         list = list.filter(rt => rt.bhasGMBWebsite)
