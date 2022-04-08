@@ -3,6 +3,7 @@ import { environment } from 'src/environments/environment';
 import { GlobalService } from './../../../services/global.service';
 import { ApiService } from './../../../services/api.service';
 import { Component, OnInit } from '@angular/core';
+import { RouterLinkWithHref } from '@angular/router';
 
 enum pmtCollectTypes {
   All = 'Payment Collect Type?',
@@ -71,7 +72,8 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
           $project: {
             name: 1,
             serviceSettings: 1,
-            hidePrintingCCInfo: 1
+            hidePrintingCCInfo: 1,
+            hideNonPCIData: 1,
           }
         },
         {
@@ -83,6 +85,7 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     // add a temp new property showPrintingCCInfo to control q-toggle
     this.rows.forEach(row => {
       row.showPrintingCCInfo = !row.hidePrintingCCInfo;
+      row.showNonPCIData = !row.hideNonPCIData;
     });
     this.filterRTs();
   }
@@ -113,20 +116,24 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     }
   }
 
-  async toggleEnabled(rt, event) {
-    rt.hidePrintingCCInfo = !rt.showPrintingCCInfo;
+  async toggleEnabled(rt, property) {
+    rt[property] = !rt[property];
+    const oldNewPatchData = {
+      old: { _id: rt._id },
+      new: { _id: rt._id }
+    };
+    oldNewPatchData.new[property] = rt[property];
+
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
-      {
-        old: { _id: rt._id },
-        new: { _id: rt._id, hidePrintingCCInfo: rt.hidePrintingCCInfo },
-      }
+      oldNewPatchData
     ]).subscribe(results => {
       this._global.publishAlert(AlertType.Success, `${rt.name} updated!`);
     },
       error => {
         this._global.publishAlert(AlertType.Danger, error);
       });
+
+      // RT may have changed category after the toggle, so we should re-filter
+      this.filterRTs();
   }
-
-
 }

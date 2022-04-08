@@ -6,12 +6,12 @@
     <div class="row">
       <div class="col-auto mb-3">
         <select [(ngModel)]="pmtCollectOption" class="form-control" (change)="filterRTs()">
-          <option *ngFor="let option of pmtCollectOptions" >{{option}}</option>
+          <option *ngFor="let option of pmtCollectOptions">{{option}}</option>
         </select>
       </div>
       <div class="col-auto mb-3">
         <select [(ngModel)]="printCCOption" class="form-control" (change)="filterRTs()">
-          <option *ngFor="let option of printCCOptions" >{{option}}</option>
+          <option *ngFor="let option of printCCOptions">{{option}}</option>
         </select>
       </div>
       <div class="col-auto mb-3">
@@ -34,12 +34,17 @@
             {{service.name}}: {{(service.paymentMethods || []).join(', ') || 'N/A'}}
           </div>
           <div>
-            <q-toggle [(ngModel)]="r.showPrintingCCInfo" (change)="toggleEnabled(r, $event)"></q-toggle>
-            <span>Print All CC Info</span> 
+            <q-toggle [(ngModel)]="r.showPrintingCCInfo" (change)="toggleEnabled(r, 'hidePrintingCCInfo')"></q-toggle>
+            <span>Print CC Info</span>
+          </div>
+
+          <div>
+            <q-toggle [(ngModel)]="r.showNonPCIData" (change)="toggleEnabled(r, 'hideNonPCIData')">
+            </q-toggle>
+            <span>Show non-PCI Data</span>
           </div>
         </td>
       </tr>
     </q-table>
   </div>
 </div>
-
