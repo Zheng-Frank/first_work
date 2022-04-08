@@ -57,6 +57,13 @@ enum GMBStatusOptions {
   NeitherOwned = 'Neither BM/QM Owned'
 }
 
+enum GMBWebsiteOptions {
+  Bm = 'BM',
+  Qm = 'QM',
+  BmOrQm = 'BM or QM',
+  Other = 'Other'
+}
+
 enum PostmatesOptions {
   HasInQm = 'Has Postmates in QM',
   NoInQm = 'No Postmates in QM',
@@ -109,12 +116,13 @@ export class QmBmSstDashboardComponent implements OnInit {
     postmates: '',
     pricing: '',
     perspective: '',
-    worthiness: ''
+    worthiness: '',
+    gmbWebsite: ''
   }
 
   sumBmActiveOnly = true;
   sumQmActiveOnly = true;
-
+  sumOPMLevel = 100;
   summary = {
     overall: [],
     both: [],
@@ -321,6 +329,10 @@ export class QmBmSstDashboardComponent implements OnInit {
     this.kpi = dict;
   }
 
+  countByOrdersPerMonth(list) {
+    let num = list.filter(rt => rt.ordersPerMonth >= this.sumOPMLevel).length;
+    return `${num} (${num ? (Math.round((num / list.length) * 10000) / 100) : 0}%)`
+  }
   countByTier(list, tier) {
     let num = list.filter(rt => this.getEiterTier(rt) === tier).length;
     return `${num} (${num ? (Math.round((num / list.length) * 10000) / 100) : 0}%)`
@@ -350,6 +362,7 @@ export class QmBmSstDashboardComponent implements OnInit {
       place_id: PlaceIdOptions,
       name: RTsNameOptions,
       gmb: GMBStatusOptions,
+      gmb_website: GMBWebsiteOptions,
       postmates: PostmatesOptions,
       pricing: PricingOptions,
       perspective: SalesPerspectiveOptions,
@@ -378,10 +391,10 @@ export class QmBmSstDashboardComponent implements OnInit {
               courier: '$courier.name',
               lat: '$googleAddress.lat',
               lng: '$googleAddress.lng',
-              score: "$score",
               createdAt: "$createdAt",
               owner: "$googleListing.gmbOwner",
               channels: 1,
+              ordersPerMonth: '$computed.tier.ordersPerMonth'
             }
           }
         ],
@@ -415,7 +428,7 @@ export class QmBmSstDashboardComponent implements OnInit {
         }
         // active: has order in last 30 days
         rt.inactive = !rtsHasOrderSet.has(rt._id);
-        rt.tier = this.getTier(rt.score)
+        rt.tier = this.getTier(rt.ordersPerMonth)
 
         if (rt.gmbOwnerHistory && rt.gmbOwnerHistory.length > 0) {
           rt.gmbOwnerHistory.sort((a, b) => new Date(b.time).valueOf() - new Date(a.time).valueOf());
@@ -463,6 +476,7 @@ export class QmBmSstDashboardComponent implements OnInit {
           baddress: `${item.Address}, ${item.City || ''}, ${item.State || ''} ${item.ZipCode || ''}`.trim(),
           bdisabled: !item.Active,
           bwebsite: item.CustomerDomainName,
+          bhasGMBWebsite: item.CustomerDomainName && item.IsBmGmbControl, // todo: logic to be confirmed
           bname: item.BusinessName,
           bowner: 'beyondmenu',
           bhasGmb: item.IsBmGmbControl,
@@ -539,22 +553,17 @@ export class QmBmSstDashboardComponent implements OnInit {
     return minDistance < 0.5 && (['V1', 'V2', 'V3', 'V4'].includes(this.viabilities[index].Viability));
   }
 
-  getTier(score) {
-    // 30.2: avg days per month, 0.7: discount factor
-    let value = (score || 0) * 30.2 * 0.7;
-    if (value > 40) {
+  getTier(ordersPerMonth) {
+    if (ordersPerMonth > 125) { // VIP
+      return 0;
+    }
+    if (ordersPerMonth > 40) {
       return 1;
     }
-    if (value > 4) {
+    if (ordersPerMonth > 4) {
       return 2;
     }
-    // count 0 to tier 3
-    if (value >= 0) {
-      return 3;
-    }
-    // data incorrect!!!, log it out.
-    console.error('score ', score)
-    return 0;
+    return 3;
   }
 
   getPlaceId(row) {
@@ -567,13 +576,13 @@ export class QmBmSstDashboardComponent implements OnInit {
     return 'N/A';
   }
 
-  getTierColor(tier = 0, btier = 0) {
-    return ['', "bg-success", "bg-warning", "bg-danger"][Math.min(tier, btier) || Math.max(tier, btier)]
+  getTierColor(tier = 3, btier = 3) {
+    return ['bg-info', "bg-success", "bg-warning", "bg-danger"][Math.min(tier, btier)]
   }
 
   getEiterTier(rt) {
-    let qt = rt.tier || 0, bt = rt.btier || 0;
-    return (Math.min(qt, bt) || Math.max(qt, bt))
+    let qt = rt.tier || 3, bt = rt.btier || 3;
+    return Math.min(qt, bt)
   }
 
   getWorthy(rt) {
@@ -620,7 +629,7 @@ export class QmBmSstDashboardComponent implements OnInit {
   filter() {
     let {
       platform, status, tier, hasPlaceId,
-      sameName, gmbStatus, pricing, postmates,
+      sameName, gmbStatus, gmbWebsite, pricing, postmates,
       perspective, worthiness, keyword
     } = this.filters;
     let list = this.unionRTs;
@@ -732,6 +741,21 @@ export class QmBmSstDashboardComponent implements OnInit {
         break;
     }
 
+    switch (gmbWebsite) {
+      case GMBWebsiteOptions.Bm:
+        list = list.filter(rt => rt.bhasGMBWebsite)
+        break;
+      case GMBWebsiteOptions.Qm:
+        list = list.filter(rt => rt.hasGMBWebsite)
+        break;
+      case GMBWebsiteOptions.BmOrQm:
+        list = list.filter(rt => rt.hasGMBWebsite || rt.bhasGMBWebsite)
+        break;
+      case GMBWebsiteOptions.Other:
+        list = list.filter(rt => !rt.hasGMBWebsite && !rt.bhasGMBWebsite)
+        break;
+    }
+
     switch (postmates) {
       case PostmatesOptions.HasInQm:
         list = list.filter(rt => rt._id && rt.courier === 'Postmates');
@@ -805,6 +829,7 @@ export class QmBmSstDashboardComponent implements OnInit {
       sameName: '',
       tier: '',
       gmbStatus: '',
+      gmbWebsite: '',
       postmates: '',
       pricing: '',
       perspective: '',
