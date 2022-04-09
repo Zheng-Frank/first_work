@@ -275,7 +275,7 @@ export class QmBmSstDashboardComponent implements OnInit {
         skip, limit: skip + size
       }).toPromise();
       data.push(...temp);
-      if (temp.length > size) {
+      if (temp.length === size) {
         skip += size;
       } else {
         break;
