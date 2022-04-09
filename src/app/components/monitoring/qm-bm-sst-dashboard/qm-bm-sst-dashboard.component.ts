@@ -304,7 +304,7 @@ export class QmBmSstDashboardComponent implements OnInit {
     const { unified, bm_data, qm_data } = await this.getMonthlyData();
 
     // use dict to save rt match relationship for easy access in below
-    const rt_dict = {bm: {}, qm: {}}
+    const rt_dict = {bm: {}, qm: {}}, union_ids = new Set();
     unified.forEach(({_id, bm_id, qm_id}) => {
       if (bm_id) {
         rt_dict.bm[bm_id] = _id;
@@ -312,23 +312,30 @@ export class QmBmSstDashboardComponent implements OnInit {
       if (qm_id) {
         rt_dict.qm[qm_id] = _id;
       }
+      union_ids.add(_id);
     });
 
     const dict = {[KPIPeriodOptions.Yearly]: {}, [KPIPeriodOptions.Monthly]: {}, [KPIPeriodOptions.Quarterly]: {}};
     const Months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const non_union_ids = new Set();
     const accumulate = (period_cat: KPIPeriodOptions, period, { platform, oc, gmv, id}) => {
       let temp = dict[period_cat][period] || {
         gmv: {qm: 0, bm: 0, both: 0},
         oc: {qm: 0, bm: 0, both: 0},
         ar: {qm: new Set(), bm: new Set(), both: new Set()}
       };
-      temp.gmv[platform] += gmv;
-      temp.gmv.both += gmv;
-      temp.oc[platform] += oc;
-      temp.oc.both += oc;
-      if (oc > 0) {
-        temp.ar[platform].add(id)
-        temp.ar.both.add(rt_dict[platform][id]);
+      let union_id = rt_dict[platform][id];
+      if (union_id) {
+        temp.gmv[platform] += gmv;
+        temp.gmv.both += gmv;
+        temp.oc[platform] += oc;
+        temp.oc.both += oc;
+        if (oc > 0) {
+          temp.ar[platform].add(id)
+          temp.ar.both.add(union_id);
+        }
+      } else {
+        non_union_ids.add(id);
       }
       dict[period_cat][period] = temp;
     };
@@ -354,6 +361,7 @@ export class QmBmSstDashboardComponent implements OnInit {
       })
     });
     this.kpi = dict;
+    console.log('RT IDs do not exists in unified collection...', Array.from(non_union_ids));
     this.kpiHeaders[KPIPeriodOptions.Yearly] = Array.from(years).sort((a, b) => Number(a) - Number(b));
     this.kpiHeaders[KPIPeriodOptions.Quarterly] = Array.from(quarters).sort((a, b) => {
       let [year_a, quarter_a] = a.split(' '),
