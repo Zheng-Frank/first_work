@@ -265,27 +265,37 @@ export class QmBmSstDashboardComponent implements OnInit {
     return this.kpiHeaders[this.kpiFilters[type].period]
   }
 
+  async getByBatch(resource) {
+    let data = [], skip = 0, size = 200000;
+    while (true) {
+      const temp = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
+        method: 'get', resource,
+        query: {_id: {$exists: true}}, // any items
+        payload: {_id: 0, count_orders: 1, sum_total: 1, month: 1, bmid: 1, qmid: 1},
+        skip, limit: skip + size
+      }).toPromise();
+      data.push(...temp);
+      if (temp.length > size) {
+        skip += size;
+      } else {
+        break;
+      }
+    }
+    return data;
+  }
+
   async getMonthlyData() {
     let unified = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
       method: 'get',
-      resource: 'unified_koreanbbq',
+      resource: 'unified_koreanbbqv2',
       query: {_id: {$exists: true}}, // any items
-      payload: {_id: 1, bm_id: 1, matched_qm_id: 1}
+      payload: {_id: 1, bm_id: 1, matched_qm_id: 1},
+      limit: 10000000
     }).toPromise();
 
-    const bm_data = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
-      method: 'get',
-      resource: 'bm-monthly-summary',
-      query: {_id: {$exists: true}}, // any items
-      payload: {_id: 0, count_orders: 1, sum_total: 1, month: 1, bmid: 1}
-    }).toPromise();
+    const bm_data = await this.getByBatch('bm-monthly-summary');
 
-    const qm_data = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
-      method: 'get',
-      resource: 'bm-monthly-summary',
-      query: {_id: {$exists: true}}, // any items
-      payload: {_id: 0, count_orders: 1, sum_total: 1, month: 1, qmid: 1}
-    }).toPromise();
+    const qm_data = await this.getByBatch('qm-monthly-summary');
 
     return { unified, bm_data, qm_data };
   }
