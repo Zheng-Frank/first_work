@@ -33,7 +33,7 @@ export class RestaurantPromotionsComponent implements OnInit {
   }
 
   existingCodes() {
-    return this.restaurant.promotions.filter(p => !this.promotionInEditing || p.id !== this.promotionInEditing.id).map(p => p.code).filter(x => !!x);
+    return (this.restaurant.promotions || []).filter(p => !this.promotionInEditing || p.id !== this.promotionInEditing.id).map(p => p.code).filter(x => !!x);
   }
 
   toggleEditing() {
