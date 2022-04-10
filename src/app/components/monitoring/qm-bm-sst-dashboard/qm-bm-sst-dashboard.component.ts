@@ -684,12 +684,12 @@ export class QmBmSstDashboardComponent implements OnInit {
     return 'N/A';
   }
 
-  getTierColor(tier = 3, btier = 3) {
+  getTierColor(tier, btier) {
     return ['bg-info', "bg-success", "bg-warning", "bg-danger"][Math.min(tier, btier)]
   }
 
   getEiterTier(rt) {
-    let qt = rt.tier || 3, bt = rt.btier || 3;
+    let qt = rt.tier, bt = rt.btier;
     return Math.min(qt, bt)
   }
 
