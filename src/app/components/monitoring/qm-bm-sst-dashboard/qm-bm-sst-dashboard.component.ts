@@ -160,6 +160,11 @@ export class QmBmSstDashboardComponent implements OnInit {
     }
   };
   kpi = {};
+  kpiHeaders = {
+    [KPIPeriodOptions.Yearly]: [],
+    [KPIPeriodOptions.Quarterly]: [],
+    [KPIPeriodOptions.Monthly]: []
+  }
 
   constructor(private _api: ApiService) { }
 
@@ -167,11 +172,7 @@ export class QmBmSstDashboardComponent implements OnInit {
     $("[data-toggle='tooltip']").tooltip();
     await this.getViabilities();
     await this.preload();
-    await this.getUnifiedStats();
-  }
-
-  getKPIHeaders(type: 'normal' | 'over') {
-    return Object.keys(this.kpi[this.kpiFilters[type].period]);
+    await this.getUnifiedData();
   }
 
   kpiNormalDownload() {
@@ -203,9 +204,8 @@ export class QmBmSstDashboardComponent implements OnInit {
 
   getKpiNormalList() {
     let { period, platform } = this.kpiFilters.normal;
-    let headers = Object.keys(this.kpi[period]);
     let gmvs = [], ocs = [], aovs = [], ars = [];
-    headers.forEach(key => {
+    this.kpiHeaders[period].forEach(key => {
       let { gmv, oc, ar } = this.kpi[period][key];
       let tmpGmv = this.getKpiDataByPlatform(gmv, platform);
       let tmpOc = this.getKpiDataByPlatform(oc, platform);
@@ -232,8 +232,8 @@ export class QmBmSstDashboardComponent implements OnInit {
 
   getKpiOverList() {
     let { period, platform } = this.kpiFilters.over;
-    let headers = Object.keys(this.kpi[period]);
     let gmvs = [], ocs = [], aovs = [], ars = [];
+    let headers = this.kpiHeaders[period];
     for (let i = 0; i < headers.length; i++) {
       let cur = headers[i], prev = headers[i - 1];
       let { gmv, oc, ar } = this.kpi[period][cur];
@@ -261,22 +261,21 @@ export class QmBmSstDashboardComponent implements OnInit {
     return [gmvs, ocs, ars, aovs];
   }
 
-  async getUnifiedData() {
-    let data = [], skip = 0, size = 3000;
-    const ocs = ["OC201901", "OC201902", "OC201903", "OC201904", "OC201905", "OC201906", "OC201907", "OC201908", "OC201909", "OC201910", "OC201911", "OC201912", "OC202001", "OC202002", "OC202003", "OC202004", "OC202005", "OC202006", "OC202007", "OC202008", "OC202009", "OC202010", "OC202011", "OC202012", "OC202101", "OC202102", "OC202103", "OC202104", "OC202105", "OC202106", "OC202107", "OC202108", "OC202109", "OC202110", "OC202111", "OC202112", "OC202201", "OC202202", "OC202203"];
-    const gmvs = ["GMV201901", "GMV201902", "GMV201903", "GMV201904", "GMV201905", "GMV201906", "GMV201907", "GMV201908", "GMV201909", "GMV201910", "GMV201911", "GMV201912", "GMV202001", "GMV202002", "GMV202003", "GMV202004", "GMV202005", "GMV202006", "GMV202007", "GMV202008", "GMV202009", "GMV202010", "GMV202011", "GMV202012", "GMV202101", "GMV202102", "GMV202103", "GMV202104", "GMV202105", "GMV202106", "GMV202107", "GMV202108", "GMV202109", "GMV202110", "GMV202111", "GMV202112", "GMV202201", "GMV202202", "GMV202203"];
-    let payload = {_id: 1, bm_id: 1, matched_qm_id: 1};
-    [...ocs, ...gmvs].forEach(f => payload[f] = 1);
+  getKPIHeaders(type) {
+    return this.kpiHeaders[this.kpiFilters[type].period]
+  }
+
+  async getByBatch(resource, size = 60000) {
+    let data = [], skip = 0;
     while (true) {
       const temp = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
-        method: 'get',
-        resource: 'unified_koreanbbq',
+        method: 'get', resource,
         query: {_id: {$exists: true}}, // any items
-        payload, skip,
-        limit: size
+        payload: {_id: 0, count_orders: 1, sum_total: 1, month: 1, bmid: 1, qmid: 1},
+        skip, limit: size
       }).toPromise();
-      if (temp.length > 0) {
-        data.push(...temp);
+      data.push(...temp);
+      if (temp.length === size) {
         skip += size;
       } else {
         break;
@@ -285,8 +284,106 @@ export class QmBmSstDashboardComponent implements OnInit {
     return data;
   }
 
+  async getMonthlyData() {
+    let unified = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
+      method: 'get',
+      resource: 'unified_koreanbbqv2',
+      query: {_id: {$exists: true}}, // any items
+      payload: {_id: 1, bm_id: 1, qm_id: 1},
+      limit: 10000000
+    }).toPromise();
+
+    const bm_data = await this.getByBatch('bm-monthly-summary');
+
+    const qm_data = await this.getByBatch('qm-monthly-summary', 50000);
+
+    return { unified, bm_data, qm_data };
+  }
+
+  async getUnifiedData() {
+    const { unified, bm_data, qm_data } = await this.getMonthlyData();
+
+    // use dict to save rt match relationship for easy access in below
+    const rt_dict = {bm: {}, qm: {}}, union_ids = new Set();
+    unified.forEach(({_id, bm_id, qm_id}) => {
+      if (bm_id) {
+        rt_dict.bm[bm_id] = _id;
+      }
+      if (qm_id) {
+        rt_dict.qm[qm_id] = _id;
+      }
+      union_ids.add(_id);
+    });
+
+    const dict = {[KPIPeriodOptions.Yearly]: {}, [KPIPeriodOptions.Monthly]: {}, [KPIPeriodOptions.Quarterly]: {}};
+    const Months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const non_union_ids = new Set();
+    const accumulate = (period_cat: KPIPeriodOptions, period, { platform, oc, gmv, id}) => {
+      let temp = dict[period_cat][period] || {
+        gmv: {qm: 0, bm: 0, both: 0},
+        oc: {qm: 0, bm: 0, both: 0},
+        ar: {qm: new Set(), bm: new Set(), both: new Set()}
+      };
+      let union_id = rt_dict[platform][id];
+      if (union_id) {
+        temp.gmv[platform] += gmv;
+        temp.gmv.both += gmv;
+        temp.oc[platform] += oc;
+        temp.oc.both += oc;
+        if (oc > 0) {
+          temp.ar[platform].add(id)
+          temp.ar.both.add(union_id);
+        }
+      } else {
+        non_union_ids.add(id);
+      }
+      dict[period_cat][period] = temp;
+    };
+    let years = new Set(), quarters = new Set(), months = new Set();
+    const process_item = ({id, platform, month, count_orders, sum_total}: any) => {
+      let [y, m] = month.split('T')[0].split('-');
+      let quarter = Math.ceil(Number(m) / 3), shortYear = y.substr(2);
+      let tmp = { platform, oc: count_orders, gmv: sum_total, id};
+      let month_key = shortYear + ' ' + Months[Number(m) - 1], quarter_key = shortYear + ' ' + 'Q' + quarter;
+      accumulate(KPIPeriodOptions.Monthly, month_key, tmp);
+      accumulate(KPIPeriodOptions.Quarterly, quarter_key, tmp);
+      accumulate(KPIPeriodOptions.Yearly, y, tmp);
+      years.add(y);
+      quarters.add(quarter_key);
+      months.add(month_key);
+    }
+    bm_data.forEach(({bmid, ...rest}) => process_item({id: bmid, platform: 'bm', ...rest}));
+    qm_data.forEach(({qmid, ...rest}) => process_item({id: qmid, platform: 'qm', ...rest}));
+    [KPIPeriodOptions.Yearly, KPIPeriodOptions.Quarterly, KPIPeriodOptions.Monthly].forEach(cat => {
+      // @ts-ignore
+      Object.entries(dict[cat]).forEach(([period, {ar: {qm, bm, both}}]) => {
+        dict[cat][period].ar = {qm: qm.size, bm: bm.size, both: both.size};
+      })
+    });
+    this.kpi = dict;
+    console.log('RT IDs do not exists in unified collection...', Array.from(non_union_ids));
+    this.kpiHeaders[KPIPeriodOptions.Yearly] = Array.from(years).sort((a, b) => Number(a) - Number(b));
+    this.kpiHeaders[KPIPeriodOptions.Quarterly] = Array.from(quarters).sort((a, b) => {
+      let [year_a, quarter_a] = a.split(' '),
+        [year_b, quarter_b] = b.split(' ');
+      if (year_a !== year_b) {
+        return Number(year_a) - Number(year_b);
+      }
+      return Number(quarter_a.substr(1)) - Number(quarter_b.substr(1));
+    });
+    this.kpiHeaders[KPIPeriodOptions.Monthly] = Array.from(months).sort((a, b) => {
+      let [year_a, month_a] = a.split(' '),
+        [year_b, month_b] = b.split(' ');
+      if (year_a !== year_b) {
+        return Number(year_a) - Number(year_b);
+      }
+      return Months.indexOf(month_a) - Months.indexOf(month_b);
+    });
+  }
+
   async getUnifiedStats() {
-    const data = await this.getUnifiedData();
+    // const data = await this.getUnifiedData();
+    const data = []
     const dict = {[KPIPeriodOptions.Yearly]: {}, [KPIPeriodOptions.Monthly]: {}, [KPIPeriodOptions.Quarterly]: {}};
     const accumulate = (cat: KPIPeriodOptions, key, {id, bid, qid, oc, gmv}) => {
       let temp = dict[cat][key] || { gmv: {qm: 0, bm: 0, both: 0}, oc: {qm: 0, bm: 0, both: 0}, ar: {qm: new Set(), bm: new Set(), both: new Set()} };
@@ -587,12 +684,12 @@ export class QmBmSstDashboardComponent implements OnInit {
     return 'N/A';
   }
 
-  getTierColor(tier = 3, btier = 3) {
+  getTierColor(tier, btier) {
     return ['bg-info', "bg-success", "bg-warning", "bg-danger"][Math.min(tier, btier)]
   }
 
   getEiterTier(rt) {
-    let qt = rt.tier || 3, bt = rt.btier || 3;
+    let qt = rt.tier, bt = rt.btier;
     return Math.min(qt, bt)
   }
 
