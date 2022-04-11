@@ -436,7 +436,7 @@ export class QmBmSstDashboardComponent implements OnInit {
     return `${num} (${num ? (Math.round((num / list.length) * 10000) / 100) : 0}%)`
   }
   countByTier(list, tier) {
-    let num = list.filter(rt => this.getEiterTier(rt) === tier).length;
+    let num = list.filter(rt => this.getEitherTier(rt) === tier).length;
     return `${num} (${num ? (Math.round((num / list.length) * 10000) / 100) : 0}%)`
   }
 
@@ -686,10 +686,10 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   getTierColor(tier, btier) {
-    return ['bg-info', "bg-success", "bg-warning", "bg-danger"][this.getEiterTier({tier, btier})]
+    return ['bg-info', "bg-success", "bg-warning", "bg-danger"][this.getEitherTier({tier, btier})]
   }
 
-  getEiterTier({tier, btier}) {
+  getEitherTier({tier, btier}) {
     let qt = Number.isInteger(tier) ? tier : 3, bt = Number.isInteger(btier) ? btier : 3;
     return Math.min(qt, bt);
   }
@@ -813,13 +813,13 @@ export class QmBmSstDashboardComponent implements OnInit {
 
     switch (tier) {
       case TierOptions.Tier1Either:
-        list = list.filter(rt => this.getEiterTier(rt) === 1)
+        list = list.filter(rt => this.getEitherTier(rt) === 1)
         break;
       case TierOptions.Tier2Either:
-        list = list.filter(rt => this.getEiterTier(rt) === 2)
+        list = list.filter(rt => this.getEitherTier(rt) === 2)
         break;
       case TierOptions.Tier3Either:
-        list = list.filter(rt => this.getEiterTier(rt) === 3)
+        list = list.filter(rt => this.getEitherTier(rt) === 3)
         break;
       case TierOptions.Tier1Both:
         list = list.filter(rt => rt.tier === 1 && rt.btier === 1)
