@@ -311,12 +311,12 @@
             <div>
               <div>place_id: {{getPlaceId(row)}}</div>
               <div *ngIf="row._id && !row.hide">
-                QM: Tier {{row.tier || 'N/A'}}, ID: {{row._id}},
+                QM: Tier {{row.tier}}, ID: {{row._id}},
                 <ng-container *ngIf="row.createdAt">created: {{row.createdAt | dateTz: "yyyy-MM-dd": "America/New_York"}}</ng-container>,
                 domain: <a *ngIf="row.website" [href]="row.website">{{row.website}}</a>
               </div>
               <ng-container *ngIf="row._bid && !row.bhide">
-                <div>BM: Tier {{row.btier || 'N/A'}}, ID: {{row._bid}}, <ng-container *ngIf="row.createdAt">created: {{row.createdAt | dateTz: "YYYY-MM-DD": "America/New_York"}}</ng-container>, domain: <a [href]="row.bwebsite">{{row.bwebsite}}</a></div>
+                <div>BM: Tier {{row.btier}}, ID: {{row._bid}}, <ng-container *ngIf="row.createdAt">created: {{row.createdAt | dateTz: "YYYY-MM-DD": "America/New_York"}}</ng-container>, domain: <a [href]="row.bwebsite">{{row.bwebsite}}</a></div>
                 <div *ngIf="showPricing">BM Pricing: {{row.bpricing}}</div>
               </ng-container>
             </div>
