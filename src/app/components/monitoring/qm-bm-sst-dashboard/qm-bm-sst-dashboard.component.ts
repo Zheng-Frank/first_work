@@ -37,7 +37,7 @@ enum TierOptions {
   Tier1Both = 'Tier 1 (Both)',
   Tier2Both = 'Tier 2 (Both)',
   Tier3Both = 'Tier 3 (Both)',
-  Unknown = 'Unknown'
+  VIP = 'VIP (B or Q)'
 }
 
 enum PlaceIdOptions {
@@ -436,15 +436,15 @@ export class QmBmSstDashboardComponent implements OnInit {
     return `${num} (${num ? (Math.round((num / list.length) * 10000) / 100) : 0}%)`
   }
   countByTier(list, tier) {
-    let num = list.filter(rt => this.getEiterTier(rt) === tier).length;
+    let num = list.filter(rt => this.getEitherTier(rt) === tier).length;
     return `${num} (${num ? (Math.round((num / list.length) * 10000) / 100) : 0}%)`
   }
 
   calcSummary() {
     this.summary.overall = this.filteredRows;
     this.summary.both = this.filteredRows.filter(({_id, _bid}) => _id && _bid);
-    this.summary.qmOnly = this.filteredRows.filter(({_id, place_id}) => _id && !this.bmRTsPlaceDict[place_id])
-    this.summary.bmOnly = this.filteredRows.filter(({_bid, bplace_id}) => _bid && !this.qmRTsPlaceDict[bplace_id])
+    this.summary.qmOnly = this.filteredRows.filter(({_id, _bid}) => _id && !_bid)
+    this.summary.bmOnly = this.filteredRows.filter(({_bid, _id}) => _bid && !_id)
     this.summary.qmAll = this.filteredRows.filter(({_id, disabled}) => !!_id && (!this.sumQmActiveOnly || !disabled))
     this.summary.bmAll = this.filteredRows.filter(({_bid, bdisabled}) => !!_bid && (!this.sumBmActiveOnly || !bdisabled))
   }
@@ -602,6 +602,7 @@ export class QmBmSstDashboardComponent implements OnInit {
         }
         return data;
       });
+      console.log(bmRTs);
       // 1. Match by google place_id (already the case)
       // 2. followed by main phone number to the extent the first type of matching didn't produce a match.
       let bmOnly = this.bmRTs.filter(({bplace_id, bmainPhone}) => (!bplace_id || !this.qmRTsPlaceDict[bplace_id]) && (!bmainPhone || !this.qmRTsPhoneDict[bmainPhone]));
@@ -685,12 +686,12 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   getTierColor(tier, btier) {
-    return ['bg-info', "bg-success", "bg-warning", "bg-danger"][Math.min(tier, btier)]
+    return ['bg-info', "bg-success", "bg-warning", "bg-danger"][this.getEitherTier({tier, btier})]
   }
 
-  getEiterTier(rt) {
-    let qt = rt.tier, bt = rt.btier;
-    return Math.min(qt, bt)
+  getEitherTier({tier, btier}) {
+    let qt = Number.isInteger(tier) ? tier : 3, bt = Number.isInteger(btier) ? btier : 3;
+    return Math.min(qt, bt);
   }
 
   getWorthy(rt) {
@@ -743,13 +744,13 @@ export class QmBmSstDashboardComponent implements OnInit {
     let list = this.unionRTs;
     switch (platform) {
       case PlatformOptions.Both:
-        list = list.filter(({_id, _bid}) => _id &&  _bid);
+        list = list.filter(({_id, _bid}) => _id && _bid);
         break;
       case PlatformOptions.BmOnly:
-        list = list.filter(({_id, _bid, bplace_id}) => !_id && _bid && !this.qmRTsPlaceDict[bplace_id])
+        list = list.filter(({_id, _bid}) => !_id && _bid)
         break;
       case PlatformOptions.QmOnly:
-        list = list.filter(({_id, _bid, place_id}) => _id && !_bid && !this.bmRTsPlaceDict[place_id])
+        list = list.filter(({_id, _bid}) => _id && !_bid)
         break;
     }
 
@@ -812,13 +813,13 @@ export class QmBmSstDashboardComponent implements OnInit {
 
     switch (tier) {
       case TierOptions.Tier1Either:
-        list = list.filter(rt => rt.tier === 1 || rt.btier === 1)
+        list = list.filter(rt => this.getEitherTier(rt) === 1)
         break;
       case TierOptions.Tier2Either:
-        list = list.filter(rt => this.getEiterTier(rt) === 2)
+        list = list.filter(rt => this.getEitherTier(rt) === 2)
         break;
       case TierOptions.Tier3Either:
-        list = list.filter(rt => this.getEiterTier(rt) === 3)
+        list = list.filter(rt => this.getEitherTier(rt) === 3)
         break;
       case TierOptions.Tier1Both:
         list = list.filter(rt => rt.tier === 1 && rt.btier === 1)
@@ -829,8 +830,8 @@ export class QmBmSstDashboardComponent implements OnInit {
       case TierOptions.Tier3Both:
         list = list.filter(rt => rt.tier === 3 && rt.btier === 3)
         break;
-      case TierOptions.Unknown:
-        list = list.filter(rt => !rt.tier && !rt.btier)
+      case TierOptions.VIP:
+        list = list.filter(rt => rt.tier === 0 || rt.btier === 0)
         break;
     }
 
