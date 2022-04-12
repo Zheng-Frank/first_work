@@ -27,6 +27,137 @@ export class DbScriptsComponent implements OnInit {
   ngOnInit() {
   }
 
+  async calculateGmbPositiveScore() {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      aggregate: [
+        {$match: {disabled: {$ne: true}}},
+        {
+          $project: {
+            _id: 1, 'gmbOwnerHistory': 1, 'gmbScore': '$computed.gmbPositiveScore'
+          }
+        }
+      ]
+    }, 5000);
+    let lastRun = rts.map(({gmbScore}) => {
+      if (gmbScore) {
+        return new Date(gmbScore.time).valueOf();
+      }
+      return Number.MAX_SAFE_INTEGER;
+    }).sort((a, b) => a - b)[0];
+    let orders = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'order',
+      query: {createdAt: {$gte: {$date: new Date(lastRun)}}},
+      projection: {_id: 0, restaurant: 1, createdAt: 1}
+    }, 70000);
+    let batchOps = [], rtOrderDict = {};
+    orders.forEach(({restaurant, createdAt}) => {
+      rtOrderDict[restaurant] = rtOrderDict[restaurant] || [];
+      rtOrderDict[restaurant].push(new Date(createdAt).valueOf());
+    })
+    for (let i = 0; i < rts.length; i++) {
+      let rt = rts[i], prev = rt.gmbScore ? {...rt.gmbScore} : undefined;
+      let histories = (rt.gmbOwnerHistory || []).map(x => ({ ...x, time: new Date(x.time) })).sort((a, b) => a.time.valueOf() - b.time.valueOf());
+      let score = rt.gmbScore || { orders: 0, duration: 0, ordersPerMonth: 0 } as any;
+      if (histories.some(({ gmbOwner }) => gmbOwner === 'qmenu')) {
+        let earliest = histories.shift();
+        while (earliest.gmbOwner !== 'qmenu') {
+          earliest = histories.shift();
+        }
+        histories.unshift(earliest);
+        let startTime = earliest.time,
+          endTime = new Date();
+        let latest = histories.pop(), temp;
+        while (latest.gmbOwner !== 'qmenu') {
+          temp = latest;
+          latest = histories.pop();
+        }
+        histories.push(latest);
+        if (temp) {
+          // push back temp to get end time for last qmenu gmb duration
+          histories.push(temp);
+          endTime = temp.time;
+        }
+        // if has last run data, just use batch queried data, otherwise we need to query newly orders for this rt
+        let newlyOrders = rt.gmbScore ? (rtOrderDict[rt._id] || []) : (await this._api.get(environment.qmenuApiUrl + 'generic', {
+          resource: 'order',
+          query: {
+            restaurant: {$oid: rt._id},
+            createdAt: { $gte: startTime, $lt: endTime }
+          },
+          projection: {createdAt: 1},
+          limit: 100000000
+        }).toPromise()).map(({ createdAt }) => new Date(createdAt).valueOf());
+        let totalOrders = 0, totalDuration = 0;
+        for (let j = 0; j < histories.length; j++) {
+          let { time, gmbOwner } = histories[j];
+          if (gmbOwner === 'qmenu') {
+            let start = new Date(time).valueOf();
+            let end = new Date((histories[j + 1] || { time: new Date() }).time).valueOf();
+
+            let count = newlyOrders.filter(x => x >= start && x < end).length;
+            totalOrders += count;
+            // if has last run data, count from last run time
+            totalDuration += rt.gmbScore ? Math.max(end - new Date(rt.gmbScore.time).valueOf(), 0) : end - start;
+          }
+        }
+        score.orders += totalOrders;
+        score.duration += totalDuration;
+        score.ordersPerMonth = Math.ceil(score.orders / (score.duration / (1000 * 3600 * 24 * 30)));
+      }
+      score.time = new Date();
+      batchOps.push({old: {_id: rt._id, 'computed.gmbPositiveScore': prev}, new: {_id: rt._id, 'computed.gmbPositiveScore': score}});
+    }
+    console.log(batchOps);
+    if (batchOps.length > 0) {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', batchOps).toPromise();
+    }
+  }
+
+  async calculateTier() {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      projection: { _id: 1, 'computed.tier': 1},
+    }, 5000);
+    const batchOps = [], data: {[key: string]: number} = {};
+    let i = 6, start = new Date(), end = new Date();
+    start.setMonth(start.getMonth() - 1);
+    while (i > 0) {
+      let temp = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'order',
+        aggregate: [
+          { $match: { createdAt: { $gte: {$date: start}, $lt: {$date: end} } } },
+          { $group: {_id: "$restaurant", count: {$sum: 1}} }
+        ],
+        limit: 20000
+      }).toPromise();
+      temp.forEach(({_id, count}) => {
+        data[_id] = data[_id] || 0;
+        data[_id] += count;
+      });
+      start.setMonth(start.getMonth() - 1);
+      end.setMonth(end.getMonth() - 1);
+      i--;
+    }
+    rts.forEach(({_id, computed}) => {
+      let cur = computed ? (computed.tier || []) : [], next = [];
+      let ordersPerMonth = Math.ceil((data[_id] || 0) / 6);
+      if (cur) {
+        if (Array.isArray(cur)) {
+          next = cur
+        } else {
+          next.push(cur)
+        }
+      }
+      next.unshift({ordersPerMonth, time: new Date()});
+      batchOps.push({old: {_id: _id}, new: {_id: _id, 'computed.tier': next}});
+    })
+    console.log(batchOps);
+    if (batchOps.length > 0) {
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', batchOps).toPromise();
+    }
+  }
+
   checkWebsiteEqual(web1, web2) {
     [/^https?:\/\//, /www\./, /\/+$/].forEach(r => {
       web1 = (web1 || '').replace(r, '');
