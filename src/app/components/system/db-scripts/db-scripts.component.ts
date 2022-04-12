@@ -31,7 +31,6 @@ export class DbScriptsComponent implements OnInit {
     const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       aggregate: [
-        {$match: {disabled: {$ne: true}}},
         {
           $project: {
             _id: 1, 'gmbOwnerHistory': 1, 'gmbScore': '$computed.gmbPositiveScore'
