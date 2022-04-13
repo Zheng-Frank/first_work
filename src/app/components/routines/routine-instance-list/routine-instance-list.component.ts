@@ -110,6 +110,9 @@ export class RoutineInstanceListComponent implements OnChanges {
   }
 
   createInstanceColumnDescriptors() {
+    const number = {
+      label: 'Number'
+    }
     const createdAt =
     {
       label: 'Created At',
@@ -129,7 +132,7 @@ export class RoutineInstanceListComponent implements OnChanges {
           label: metric.name,
         })
       });
-      this.instanceColumnDescriptors[routine.name] = [createdAt, ...routineDescriptors];
+      this.instanceColumnDescriptors[routine.name] = [number, createdAt, ...routineDescriptors];
       this.fullDisplayInstanceColumnDescriptors[routine.name] = [createdAt, username, ...routineDescriptors];
     });
   }
