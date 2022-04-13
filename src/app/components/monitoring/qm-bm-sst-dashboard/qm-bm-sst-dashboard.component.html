@@ -3,13 +3,27 @@
   <div class="row">
     <h2 class="col-12 text-center"> Qmenu / BeyondMenu - Single Source of Truth ({{filteredRows.length}}) </h2>
   </div>
-
+  <!-- start with show row -->
   <div class="mt-5">
     <div class="d-flex align-items-center row">
       <span class="d-inline-flex align-items-center col-auto mb-3">
+        <label>Show </label>
+        <span class="ml-2" *ngFor="let showModel of showModels | keyvalue">
+          <input type="checkbox" [(ngModel)]="showModel.value.model">
+          <label>{{showModel.value.label}}</label>
+        </span>
+      </span>
+    </div>
+  </div>
+  <!-- end with show row -->
+  <div class="mt-2">
+    <div class="d-flex align-items-center row">
+      <span class="d-inline-flex align-items-center col-auto mb-3">
         <label for="qmSearchText" class="m-0 p-0">Search </label>
-        <input type="text" class="ml-2 form-control" [qDebounce]="500" (debounce)="filter()" placeholder="Search by RT name, address, phone or ID" id="qmSearchText" [(ngModel)]="filters.keyword">
-        <i class="fa fa-info-circle ml-1" data-toggle="tooltip" title="You can search for a restaurant by name, address, phone or ID." data-placement="top"></i>
+        <input type="text" class="ml-2 form-control" [qDebounce]="500" (debounce)="filter()"
+          placeholder="Search by RT name, address, phone or ID" id="qmSearchText" [(ngModel)]="filters.keyword">
+        <i class="fa fa-info-circle ml-1" data-toggle="tooltip"
+          title="You can search for a restaurant by name, address, phone or ID." data-placement="top"></i>
       </span>
       <div class="d-inline-flex align-items-center col-auto mb-3">
         <span class="mr-2">Filters: </span>
@@ -33,7 +47,7 @@
         </select>
       </div>
 
-      <div class="col-auto mb-3">
+      <div class="col-auto mb-3" *ngIf="showModels.matchFilters.model">
         <select class="form-control custom-select" [(ngModel)]="filters.hasPlaceId" (change)="filter()">
           <option [ngValue]="''">Has place_id?</option>
           <option *ngFor="let opt of dropdowns('place_id')" [ngValue]="opt">{{opt}}</option>
@@ -45,33 +59,35 @@
           <option [ngValue]="''">Tier?</option>
           <option *ngFor="let opt of dropdowns('tier')" [ngValue]="opt">{{opt}}</option>
         </select>
-        <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Restaurants that are tier 1 in either the BM or QM platform indicated with green dot, tier 2 in either platform with yellow dot, and tier 3 in both platforms with red dot."></i>
+        <i class="fa fa-info-circle ml-1" data-toggle="tooltip" data-placement="top"
+          title="Restaurants that are tier 1 in either the BM or QM platform indicated with green dot, tier 2 in either platform with yellow dot, and tier 3 in both platforms with red dot."></i>
       </div>
-      <div class="col-auto mb-3">
+      <div class="col-auto mb-3" *ngIf="showModels.matchFilters.model">
         <select class="form-control custom-select" [(ngModel)]="filters.sameName" (change)="filter()">
           <option [ngValue]="''">RT Name?</option>
           <option *ngFor="let opt of dropdowns('name')" [ngValue]="opt">{{opt}}</option>
         </select>
       </div>
-      <div class="col-auto mb-3">
+      <div class="col-auto mb-3" *ngIf="showModels.gmbRelated.model">
         <select class="form-control custom-select" [(ngModel)]="filters.gmbStatus" (change)="filter()">
           <option [ngValue]="''">GMB Status?</option>
           <option *ngFor="let opt of dropdowns('gmb')" [ngValue]="opt">{{opt}}</option>
         </select>
       </div>
-      <div class="col-auto mb-3">
+      <div class="col-auto mb-3" *ngIf="showModels.gmbRelated.model">
         <select class="form-control custom-select" [(ngModel)]="filters.gmbWebsite" (change)="filter()">
           <option [ngValue]="''">GMB Website?</option>
-          <option *ngFor="let opt of dropdowns('gmb_website')" [disabled]="opt.includes('BM')" [ngValue]="opt">{{opt}}</option>
+          <option *ngFor="let opt of dropdowns('gmb_website')" [disabled]="opt.includes('BM')" [ngValue]="opt">{{opt}}
+          </option>
         </select>
       </div>
-<!--      <div class="col-auto mb-3">-->
-<!--        <select class="form-control custom-select" [(ngModel)]="filters.pricing" (change)="filter()">-->
-<!--          <option [ngValue]="''">Pricing?</option>-->
-<!--          <option *ngFor="let opt of dropdowns('pricing')" [ngValue]="opt">{{opt}}</option>-->
-<!--        </select>-->
-<!--      </div>-->
-      <div class="col-auto mb-3">
+      <!--      <div class="col-auto mb-3">-->
+      <!--        <select class="form-control custom-select" [(ngModel)]="filters.pricing" (change)="filter()">-->
+      <!--          <option [ngValue]="''">Pricing?</option>-->
+      <!--          <option *ngFor="let opt of dropdowns('pricing')" [ngValue]="opt">{{opt}}</option>-->
+      <!--        </select>-->
+      <!--      </div>-->
+      <div class="col-auto mb-3" *ngIf="showModels.postmatesStatus.model">
         <select class="form-control custom-select" [(ngModel)]="filters.postmates" (change)="filter()">
           <option [ngValue]="''">Postmates?</option>
           <option *ngFor="let opt of dropdowns('postmates')" [ngValue]="opt">{{opt}}</option>
@@ -89,21 +105,47 @@
           <option *ngFor="let opt of dropdowns('worthiness')" [ngValue]="opt">{{opt}}</option>
         </select>
       </div>
-      <div class="col-auto mb-3">
-        <button class="btn btn-link text-info" (click)="showPricing = !showPricing">{{showPricing ? 'Hide' : 'Show'}} Pricing</button>
-      </div>
-      <div class="col-auto mb-3">
-        <button class="btn btn-link text-info" (click)="showPhones = !showPhones">{{showPhones ? 'Hide' : 'Show'}} Phones</button>
-      </div>
-      <div class="col-auto mb-3">
-        <button class="btn btn-link text-info" (click)="showOtherContacts = !showOtherContacts">{{showOtherContacts ? 'Hide' : 'Show'}} other contacts</button>
-      </div>
-      <div class="col-auto mb-3">
-        <button class="btn btn-link text-info" (click)="showPostmatesStatus = !showPostmatesStatus">{{showPostmatesStatus ? 'Hide' : 'Show'}} Postmates status</button>
-      </div>
       <div class="col-auto mb-3" *ngIf="!!filters.perspective">
-        <button class="btn btn-link text-info" (click)="showSalesWorthiness = !showSalesWorthiness">{{showSalesWorthiness ? 'Hide' : 'Show'}} Sales-worthiness</button>
+        <button class="btn btn-link text-info"
+          (click)="showSalesWorthiness = !showSalesWorthiness">{{showSalesWorthiness ? 'Hide' : 'Show'}}
+          Sales-worthiness</button>
       </div>
+      <!-- start with all extra filters -->
+      <!-- start with cuisine type filter -->
+      <div class="col-auto mb-3" *ngIf="showModels.allExtraFilters.model">
+        <select class="form-control custom-select" [(ngModel)]="filters.cuisine" (change)="filter()">
+          <option [ngValue]="''">Cuisine Type?</option>
+          <option *ngFor="let opt of cuisines" [ngValue]="opt">{{opt}}</option>
+        </select>
+      </div>
+      <!-- end with cuisine type filter -->
+      <!-- start with number google reviewers -->
+      <div class="col-auto mb-3" *ngIf="showModels.allExtraFilters.model">
+        <select class="form-control custom-select" [(ngModel)]="filters.googleReviews" (change)="filter()">
+          <option [ngValue]="''">Num Google Reviews?</option>
+          <option *ngFor="let opt of dropdowns('googleReviews')" [ngValue]="opt">{{opt}}</option>
+        </select>
+      </div>
+      <!-- end with number google reviewers -->
+      <!-- start with coupons -->
+      <div class="col-auto mb-3" *ngIf="showModels.allExtraFilters.model">
+        <select class="form-control custom-select" [(ngModel)]="filters.coupons" (change)="filter()">
+          <option [ngValue]="''">Has coupons?</option>
+          <option *ngFor="let opt of dropdowns('coupons')" [ngValue]="opt">{{opt}}</option>
+        </select>
+      </div>
+      <!-- end with coupons -->
+      <!-- start with competitors -->
+      <div class="col-auto d-inline-flex align-items-center mb-3" *ngIf="showModels.allExtraFilters.model">
+        <select class="form-control custom-select" [(ngModel)]="filters.competitors" (change)="filter()">
+          <option [ngValue]="''">Num competitors?</option>
+          <option *ngFor="let opt of dropdowns('competitors')" [ngValue]="opt">{{opt}}</option>
+        </select>
+        <i class="fa fa-info-circle ml-1" data-toggle="tooltip" data-placement="top"
+          title="This is based on looking at the first page of a google search for a given restaurant and counting the number of unique competitor-platform-created websites for that restaurant, without counting BM and QM as competitors."></i>
+      </div>
+      <!-- end with competitors -->
+      <!-- end with all extra filters -->
       <div class="col-auto mb-3">
         <button class="btn btn-link" (click)="clearFilter()">Reset Filters</button>
       </div>
@@ -112,7 +154,8 @@
 
   <div>
     <div>
-      <a class="btn btn-link" (click)="showSummary = !showSummary">{{showSummary ? 'Hide': 'Show'}} Summary <i class="fa fa-angle-{{showSummary ? 'up': 'down'}}"></i></a>
+      <a class="btn btn-link" (click)="showSummary = !showSummary">{{showSummary ? 'Hide': 'Show'}} Summary <i
+          class="fa fa-angle-{{showSummary ? 'up': 'down'}}"></i></a>
     </div>
     <table class="table table-sm" *ngIf="showSummary">
       <thead>
@@ -199,7 +242,8 @@
 
   <div>
     <div>
-      <a class="btn btn-link" (click)="showKPI = !showKPI">{{showKPI ? 'Hide': 'Show'}} KPI <i class="fa fa-angle-{{showKPI ? 'up': 'down'}}"></i></a>
+      <a class="btn btn-link" (click)="showKPI = !showKPI">{{showKPI ? 'Hide': 'Show'}} KPI <i
+          class="fa fa-angle-{{showKPI ? 'up': 'down'}}"></i></a>
     </div>
     <ng-container *ngIf="showKPI">
       <div class="row mt-2 mb-2">
@@ -219,17 +263,33 @@
       </div>
       <div class="scroll-table-container">
         <table class="table table-bordered left table-sm">
-          <thead><tr><th class="text-transparent">Placeholder</th></tr></thead>
+          <thead>
+            <tr>
+              <th class="text-transparent">Placeholder</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td>GMV $</td></tr>
-            <tr><td>Order count</td></tr>
-            <tr><td>Active RT count</td></tr>
-            <tr><td>AOV $</td></tr>
+            <tr>
+              <td>GMV $</td>
+            </tr>
+            <tr>
+              <td>Order count</td>
+            </tr>
+            <tr>
+              <td>Active RT count</td>
+            </tr>
+            <tr>
+              <td>AOV $</td>
+            </tr>
           </tbody>
         </table>
         <div class="right">
           <table class="table table-bordered table-sm">
-            <thead><tr><th *ngFor="let item of getKPIHeaders('normal')">{{item}}</th></tr></thead>
+            <thead>
+              <tr>
+                <th *ngFor="let item of getKPIHeaders('normal')">{{item}}</th>
+              </tr>
+            </thead>
             <tbody>
               <tr *ngFor="let values of getKpiNormalList(); let i = index;">
                 <td *ngFor="let value of values">
@@ -258,17 +318,33 @@
       </div>
       <div class="scroll-table-container">
         <table class="table table-bordered left table-sm">
-          <thead><tr><th class="text-transparent">Placeholder</th></tr></thead>
+          <thead>
+            <tr>
+              <th class="text-transparent">Placeholder</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td>GMV {{getKpiLabel()}}</td></tr>
-            <tr><td>Order count {{getKpiLabel()}}</td></tr>
-            <tr><td>Active RT count</td></tr>
-            <tr><td>AOV {{getKpiLabel()}}</td></tr>
+            <tr>
+              <td>GMV {{getKpiLabel()}}</td>
+            </tr>
+            <tr>
+              <td>Order count {{getKpiLabel()}}</td>
+            </tr>
+            <tr>
+              <td>Active RT count</td>
+            </tr>
+            <tr>
+              <td>AOV {{getKpiLabel()}}</td>
+            </tr>
           </tbody>
         </table>
         <div class="right">
           <table class="table table-bordered table-sm">
-            <thead><tr><th *ngFor="let item of getKPIHeaders('over')">{{item}}</th></tr></thead>
+            <thead>
+              <tr>
+                <th *ngFor="let item of getKPIHeaders('over')">{{item}}</th>
+              </tr>
+            </thead>
             <tbody>
               <tr *ngFor="let values of getKpiOverList()">
                 <td *ngFor="let value of values">{{value | percent: '1.0-2'}}</td>
@@ -286,7 +362,8 @@
       <tr>
         <th [colSpan]="4">
           <div class="float-right">
-            <q-pager #myPager1 [numberOfRows]="filteredRows.length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
+            <q-pager #myPager1 [numberOfRows]="filteredRows.length" [pageSize]="200" (pageChange)="paginate($event)">
+            </q-pager>
           </div>
         </th>
       </tr>
@@ -300,7 +377,8 @@
             <div class="d-flex align-items-center">
               <ng-container *ngIf="row._id && !row.hide">
                 <span class="logo qm-icon mr-1"></span>
-                <a class="mr-2" [routerLink]="'/restaurants/' + row._id" *ngIf="row.bhide || row.name !== row.bname">{{row.name}}</a>
+                <a class="mr-2" [routerLink]="'/restaurants/' + row._id"
+                  *ngIf="row.bhide || row.name !== row.bname">{{row.name}}</a>
               </ng-container>
               <ng-container *ngIf="row._bid && !row.bhide">
                 <span class="logo bm-icon mr-1"></span>
@@ -312,12 +390,15 @@
               <div>place_id: {{getPlaceId(row)}}</div>
               <div *ngIf="row._id && !row.hide">
                 QM: Tier {{row.tier}}, ID: {{row._id}},
-                <ng-container *ngIf="row.createdAt">created: {{row.createdAt | dateTz: "yyyy-MM-dd": "America/New_York"}}</ng-container>,
+                <ng-container *ngIf="row.createdAt">created:
+                  {{row.createdAt | dateTz: "yyyy-MM-dd": "America/New_York"}}</ng-container>,
                 domain: <a *ngIf="row.website" [href]="row.website">{{row.website}}</a>
               </div>
               <ng-container *ngIf="row._bid && !row.bhide">
-                <div>BM: Tier {{row.btier}}, ID: {{row._bid}}, <ng-container *ngIf="row.createdAt">created: {{row.createdAt | dateTz: "YYYY-MM-DD": "America/New_York"}}</ng-container>, domain: <a [href]="row.bwebsite">{{row.bwebsite}}</a></div>
-                <div *ngIf="showPricing">BM Pricing: {{row.bpricing}}</div>
+                <div>BM: Tier {{row.btier}}, ID: {{row._bid}}, <ng-container *ngIf="row.createdAt">created:
+                    {{row.createdAt | dateTz: "YYYY-MM-DD": "America/New_York"}}</ng-container>, domain: <a
+                    [href]="row.bwebsite">{{row.bwebsite}}</a></div>
+                <div *ngIf="showModels.pricing.model">BM Pricing: {{row.bpricing}}</div>
               </ng-container>
             </div>
             <div>
@@ -326,15 +407,19 @@
               <ng-container *ngIf="row.address && !row.hide && row.baddress && !row.bhide">/</ng-container>
               <span class="ml-1" *ngIf="row.baddress && !row.bhide">{{row.baddress}} (BM)</span>
             </div>
-            <div *ngIf="showPhones">Phone: {{groupChannels(row, 'Phone')}}</div>
-            <div *ngIf="showOtherContacts">Emails: {{groupChannels(row, 'Email')}} / Fax: {{groupChannels(row, 'Fax')}}</div>
+            <div *ngIf="showModels.phones.model">Phone: {{groupChannels(row, 'Phone')}}</div>
+            <div *ngIf="showModels.otherContacts.model">Emails: {{groupChannels(row, 'Email')}} / Fax:
+              {{groupChannels(row, 'Fax')}}
+            </div>
           </td>
           <td class="td-icon-top">
             <div class="d-flex flex-column align-items-end">
               <span *ngIf="showSalesWorthiness" [innerHTML]="getWorthy(row)"></span>
-              <ng-container *ngIf="showPostmatesStatus && !row.hide">
-                <img class="pm-green" *ngIf="row.courier === 'Postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
-                <img class="pm-grey" *ngIf="row.courier != 'Postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
+              <ng-container *ngIf="showModels.postmatesStatus.model && !row.hide">
+                <img class="pm-green" *ngIf="row.courier === 'Postmates' && row.postmatesAvailable"
+                  src="assets/images/postmates.png" />
+                <img class="pm-grey" *ngIf="row.courier != 'Postmates' && row.postmatesAvailable"
+                  src="assets/images/postmates.png" />
               </ng-container>
             </div>
           </td>
@@ -359,11 +444,11 @@
       <tr>
         <th [colSpan]="4">
           <div class="float-right">
-            <q-pager #myPager2 [numberOfRows]="filteredRows.length" [pageSize]="200" (pageChange)="paginate($event)"></q-pager>
+            <q-pager #myPager2 [numberOfRows]="filteredRows.length" [pageSize]="200" (pageChange)="paginate($event)">
+            </q-pager>
           </div>
         </th>
       </tr>
     </tfoot>
   </table>
 </div>
-
