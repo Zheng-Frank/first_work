@@ -1,5 +1,5 @@
 import {Component, Input, OnInit, ViewChild} from '@angular/core';
-import {Item, Restaurant} from '@qmenu/ui';
+import {Item, Mc, Menu, Restaurant} from '@qmenu/ui';
 import { ModalComponent, SelectorComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import {ApiService} from '../../../services/api.service';
 import {environment} from '../../../../environments/environment';
@@ -21,17 +21,17 @@ export class AddonsComponent implements OnInit {
   @ViewChild("selectorMaxQuantity") selectorMaxQuantity: SelectorComponent;
 
   maxQuantities = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Any"];
-
+  addonMenu: Menu;
+  addons = [];
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
-  }
-
-  getAddOns() {
-    if (this.restaurant && this.restaurant.addons) {
-      return [...this.restaurant.addons].sort((i1, i2) => i1.name.localeCompare(i2.name));
+    this.addonMenu = [...(this.restaurant.menus || [])].find(m => m.type === 'ADDON');
+    if (this.addonMenu) {
+      this.addons = this.addonMenu.mcs.reduce((a, c) => [...a, ...c.mis], []);
+    } else {
+      this.addons = [];
     }
-    return [];
   }
 
   trim(str) {
@@ -40,20 +40,19 @@ export class AddonsComponent implements OnInit {
 
   isValid() {
     let { name, price } = this.editing;
-    let addons = [...(this.restaurant.addons || [])];
+    let addons = [...this.addons];
     addons.splice(this.editingIndex, 1);
     return name && price && price > 0 && !addons.some(a => this.trim(a.name) === this.trim(name));
   }
 
   editAddon(addon: any) {
-    let { addons } = this.restaurant;
     let copy;
     if (!addon) {
       copy = {}
-      this.editingIndex = (addons || []).length;
+      this.editingIndex = this.addons.length;
     } else {
       copy = {...addon}
-      this.editingIndex = addons.indexOf(addon)
+      this.editingIndex = this.addons.indexOf(addon)
     }
     this.editing = copy;
     setTimeout(() => {
@@ -67,21 +66,40 @@ export class AddonsComponent implements OnInit {
     this.addonEditModal.show();
   }
 
+  genNewAddonMenu() {
+    let mc = new Mc(), timestamp = new Date().valueOf().toString();
+    mc.name = 'Addon Mc';
+    mc.id = timestamp + Math.round(Math.random() * 1000);
+    mc.mis = [];
+    mc.restaurant = this.restaurant._id;
+    return {id: timestamp, name: 'Addon Menu', type: 'ADDON', mcs: [mc]} as Menu
+  }
+
   save() {
-    const addons = (this.restaurant.addons || []).slice(0);
+    const addons = this.addons.slice(0);
     this.editing.name = this.trim(this.editing.name);
     addons[this.editingIndex] = {
       ...this.editing,
       maxQuantity: Number(this.selectorMaxQuantity.selectedValues[0] || -1)
     }
+    let menus = this.restaurant.menus, index = menus.length;
+    if (this.addonMenu) {
+      index = menus.indexOf(this.addonMenu);
+    } else {
+      this.addonMenu = this.genNewAddonMenu();
+    }
+    this.addonMenu.mcs[0].mis = this.addons;
+    menus[index] = this.addonMenu;
+    let oldMenus = JSON.parse(JSON.stringify(menus));
+    let newMenus = JSON.parse(JSON.stringify(menus));
 
     this._api
       .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
-        old: {_id: this.restaurant['_id']},
-        new: {_id: this.restaurant['_id'], addons}
+        old: {_id: this.restaurant['_id'], oldMenus},
+        new: {_id: this.restaurant['_id'], newMenus}
       }]).subscribe(
       result => {
-        this.restaurant.addons = addons;
+        this.restaurant.menus = menus;
         this._global.publishAlert(AlertType.Success, "Updated successfully");
       },
       error => {
@@ -98,15 +116,18 @@ export class AddonsComponent implements OnInit {
   }
 
   remove() {
-    let { addons } = this.restaurant;
-    let newAddons = JSON.parse(JSON.stringify(addons));
-    newAddons.splice(this.editingIndex, 1);
+    let { menus } = this.restaurant;
+    this.addons.splice(this.editingIndex, 1);
+    this.addonMenu.mcs[0].mis = this.addons;
+    let index = menus.indexOf(this.addonMenu);
+    let newMenus = JSON.parse(JSON.stringify(menus));
+    newMenus[index] = this.addonMenu;
     this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
-      old: {_id: this.restaurant['_id'], menuOptions: addons},
-      new: {_id: this.restaurant['_id'], menuOptions: newAddons}
+      old: {_id: this.restaurant['_id'], menus},
+      new: {_id: this.restaurant['_id'], newMenus}
     }]).subscribe(
         result => {
-          this.restaurant.addons = newAddons;
+          this.restaurant.menus = newMenus;
           this._global.publishAlert(AlertType.Success, "Updated successfully");
         },
         error => {
