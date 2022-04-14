@@ -7,6 +7,7 @@ import {AlertType} from '../../../classes/alert-type';
 import {GlobalService} from '../../../services/global.service';
 
 interface Addon {
+  id: string,
   name: string,
   price: number
 }
@@ -36,7 +37,7 @@ export class AddonsComponent implements OnInit {
   init() {
     this.addonMenu = [...(this.restaurant.menus || [])].find(m => m.type === 'ADDON');
     if (this.addonMenu) {
-      this.addons = this.addonMenu.mcs[0].mis.map(({name, sizeOptions}) => ({name, price: sizeOptions[0].price}));
+      this.addons = this.addonMenu.mcs[0].mis.map(({id, name, sizeOptions}) => ({id, name, price: sizeOptions[0].price}));
     } else {
       this.addons = [];
     }
@@ -104,8 +105,8 @@ export class AddonsComponent implements OnInit {
       index = menus.length;
     }
 
-    let mcId = this.addonMenu.mcs[0].id;
-    this.addonMenu.mcs[0].mis = addons.map(({name, price}) => ({name, category: mcId, sizeOptions: [{name: "regular", price}]} as Mi));
+    let mcId = this.addonMenu.mcs[0].id, ts = new Date().valueOf();
+    this.addonMenu.mcs[0].mis = addons.map(({id, name, price}) => ({id: id || (ts + Math.round(Math.random() * 10000)),  name, category: mcId, nonCustomizable: true, sizeOptions: [{name: "regular", price}]} as Mi));
     newMenus[index] = this.addonMenu;
     this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
       old: {_id: this.restaurant['_id']},
