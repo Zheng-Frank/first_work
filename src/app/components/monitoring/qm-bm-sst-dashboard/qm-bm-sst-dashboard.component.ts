@@ -504,7 +504,6 @@ export class QmBmSstDashboardComponent implements OnInit {
         let key = rt.place_id + rt.cid;
         // active: has order in last 30 days
         rt.inactive = !rtsHasOrderSet.has(rt._id);
-        rt.tier = Helper.getTier(rt.ordersPerMonth)
         let tiers = rt.tiers || [];
         if (!Array.isArray(tiers)) {
           tiers = [tiers];
