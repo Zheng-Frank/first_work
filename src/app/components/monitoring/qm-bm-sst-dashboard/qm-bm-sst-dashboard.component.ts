@@ -1053,7 +1053,8 @@ export class QmBmSstDashboardComponent implements OnInit {
     // filter by extra filter
     // cuisine
     if (cuisine) {
-      list = list.filter(({ cuisine, bcuisine }) => cuisine.indexOf(cuisine) >= 0 || bcuisine);
+      let c = cuisine;
+      list = list.filter(({ cuisine, bcuisine }) =>  (cuisine || []).indexOf(c) >= 0 || bcuisine);
     }
     // google reviewers
     switch (googleReviews) {
