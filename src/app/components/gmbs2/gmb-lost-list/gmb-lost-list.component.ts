@@ -179,6 +179,7 @@ export class GmbLostListComponent implements OnInit {
               disabled: restaurant.disabled,
               address: restaurant.googleAddress.formatted_address,
               score: restaurant.score,
+              gmbPositiveScore: ((restaurant.computed || {}).gmbPositiveScore || {}).ordersPerMonth,
               lostDate: event.createdAt,
               owner: ((restaurant.gmbOwnerHistory || [])[0] || {}).gmbOwner || 'unknown',
               comments: event.comments,
@@ -234,7 +235,6 @@ export class GmbLostListComponent implements OnInit {
       this.rows = dict.filter(r => !r.disabled);
       // gnerate a temp score to record tier condition of rt in gmb 
       this.rows.forEach(row => {
-        row.gmbPositiveScore = ((row.computed || {}).gmbPositiveScore || {}).ordersPerMonth;
         row.gmbTier = Helper.getTier(row.gmbPositiveScore);
       });
       this.filter();

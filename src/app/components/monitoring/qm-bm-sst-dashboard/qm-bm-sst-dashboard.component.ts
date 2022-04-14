@@ -37,7 +37,7 @@ enum TierOptions {
   Tier1Both = 'Tier 1 (Both)',
   Tier2Both = 'Tier 2 (Both)',
   Tier3Both = 'Tier 3 (Both)',
-  Unknown = 'Unknown'
+  VIP = 'VIP (B or Q)'
 }
 
 enum PlaceIdOptions {
@@ -91,6 +91,11 @@ enum KPIPeriodOptions {
   Yearly = 'Yearly',
   Quarterly = 'Quarterly',
   Monthly = 'Monthly'
+}
+
+enum ChurnDefinitionOptions {
+  NoOrdersLast30d = 'No orders last 30d',
+  Disabled = 'Disabled'
 }
 
 @Component({
@@ -147,8 +152,16 @@ export class QmBmSstDashboardComponent implements OnInit {
   showOtherContacts = false;
   showSummary = false;
   showKPI = false;
+  showChurn = false;
   showPostmatesStatus = false;
   showSalesWorthiness = false;
+  churnFilters = {
+    platform: PlatformOptions.Both,
+    period: KPIPeriodOptions.Yearly,
+    tier: 1,
+    definition: ChurnDefinitionOptions.NoOrdersLast30d
+  }
+  churns = [];
   kpiFilters = {
     normal: {
       platform: PlatformOptions.Both,
@@ -381,70 +394,20 @@ export class QmBmSstDashboardComponent implements OnInit {
     });
   }
 
-  async getUnifiedStats() {
-    // const data = await this.getUnifiedData();
-    const data = []
-    const dict = {[KPIPeriodOptions.Yearly]: {}, [KPIPeriodOptions.Monthly]: {}, [KPIPeriodOptions.Quarterly]: {}};
-    const accumulate = (cat: KPIPeriodOptions, key, {id, bid, qid, oc, gmv}) => {
-      let temp = dict[cat][key] || { gmv: {qm: 0, bm: 0, both: 0}, oc: {qm: 0, bm: 0, both: 0}, ar: {qm: new Set(), bm: new Set(), both: new Set()} };
-      if (bid) {
-        temp.oc.bm += oc;
-        temp.gmv.bm += gmv;
-        if (oc > 0) {
-          temp.ar.bm.add(id);
-        }
-      }
-      if (qid) {
-        temp.oc.qm += oc;
-        temp.gmv.qm += gmv;
-        if (oc > 0) {
-          temp.ar.qm.add(id);
-        }
-      }
-      temp.oc.both += oc;
-      temp.gmv.both += gmv;
-      if (oc > 0) {
-        temp.ar.both.add(id);
-      }
-      dict[cat][key] = temp;
-    }
-    const getMonths = (fields: string[]): string[] => Array.from(new Set(fields.map(f => f.replace(/\D+/, '')))).filter(x => !!x);
-
-    const Months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    data.forEach(row => {
-      let months = getMonths(Object.keys(row));
-      months.forEach(ym => {
-        let tmp = {id: row._id, bid: row.bm_id, qid: row.matched_qm_id, oc: row[`OC${ym}`] || 0, gmv: row[`GMV${ym}`] || 0};
-        let year = ym.substr(0, 4), mon = ym.substr(4);
-        let quarter = Math.ceil(Number(mon) / 3), shortYear = year.substr(2);
-        accumulate(KPIPeriodOptions.Monthly, shortYear + ' ' + Months[Number(mon) - 1], tmp);
-        accumulate(KPIPeriodOptions.Quarterly, shortYear + ' ' + 'Q' + quarter, tmp);
-        accumulate(KPIPeriodOptions.Yearly, year, tmp);
-      })
-    });
-    [KPIPeriodOptions.Yearly, KPIPeriodOptions.Quarterly, KPIPeriodOptions.Monthly].forEach(cat => {
-      // @ts-ignore
-      Object.entries(dict[cat]).forEach(([period, {ar: {qm, bm, both}}]) => {
-        dict[cat][period].ar = {qm: qm.size, bm: bm.size, both: both.size};
-      })
-    })
-    this.kpi = dict;
-  }
-
   countByOrdersPerMonth(list) {
     let num = list.filter(rt => rt.ordersPerMonth >= this.sumOPMLevel).length;
     return `${num} (${num ? (Math.round((num / list.length) * 10000) / 100) : 0}%)`
   }
   countByTier(list, tier) {
-    let num = list.filter(rt => this.getEiterTier(rt) === tier).length;
+    let num = list.filter(rt => this.getEitherTier(rt) === tier).length;
     return `${num} (${num ? (Math.round((num / list.length) * 10000) / 100) : 0}%)`
   }
 
   calcSummary() {
     this.summary.overall = this.filteredRows;
     this.summary.both = this.filteredRows.filter(({_id, _bid}) => _id && _bid);
-    this.summary.qmOnly = this.filteredRows.filter(({_id, place_id}) => _id && !this.bmRTsPlaceDict[place_id])
-    this.summary.bmOnly = this.filteredRows.filter(({_bid, bplace_id}) => _bid && !this.qmRTsPlaceDict[bplace_id])
+    this.summary.qmOnly = this.filteredRows.filter(({_id, _bid}) => _id && !_bid)
+    this.summary.bmOnly = this.filteredRows.filter(({_bid, _id}) => _bid && !_id)
     this.summary.qmAll = this.filteredRows.filter(({_id, disabled}) => !!_id && (!this.sumQmActiveOnly || !disabled))
     this.summary.bmAll = this.filteredRows.filter(({_bid, bdisabled}) => !!_bid && (!this.sumBmActiveOnly || !bdisabled))
   }
@@ -469,7 +432,8 @@ export class QmBmSstDashboardComponent implements OnInit {
       pricing: PricingOptions,
       perspective: SalesPerspectiveOptions,
       worthiness: SalesWorthinessOptions,
-      kpi_period: KPIPeriodOptions
+      kpi_period: KPIPeriodOptions,
+      churn_definition: ChurnDefinitionOptions
     }[key])
   }
 
@@ -494,7 +458,7 @@ export class QmBmSstDashboardComponent implements OnInit {
               createdAt: "$createdAt",
               owner: "$googleListing.gmbOwner",
               channels: 1,
-              ordersPerMonth: '$computed.tier.ordersPerMonth'
+              tiers: "$computed.tier"
             }
           }
         ],
@@ -541,6 +505,12 @@ export class QmBmSstDashboardComponent implements OnInit {
         // active: has order in last 30 days
         rt.inactive = !rtsHasOrderSet.has(rt._id);
         rt.tier = Helper.getTier(rt.ordersPerMonth)
+        let tiers = rt.tiers || [];
+        if (!Array.isArray(tiers)) {
+          tiers = [tiers];
+        }
+        let latest = tiers.sort((a, b) => new Date(b.time).valueOf() - new Date(a.time).valueOf())[0];
+        rt.tier = Helper.getTier(latest ? latest.ordersPerMonth : 0);
 
         rt.hasGmb = (gmbWebsiteOwnerDict[key] || gmbWebsiteOwnerDict[rt._id + rt.cid]) && accounts.some(acc => (acc.locations || []).some(loc => loc.cid === rt.cid && loc.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].includes(loc.role)))
         rt.hasGMBWebsite = gmbWebsiteOwnerDict[key] === 'qmenu' || gmbWebsiteOwnerDict[rt._id + rt.cid] === 'qmenu';
@@ -591,6 +561,7 @@ export class QmBmSstDashboardComponent implements OnInit {
           bmainPhone: item.Phone1,
           createdAt: item.createdAt,
           btier: Math.floor((TierDec2021 + TierNov2021 + TierOct2021) / 3),
+          btiers: {'10 2021': TierOct2021, '11 2021': TierNov2021, '12 2021': TierDec2021},
           bpricing: pricing
         }
 
@@ -602,6 +573,7 @@ export class QmBmSstDashboardComponent implements OnInit {
         }
         return data;
       });
+      console.log(bmRTs);
       // 1. Match by google place_id (already the case)
       // 2. followed by main phone number to the extent the first type of matching didn't produce a match.
       let bmOnly = this.bmRTs.filter(({bplace_id, bmainPhone}) => (!bplace_id || !this.qmRTsPlaceDict[bplace_id]) && (!bmainPhone || !this.qmRTsPhoneDict[bmainPhone]));
@@ -672,12 +644,12 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   getTierColor(tier, btier) {
-    return ['bg-info', "bg-success", "bg-warning", "bg-danger"][Math.min(tier, btier)]
+    return ['bg-info', "bg-success", "bg-warning", "bg-danger"][this.getEitherTier({tier, btier})]
   }
 
-  getEiterTier(rt) {
-    let qt = rt.tier, bt = rt.btier;
-    return Math.min(qt, bt)
+  getEitherTier({tier, btier}) {
+    let qt = Number.isInteger(tier) ? tier : 3, bt = Number.isInteger(btier) ? btier : 3;
+    return Math.min(qt, bt);
   }
 
   getWorthy(rt) {
@@ -730,13 +702,13 @@ export class QmBmSstDashboardComponent implements OnInit {
     let list = this.unionRTs;
     switch (platform) {
       case PlatformOptions.Both:
-        list = list.filter(({_id, _bid}) => _id &&  _bid);
+        list = list.filter(({_id, _bid}) => _id && _bid);
         break;
       case PlatformOptions.BmOnly:
-        list = list.filter(({_id, _bid, bplace_id}) => !_id && _bid && !this.qmRTsPlaceDict[bplace_id])
+        list = list.filter(({_id, _bid}) => !_id && _bid)
         break;
       case PlatformOptions.QmOnly:
-        list = list.filter(({_id, _bid, place_id}) => _id && !_bid && !this.bmRTsPlaceDict[place_id])
+        list = list.filter(({_id, _bid}) => _id && !_bid)
         break;
     }
 
@@ -799,13 +771,13 @@ export class QmBmSstDashboardComponent implements OnInit {
 
     switch (tier) {
       case TierOptions.Tier1Either:
-        list = list.filter(rt => rt.tier === 1 || rt.btier === 1)
+        list = list.filter(rt => this.getEitherTier(rt) === 1)
         break;
       case TierOptions.Tier2Either:
-        list = list.filter(rt => this.getEiterTier(rt) === 2)
+        list = list.filter(rt => this.getEitherTier(rt) === 2)
         break;
       case TierOptions.Tier3Either:
-        list = list.filter(rt => this.getEiterTier(rt) === 3)
+        list = list.filter(rt => this.getEitherTier(rt) === 3)
         break;
       case TierOptions.Tier1Both:
         list = list.filter(rt => rt.tier === 1 && rt.btier === 1)
@@ -816,8 +788,8 @@ export class QmBmSstDashboardComponent implements OnInit {
       case TierOptions.Tier3Both:
         list = list.filter(rt => rt.tier === 3 && rt.btier === 3)
         break;
-      case TierOptions.Unknown:
-        list = list.filter(rt => !rt.tier && !rt.btier)
+      case TierOptions.VIP:
+        list = list.filter(rt => rt.tier === 0 || rt.btier === 0)
         break;
     }
 

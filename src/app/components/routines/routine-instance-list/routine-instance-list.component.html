@@ -22,6 +22,9 @@
 
     <tr *tableRowTemplate="let instance">
       <td>
+        {{ groupedInstances[routine._id].indexOf(instance) + 1 }}
+      </td>
+      <td>
         {{instance.createdAt | date: 'short'}}
       </td>
       <td *ngFor="let header of instanceColumnDescriptors[routine.name] | slice: 1">

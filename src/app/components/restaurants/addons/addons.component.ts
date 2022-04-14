@@ -1,10 +1,16 @@
 import {Component, Input, OnInit, ViewChild} from '@angular/core';
-import {Item, Restaurant} from '@qmenu/ui';
+import {Item, Mc, Menu, Mi, Restaurant} from '@qmenu/ui';
 import { ModalComponent, SelectorComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import {ApiService} from '../../../services/api.service';
 import {environment} from '../../../../environments/environment';
 import {AlertType} from '../../../classes/alert-type';
 import {GlobalService} from '../../../services/global.service';
+
+interface Addon {
+  id: string,
+  name: string,
+  price: number
+}
 
 @Component({
   selector: 'app-addons',
@@ -15,23 +21,26 @@ export class AddonsComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
   @ViewChild('addonEditModal') addonEditModal: ModalComponent;
-  editing: any;
+  editing: Addon;
   editingIndex = -1;
   @ViewChild("selectorMinQuantity") selectorMinQuantity: SelectorComponent;
   @ViewChild("selectorMaxQuantity") selectorMaxQuantity: SelectorComponent;
 
-  maxQuantities = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Any"];
-
+  addonMenu: Menu;
+  addons: Addon[] = [];
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
+    this.init();
   }
 
-  getAddOns() {
-    if (this.restaurant && this.restaurant.addons) {
-      return [...this.restaurant.addons].sort((i1, i2) => i1.name.localeCompare(i2.name));
+  init() {
+    this.addonMenu = [...(this.restaurant.menus || [])].find(m => m.type === 'ADDON');
+    if (this.addonMenu) {
+      this.addons = this.addonMenu.mcs[0].mis.map(({id, name, sizeOptions}) => ({id, name, price: sizeOptions[0].price}));
+    } else {
+      this.addons = [];
     }
-    return [];
   }
 
   trim(str) {
@@ -40,55 +49,38 @@ export class AddonsComponent implements OnInit {
 
   isValid() {
     let { name, price } = this.editing;
-    let addons = [...(this.restaurant.addons || [])];
+    let addons = [...this.addons];
     addons.splice(this.editingIndex, 1);
-    return name && price && price > 0 && !addons.some(a => this.trim(a.name) === this.trim(name));
+    return name && price >= 0 && !addons.some(a => this.trim(a.name) === this.trim(name));
   }
 
   editAddon(addon: any) {
-    let { addons } = this.restaurant;
     let copy;
     if (!addon) {
       copy = {}
-      this.editingIndex = (addons || []).length;
+      this.editingIndex = this.addons.length;
     } else {
       copy = {...addon}
-      this.editingIndex = addons.indexOf(addon)
+      this.editingIndex = this.addons.indexOf(addon)
     }
     this.editing = copy;
-    setTimeout(() => {
-      this.selectorMaxQuantity.selectedValues.length = 0;
-      if (copy.maxQuantity) {
-        this.selectorMaxQuantity.selectedValues.push(
-          copy.maxQuantity < 0 ? "Any" : copy.maxQuantity + ""
-        );
-      }
-    }, 0)
     this.addonEditModal.show();
   }
 
-  save() {
-    const addons = (this.restaurant.addons || []).slice(0);
-    this.editing.name = this.trim(this.editing.name);
-    addons[this.editingIndex] = {
-      ...this.editing,
-      maxQuantity: Number(this.selectorMaxQuantity.selectedValues[0] || -1)
-    }
+  genNewAddonMenu() {
+    let mc = new Mc(), timestamp = new Date().valueOf().toString();
+    mc.name = 'Addon Mc';
+    mc.id = timestamp + Math.round(Math.random() * 1000);
+    mc.mis = [];
+    mc.restaurant = this.restaurant._id;
+    return {id: timestamp, name: 'Addon Menu', type: 'ADDON', mcs: [mc]} as Menu
+  }
 
-    this._api
-      .patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
-        old: {_id: this.restaurant['_id']},
-        new: {_id: this.restaurant['_id'], addons}
-      }]).subscribe(
-      result => {
-        this.restaurant.addons = addons;
-        this._global.publishAlert(AlertType.Success, "Updated successfully");
-      },
-      error => {
-        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-      }
-    );
-    this.addonEditModal.hide();
+  save() {
+    const addons = this.addons.slice(0);
+    this.editing.name = this.trim(this.editing.name);
+    addons[this.editingIndex] = {...this.editing};
+    this.patch(addons);
   }
 
   cancel() {
@@ -98,21 +90,38 @@ export class AddonsComponent implements OnInit {
   }
 
   remove() {
-    let { addons } = this.restaurant;
-    let newAddons = JSON.parse(JSON.stringify(addons));
-    newAddons.splice(this.editingIndex, 1);
+    let addons = [...this.addons];
+    addons.splice(this.editingIndex, 1);
+    this.patch(addons);
+  }
+
+  patch(addons) {
+    let { menus } = this.restaurant, index;
+    let newMenus = JSON.parse(JSON.stringify(menus)).map(m => new Menu(m));
+    if (this.addonMenu) {
+      index = menus.indexOf(this.addonMenu);
+    } else {
+      this.addonMenu = this.genNewAddonMenu();
+      index = menus.length;
+    }
+
+    let mcId = this.addonMenu.mcs[0].id, ts = new Date().valueOf();
+    this.addonMenu.mcs[0].mis = addons.map(({id, name, price}) => ({id: id || (ts + Math.round(Math.random() * 10000)),  name, category: mcId, nonCustomizable: true, sizeOptions: [{name: "regular", price}]} as Mi));
+    newMenus[index] = this.addonMenu;
     this._api.patch(environment.qmenuApiUrl + "generic?resource=restaurant", [{
-      old: {_id: this.restaurant['_id'], menuOptions: addons},
-      new: {_id: this.restaurant['_id'], menuOptions: newAddons}
+      old: {_id: this.restaurant['_id']},
+      new: {_id: this.restaurant['_id'], menus: newMenus}
     }]).subscribe(
-        result => {
-          this.restaurant.addons = newAddons;
-          this._global.publishAlert(AlertType.Success, "Updated successfully");
-        },
-        error => {
-          this._global.publishAlert(AlertType.Danger, "Error updating to DB");
-        }
-      );
+      result => {
+        this.restaurant.menus = newMenus;
+        this.init();
+        this._global.publishAlert(AlertType.Success, "Updated successfully");
+      },
+      error => {
+        this._global.publishAlert(AlertType.Danger, "Error updating to DB");
+      }
+    );
     this.addonEditModal.hide();
   }
+
 }

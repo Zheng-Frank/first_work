@@ -43,7 +43,10 @@
       </div>
     </td>
     <td>{{r.score | number : '1.0-0'}}</td>
-    <td>{{r.gmbPositiveScore | number : '1.0-0'}}</td>
+    <td>{{r.gmbPositiveScore | number : '1.0-0'}}
+
+      <!-- {{r|json}} -->
+    </td>
     <td>{{r.lostDate | ago : now}}</td>
     <td>{{r.owner}}</td>
     <td class="mw-50">
