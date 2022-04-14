@@ -124,6 +124,11 @@ enum competitorsOptions {
   More_Than_5 = '5+'
 }
 
+enum ChurnDefinitionOptions {
+  NoOrdersLast30d = 'No orders last 30d',
+  Disabled = 'Disabled'
+}
+
 @Component({
   selector: 'app-qm-bm-sst-dashboard',
   templateUrl: './qm-bm-sst-dashboard.component.html',
@@ -224,7 +229,15 @@ export class QmBmSstDashboardComponent implements OnInit {
   bmRTsPhoneDict = {};
   showSummary = false;
   showKPI = false;
+  showChurn = false;
   showSalesWorthiness = false;
+  churnFilters = {
+    platform: PlatformOptions.Both,
+    period: KPIPeriodOptions.Yearly,
+    tier: 1,
+    definition: ChurnDefinitionOptions.NoOrdersLast30d
+  }
+  churns = [];
   kpiFilters = {
     normal: {
       platform: PlatformOptions.Both,
@@ -561,7 +574,8 @@ export class QmBmSstDashboardComponent implements OnInit {
       kpi_period: KPIPeriodOptions,
       googleReviews: googleReviewsOptions,  // extra filters
       coupons: couponsOptions,
-      competitors: competitorsOptions
+      competitors: competitorsOptions,
+      churn_definition: ChurnDefinitionOptions
     }[key])
   }
 
@@ -627,7 +641,8 @@ export class QmBmSstDashboardComponent implements OnInit {
                   '$cuisine',
                   []
                 ]
-              }
+              },
+              tiers: "$computed.tier"
             }
           }
         ],
@@ -685,7 +700,12 @@ export class QmBmSstDashboardComponent implements OnInit {
         let key = rt.place_id + rt.cid;
         // active: has order in last 30 days
         rt.inactive = !rtsHasOrderSet.has(rt._id);
-        rt.tier = this.getTier(rt.ordersPerMonth)
+        let tiers = rt.tiers || [];
+        if (!Array.isArray(tiers)) {
+          tiers = [tiers];
+        }
+        let latest = tiers.sort((a, b) => new Date(b.time).valueOf() - new Date(a.time).valueOf())[0];
+        rt.tier = this.getTier(latest ? latest.ordersPerMonth : 0);
 
         rt.hasGmb = (gmbWebsiteOwnerDict[key] || gmbWebsiteOwnerDict[rt._id + rt.cid]) && accounts.some(acc => (acc.locations || []).some(loc => loc.cid === rt.cid && loc.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].includes(loc.role)))
         rt.hasGMBWebsite = gmbWebsiteOwnerDict[key] === 'qmenu' || gmbWebsiteOwnerDict[rt._id + rt.cid] === 'qmenu';
@@ -740,7 +760,8 @@ export class QmBmSstDashboardComponent implements OnInit {
           bgoogleReviews: 0, // extra data use default value
           bcuisine: [],
           bcompetitorsCount: 0,
-          bcouponsCount: 0
+          bcouponsCount: 0,
+          btiers: {'10 2021': TierOct2021, '11 2021': TierNov2021, '12 2021': TierDec2021},
         }
 
         if (place_id) {

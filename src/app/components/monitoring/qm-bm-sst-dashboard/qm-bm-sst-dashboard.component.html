@@ -60,7 +60,7 @@
           <option *ngFor="let opt of dropdowns('name')" [ngValue]="opt">{{opt}}</option>
         </select>
       </div>
-      
+
       <div class="col-auto d-inline-flex align-items-center mb-3">
         <select class="form-control custom-select" [(ngModel)]="filters.tier" (change)="filter()">
           <option [ngValue]="''">Tier?</option>
@@ -107,11 +107,7 @@
           <option *ngFor="let opt of dropdowns('worthiness')" [ngValue]="opt">{{opt}}</option>
         </select>
       </div>
-      <!-- <div class="col-auto mb-3" *ngIf="showModels.salesFilters.model && !!filters.perspective">
-        <button class="btn btn-link text-info"
-          (click)="showSalesWorthiness = !showSalesWorthiness">{{showSalesWorthiness ? 'Hide' : 'Show'}}
-          Sales-worthiness</button>
-      </div> -->
+     
       <!-- start with all extra filters -->
       <!-- start with cuisine type filter -->
       <div class="col-auto mb-3" *ngIf="showModels.allExtraFilters.model">

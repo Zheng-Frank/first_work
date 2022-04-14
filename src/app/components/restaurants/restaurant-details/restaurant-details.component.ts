@@ -768,6 +768,10 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
+  getMenusLength() {
+    return ((this.restaurant || {}).menus || []).filter(m => m.type !== 'ADDON').length;
+  }
+
   refreshTime() {
     // judge whether open
     // 1. by menu hours
