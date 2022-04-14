@@ -1,17 +1,16 @@
-import { TimezoneHelper } from '@qmenu/ui';
-import { Component, OnInit } from '@angular/core';
-import { ApiService } from '../../../services/api.service';
-import { environment } from '../../../../environments/environment';
-import { GlobalService } from '../../../services/global.service';
-import { AlertType } from '../../../classes/alert-type';
-import { zip } from 'rxjs';
-import { mergeMap } from 'rxjs/operators';
-import { Restaurant, Order } from '@qmenu/ui';
-import { Gmb3Service } from 'src/app/services/gmb3.service';
-import { Helper } from 'src/app/classes/helper';
-import { Domain } from 'src/app/classes/domain';
+import {Restaurant, TimezoneHelper} from '@qmenu/ui';
+import {Component, OnInit} from '@angular/core';
+import {ApiService} from '../../../services/api.service';
+import {environment} from '../../../../environments/environment';
+import {GlobalService} from '../../../services/global.service';
+import {AlertType} from '../../../classes/alert-type';
+import {zip} from 'rxjs';
+import {mergeMap} from 'rxjs/operators';
+import {Gmb3Service} from 'src/app/services/gmb3.service';
+import {Helper} from 'src/app/classes/helper';
+import {Domain} from 'src/app/classes/domain';
 import * as FileSaver from 'file-saver';
-import { Transaction } from 'src/app/classes/transaction';
+import {Transaction} from 'src/app/classes/transaction';
 
 @Component({
   selector: 'app-db-scripts',
@@ -197,10 +196,14 @@ export class DbScriptsComponent implements OnInit {
     const users = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'user', query: {}
     }, 1000);
-    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    const rts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: { disabled: { $ne: true } }
-    }, 50);
+      query: { disabled: { $ne: true } },
+      projection: {
+        rateSchedules: 1, preferredLanguage: 1, channels: 1
+      },
+      limit: 20000
+    }).toPromise();
     const chineseAgents = [
       'alan', 'alice', 'amy', 'andy', 'annie', 'anny',
       'cara', 'carrie', 'cathy', 'cici', 'demi',
@@ -229,56 +232,52 @@ export class DbScriptsComponent implements OnInit {
       let item = list.pop() || {};
       return item.agent;
     };
-    const patchList = [];
+    const patchList = [], skipped = [], changed = [], manual = [];
     rts.forEach(rt => {
       let salesAgent = getSalesAgent(rt.rateSchedules);
-      let channels = rt.channels || [];
+      let channels = rt.channels || [], _id = rt._id;
       let phoneOrderChannels = channels.filter(x => x.type === 'Phone' && (x.notifications || []).includes('Order'));
       let updateOp = null;
       // 1. has preferredLanguage
+      // skip handle for RTs which already have preferredLanguage field since we are not in first running
       if (rt.preferredLanguage) {
-        // 1.1 no phone order notification -> get language depend on salesagent, set to preferredLanguage
-        if (phoneOrderChannels.length === 0) {
-          let preferredLanguage = salesAgent && chineseAgentsSet.has(salesAgent) ? 'CHINESE' : 'ENGLISH';
-          updateOp = {
-            old: { _id: rt._id },
-            new: { _id: rt._id, preferredLanguage }
-          };
-        } else {
-          // 1.2 has phone order notification -> keep preferredLanguage, and set it to channelLanguage
-          phoneOrderChannels.forEach(x => x.channelLanguage = rt.preferredLanguage);
-          updateOp = {
-            old: { _id: rt._id },
-            new: { _id: rt._id, channels }
-          };
-        }
+        skipped.push(_id);
+        // // 1.1 no phone order notification -> get language depend on salesagent, set to preferredLanguage
+        // if (phoneOrderChannels.length === 0) {
+        //   let preferredLanguage = salesAgent && chineseAgentsSet.has(salesAgent) ? 'CHINESE' : 'ENGLISH';
+        //   updateOp = {old: { _id }, new: { _id, preferredLanguage }};
+        // } else {
+        //   // 1.2 has phone order notification -> keep preferredLanguage, and set it to channelLanguage
+        //   phoneOrderChannels.forEach(x => x.channelLanguage = rt.preferredLanguage);
+        //   updateOp = {old: { _id }, new: { _id, channels }};
+        // }
       } else {
         // 2 no preferredLanguage
-        // 2.1 no phone order notification -> get language depend on salesagent and set to preferredLanguage
-        if (phoneOrderChannels.length === 0) {
-          let preferredLanguage = salesAgent && chineseAgentsSet.has(salesAgent) ? 'CHINESE' : 'ENGLISH';
-          updateOp = {
-            old: { _id: rt._id },
-            new: { _id: rt._id, preferredLanguage }
-          };
+        // 2.0 if no salesAgent, skip to handle manual
+        if (salesAgent) {
+          // 2.1 no phone order notification -> get language depend on salesagent and set to preferredLanguage
+          if (phoneOrderChannels.length === 0) {
+            let preferredLanguage = salesAgent && chineseAgentsSet.has(salesAgent) ? 'CHINESE' : 'ENGLISH';
+            updateOp = {old: { _id }, new: { _id, preferredLanguage }};
+          } else {
+            // 2.2 has phone order notification -> preferredLanguage and channelLanguage to English
+            let preferredLanguage = 'ENGLISH';
+            phoneOrderChannels.forEach(x => x.channelLanguage = preferredLanguage);
+            updateOp = {old: { _id }, new: { _id, preferredLanguage, channels }};
+          }
+          patchList.push(updateOp);
+          changed.push(rt._id);
         } else {
-          // 2.2 has phone order notification -> preferredLanguage and channelLanguage to English
-          let preferredLanguage = 'ENGLISH';
-          phoneOrderChannels.forEach(x => x.channelLanguage = preferredLanguage);
-          updateOp = {
-            old: { _id: rt._id },
-            new: { _id: rt._id, preferredLanguage, channels }
-          };
+          manual.push(rt._id);
         }
-      }
-      if (updateOp) {
-        patchList.push(updateOp);
       }
     });
     console.log(JSON.stringify(patchList));
     if (patchList.length > 0) {
-      // await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', patchList).toPromise();
     }
+    this._global.publishAlert(AlertType.Info, `${skipped.length} RTs already have this field, field newly populated for ${changed.length} RTs, ${manual.length} RTs remaining without field`);
+    console.log('already have...', skipped, 'current changed...', changed, 'remain empty...', manual);
   }
 
   async regularSpacesAroundParentheses() {

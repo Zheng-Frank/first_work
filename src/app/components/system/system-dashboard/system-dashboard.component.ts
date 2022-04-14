@@ -38,7 +38,6 @@ export class SystemDashboardComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
-    this.system = (await this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'system' }).toPromise())[0];
     const roleMap = {
       "DB Scripts": ["ADMIN"],
       "SMS Providers": ["ADMIN", "CSR_MANAGER"],
@@ -50,6 +49,7 @@ export class SystemDashboardComponent implements OnInit {
     const myRoles = this._global.user.roles;
     this.items = Object.keys(roleMap).filter(k => roleMap[k].some(role => myRoles.indexOf(role) >= 0));
     this.systemItem = this.items[0];
+    this.system = (await this._api.get(environment.qmenuApiUrl + 'generic', { resource: 'system' }).toPromise())[0];
   }
 
   isAdmin() {
