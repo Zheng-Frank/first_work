@@ -138,35 +138,43 @@ export class QmBmSstDashboardComponent implements OnInit {
   showModels = {
     pricing: {
       label: 'Pricing',
-      model: false
+      model: false,
+      manageFilters: ['pricing']
     },
     phones: {
       label: 'Phones',
-      model: false
+      model: false,
+      manageFilters: []
     },
     otherContacts: {
       label: 'Other Contacts',
-      model: false
+      model: false,
+      manageFilters: []
     },
     postmatesStatus: {
       label: 'Postmates Status',
-      model: false
+      model: false,
+      manageFilters: ['postmates']
     },
     salesFilters: {
       label: 'Sales filters/functions',
-      model: false
+      model: false,
+      manageFilters: ['perspective', 'worthiness']
     },
     matchFilters: {
       label: 'Match filters/functions',
-      model: false
+      model: false,
+      manageFilters: ['hasPlaceId', 'sameName']
     },
     gmbRelated: {
       label: 'GMB-related',
-      model: false
+      model: false,
+      manageFilters: ['gmbStatus', 'gmbWebsite']
     },
     allExtraFilters: {
       label: 'All extra filters',
-      model: false
+      model: false,
+      manageFilters: ['cuisine', 'googleReviews', 'coupons', 'competitors']
     }
   }
 
@@ -243,6 +251,17 @@ export class QmBmSstDashboardComponent implements OnInit {
     await this.getViabilities();
     await this.preload();
     await this.getUnifiedData();
+  }
+
+  // reset filter if current model is false
+  onChangeShowModels(showModel) {
+    if (!showModel.model) {
+      Object.keys(this.filters).forEach(key => {
+        if (showModel.value.manageFilters.some(f => f === key)) {
+          this.filters[key] = ''; 
+        }
+      });
+    }
   }
 
   kpiNormalDownload() {
@@ -588,7 +607,7 @@ export class QmBmSstDashboardComponent implements OnInit {
                             }
                           ]
                         }
-                      },
+                      }
                     },
                     []
                   ]
@@ -617,13 +636,13 @@ export class QmBmSstDashboardComponent implements OnInit {
       this.qmRTs.forEach((rt) => {
         if (rt.cuisine) {
           rt.cuisine.forEach(c => {
-            if(c && this.cuisines.indexOf(c) === -1){
+            if (c && this.cuisines.indexOf(c) === -1) {
               this.cuisines.push(c);
             }
           });
         }
       });
-      
+
       this.cuisines.sort((a, b) => a.localeCompare(b));
 
       const gmbBiz = await this._api.get(environment.qmenuApiUrl + 'generic', {

@@ -8,7 +8,7 @@
     <div class="d-flex align-items-center row">
       <span class="d-inline-flex align-items-center col-auto mb-3">
         <label>Show </label>
-        <span class="ml-2" *ngFor="let showModel of showModels | keyvalue">
+        <span class="ml-2" *ngFor="let showModel of showModels | keyvalue" (change)="onChangeShowModels(showModel)">
           <input type="checkbox" [(ngModel)]="showModel.value.model">
           <label>{{showModel.value.label}}</label>
         </span>
@@ -93,23 +93,23 @@
           <option *ngFor="let opt of dropdowns('postmates')" [ngValue]="opt">{{opt}}</option>
         </select>
       </div>
-      <div class="col-auto mb-3">
+      <div class="col-auto mb-3" *ngIf="showModels.salesFilters.model">
         <select class="form-control custom-select" [(ngModel)]="filters.perspective" (change)="filter()">
           <option [ngValue]="''">Sales Perspective?</option>
           <option *ngFor="let opt of dropdowns('perspective')" [ngValue]="opt">{{opt}}</option>
         </select>
       </div>
-      <div class="col-auto mb-3" *ngIf="!!filters.perspective">
+      <div class="col-auto mb-3" *ngIf="showModels.salesFilters.model && !!filters.perspective">
         <select class="form-control custom-select" [(ngModel)]="filters.worthiness" (change)="filter()">
           <option [ngValue]="''">Sales-worthiness?</option>
           <option *ngFor="let opt of dropdowns('worthiness')" [ngValue]="opt">{{opt}}</option>
         </select>
       </div>
-      <div class="col-auto mb-3" *ngIf="!!filters.perspective">
+      <!-- <div class="col-auto mb-3" *ngIf="showModels.salesFilters.model && !!filters.perspective">
         <button class="btn btn-link text-info"
           (click)="showSalesWorthiness = !showSalesWorthiness">{{showSalesWorthiness ? 'Hide' : 'Show'}}
           Sales-worthiness</button>
-      </div>
+      </div> -->
       <!-- start with all extra filters -->
       <!-- start with cuisine type filter -->
       <div class="col-auto mb-3" *ngIf="showModels.allExtraFilters.model">
@@ -414,7 +414,7 @@
           </td>
           <td class="td-icon-top">
             <div class="d-flex flex-column align-items-end">
-              <span *ngIf="showSalesWorthiness" [innerHTML]="getWorthy(row)"></span>
+              <span *ngIf="showModels.salesFilters.model" [innerHTML]="getWorthy(row)"></span>
               <ng-container *ngIf="showModels.postmatesStatus.model && !row.hide">
                 <img class="pm-green" *ngIf="row.courier === 'Postmates' && row.postmatesAvailable"
                   src="assets/images/postmates.png" />
