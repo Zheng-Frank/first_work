@@ -171,7 +171,7 @@ export class MenusComponent implements OnInit {
   }
 
   hasMenuHoursMissing() {
-    return (this.restaurant.menus || []).some(menu => (menu.hours || []).length === 0);
+    return (this.restaurant.menus || []).some(menu => menu.type !== 'ADDON' && (menu.hours || []).length === 0);
   }
 
   hideAdditionalFunction() {
@@ -511,7 +511,7 @@ export class MenusComponent implements OnInit {
 
   getMenus() {
     if (this.restaurant) {
-      return this.restaurant.menus;
+      return this.restaurant.menus.filter(m => m.type !== 'ADDON');
     }
     return [];
   }

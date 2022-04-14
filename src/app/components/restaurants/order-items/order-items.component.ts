@@ -83,4 +83,12 @@ export class OrderItemsComponent implements OnInit, OnChanges {
         return "fa fa-circle";
     }
   }
+
+  normalItems() {
+    return this.order.orderItems.filter(x => x.menuType !== 'ADDON');
+  }
+
+  addonItems() {
+    return this.order.orderItems.filter(x => x.menuType === 'ADDON');
+  }
 }
