@@ -131,7 +131,9 @@ export class DbScriptsComponent implements OnInit {
       }
       return 0;
     }).sort((a, b) => b - a)[0];
-    let startMonth = new Date(lastRun.toString());
+    let lastRunStr = lastRun.toString();
+    let y = lastRunStr.substring(0, 4), m = lastRunStr.substring(4);
+    let startMonth = new Date(`${y}-${m}-01`);
     startMonth.setMonth(startMonth.getMonth() + 1);
     // if last run earlier than the earliest RT createdAt, use the earliest RT createdAt
     if (startMonth.valueOf() < earliestRT) {
