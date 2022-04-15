@@ -482,56 +482,6 @@ export class QmBmSstDashboardComponent implements OnInit {
     });
   }
 
-  async getUnifiedStats() {
-    // const data = await this.getUnifiedData();
-    const data = []
-    const dict = { [KPIPeriodOptions.Yearly]: {}, [KPIPeriodOptions.Monthly]: {}, [KPIPeriodOptions.Quarterly]: {} };
-    const accumulate = (cat: KPIPeriodOptions, key, { id, bid, qid, oc, gmv }) => {
-      let temp = dict[cat][key] || { gmv: { qm: 0, bm: 0, both: 0 }, oc: { qm: 0, bm: 0, both: 0 }, ar: { qm: new Set(), bm: new Set(), both: new Set() } };
-      if (bid) {
-        temp.oc.bm += oc;
-        temp.gmv.bm += gmv;
-        if (oc > 0) {
-          temp.ar.bm.add(id);
-        }
-      }
-      if (qid) {
-        temp.oc.qm += oc;
-        temp.gmv.qm += gmv;
-        if (oc > 0) {
-          temp.ar.qm.add(id);
-        }
-      }
-      temp.oc.both += oc;
-      temp.gmv.both += gmv;
-      if (oc > 0) {
-        temp.ar.both.add(id);
-      }
-      dict[cat][key] = temp;
-    }
-    const getMonths = (fields: string[]): string[] => Array.from(new Set(fields.map(f => f.replace(/\D+/, '')))).filter(x => !!x);
-
-    const Months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    data.forEach(row => {
-      let months = getMonths(Object.keys(row));
-      months.forEach(ym => {
-        let tmp = { id: row._id, bid: row.bm_id, qid: row.matched_qm_id, oc: row[`OC${ym}`] || 0, gmv: row[`GMV${ym}`] || 0 };
-        let year = ym.substr(0, 4), mon = ym.substr(4);
-        let quarter = Math.ceil(Number(mon) / 3), shortYear = year.substr(2);
-        accumulate(KPIPeriodOptions.Monthly, shortYear + ' ' + Months[Number(mon) - 1], tmp);
-        accumulate(KPIPeriodOptions.Quarterly, shortYear + ' ' + 'Q' + quarter, tmp);
-        accumulate(KPIPeriodOptions.Yearly, year, tmp);
-      })
-    });
-    [KPIPeriodOptions.Yearly, KPIPeriodOptions.Quarterly, KPIPeriodOptions.Monthly].forEach(cat => {
-      // @ts-ignore
-      Object.entries(dict[cat]).forEach(([period, { ar: { qm, bm, both } }]) => {
-        dict[cat][period].ar = { qm: qm.size, bm: bm.size, both: both.size };
-      })
-    })
-    this.kpi = dict;
-  }
-
   countByOrdersPerMonth(list) {
     let num = list.filter(rt => rt.ordersPerMonth >= this.sumOPMLevel).length;
     return `${num} (${num ? (Math.round((num / list.length) * 10000) / 100) : 0}%)`
