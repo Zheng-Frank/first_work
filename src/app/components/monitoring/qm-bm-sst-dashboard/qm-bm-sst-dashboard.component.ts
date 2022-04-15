@@ -1023,7 +1023,7 @@ export class QmBmSstDashboardComponent implements OnInit {
     // cuisine
     if (cuisine) {
       let c = cuisine;
-      list = list.filter(({ cuisine }) =>  (cuisine || []).indexOf(c) >= 0);
+      list = list.filter(({ cuisine }) => (cuisine || []).indexOf(c) >= 0 );
     }
     // google reviewers
     switch (googleReviews) {
@@ -1061,22 +1061,22 @@ export class QmBmSstDashboardComponent implements OnInit {
         list = list.filter(({ couponsCount }) => !couponsCount || couponsCount === 0);
         break;
       case couponsOptions._1_5:
-        list = list.filter(({ googleReviews }) => googleReviews >= 1 && googleReviews <= 5);
+        list = list.filter(({ couponsCount }) => couponsCount >= 1 && couponsCount <= 5);
         break;
       case couponsOptions._6_10:
-        list = list.filter(({ googleReviews }) => googleReviews >= 6 && googleReviews <= 10);
+        list = list.filter(({ couponsCount }) => couponsCount >= 6 && couponsCount <= 10);
         break;
       case couponsOptions._11_15:
-        list = list.filter(({ googleReviews }) => googleReviews >= 11 && googleReviews <= 15);
+        list = list.filter(({ couponsCount }) => couponsCount >= 11 && couponsCount <= 15);
         break;
       case couponsOptions._16_20:
-        list = list.filter(({ googleReviews }) => googleReviews >= 16 && googleReviews <= 20);
+        list = list.filter(({ couponsCount }) => couponsCount >= 16 && couponsCount <= 20);
         break;
       case couponsOptions._21_25:
-        list = list.filter(({ googleReviews }) => googleReviews >= 21 && googleReviews <= 25);
+        list = list.filter(({ couponsCount }) => couponsCount >= 21 && couponsCount <= 25);
         break;
       case couponsOptions.More_Than_26:
-        list = list.filter(({ googleReviews }) => googleReviews > 26);
+        list = list.filter(({ couponsCount }) => couponsCount > 26);
         break;
     }
     // num competitors
