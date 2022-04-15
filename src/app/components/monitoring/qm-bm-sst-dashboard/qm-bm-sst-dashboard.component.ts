@@ -1075,12 +1075,12 @@ export class QmBmSstDashboardComponent implements OnInit {
     // cuisine
     if (cuisine) {
       let c = cuisine;
-      list = list.filter(({ cuisine, bcuisine }) =>  (cuisine || []).indexOf(c) >= 0 || bcuisine);
+      list = list.filter(({ cuisine }) =>  (cuisine || []).indexOf(c) >= 0);
     }
     // google reviewers
     switch (googleReviews) {
       case googleReviewsOptions.None:
-        list = list.filter(({ googleReviews, bgoogleReviews }) => googleReviews === 0 || bgoogleReviews === 0);
+        list = list.filter(({ googleReviews }) => !googleReviews || googleReviews === 0);
         break;
       case googleReviewsOptions._1_10:
         list = list.filter(({ googleReviews }) => googleReviews >= 1 && googleReviews <= 10);
@@ -1110,7 +1110,7 @@ export class QmBmSstDashboardComponent implements OnInit {
     // coupons
     switch (coupons) {
       case couponsOptions.None:
-        list = list.filter(({ couponsCount, bcouponsCount }) => couponsCount === 0 || bcouponsCount === 0);
+        list = list.filter(({ couponsCount }) => !couponsCount || couponsCount === 0);
         break;
       case couponsOptions._1_5:
         list = list.filter(({ googleReviews }) => googleReviews >= 1 && googleReviews <= 5);
@@ -1134,7 +1134,7 @@ export class QmBmSstDashboardComponent implements OnInit {
     // num competitors
     switch (competitors) {
       case competitorsOptions.None:
-        list = list.filter(({ competitorsCount, bcompetitorsCount }) => competitorsCount === 0 || bcompetitorsCount === 0);
+        list = list.filter(({ competitorsCount }) => !competitorsCount || competitorsCount === 0 );
         break;
       case competitorsOptions.More_Than_1:
         list = list.filter(({ competitorsCount }) => competitorsCount > 1);
