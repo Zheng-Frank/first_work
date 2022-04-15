@@ -176,6 +176,8 @@ export class DbScriptsComponent implements OnInit {
     console.log(batchOps);
     if (batchOps.length > 0) {
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', batchOps).toPromise();
+    } else {
+      this._global.publishAlert(AlertType.Info, 'Monthly data before current month already calculated, data of current month will be calculated at next month');
     }
   }
 
