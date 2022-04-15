@@ -465,16 +465,12 @@ export class GmbBizListComponent implements OnInit {
     if (this.tierOption !== TierTypes.All) {
       if (this.tierOption === TierTypes.Tier_1) {
         this.filteredRows = this.filteredRows.filter(row => row.restaurant.tier === 1);
-        console.log(this.filteredRows);
       } else if (this.tierOption === TierTypes.Tier_2) {
         this.filteredRows = this.filteredRows.filter(row => row.restaurant.tier === 2);
-        console.log(this.filteredRows);
       } else if (this.tierOption === TierTypes.Tier_3) {
         this.filteredRows = this.filteredRows.filter(row => row.restaurant.tier === 3);
-        console.log(this.filteredRows);
       } else if (this.tierOption === TierTypes.VIP) {
         this.filteredRows = this.filteredRows.filter(row => row.restaurant.tier === 0);
-        console.log(this.filteredRows);
       }
     }
 
