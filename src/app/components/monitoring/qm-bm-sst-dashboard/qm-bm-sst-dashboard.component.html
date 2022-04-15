@@ -409,6 +409,9 @@
             <div *ngIf="showModels.otherContacts.model">Emails: {{groupChannels(row, 'Email')}} / Fax:
               {{groupChannels(row, 'Fax')}}
             </div>
+            <div *ngIf="showModels.allExtraFilters.model">
+              <ng-container *ngIf="row.cuisine">Cuisine: {{ row.cuisine.join(', ') }}</ng-container>
+            </div>
           </td>
           <td class="td-icon-top">
             <div class="d-flex flex-column align-items-end">

@@ -230,7 +230,6 @@ export class QmBmSstDashboardComponent implements OnInit {
   showSummary = false;
   showKPI = false;
   showChurn = false;
-  showSalesWorthiness = false;
   churnFilters = {
     platform: PlatformOptions.Both,
     period: KPIPeriodOptions.Yearly,
@@ -892,7 +891,6 @@ export class QmBmSstDashboardComponent implements OnInit {
       }
     } else {
       this.filters.worthiness = ''
-      this.showSalesWorthiness = false;
     }
     return list;
   }
