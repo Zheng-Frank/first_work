@@ -36,6 +36,7 @@
         <button class="btn btn-link" (click)="syncFromMenuItems()" [qLoading]="syncing">Sync from Latest
           Menu Items</button>
         <button class="btn btn-primary" (click)="openAddRecordsModal()">+ Add New</button>
+        <button class="btn btn-primary" (click)="reload()">Reload</button>
       </div>
       <hr />
       <table *ngIf="manageMode === manageModes.Standard" class="table table-striped">
@@ -103,8 +104,18 @@
       <hr />
       <ng-container *ngIf="keywordType === keywordTypes.ItemName">
         <div class="unique-row">
-          <div class="name-item clickable" [ngClass]="{'selected': selectedItem === item.name}" *ngFor="let item of filteredUniqueItems">
-            <ng-container *ngTemplateOutlet="uniqueNameTpl; context:{item: item, clickable: true}"></ng-container>
+          <div class="unique-row-arrow" [ngClass]="{'disabled': uniqueRowPageIndex <= 0}" (click)="uniquePaginate(filteredUniqueImages, -1)">
+            <i class="fa fa-angle-left"></i>
+          </div>
+          <div class="row unique-row-content">
+            <div class="col-2" *ngFor="let item of uniquePaged(filteredUniqueItems)">
+              <div class="name-item clickable" [ngClass]="{'selected': selectedItem === item.name}" >
+                <ng-container *ngTemplateOutlet="uniqueNameTpl; context:{item: item, clickable: true}"></ng-container>
+              </div>
+            </div>
+          </div>
+          <div class="unique-row-arrow" [ngClass]="{'disabled': uniquePageEnd(filteredUniqueImages)}" (click)="uniquePaginate(filteredUniqueImages, 1)">
+            <i class="fa fa-angle-right"></i>
           </div>
         </div>
         <hr />
@@ -124,8 +135,18 @@
       </ng-container>
       <ng-container *ngIf="keywordType === keywordTypes.ImageUrl">
         <div class="unique-row">
-          <div class="image-item clickable"  [ngClass]="{'selected': selectedImg === item.url}" *ngFor="let item of filteredUniqueImages">
-            <ng-container *ngTemplateOutlet="uniqueImageTpl; context:{item: item, clickable: true}"></ng-container>
+          <div class="unique-row-arrow" [ngClass]="{'disabled': uniqueRowPageIndex <= 0}" (click)="uniquePaginate(filteredUniqueImages, -1)">
+            <i class="fa fa-angle-left"></i>
+          </div>
+          <div class="row unique-row-content">
+            <div class="col-2" *ngFor="let item of uniquePaged(filteredUniqueImages)">
+              <div class="image-item clickable"  [ngClass]="{'selected': selectedImg === item.url}">
+                <ng-container *ngTemplateOutlet="uniqueImageTpl; context:{item: item, clickable: true}"></ng-container>
+              </div>
+            </div>
+          </div>
+          <div class="unique-row-arrow" [ngClass]="{'disabled': uniquePageEnd(filteredUniqueImages)}" (click)="uniquePaginate(filteredUniqueImages, 1)">
+            <i class="fa fa-angle-right"></i>
           </div>
         </div>
         <hr />
@@ -149,6 +170,7 @@
       <div>
         <img (click)="selectImg(item.url, clickable)" [src]="item.url" />
         <div class="image-url">{{item.url}}</div>
+        <div><a class="btn-link" (click)="copy(item.url)">Copy URL</a></div>
         <div class="image-line" *ngIf="!clickable">
           <strong>Usage in current item: {{nameUrlStats(selectedItem, item.url).count}}</strong>
         </div>

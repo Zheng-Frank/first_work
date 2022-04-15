@@ -25,6 +25,7 @@
             <option>published</option>
             <option>suspended</option>
             <option>secondary listing</option>
+            <option>not published</option>
         </select>
         <select class="form-control mr-2 mb-1" [(ngModel)]="gmbRole" (change)="filter()">
             <option>GMB role</option>
@@ -75,7 +76,11 @@
             <option>Insist Reservation Url</option>
         </select>
         <!-- insisted start -->
-
+        <!-- start with tier filter -->
+        <select class="form-control mr-2 mb-1" [(ngModel)]="tierOption" (change)="filter()">
+            <option *ngFor="let option of tierOptions">{{option}}</option>
+        </select>
+        <!-- end with tier filter -->
     </div>
 
 </div>
@@ -85,8 +90,9 @@
         <th>#</th>
         <th>qMenu Restaurant</th>
         <th>Restaurant ID</th>
-        <th>Score</th>
-        <th>Agent</th>
+        <th *ngIf="isAdmin">Score</th>
+        <th>Tier</th>
+        <th *ngIf="isAdmin">Agent</th>
         <th>GMB Account</th>
         <th>GMB CID</th>
         <th>GMB Status</th>
@@ -107,6 +113,9 @@
                 </td>
                 <td *ngIf="isAdmin">
                     {{row.restaurant.score}}
+                </td>
+                <td>
+                    {{row.restaurant.tier}}
                 </td>
                 <td *ngIf="isAdmin">
                     {{row.restaurant.agent}}
@@ -160,6 +169,9 @@
                 <td *ngIf="isAdmin">
                     {{row.restaurant.score}}
                 </td>
+                <td>
+                    {{row.restaurant.tier}}
+                </td>
                 <td *ngIf="isAdmin">
                     {{row.restaurant.agent}}
                 </td>
@@ -194,9 +206,11 @@
             <td>
                 {{row.restaurant._id}}
             </td>
-
             <td *ngIf="isAdmin">
                 {{row.restaurant.score}}
+            </td>
+            <td>
+                {{row.restaurant.tier}}
             </td>
             <td *ngIf="isAdmin">
                 {{row.restaurant.agent}}

@@ -79,6 +79,8 @@ export class ImageManagerComponent implements OnInit {
   restaurants = [];
   mis = [];
   filteredMis = [];
+  uniqueRowPageIndex = 0;
+  uniqueRowPageSize = 6;
   pageIndex = 0;
   pageSize = 200;
   selectedImg = '';
@@ -99,8 +101,8 @@ export class ImageManagerComponent implements OnInit {
 
   async ngOnInit() {
     await this.getRtsWithMenuName();
-    // await this.reload();
     this.miCount();
+    await this.reload();
   }
 
   get manageModes() {
@@ -124,6 +126,24 @@ export class ImageManagerComponent implements OnInit {
       [KeywordTypes.ItemName]: this.uniqueImagesByItem
     }[keywordType] || [];
     return list.slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize);
+  }
+
+  uniquePaged(list) {
+    return list.slice(this.uniqueRowPageIndex * this.uniqueRowPageSize, (this.uniqueRowPageIndex + 1) * this.uniqueRowPageSize)
+  }
+  uniquePaginate(list, direction) {
+    if (direction > 0) {
+      if (!this.uniquePageEnd(list)) {
+        this.uniqueRowPageIndex++;
+      }
+    } else {
+      if (this.uniqueRowPageIndex > 0) {
+        this.uniqueRowPageIndex--;
+      }
+    }
+  }
+  uniquePageEnd(list) {
+    return list.length <= (this.uniqueRowPageIndex + 1) * this.uniqueRowPageSize;
   }
 
   filterUniqueImagesByItem() {
@@ -173,6 +193,8 @@ export class ImageManagerComponent implements OnInit {
   }
 
   filterMi() {
+    let base64 = this.uniqueImages.filter(x => x.url.startsWith("data"));
+    console.log('base64...', base64);
     this.selectedImg = '';
     this.selectedItem = '';
     let kw = this.keyword.trim();
@@ -185,12 +207,26 @@ export class ImageManagerComponent implements OnInit {
     if (this.filteredUniqueItems.length > 0) {
       this.selectItem(this.filteredUniqueItems[0].name, true)
     }
+    this.uniqueRowPageIndex = 0;
     this.paginate(0);
   }
   paginate(index) {
     this.pageIndex = index;
     this.myPager1.currentPageNumber = index;
     this.myPager2.currentPageNumber = index;
+  }
+
+  copy(text) {
+    const handleCopy = (e: ClipboardEvent) => {
+      // clipboardData 可能是 null
+      e.clipboardData && e.clipboardData.setData('text/plain', text);
+      e.preventDefault();
+      // removeEventListener 要传入第二个参数
+      document.removeEventListener('copy', handleCopy);
+    };
+    document.addEventListener('copy', handleCopy);
+    document.execCommand('copy');
+    this._global.publishAlert(AlertType.Success, 'Image URL copied!', 1000);
   }
 
   async getRtsWithMenuName() {
@@ -535,10 +571,6 @@ export class ImageManagerComponent implements OnInit {
   getItemWithImageCount() {
     return this.filterRows.filter(item => item.images && item.images.length > 0 &&
       item.images.filter(image => Object.values(image).some(url => url !== "") && image.url192).length > 0).length;
-  }
-
-  countMiWithImage() {
-    return this.filteredMis.filter(item => !!item.image).length;
   }
 
   filter() {

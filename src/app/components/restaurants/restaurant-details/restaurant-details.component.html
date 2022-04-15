@@ -96,7 +96,7 @@
       <ul class="nav nav-tabs card-header-tabs">
         <li class="nav-item" *ngFor="let tab of tabs">
           <a *ngIf="tab === 'Menus' " class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
-            style="cursor: pointer;">{{tab}} ({{restaurant?.menus?.length || 0}})</a>
+            style="cursor: pointer;">{{tab}} ({{getMenusLength()}})</a>
           <a *ngIf="tab === 'Menu Options'" class="nav-link {{activeTab === tab? 'active' : ''}}"
             (click)="setActiveTab(tab)" style="cursor: pointer;">{{tab}} ({{restaurant?.menuOptions?.length || 0}})</a>
           <a *ngIf="tab === 'Coupons'" class="nav-link {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
@@ -125,7 +125,7 @@
       </div>
 
       <div *ngIf="activeTab === 'Menu Options'">
-        <app-menu-options [restaurant]="restaurant"></app-menu-options>
+        <app-menu-options-and-addons [restaurant]="restaurant"></app-menu-options-and-addons>
       </div>
 
       <div *ngIf="activeTab === 'Coupons'">

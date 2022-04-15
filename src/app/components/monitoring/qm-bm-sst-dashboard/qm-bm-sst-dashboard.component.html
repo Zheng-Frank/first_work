@@ -27,6 +27,13 @@
       </div>
 
       <div class="col-auto mb-3">
+        <select class="form-control custom-select" [(ngModel)]="filters.activeDefinition" (change)="filter()">
+          <option [ngValue]="''">Active definition?</option>
+          <option *ngFor="let opt of dropdowns('active_definition')" [ngValue]="opt">{{opt}}</option>
+        </select>
+      </div>
+
+      <div class="col-auto mb-3">
         <select class="form-control custom-select" [(ngModel)]="filters.hasPlaceId" (change)="filter()">
           <option [ngValue]="''">Has place_id?</option>
           <option *ngFor="let opt of dropdowns('place_id')" [ngValue]="opt">{{opt}}</option>
@@ -50,6 +57,12 @@
         <select class="form-control custom-select" [(ngModel)]="filters.gmbStatus" (change)="filter()">
           <option [ngValue]="''">GMB Status?</option>
           <option *ngFor="let opt of dropdowns('gmb')" [ngValue]="opt">{{opt}}</option>
+        </select>
+      </div>
+      <div class="col-auto mb-3">
+        <select class="form-control custom-select" [(ngModel)]="filters.gmbWebsite" (change)="filter()">
+          <option [ngValue]="''">GMB Website?</option>
+          <option *ngFor="let opt of dropdowns('gmb_website')" [disabled]="opt.includes('BM')" [ngValue]="opt">{{opt}}</option>
         </select>
       </div>
 <!--      <div class="col-auto mb-3">-->
@@ -102,7 +115,21 @@
       <a class="btn btn-link" (click)="showSummary = !showSummary">{{showSummary ? 'Hide': 'Show'}} Summary <i class="fa fa-angle-{{showSummary ? 'up': 'down'}}"></i></a>
     </div>
     <table class="table table-sm" *ngIf="showSummary">
-      <thead><tr><th></th><th>Total</th><th>Tier 1</th><th>Tier 2</th><th>Tier 3</th></tr></thead>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Total</th>
+          <th>Tier 1</th>
+          <th>Tier 2</th>
+          <th>Tier 3</th>
+          <th>
+            <div class="edit-label-cell">
+              <q-edit-label [value]="sumOPMLevel" (edit)="sumOPMLevel = $event.newValue"></q-edit-label>
+              <span class="suffix">orders/mo</span>
+            </div>
+          </th>
+        </tr>
+      </thead>
       <tbody>
         <tr>
           <td>OVERALL RTs</td>
@@ -110,6 +137,7 @@
           <td>{{countByTier(summary.overall, 1)}}</td>
           <td>{{countByTier(summary.overall, 2)}}</td>
           <td>{{countByTier(summary.overall, 3)}}</td>
+          <td>N/A</td>
         </tr>
         <tr>
           <td>RTs on both platforms</td>
@@ -117,6 +145,7 @@
           <td>{{countByTier(summary.both, 1)}}</td>
           <td>{{countByTier(summary.both, 2)}}</td>
           <td>{{countByTier(summary.both, 3)}}</td>
+          <td>N/A</td>
         </tr>
         <tr>
           <td>Qmenu-only RTs</td>
@@ -124,6 +153,7 @@
           <td>{{countByTier(summary.qmOnly, 1)}}</td>
           <td>{{countByTier(summary.qmOnly, 2)}}</td>
           <td>{{countByTier(summary.qmOnly, 3)}}</td>
+          <td>{{countByOrdersPerMonth(summary.qmOnly)}}</td>
         </tr>
         <tr>
           <td>BeyondMenu-only RTs</td>
@@ -131,6 +161,7 @@
           <td>{{countByTier(summary.bmOnly, 1)}}</td>
           <td>{{countByTier(summary.bmOnly, 2)}}</td>
           <td>{{countByTier(summary.bmOnly, 3)}}</td>
+          <td>N/A</td>
         </tr>
         <tr>
           <td>
@@ -145,6 +176,7 @@
           <td>{{countByTier(summary.bmAll, 1)}}</td>
           <td>{{countByTier(summary.bmAll, 2)}}</td>
           <td>{{countByTier(summary.bmAll, 3)}}</td>
+          <td>N/A</td>
         </tr>
         <tr>
           <td>
@@ -159,9 +191,94 @@
           <td>{{countByTier(summary.qmAll, 1)}}</td>
           <td>{{countByTier(summary.qmAll, 2)}}</td>
           <td>{{countByTier(summary.qmAll, 3)}}</td>
+          <td>{{countByOrdersPerMonth(summary.qmAll)}}</td>
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <div>
+    <div>
+      <a class="btn btn-link" (click)="showKPI = !showKPI">{{showKPI ? 'Hide': 'Show'}} KPI <i class="fa fa-angle-{{showKPI ? 'up': 'down'}}"></i></a>
+    </div>
+    <ng-container *ngIf="showKPI">
+      <div class="row mt-2 mb-2">
+        <div class="col-auto">
+          <select class="form-control custom-select" [(ngModel)]="kpiFilters.normal.platform">
+            <option *ngFor="let opt of dropdowns('platform')" [ngValue]="opt">{{opt}}</option>
+          </select>
+        </div>
+        <div class="col-auto">
+          <select class="form-control custom-select" [(ngModel)]="kpiFilters.normal.period">
+            <option *ngFor="let opt of dropdowns('kpi_period')" [ngValue]="opt">{{opt}}</option>
+          </select>
+        </div>
+        <div class="col-auto">
+          <a class="btn btn-link" (click)="kpiNormalDownload()">Download CSV</a>
+        </div>
+      </div>
+      <div class="scroll-table-container">
+        <table class="table table-bordered left table-sm">
+          <thead><tr><th class="text-transparent">Placeholder</th></tr></thead>
+          <tbody>
+            <tr><td>GMV $</td></tr>
+            <tr><td>Order count</td></tr>
+            <tr><td>Active RT count</td></tr>
+            <tr><td>AOV $</td></tr>
+          </tbody>
+        </table>
+        <div class="right">
+          <table class="table table-bordered table-sm">
+            <thead><tr><th *ngFor="let item of getKPIHeaders('normal')">{{item}}</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let values of getKpiNormalList(); let i = index;">
+                <td *ngFor="let value of values">
+                  <ng-container *ngIf="[0, 3].includes(i)">$</ng-container>{{value | number}}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="row mt-2 mb-2">
+        <div class="col-auto">
+          <select class="form-control custom-select" [(ngModel)]="kpiFilters.over.platform">
+            <option *ngFor="let opt of dropdowns('platform')" [ngValue]="opt">{{opt}}</option>
+          </select>
+        </div>
+        <div class="col-auto">
+          <select class="form-control custom-select" [(ngModel)]="kpiFilters.over.period">
+            <option *ngFor="let opt of dropdowns('kpi_period')" [ngValue]="opt">{{opt}}</option>
+          </select>
+        </div>
+        <div class="col-auto">
+          <a class="btn btn-link" (click)="kpiOverDownload()">Download CSV</a>
+        </div>
+      </div>
+      <div class="scroll-table-container">
+        <table class="table table-bordered left table-sm">
+          <thead><tr><th class="text-transparent">Placeholder</th></tr></thead>
+          <tbody>
+            <tr><td>GMV {{getKpiLabel()}}</td></tr>
+            <tr><td>Order count {{getKpiLabel()}}</td></tr>
+            <tr><td>Active RT count</td></tr>
+            <tr><td>AOV {{getKpiLabel()}}</td></tr>
+          </tbody>
+        </table>
+        <div class="right">
+          <table class="table table-bordered table-sm">
+            <thead><tr><th *ngFor="let item of getKPIHeaders('over')">{{item}}</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let values of getKpiOverList()">
+                <td *ngFor="let value of values">{{value | percent: '1.0-2'}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </ng-container>
+
   </div>
 
   <table class="table table-sm mt-2 mb-3">
@@ -181,36 +298,41 @@
           <td rowspan="2" class="td-dot"><span class="dot {{getTierColor(row.tier, row.btier)}}"></span></td>
           <td rowspan="2">
             <div class="d-flex align-items-center">
-              <ng-container *ngIf="row._id">
-                <span class="qm-icon mr-1"></span>
-                <a class="mr-2" [routerLink]="'/restaurants/' + row._id" *ngIf="row.name !== row.bname">{{row.name}}</a>
+              <ng-container *ngIf="row._id && !row.hide">
+                <span class="logo qm-icon mr-1"></span>
+                <a class="mr-2" [routerLink]="'/restaurants/' + row._id" *ngIf="row.bhide || row.name !== row.bname">{{row.name}}</a>
               </ng-container>
-              <ng-container *ngIf="row._bid">
-                <span class="bm-icon mr-1"></span>
-                <a [routerLink]="'/restaurants/' + row._id" *ngIf="row.name === row.bname">{{row.name}}</a>
-                <span *ngIf="row.name !== row.bname">{{row.bname}}</span>
+              <ng-container *ngIf="row._bid && !row.bhide">
+                <span class="logo bm-icon mr-1"></span>
+                <a [routerLink]="'/restaurants/' + row._id" *ngIf="!row.hide && row.name === row.bname">{{row.name}}</a>
+                <span *ngIf="row.hide || row.name !== row.bname">{{row.bname}}</span>
               </ng-container>
             </div>
             <div>
-              <div>palce_id: {{row.place_id || row.bplace_id || 'N/A'}}</div>
-              <div *ngIf="row._id">
-                QM: Tier {{row.tier || 'N/A'}}, ID: {{row._id}},
+              <div>place_id: {{getPlaceId(row)}}</div>
+              <div *ngIf="row._id && !row.hide">
+                QM: Tier {{row.tier}}, ID: {{row._id}},
                 <ng-container *ngIf="row.createdAt">created: {{row.createdAt | dateTz: "yyyy-MM-dd": "America/New_York"}}</ng-container>,
                 domain: <a *ngIf="row.website" [href]="row.website">{{row.website}}</a>
               </div>
-              <ng-container *ngIf="row._bid">
-                <div>BM: Tier {{row.btier || 'N/A'}}, ID: {{row._bid}}, <ng-container *ngIf="row.createdAt">created: {{row.createdAt | dateTz: "YYYY-MM-DD": "America/New_York"}}</ng-container>, domain: <a [href]="row.bwebsite">{{row.bwebsite}}</a></div>
+              <ng-container *ngIf="row._bid && !row.bhide">
+                <div>BM: Tier {{row.btier}}, ID: {{row._bid}}, <ng-container *ngIf="row.createdAt">created: {{row.createdAt | dateTz: "YYYY-MM-DD": "America/New_York"}}</ng-container>, domain: <a [href]="row.bwebsite">{{row.bwebsite}}</a></div>
                 <div *ngIf="showPricing">BM Pricing: {{row.bpricing}}</div>
               </ng-container>
             </div>
-            <div>Address: <span class="mr-1" *ngIf="row.address">{{row.address}} (QM)</span>/<span class="ml-1" *ngIf="row.baddress">{{row.baddress}} (BM)</span></div>
+            <div>
+              Address:
+              <span class="mr-1" *ngIf="row.address && !row.hide">{{row.address}} (QM)</span>
+              <ng-container *ngIf="row.address && !row.hide && row.baddress && !row.bhide">/</ng-container>
+              <span class="ml-1" *ngIf="row.baddress && !row.bhide">{{row.baddress}} (BM)</span>
+            </div>
             <div *ngIf="showPhones">Phone: {{groupChannels(row, 'Phone')}}</div>
             <div *ngIf="showOtherContacts">Emails: {{groupChannels(row, 'Email')}} / Fax: {{groupChannels(row, 'Fax')}}</div>
           </td>
           <td class="td-icon-top">
             <div class="d-flex flex-column align-items-end">
               <span *ngIf="showSalesWorthiness" [innerHTML]="getWorthy(row)"></span>
-              <ng-container *ngIf="showPostmatesStatus">
+              <ng-container *ngIf="showPostmatesStatus && !row.hide">
                 <img class="pm-green" *ngIf="row.courier === 'Postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
                 <img class="pm-grey" *ngIf="row.courier != 'Postmates' && row.postmatesAvailable" src="assets/images/postmates.png" />
               </ng-container>
@@ -221,9 +343,13 @@
           <td class="td-icon-bottom">
             <div class="d-inline-flex align-items-center">
               <i class="fab fa-google mr-2"></i>
-              <span class="qm-icon" *ngIf="row.hasGmb"></span>
-              <span class="bm-icon" *ngIf="row.bhasGmb"></span>
+              <span class="logo qm-icon" *ngIf="row.hasGmb" [ngClass]="{'mr-2': row.bhasGmb}"></span>
+              <span class="logo bm-icon" *ngIf="row.bhasGmb"></span>
               <span class="text-danger" *ngIf="!row.hasGmb && !row.bhasGmb">&#10008;</span>
+              <i class="fas fa-globe mr-2 ml-3"></i>
+              <span class="logo qm-icon" *ngIf="row.hasGMBWebsite" [ngClass]="{'mr-2': row.bhasGMBWebsite}"></span>
+              <span class="logo bm-icon" *ngIf="row.bhasGMBWebsite"></span>
+              <span class="text-danger" *ngIf="!row.hasGMBWebsite && !row.bhasGMBWebsite">&#10008;</span>
             </div>
           </td>
         </tr>
@@ -240,5 +366,4 @@
     </tfoot>
   </table>
 </div>
-
 

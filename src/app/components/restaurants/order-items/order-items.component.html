@@ -2,7 +2,7 @@
   <!--order items-->
   <table class="table app-borderless">
     <tbody>
-      <tr *ngFor="let n of order.orderItems">
+      <tr *ngFor="let n of normalItems()">
         <td colspan="2">
 
           <span *ngIf="n.miInstance.number">{{n.miInstance.number}} </span>
@@ -61,6 +61,17 @@
           </ng-template>
         </td>
         <td class="text-right text-nowrap">-{{order.getDiscount() | money}}</td>
+      </tr>
+
+      <tr *ngFor="let a of addonItems()">
+        <td colspan="2">
+          <strong>{{a.miInstance.name}}</strong>
+          <div *ngIf="a.quantity > 1">
+            <span class="box"><strong>Qty = {{a.quantity}}</strong></span>
+            <div>{{a.getUnitCost()| money}} &times; {{a.quantity}}</div>
+          </div>
+        </td>
+        <td class="text-right text-nowrap">{{a.quantity * a.getUnitCost() | money}}</td>
       </tr>
 
       <tr class="gray-border-top">
