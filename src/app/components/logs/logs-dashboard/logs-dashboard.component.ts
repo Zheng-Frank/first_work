@@ -67,7 +67,7 @@ export class LogsDashboardComponent implements OnInit {
           logo: 1,
           'channels.value': 1,
           "googleAddress.formatted_address": 1,
-          "computed.tier.ordersPerMonth": 1
+          "computed.tier": { $slice: 1 }
         }
       }, 3000);
 
@@ -77,7 +77,8 @@ export class LogsDashboardComponent implements OnInit {
           r.logs = r.logs.map(log => new Log(log));
         }
         // compute tier of rt
-        r['tier'] = Helper.getTier(((r.computed || {}).tier || {}).ordersPerMonth);
+        let latest = ((r.computed || {}).tier || [])[0];
+        r.tier = Helper.getTier(latest ? latest.ordersPerMonth : 0);
       });
 
       // sort logs

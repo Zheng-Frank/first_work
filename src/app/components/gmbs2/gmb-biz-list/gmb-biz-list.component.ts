@@ -94,7 +94,7 @@ export class GmbBizListComponent implements OnInit {
         "web.useBizOrderAheadUrl": 1,
         "web.useBizReservationUrl": 1,
         "web.ignoreGmbOwnershipRequest": 1,
-        "computed.tier.ordersPerMonth": 1
+        "computed.tier": { $slice: 1 }
       }
     }, 8000);
     const gmbBizQuery = this._api.get(environment.qmenuApiUrl + "generic", {
@@ -248,7 +248,8 @@ export class GmbBizListComponent implements OnInit {
     // generate tier data
     this.rows.forEach(row => {
       // compute tier of rt
-      row.restaurant['tier'] = Helper.getTier(((row.restaurant.computed || {}).tier || {}).ordersPerMonth);
+      let latest = ((row.restaurant.computed || {}).tier || [])[0];
+      row.restaurant.tier = Helper.getTier(latest ? latest.ordersPerMonth : 0);
     });
     this.filter();
 
@@ -464,12 +465,16 @@ export class GmbBizListComponent implements OnInit {
     if (this.tierOption !== TierTypes.All) {
       if (this.tierOption === TierTypes.Tier_1) {
         this.filteredRows = this.filteredRows.filter(row => row.restaurant.tier === 1);
+        console.log(this.filteredRows);
       } else if (this.tierOption === TierTypes.Tier_2) {
         this.filteredRows = this.filteredRows.filter(row => row.restaurant.tier === 2);
+        console.log(this.filteredRows);
       } else if (this.tierOption === TierTypes.Tier_3) {
         this.filteredRows = this.filteredRows.filter(row => row.restaurant.tier === 3);
+        console.log(this.filteredRows);
       } else if (this.tierOption === TierTypes.VIP) {
         this.filteredRows = this.filteredRows.filter(row => row.restaurant.tier === 0);
+        console.log(this.filteredRows);
       }
     }
 

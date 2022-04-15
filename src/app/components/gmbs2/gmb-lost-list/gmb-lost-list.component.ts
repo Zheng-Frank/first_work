@@ -264,7 +264,7 @@ export class GmbLostListComponent implements OnInit {
     }
     // filter gmb tier options
     if (this.modeOption === modeTypes.Tier_1_Potential) {
-      this.filteredRows = this.filteredRows.filter(row => row.gmbTier === 1);
+      this.filteredRows = this.filteredRows.filter(row => row.gmbTier <= 1);
     }
     // Update number of restaurants shown
     this.numberOfRestaurant = this.filteredRows.length;
