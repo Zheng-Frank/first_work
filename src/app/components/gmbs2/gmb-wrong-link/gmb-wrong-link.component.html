@@ -1,9 +1,14 @@
 <h1 class="text-center">Restaurants with Wrong GMB Links: ({{filteredRows.length}})</h1>
 <div class="clearfix">
   <div class="float-left form-inline py-2">
+    Mode:
+    <select class="form-control mx-2" [(ngModel)]="websiteStatus" (change)="changeFilter()">
+      <option *ngFor="let ws of websiteStatuses" value="{{ws}}">{{ws}}</option>
+    </select>
+  </div>
+  <div class="float-left form-inline py-2">
     qMenu Website:
     <select class="form-control mx-2" [(ngModel)]="websiteStatus" (change)="changeFilter()">
-      <option></option>
       <option *ngFor="let ws of websiteStatuses" value="{{ws}}">{{ws}}</option>
     </select>
   </div>

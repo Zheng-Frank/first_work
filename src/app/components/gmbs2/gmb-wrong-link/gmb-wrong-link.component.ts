@@ -2,10 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from '../../../services/global.service';
-import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { AlertType } from 'src/app/classes/alert-type';
 import { Helper } from 'src/app/classes/helper';
-import { lineSplit } from 'pdf-lib';
+
+enum modeTypes {
+  Not_Even_1 = 'Not even 1 QM link',
+  Main_Link_Not = 'Main link not QM'
+}
 
 @Component({
   selector: 'app-gmb-wrong-link',
@@ -23,6 +26,8 @@ export class GmbWrongLinkComponent implements OnInit {
     'missing',
     'not missing'
   ];
+  modeOptions = [modeTypes.Not_Even_1, modeTypes.Main_Link_Not];
+  modeOption = modeTypes.Not_Even_1;
   myColumnDescriptors = [
     {
       label: "#"
@@ -87,6 +92,7 @@ export class GmbWrongLinkComponent implements OnInit {
       projection: {
         name: 1,
         "googleListing.cid": 1,
+        "googleListing.place_id": 1,
         "googleListing.gmbOwner": 1,
         "googleListing.gmbWebsite": 1,
         "googleAddress.formatted_address": 1,
@@ -150,6 +156,20 @@ export class GmbWrongLinkComponent implements OnInit {
       }
     }));
 
+    const gmbBiz = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: {cid: 1, gmbOwner: 1, qmenuId: 1, place_id: 1, gmbWebsite: 1},
+      limit: 1000000000
+    }).toPromise();
+    let gmbWebsiteOwnerDict = {};
+    gmbBiz.forEach(({cid, place_id, qmenuId, gmbOwner}) => {
+      let key = place_id + cid;
+      gmbWebsiteOwnerDict[key] = gmbOwner;
+      if (qmenuId) {
+        gmbWebsiteOwnerDict[qmenuId + cid] = gmbOwner;
+      }
+    })
+
     restaurants.map(r => {
       r.createdAt = new Date(parseInt(r._id.substring(0, 8), 16) * 1000);
       if (r.googleListing && r.googleListing.cid) {
@@ -157,6 +177,8 @@ export class GmbWrongLinkComponent implements OnInit {
       }
       r.agent = (r.rateSchedules || []).map(rs => rs.agent).filter(a => a)[0];
     });
+
+    console.log(restaurants.filter(r=>r.name === 'Happy crab seafood'));
 
     const mismatchedRestaurants = restaurants.filter(restaurant => {
       // define conditions that lead us to conclude that a RT has incorrect links
@@ -172,8 +194,23 @@ export class GmbWrongLinkComponent implements OnInit {
 
       return isEnabled && !isqMenuLinkOnGmb && !rtInsistsOwnLinks;
     });
+    console.log(mismatchedRestaurants.filter(r=>r.name === 'Happy crab seafood'));
+    
 
-    const publishedMismatchedRestaurants = mismatchedRestaurants.filter(r => r.accountLoc && r.accountLoc.location.status === 'Published');
+    let publishedMismatchedRestaurants = mismatchedRestaurants.filter(r => r.accountLoc && r.accountLoc.location.status === 'Published');
+    
+    /*
+    Not all the RTs that should be on this page are actually appearing on the page. 
+    Any RT where we own the GMB but our Qmenu link isn't on the GMB 
+    (or some competitor's link is on the GMB instead), should appear on that page. 
+    */
+    publishedMismatchedRestaurants.forEach(r => {
+      let key = r.googleListing.place_id + r.googleListing.cid;
+      r.hasGmb = (gmbWebsiteOwnerDict[key] || gmbWebsiteOwnerDict[r._id + r.googleListing.cid]) && gmbAccounts.some(acc => (acc.locations || []).some(loc => loc.cid === r.googleListing.cid && loc.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].includes(loc.role)))
+      r.hasGMBWebsite = gmbWebsiteOwnerDict[key] === 'qmenu' || gmbWebsiteOwnerDict[r._id + r.googleListing.cid] === 'qmenu';
+    });
+    publishedMismatchedRestaurants = publishedMismatchedRestaurants.filter(r => r.hasGmb && !r.hasGMBWebsite); 
+    console.log(publishedMismatchedRestaurants.filter(r=>r.name === 'Happy crab seafood'));
     // sort by name!
     this.rows = publishedMismatchedRestaurants.map(r => ({ restaurant: r })).sort((r1, r2) => r1.restaurant.name > r2.restaurant.name ? 1 : (r1.restaurant.name < r2.restaurant.name ? -1 : 0));
     this.changeFilter();
