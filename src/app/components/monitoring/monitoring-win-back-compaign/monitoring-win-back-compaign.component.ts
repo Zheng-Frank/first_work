@@ -84,10 +84,10 @@ export class MonitoringWinBackCompaignComponent implements OnInit {
       ],
     }).toPromise();
     // generate tier data
-    restaurants.forEach(row => {
+    restaurants.forEach(rt => {
       // compute tier of rt
-      let latest = ((row.restaurant.computed || {}).tier || [])[0];
-      row.restaurant.tier = this.getTier(latest ? latest.ordersPerMonth : 0);
+      let latest = ((rt.computed || {}).tier || [])[0];
+      rt.tier = this.getTier(latest ? latest.ordersPerMonth : 0);
     });
     this.rows = restaurants;
   }
