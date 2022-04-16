@@ -278,6 +278,7 @@ import { MenuOptionsAndAddonsComponent } from './components/restaurants/menu-opt
 import { MornitoringSmsComponent } from './components/monitoring/mornitoring-sms/mornitoring-sms.component';
 import { MonitoringDeactivatedCustomersComponent } from './components/monitoring/monitoring-deactivated-customers/monitoring-deactivated-customers.component';
 import { MonitoringRtsWithPaymentCollectComponent } from './components/monitoring/monitoring-rts-with-payment-collect/monitoring-rts-with-payment-collect.component';
+import { MonitoringWinBackCompaignComponent } from './components/monitoring/monitoring-win-back-compaign/monitoring-win-back-compaign.component';
 
 
 
@@ -527,7 +528,8 @@ import { MonitoringRtsWithPaymentCollectComponent } from './components/monitorin
     MenuOptionsAndAddonsComponent,
     MornitoringSmsComponent,
     MonitoringDeactivatedCustomersComponent,
-    MonitoringRtsWithPaymentCollectComponent
+    MonitoringRtsWithPaymentCollectComponent,
+    MonitoringWinBackCompaignComponent
   ],
   imports: [
     BrowserModule,

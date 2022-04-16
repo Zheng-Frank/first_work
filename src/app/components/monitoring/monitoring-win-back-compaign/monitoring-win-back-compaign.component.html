@@ -1,0 +1,64 @@
+<div class="card">
+  <h2 class="card-title m-3">
+    <h1 class="text-center">Win-back Compaign ({{filteredRows.length || 0}})</h1>
+  </h2>
+  <div class="card-body">
+    <div class="row mb-3">
+      <div class="col-auto">
+        <div class="input-group d-flex align-items-center">
+          <select [(ngModel)]="tier1PotentialOption" class="custom-select" (change)="filterRows()">
+            <option *ngFor="let option of tier1PotentialOptions" [value]="option">{{option}}</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-primary" (click)="populateWinBackRTs()"><i class="fas fa-sync"></i> Reload</button>
+      </div>
+    </div>
+
+    <q-table [rows]="filteredRows" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
+      [pageSize]="100000">
+      <tr *tableRowTemplate="let r;">
+        <td>{{filterVipRTs.indexOf(r) + 1}}</td>
+        <td>
+          <a target="_blank" routerLink="/restaurants/{{r['_id']}}">{{r.name}} </a><br>
+          <span>{{r._id}}</span>
+        </td>
+        <td>
+          <ng-container *ngIf="tier1PotentialOption !== tier1PotentialTypes.History_Based">
+            GMB: {{r.gmbPositiveScore.ordersPerMonth}}
+          </ng-container>
+          <ng-container *ngIf="tier1PotentialOption !== tier1PotentialTypes.GMB_Based">
+            <!-- Hist Perf.: {{}} --> Hist Perf.: 
+          </ng-container>
+        </td>
+        <td>{{r.tier | number : '1.0-0'}}</td>
+        <td style="width:40%;">
+          <table class="table table-sm">
+            <tr>
+              <th>User</th>
+              <th>Time</th>
+              <th>Problem</th>
+              <th>Response</th>
+            </tr>
+            <ng-container *ngFor="let log of r.logs">
+              <tr *ngIf="log.type === 'tier-1-winback'">
+                <td>{{log.username}}</td>
+                <td>{{log.time | adjustedDate : 'MMM d h:mm a' : r.googleAddress.timezone}}</td>
+                <td>{{log.problem}}</td>
+                <td>{{log.response}}</td>
+              </tr>
+            </ng-container>
+          </table>
+          <div>
+            <button class="btn btn-primary btn-sm" (click)="addLog(r)"><i class="fas fa-plus"></i>Add Log</button>
+          </div>
+        </td>
+    </q-table>
+  </div>
+
+  <q-modal #logEditingModal>
+    <app-log-editor [restaurant]="activeRow" [restaurantList]="[]" [log]="logInEditing"
+      (success)="onSuccessAddLog($event)" (cancel)="onCancelAddLog()"></app-log-editor>
+  </q-modal>
+</div>
