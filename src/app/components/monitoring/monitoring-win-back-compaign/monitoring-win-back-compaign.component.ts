@@ -78,7 +78,16 @@ export class MonitoringWinBackCompaignComponent implements OnInit {
               $slice: ["$computed.tier", 1]
             },
             activities: "$computed.activities",
-            gmbPositiveScore: "$computed.gmbPositiveScore"
+            gmbPositiveScore: "$computed.gmbPositiveScore",
+            logs: {
+              $filter: {
+                input: '$logs',
+                as: 'log',
+                cond: {
+                  $eq: ['$$log.type', this.winbackLogType]
+                }
+              }
+            }
           }
         }
       ],
@@ -90,6 +99,7 @@ export class MonitoringWinBackCompaignComponent implements OnInit {
       rt.tier = this.getTier(latest ? latest.ordersPerMonth : 0);
     });
     this.rows = restaurants;
+    this.filterRows();    
   }
 
   getTier(ordersPerMonth = 0) {

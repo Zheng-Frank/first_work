@@ -19,17 +19,22 @@
     <q-table [rows]="filteredRows" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
       [pageSize]="100000">
       <tr *tableRowTemplate="let r;">
-        <td>{{filterVipRTs.indexOf(r) + 1}}</td>
+        <td>{{filteredRows.indexOf(r) + 1}}</td>
         <td>
           <a target="_blank" routerLink="/restaurants/{{r['_id']}}">{{r.name}} </a><br>
           <span>{{r._id}}</span>
         </td>
         <td>
           <ng-container *ngIf="tier1PotentialOption !== tier1PotentialTypes.History_Based">
-            GMB: {{r.gmbPositiveScore.ordersPerMonth}}
+            <div>
+              GMB: {{r.gmbPositiveScore.ordersPerMonth}}
+            </div>
           </ng-container>
           <ng-container *ngIf="tier1PotentialOption !== tier1PotentialTypes.GMB_Based">
-            <!-- Hist Perf.: {{}} --> Hist Perf.: 
+            <!-- Hist Perf.: {{}} --> 
+            <div>
+              Hist Perf.:
+            </div>
           </ng-container>
         </td>
         <td>{{r.tier | number : '1.0-0'}}</td>
