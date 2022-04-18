@@ -27,13 +27,12 @@
         <td>
           <ng-container *ngIf="tier1PotentialOption !== tier1PotentialTypes.History_Based">
             <div>
-              GMB: {{r.gmbPositiveScore.ordersPerMonth}}
+              GMB: {{r.gmbPositiveScore.ordersPerMonth}} orders/mo
             </div>
           </ng-container>
           <ng-container *ngIf="tier1PotentialOption !== tier1PotentialTypes.GMB_Based">
-            <!-- Hist Perf.: {{}} --> 
             <div>
-              Hist Perf.:
+              Hist Perf.: Avg'd {{r.histPerfLast3Month}} orders/mo last 3 months
             </div>
           </ng-container>
         </td>

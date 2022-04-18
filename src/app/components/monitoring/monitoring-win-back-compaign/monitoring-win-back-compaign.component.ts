@@ -97,9 +97,43 @@ export class MonitoringWinBackCompaignComponent implements OnInit {
       // compute tier of rt
       let latest = ((rt.computed || {}).tier || [])[0];
       rt.tier = this.getTier(latest ? latest.ordersPerMonth : 0);
+      // compute isTier1HistPerf
+      // 1. fill short data in activities of rt object
+      let activities = [...Object.entries(rt.activities)];
+      activities.sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+      let firstOrderTime = new Date(`${activities[0][0][0]}${activities[0][0][1]}${activities[0][0][2]}${activities[0][0][3]}-${activities[0][0][4]}${activities[0][0][5]}`);
+      let endOrderTime = new Date();
+      let tempActivities = [];
+      while (firstOrderTime.valueOf() <= endOrderTime.valueOf()) {
+        let time = `${firstOrderTime.getFullYear()}${firstOrderTime.getMonth() < 9 ? "0" + (firstOrderTime.getMonth() + 1) : (firstOrderTime.getMonth() + 1)}`;
+        let index = activities.findIndex(activity => activity[0] === time);
+        let item = [index >= 0 ? activities[index][0] : time, index >= 0 ? activities[index][1] : 0];
+        tempActivities.push(item);
+        firstOrderTime.setMonth(firstOrderTime.getMonth() + 1);
+      }
+      // Find out whether there are orders with more than 40 orders for more than 3 consecutive months in history.
+      //  Record a variable and save it temporarily
+      // example: tempActivities is [["201612",0],["201701",22],["201703",9],["201704",52],["201705",10]...]
+      let count = 0;
+      for (let i = 0; i < tempActivities.length; i++) {
+        let activity = tempActivities[i];
+        if (count >= 2) {
+          break;
+        }
+        if (i < tempActivities.length - 1) {
+          if (activity[1] > 40 && tempActivities[i + 1][1] > 40) {
+            count++;
+          } else {
+            count = 0;
+          }
+        }
+      }
+      rt.isTier1HistPerf = count >= 2;
+      // compute histPerfLast3Month
+      rt.histPerfLast3Month = Math.ceil((tempActivities[tempActivities.length - 4][1] + tempActivities[tempActivities.length - 3][1] + tempActivities[tempActivities.length - 2][1] + tempActivities[tempActivities.length - 1][1]) / 3);
     });
     this.rows = restaurants;
-    this.filterRows();    
+    this.filterRows();
   }
 
   getTier(ordersPerMonth = 0) {
@@ -121,23 +155,7 @@ export class MonitoringWinBackCompaignComponent implements OnInit {
       if (this.tier1PotentialOption === tier1PotentialTypes.GMB_Based) {
         this.filteredRows = this.filteredRows.filter(row => row.gmbPositiveScore.ordersPerMonth > 40);
       } else if (this.tier1PotentialOption === tier1PotentialTypes.History_Based) {
-        this.filteredRows = this.filteredRows.filter(row => {
-          let count = 0;
-          for (let i = 0; i < row.activities.length; i++) {
-            let activity = row.activities[i];
-            if (count >= 3) {
-              break;
-            }
-            if (i < row.activities.length - 1) {
-              if (activity > 40 && row.activities[i + 1] > 40) {
-                count++;
-              } else {
-                count = 0;
-              }
-            }
-          }
-          return count >= 3;
-        });
+        this.filteredRows = this.filteredRows.filter(row => row.isTier1HistPerf);
       }
     }
   }
