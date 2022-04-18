@@ -654,7 +654,7 @@ export class QmBmSstDashboardComponent implements OnInit {
           tiers = [tiers];
         }
         let latest = tiers.sort((a, b) => new Date(b.time).valueOf() - new Date(a.time).valueOf())[0];
-        rt.tier = this.getTier(latest ? latest.ordersPerMonth : 0);
+        rt.tier = Helper.getTier(latest ? latest.ordersPerMonth : 0);
 
         rt.hasGmb = (gmbWebsiteOwnerDict[key] || gmbWebsiteOwnerDict[rt._id + rt.cid]) && accounts.some(acc => (acc.locations || []).some(loc => loc.cid === rt.cid && loc.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].includes(loc.role)))
         rt.hasGMBWebsite = gmbWebsiteOwnerDict[key] === 'qmenu' || gmbWebsiteOwnerDict[rt._id + rt.cid] === 'qmenu';
@@ -779,19 +779,6 @@ export class QmBmSstDashboardComponent implements OnInit {
     });
     let minDistance = Math.min(...distances), index = distances.indexOf(minDistance);
     return minDistance < 0.5 && (['V1', 'V2', 'V3', 'V4'].includes(this.viabilities[index].Viability));
-  }
-
-  getTier(ordersPerMonth) {
-    if (ordersPerMonth > 125) { // VIP
-      return 0;
-    }
-    if (ordersPerMonth > 40) {
-      return 1;
-    }
-    if (ordersPerMonth > 4) {
-      return 2;
-    }
-    return 3;
   }
 
   getPlaceId(row) {
