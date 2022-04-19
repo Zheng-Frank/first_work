@@ -2,8 +2,8 @@
 <div class="clearfix">
   <div class="float-left form-inline py-2">
     Mode:
-    <select class="form-control mx-2" [(ngModel)]="websiteStatus" (change)="changeFilter()">
-      <option *ngFor="let ws of websiteStatuses" value="{{ws}}">{{ws}}</option>
+    <select class="form-control mx-2" [(ngModel)]="modeOption" (change)="changeFilter()">
+      <option *ngFor="let option of modeOptions" value="{{option}}">{{option}}</option>
     </select>
   </div>
   <div class="float-left form-inline py-2">
@@ -37,21 +37,57 @@
           [appealId]="row.restaurant.accountLoc.location.appealId">
         </app-gmb-account-hotlink>
       </td>
-      <td style="width: 100px;">
-        <small>
-          <span><b>qMenu:</b> <i>{{formatLink(row.restaurant.web.qmenuWebsite)}} </i>
-          </span>
-          <br>
-          <span><b>Restaurant:</b> <i>{{formatLink(row.restaurant.web.bizManagedWebsite)}} </i>
-          </span>
-        </small>
+      <td>
+        <table class="table table-sm" style="font-size: 12px;">
+          <thead>
+            <th>Link</th>
+            <th>URL(Desired/Insisted/Actual)</th>
+          </thead>
+          <tbody>
+            <tr *ngFor="let status of row.restaurant.linkStatuses">
+              <td>
+                <div>
+                  {{status.label}}
+                </div>
+                <div>
+                  <i class="{{status.status.style}}">{{status.status.text}}</i>
+                </div>
+              </td>
+              <td>
+                <div>
+                  Desired URL:
+                  <ng-container *ngIf="!status.showMoreDesiredUrl;else desiredBlock">
+                    {{formatLink(status.desired)}}
+                  </ng-container>
+                  <ng-template #desiredBlock>
+                    {{status.desired}} 
+                  </ng-template>
+                  <button class="btn btn-sm btn-link"
+                    (click)="status.showMoreDesiredUrl = !status.showMoreDesiredUrl">View</button>
+                </div>
+                <div>
+                  Actual URL:
+                  <ng-container *ngIf="!status.showMoreActualUrl;else actualBlock">
+                    {{formatLink(status.actual.join(', '))}}
+                  </ng-container>
+                  <ng-template #actualBlock>
+                    {{status.actual.join(', ')}}
+                  </ng-template>
+                  <button class="btn btn-sm btn-link"
+                    (click)="status.showMoreActualUrl = !status.showMoreActualUrl">View</button>
+                </div>
+                <div>
+                  Insisted: {{status.insisted}}
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </td>
-
       <td id="fixedWidth">
         <ul>
           <li *ngFor="let log of listOfMatchingLogEntries(row.restaurant._id)">
             <strong>{{log.username}}:</strong> {{log.log}} <i>({{log.createdAt | date : 'shortDate'}})</i>
-
           </li>
         </ul>
         <table>
