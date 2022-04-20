@@ -20,6 +20,11 @@
         </select>
       </div>
       <div class="col-auto mb-3">
+        <select [(ngModel)]="feieDisplayOption" class="form-control" (change)="filterRTs()">
+          <option *ngFor="let option of feieDisplayOptions">{{option}}</option>
+        </select>
+      </div>
+      <div class="col-auto mb-3">
         <button class="btn btn-primary" (click)="populateRTsByPmtCollect()"><i class="fas fa-sync"></i> Reload</button>
       </div>
     </div>
@@ -38,15 +43,22 @@
           <div *ngFor="let service of (r.serviceSettings || [])">
             {{service.name}}: {{(service.paymentMethods || []).join(', ') || 'N/A'}}
           </div>
+
+          <!-- Credit Card Display Toggle -->
           <div>
             <q-toggle [(ngModel)]="r.showPrintingCCInfo" (change)="toggleEnabled(r, 'hidePrintingCCInfo')"></q-toggle>
             <span>Print CC Info</span>
           </div>
 
+          <!-- PCI Data Display Toggle -->
           <div>
             <q-toggle [(ngModel)]="r.showNonPCIData" (change)="toggleEnabled(r, 'hideNonPCIData')">
             </q-toggle>
             <span>Show non-PCI Data</span>
+          </div>
+          <!-- Fei-e Printing Display -->
+          <div>
+            <b>Fei-e Printing: </b> {{displayFeieMessage(r)}}
           </div>
         </td>
       </tr>

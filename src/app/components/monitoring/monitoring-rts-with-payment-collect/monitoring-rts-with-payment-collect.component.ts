@@ -20,6 +20,12 @@ enum pciDisplayTypes {
   Show_Non_PCI = 'PCI Non-Compliant RTs'
 };
 
+enum feieDisplayTypes {
+  All = 'Select fei-e Settings Filter',
+  Feie_Enabled = 'RTs with fei-e printing',
+  Feie_Disabled = 'RTs without fei-e printing'
+};
+
 enum printCCTypes {
   All = 'Select CC Print Filter',
   Print_CC = 'Print CC',
@@ -62,6 +68,8 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   printCCOption = printCCTypes.All;
   pciDisplayOptions = [pciDisplayTypes.All, pciDisplayTypes.Hide_Non_PCI, pciDisplayTypes.Show_Non_PCI];
   pciDisplayOption = pciDisplayTypes.All;
+  feieDisplayOptions = [feieDisplayTypes.All, feieDisplayTypes.Feie_Enabled, feieDisplayTypes.Feie_Disabled];
+  feieDisplayOption = feieDisplayTypes.All;
 
   rows = [];
   filteredRows = [];
@@ -69,7 +77,9 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
-    this.populateRTsByPmtCollect();
+    await this.populateRTsByPmtCollect();
+    await this.populatePrintClients();
+    this.filterRTs();
   }
 
   async populateRTsByPmtCollect() {
@@ -96,7 +106,6 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
       row.showPrintingCCInfo = !row.hidePrintingCCInfo;
       row.showNonPCIData = !row.hideNonPCIData;
     });
-    this.filterRTs();
   }
 
   filterRTs() {
@@ -132,6 +141,15 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
         this.filteredRows = this.filteredRows.filter(row => !row.showNonPCIData);
       }
     }
+
+    // filter by feie printing
+    if (this.feieDisplayOption !== feieDisplayTypes.All) {
+      if (this.feieDisplayOption === feieDisplayTypes.Feie_Enabled) {
+        this.filteredRows = this.filteredRows.filter(row => row.hasFeiePrinting);
+      } else if (this.feieDisplayOption === feieDisplayTypes.Feie_Disabled) {
+        this.filteredRows = this.filteredRows.filter(row => !row.hasFeiePrinting);
+      }
+    }
   }
 
   async toggleEnabled(rt, property) {
@@ -153,5 +171,29 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
 
     // RT may have changed category after the toggle, so we should re-filter
     this.filterRTs();
+  }
+
+  async populatePrintClients() {
+    const feieClients = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'print-client',
+      query: { type: 'fei-e' },
+      projection: { _id: 1, "restaurant._id": 1 }
+    }).toPromise();
+
+    for (let row of this.rows) {
+      row.hasFeiePrinting = false;
+
+      const rtMatch = feieClients.filter(client => client.restaurant._id === row._id);
+      if ((rtMatch || []).length) {
+        row.hasFeiePrinting = true;
+      }
+    }
+  }
+
+  displayFeieMessage(r) {
+    if (r.hasFeiePrinting === true) {
+      return 'ENABLED';
+    }
+    return 'Not enabled'
   }
 }
