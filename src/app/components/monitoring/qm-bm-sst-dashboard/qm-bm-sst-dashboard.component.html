@@ -354,90 +354,88 @@
 
   </div>
 
-  <div>
+  <div class="marks-info">
     <div>
-      <a class="btn btn-link" (click)="showChurn = !showChurn">{{showChurn ? 'Hide': 'Show'}} Churn <i class="fa fa-angle-{{showChurn ? 'up': 'down'}}"></i></a>
+      <a class="btn btn-link" (click)="showExplanation = !showExplanation">{{showExplanation ? 'Hide': 'Show'}} Marks Explanation <i
+        class="fa fa-angle-{{showExplanation ? 'up': 'down'}}"></i></a>
     </div>
-    <ng-container *ngIf="showChurn">
-      <div class="row mt-2 mb-2">
-        <div class="col-auto">
-          <select class="form-control custom-select" [(ngModel)]="churnFilters.platform">
-            <option *ngFor="let opt of dropdowns('platform')" [ngValue]="opt">{{opt}}</option>
-          </select>
-        </div>
-        <div class="col-auto">
-          <select class="form-control custom-select" [(ngModel)]="churnFilters.period">
-            <option *ngFor="let opt of dropdowns('kpi_period')" [ngValue]="opt">{{opt}}</option>
-          </select>
-        </div>
-        <div class="col-auto">
-          <select class="form-control custom-select" [(ngModel)]="churnFilters.tier">
-            <option *ngFor="let tier of [1,2,3]" [ngValue]="tier" >Tier {{tier}}</option>
-          </select>
-        </div>
-        <div class="col-auto">
-          <select class="form-control custom-select" [(ngModel)]="churnFilters.definition">
-            <option *ngFor="let opt of dropdowns('churn_definition')" [ngValue]="opt">{{opt}}</option>
-          </select>
-        </div>
-        <div class="col-auto">
-          <a class="btn btn-link" (click)="churnDownload()">Download CSV</a>
-        </div>
-      </div>
-      <table class="table table-bordered left table-sm">
-        <thead>
-        <tr>
-          <th class="text-transparent">Placeholder</th>
-          <th>Start Count</th>
-          <th>Total Lost(UT/DT/C)</th>
-          <th>Total Gained(IT/N)</th>
-          <th>End Count</th>
-          <th>Net +/-(%)</th>
-        </tr>
-        </thead>
-        <tbody>
-
-        </tbody>
-      </table>
-
-      <div class="row mt-2 mb-2">
-        <div class="col-auto">
-          <select class="form-control custom-select" [(ngModel)]="kpiFilters.over.platform">
-            <option *ngFor="let opt of dropdowns('platform')" [ngValue]="opt">{{opt}}</option>
-          </select>
-        </div>
-        <div class="col-auto">
-          <select class="form-control custom-select" [(ngModel)]="kpiFilters.over.period">
-            <option *ngFor="let opt of dropdowns('kpi_period')" [ngValue]="opt">{{opt}}</option>
-          </select>
-        </div>
-        <div class="col-auto">
-          <a class="btn btn-link" (click)="kpiOverDownload()">Download CSV</a>
-        </div>
-      </div>
-      <div class="scroll-table-container">
-        <table class="table table-bordered left table-sm">
-          <thead><tr><th class="text-transparent">Placeholder</th></tr></thead>
-          <tbody>
-          <tr><td>GMV {{getKpiLabel()}}</td></tr>
-          <tr><td>Order count {{getKpiLabel()}}</td></tr>
-          <tr><td>Active RT count</td></tr>
-          <tr><td>AOV {{getKpiLabel()}}</td></tr>
-          </tbody>
-        </table>
-        <div class="right">
-          <table class="table table-bordered table-sm">
-            <thead><tr><th *ngFor="let item of getKPIHeaders('over')">{{item}}</th></tr></thead>
-            <tbody>
-            <tr *ngFor="let values of getKpiOverList()">
-              <td *ngFor="let value of values">{{value | percent: '1.0-2'}}</td>
-            </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </ng-container>
-
+    <table *ngIf="showExplanation" class="table table-sm">
+      <tbody>
+      <tr>
+        <th>Tier</th>
+        <td>
+          <div class="d-flex align-items-center">
+            <span class="dot bg-info"></span>
+            <span class="ml-2 text-muted">Tier VIP</span>
+          </div>
+        </td>
+        <td>
+          <div class="d-flex align-items-center">
+            <span class="dot bg-success"></span>
+            <span class="ml-2 text-muted">Tier 1</span>
+          </div>
+        </td>
+        <td>
+          <div class="d-flex align-items-center">
+            <span class="dot bg-warning"></span>
+            <span class="ml-2 text-muted">Tier 2</span>
+          </div>
+        </td>
+        <td>
+          <div class="d-flex align-items-center">
+            <span class="dot bg-danger"></span>
+            <span class="ml-2 text-muted">Tier 3</span>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <th>GMB</th>
+        <td>
+          <div class="d-flex align-items-center">
+            <i class="fab fa-google mr-2"></i>
+            <span class="logo qm-icon"></span>
+            <span class="ml-2 text-muted">qMenu has GMB</span>
+          </div>
+        </td>
+        <td>
+          <div class="d-flex align-items-center">
+            <i class="fab fa-google mr-2"></i>
+            <span class="logo bm-icon"></span>
+            <span class="ml-2 text-muted">beyondmenu has GMB</span>
+          </div>
+        </td>
+        <td>
+          <div class="d-flex align-items-center">
+            <i class="fas fa-globe mr-2"></i>
+            <span class="logo qm-icon"></span>
+            <span class="ml-2 text-muted">qMenu has GMB Website</span>
+          </div>
+        </td>
+        <td>
+          <div class="d-flex align-items-center">
+            <i class="fas fa-globe mr-2"></i>
+            <span class="logo bm-icon"></span>
+            <span class="ml-2 text-muted">beyondmenu has GMB Website</span>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <th>Postmates</th>
+        <td colspan="2">
+          <div class="d-flex align-items-center">
+            <img class="pm-green" src="assets/images/postmates.png" />
+            <span class="ml-2 text-muted">Postmates available and used</span>
+          </div>
+        </td>
+        <td colspan="2">
+          <div class="d-flex align-items-center">
+            <img class="pm-grey" src="assets/images/postmates.png" />
+            <span class="ml-2 text-muted">Postmates available but not used</span>
+          </div>
+        </td>
+      </tr>
+      </tbody>
+    </table>
   </div>
 
   <table class="table table-sm mt-2 mb-3">

@@ -231,14 +231,14 @@ export class QmBmSstDashboardComponent implements OnInit {
   bmRTsPhoneDict = {};
   showSummary = false;
   showKPI = false;
+  showExplanation = false;
   showChurn = false;
   churnFilters = {
     platform: PlatformOptions.Both,
     period: KPIPeriodOptions.Yearly,
     tier: 1,
     definition: ChurnDefinitionOptions.NoOrdersLast30d
-  }
-  churns = [];
+  };
   kpiFilters = {
     normal: {
       platform: PlatformOptions.Both,
@@ -264,7 +264,6 @@ export class QmBmSstDashboardComponent implements OnInit {
     $("[data-toggle='tooltip']").tooltip();
     await this.getViabilities();
     await this.preload();
-    ChurnHelper.init(this.unionRTs);
     await this.getUnifiedData();
   }
 
