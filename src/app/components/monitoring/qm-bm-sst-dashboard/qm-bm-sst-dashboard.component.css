@@ -104,3 +104,7 @@ img.pm-green {
   color: rgb(61, 125, 234);
   font-size: 25px;
 }
+
+.bg-lime {
+  background-color: lime;
+}

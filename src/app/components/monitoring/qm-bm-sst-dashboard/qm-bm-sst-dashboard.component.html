@@ -356,16 +356,16 @@
 
   <div class="marks-info">
     <div>
-      <a class="btn btn-link" (click)="showExplanation = !showExplanation">{{showExplanation ? 'Hide': 'Show'}} Marks Explanation <i
-        class="fa fa-angle-{{showExplanation ? 'up': 'down'}}"></i></a>
+      <a class="btn btn-link" (click)="showLegend = !showLegend">{{showLegend ? 'Hide': 'Show'}} Legend <i
+        class="fa fa-angle-{{showLegend ? 'up': 'down'}}"></i></a>
     </div>
-    <table *ngIf="showExplanation" class="table table-sm">
+    <table *ngIf="showLegend" class="table table-sm">
       <tbody>
       <tr>
         <th>Tier</th>
         <td>
           <div class="d-flex align-items-center">
-            <span class="dot bg-info"></span>
+            <span class="dot bg-lime"></span>
             <span class="ml-2 text-muted">Tier VIP</span>
           </div>
         </td>

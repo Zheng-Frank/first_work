@@ -231,7 +231,7 @@ export class QmBmSstDashboardComponent implements OnInit {
   bmRTsPhoneDict = {};
   showSummary = false;
   showKPI = false;
-  showExplanation = false;
+  showLegend = false;
   showChurn = false;
   churnFilters = {
     platform: PlatformOptions.Both,
@@ -791,7 +791,7 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   getTierColor(tier, btier) {
-    return ['bg-info', "bg-success", "bg-warning", "bg-danger"][this.getEitherTier({ tier, btier })]
+    return ['bg-lime', "bg-success", "bg-warning", "bg-danger"][this.getEitherTier({ tier, btier })]
   }
 
   getEitherTier({ tier, btier }) {
