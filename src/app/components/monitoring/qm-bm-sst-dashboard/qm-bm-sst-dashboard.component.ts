@@ -4,7 +4,7 @@ import { environment } from "../../../../environments/environment";
 import { PagerComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { Helper } from '../../../classes/helper';
 import { saveAs } from "file-saver/FileSaver";
-import ChurnHelper from "./churn-helper";
+import {GlobalService} from "../../../services/global.service";
 
 declare var $: any;
 
@@ -258,13 +258,16 @@ export class QmBmSstDashboardComponent implements OnInit {
 
 
 
-  constructor(private _api: ApiService) { }
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
     $("[data-toggle='tooltip']").tooltip();
     await this.getViabilities();
     await this.preload();
-    await this.getUnifiedData();
+    // only ADMIN and CSR_MANAGER can see Summary, KPI and Churn info
+    if (this.isAdminOrCsrManager()) {
+      await this.getUnifiedData();
+    }
   }
 
   // reset filter if current model is false
@@ -276,6 +279,11 @@ export class QmBmSstDashboardComponent implements OnInit {
         }
       });
     }
+  }
+
+  isAdminOrCsrManager() {
+    let roles = this._global.user.roles;
+    return roles.includes('ADMIN') || roles.includes('CSR_MANAGER');
   }
 
   kpiNormalDownload() {
