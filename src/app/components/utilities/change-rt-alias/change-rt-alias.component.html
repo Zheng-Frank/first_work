@@ -1,4 +1,4 @@
-<div class="row d-flex align-items-center mb-5">
+<div class="row d-flex align-items-center mb-3">
   <div class="col-md-3">
     <strong>Enter Restaurant Id</strong>
   </div>
@@ -24,11 +24,11 @@
         title="Alias should be in the format new-alias-here (with hyphens between each word, all lower-case."></i>
     </div>
     <div class="col md-9">
-      <input type="text" class="form-control" placeholder="New restaurant's alias" [(ngModel)]="newAlias" />
+      <input type="text" class="form-control" placeholder="New restaurant's alias" [(ngModel)]="restaurant.alias" />
     </div>
   </div>
 
   <div class="row d-flex align-items-center mb-1">
-    <button (click)="updateRestaurantAlias()" [disabled]="!newAlias" class="btn btn-primary btn-block">Submit</button>
+    <button (click)="updateRestaurantAlias()" [disabled]="!restaurant.alias" class="btn btn-primary btn-block">Submit</button>
   </div>
 </ng-container>
