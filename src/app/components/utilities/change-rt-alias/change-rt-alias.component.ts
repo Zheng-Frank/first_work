@@ -26,23 +26,27 @@ export class ChangeRtAliasComponent implements OnInit {
     if (!this.restaurantId) {
       return this._global.publishAlert(AlertType.Danger, 'Please enter restaurant id');
     }
-    let [restaurant] = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: {
-        _id: {
-          $oid: this.restaurantId.trim()
-        }
-      },
-      projection: {
-        name: 1,
-        alias: 1
-      },
-      limit: 1
-    }).toPromise();
-    if (!restaurant) {
-      return this._global.publishAlert(AlertType.Danger, 'No restaurant found with the ID provided.');
+    try {
+      let [restaurant] = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'restaurant',
+        query: {
+          _id: {
+            $oid: this.restaurantId.trim()
+          }
+        },
+        projection: {
+          name: 1,
+          alias: 1
+        },
+        limit: 1
+      }).toPromise();
+      if (!restaurant) {
+        return this._global.publishAlert(AlertType.Danger, 'No restaurant found with the ID provided.');
+      }
+      this.restaurant = restaurant;
+    } catch (error) {
+      
     }
-    this.restaurant = restaurant;
   }
 
   updateRestaurantAlias() {
