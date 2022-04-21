@@ -228,18 +228,13 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
       }
     }
 
-    // filter by send broadcast
-    if (this.sentBroadcastOption !== sentBroadcastTypes.All) {
-      if (this.sentBroadcastOption === sentBroadcastTypes.Sent) {
-        this.filteredRows = this.filteredRows.filter(row => row.broadcasts);
-      } else if (this.sentBroadcastOption === sentBroadcastTypes.Not_Sent) {
-        this.filteredRows = this.filteredRows.filter(row => !row.broadcasts);
-      }
-    }
-
-    // filter by which broadcast
+    // filter by selected broadcast
     if (this.broadcast !== '') {
-      this.filteredRows = this.filteredRows.filter(row => (row.broadcasts || []).some(b => b._id === this.broadcast));
+      if (this.sentBroadcastOption === sentBroadcastTypes.Sent) {
+        this.filteredRows = this.filteredRows.filter(row => (row.broadcasts || []).some(b => b._id === this.broadcast));
+      } else if (this.sentBroadcastOption === sentBroadcastTypes.Not_Sent) {
+        this.filteredRows = this.filteredRows.filter(row => !(row.broadcasts || []).some(b => b._id === this.broadcast));
+      }
     }
   }
 
