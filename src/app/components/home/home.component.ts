@@ -157,7 +157,9 @@ export class HomeComponent implements OnInit {
     this.restaurantList = await this._global.getCachedRestaurantListForPicker();
     // const result = await this._api.get2(environment.qmenuApiUrl + 'generic2', {a: 123, b: 456, c: 789}).toPromise();
     // console.log(result);
-    this.sendMessageComponent.init();
+    if (this.sendMessageComponent) {
+      this.sendMessageComponent.init();
+    }
   }
 
   select(restaurant) {
