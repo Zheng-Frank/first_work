@@ -5,14 +5,13 @@
   </div>
   <!-- start with show row -->
   <div class="mt-5">
-    <div class="d-flex align-items-center row">
-      <span class="d-inline-flex align-items-center col-auto mb-3">
-        <label>Show </label>
-        <span class="ml-2" *ngFor="let showModel of showModels | keyvalue" (change)="onChangeShowModels(showModel)">
-          <input type="checkbox" [(ngModel)]="showModel.value.model">
-          <label>{{showModel.value.label}}</label>
-        </span>
-      </span>
+    <div class="checkbox-toggle d-flex align-items-center row">
+      <label class="col-auto mb-3">Show</label>
+      <ng-container *ngFor="let showModel of showModels | keyvalue" (change)="onChangeShowModels(showModel)">
+        <label class="col-auto mb-3 d-inline-flex align-items-center">
+          <input class="mr-1" type="checkbox" [(ngModel)]="showModel.value.model">{{showModel.value.label}}
+        </label>
+      </ng-container>
     </div>
   </div>
   <!-- end with show row -->
@@ -69,7 +68,7 @@
         <i class="fa fa-info-circle ml-1" data-toggle="tooltip" data-placement="top"
           title="Restaurants that are tier 1 in either the BM or QM platform indicated with green dot, tier 2 in either platform with yellow dot, and tier 3 in both platforms with red dot."></i>
       </div>
-     
+
       <div class="col-auto mb-3" *ngIf="showModels.gmbRelated.model">
         <select class="form-control custom-select" [(ngModel)]="filters.gmbStatus" (change)="filter()">
           <option [ngValue]="''">GMB Status?</option>
@@ -107,7 +106,7 @@
           <option *ngFor="let opt of dropdowns('worthiness')" [ngValue]="opt">{{opt}}</option>
         </select>
       </div>
-     
+
       <!-- start with all extra filters -->
       <!-- start with cuisine type filter -->
       <div class="col-auto mb-3" *ngIf="showModels.allExtraFilters.model">
@@ -121,7 +120,7 @@
       <div class="col-auto mb-3" *ngIf="showModels.allExtraFilters.model">
         <select class="form-control custom-select" [(ngModel)]="filters.googleReviews" (change)="filter()">
           <option [ngValue]="''">Num Google Reviews?</option>
-          <option *ngFor="let opt of dropdowns('googleReviews')" [ngValue]="opt">{{opt}}</option>
+          <option *ngFor="let opt of dropdowns('google_reviews')" [ngValue]="opt">{{opt}}</option>
         </select>
       </div>
       <!-- end with number google reviewers -->
@@ -150,13 +149,14 @@
     </div>
   </div>
 
-  <div>
+  <ng-container *ngIf="isAdminOrCsrManager()">
     <div>
-      <a class="btn btn-link" (click)="showSummary = !showSummary">{{showSummary ? 'Hide': 'Show'}} Summary <i
+      <div>
+        <a class="btn btn-link" (click)="showSummary = !showSummary">{{showSummary ? 'Hide': 'Show'}} Summary <i
           class="fa fa-angle-{{showSummary ? 'up': 'down'}}"></i></a>
-    </div>
-    <table class="table table-sm" *ngIf="showSummary">
-      <thead>
+      </div>
+      <table class="table table-sm" *ngIf="showSummary">
+        <thead>
         <tr>
           <th></th>
           <th>Total</th>
@@ -170,8 +170,8 @@
             </div>
           </th>
         </tr>
-      </thead>
-      <tbody>
+        </thead>
+        <tbody>
         <tr>
           <td>OVERALL RTs</td>
           <td>{{summary.overall.length}}</td>
@@ -234,39 +234,39 @@
           <td>{{countByTier(summary.qmAll, 3)}}</td>
           <td>{{countByOrdersPerMonth(summary.qmAll)}}</td>
         </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div>
-    <div>
-      <a class="btn btn-link" (click)="showKPI = !showKPI">{{showKPI ? 'Hide': 'Show'}} KPI <i
-          class="fa fa-angle-{{showKPI ? 'up': 'down'}}"></i></a>
+        </tbody>
+      </table>
     </div>
-    <ng-container *ngIf="showKPI">
-      <div class="row mt-2 mb-2">
-        <div class="col-auto">
-          <select class="form-control custom-select" [(ngModel)]="kpiFilters.normal.platform">
-            <option *ngFor="let opt of dropdowns('platform')" [ngValue]="opt">{{opt}}</option>
-          </select>
-        </div>
-        <div class="col-auto">
-          <select class="form-control custom-select" [(ngModel)]="kpiFilters.normal.period">
-            <option *ngFor="let opt of dropdowns('kpi_period')" [ngValue]="opt">{{opt}}</option>
-          </select>
-        </div>
-        <div class="col-auto">
-          <a class="btn btn-link" (click)="kpiNormalDownload()">Download CSV</a>
-        </div>
+
+    <div>
+      <div>
+        <a class="btn btn-link" (click)="showKPI = !showKPI">{{showKPI ? 'Hide': 'Show'}} KPI <i
+          class="fa fa-angle-{{showKPI ? 'up': 'down'}}"></i></a>
       </div>
-      <div class="scroll-table-container">
-        <table class="table table-bordered left table-sm">
-          <thead>
+      <ng-container *ngIf="showKPI">
+        <div class="row mt-2 mb-2">
+          <div class="col-auto">
+            <select class="form-control custom-select" [(ngModel)]="kpiFilters.normal.platform">
+              <option *ngFor="let opt of dropdowns('platform')" [ngValue]="opt">{{opt}}</option>
+            </select>
+          </div>
+          <div class="col-auto">
+            <select class="form-control custom-select" [(ngModel)]="kpiFilters.normal.period">
+              <option *ngFor="let opt of dropdowns('kpi_period')" [ngValue]="opt">{{opt}}</option>
+            </select>
+          </div>
+          <div class="col-auto">
+            <a class="btn btn-link" (click)="kpiNormalDownload()">Download CSV</a>
+          </div>
+        </div>
+        <div class="scroll-table-container">
+          <table class="table table-bordered left table-sm">
+            <thead>
             <tr>
               <th class="text-transparent">Placeholder</th>
             </tr>
-          </thead>
-          <tbody>
+            </thead>
+            <tbody>
             <tr>
               <td>GMV $</td>
             </tr>
@@ -279,49 +279,49 @@
             <tr>
               <td>AOV $</td>
             </tr>
-          </tbody>
-        </table>
-        <div class="right">
-          <table class="table table-bordered table-sm">
-            <thead>
+            </tbody>
+          </table>
+          <div class="right">
+            <table class="table table-bordered table-sm">
+              <thead>
               <tr>
                 <th *ngFor="let item of getKPIHeaders('normal')">{{item}}</th>
               </tr>
-            </thead>
-            <tbody>
+              </thead>
+              <tbody>
               <tr *ngFor="let values of getKpiNormalList(); let i = index;">
                 <td *ngFor="let value of values">
                   <ng-container *ngIf="[0, 3].includes(i)">$</ng-container>{{value | number}}
                 </td>
               </tr>
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
 
-      <div class="row mt-2 mb-2">
-        <div class="col-auto">
-          <select class="form-control custom-select" [(ngModel)]="kpiFilters.over.platform">
-            <option *ngFor="let opt of dropdowns('platform')" [ngValue]="opt">{{opt}}</option>
-          </select>
+        <div class="row mt-2 mb-2">
+          <div class="col-auto">
+            <select class="form-control custom-select" [(ngModel)]="kpiFilters.over.platform">
+              <option *ngFor="let opt of dropdowns('platform')" [ngValue]="opt">{{opt}}</option>
+            </select>
+          </div>
+          <div class="col-auto">
+            <select class="form-control custom-select" [(ngModel)]="kpiFilters.over.period">
+              <option *ngFor="let opt of dropdowns('kpi_period')" [ngValue]="opt">{{opt}}</option>
+            </select>
+          </div>
+          <div class="col-auto">
+            <a class="btn btn-link" (click)="kpiOverDownload()">Download CSV</a>
+          </div>
         </div>
-        <div class="col-auto">
-          <select class="form-control custom-select" [(ngModel)]="kpiFilters.over.period">
-            <option *ngFor="let opt of dropdowns('kpi_period')" [ngValue]="opt">{{opt}}</option>
-          </select>
-        </div>
-        <div class="col-auto">
-          <a class="btn btn-link" (click)="kpiOverDownload()">Download CSV</a>
-        </div>
-      </div>
-      <div class="scroll-table-container">
-        <table class="table table-bordered left table-sm">
-          <thead>
+        <div class="scroll-table-container">
+          <table class="table table-bordered left table-sm">
+            <thead>
             <tr>
               <th class="text-transparent">Placeholder</th>
             </tr>
-          </thead>
-          <tbody>
+            </thead>
+            <tbody>
             <tr>
               <td>GMV {{getKpiLabel()}}</td>
             </tr>
@@ -334,25 +334,110 @@
             <tr>
               <td>AOV {{getKpiLabel()}}</td>
             </tr>
-          </tbody>
-        </table>
-        <div class="right">
-          <table class="table table-bordered table-sm">
-            <thead>
+            </tbody>
+          </table>
+          <div class="right">
+            <table class="table table-bordered table-sm">
+              <thead>
               <tr>
                 <th *ngFor="let item of getKPIHeaders('over')">{{item}}</th>
               </tr>
-            </thead>
-            <tbody>
+              </thead>
+              <tbody>
               <tr *ngFor="let values of getKpiOverList()">
                 <td *ngFor="let value of values">{{value | percent: '1.0-2'}}</td>
               </tr>
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
-    </ng-container>
+      </ng-container>
 
+    </div>
+  </ng-container>
+
+  <div class="marks-info">
+    <div>
+      <a class="btn btn-link" (click)="showLegend = !showLegend">{{showLegend ? 'Hide': 'Show'}} Legend <i
+        class="fa fa-angle-{{showLegend ? 'up': 'down'}}"></i></a>
+    </div>
+    <table *ngIf="showLegend" class="table table-sm">
+      <tbody>
+      <tr>
+        <th>Tier</th>
+        <td>
+          <div class="d-flex align-items-center">
+            <span class="dot bg-lime"></span>
+            <span class="ml-2 text-muted">Tier VIP</span>
+          </div>
+        </td>
+        <td>
+          <div class="d-flex align-items-center">
+            <span class="dot bg-success"></span>
+            <span class="ml-2 text-muted">Tier 1</span>
+          </div>
+        </td>
+        <td>
+          <div class="d-flex align-items-center">
+            <span class="dot bg-warning"></span>
+            <span class="ml-2 text-muted">Tier 2</span>
+          </div>
+        </td>
+        <td>
+          <div class="d-flex align-items-center">
+            <span class="dot bg-danger"></span>
+            <span class="ml-2 text-muted">Tier 3</span>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <th>GMB</th>
+        <td>
+          <div class="d-flex align-items-center">
+            <i class="fab fa-google mr-2"></i>
+            <span class="logo qm-icon"></span>
+            <span class="ml-2 text-muted">qMenu has GMB</span>
+          </div>
+        </td>
+        <td>
+          <div class="d-flex align-items-center">
+            <i class="fab fa-google mr-2"></i>
+            <span class="logo bm-icon"></span>
+            <span class="ml-2 text-muted">beyondmenu has GMB</span>
+          </div>
+        </td>
+        <td>
+          <div class="d-flex align-items-center">
+            <i class="fas fa-globe mr-2"></i>
+            <span class="logo qm-icon"></span>
+            <span class="ml-2 text-muted">qMenu has GMB Website</span>
+          </div>
+        </td>
+        <td>
+          <div class="d-flex align-items-center">
+            <i class="fas fa-globe mr-2"></i>
+            <span class="logo bm-icon"></span>
+            <span class="ml-2 text-muted">beyondmenu has GMB Website</span>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <th>Postmates</th>
+        <td colspan="2">
+          <div class="d-flex align-items-center">
+            <img class="pm-green" src="assets/images/postmates.png" />
+            <span class="ml-2 text-muted">Postmates available and used</span>
+          </div>
+        </td>
+        <td colspan="2">
+          <div class="d-flex align-items-center">
+            <img class="pm-grey" src="assets/images/postmates.png" />
+            <span class="ml-2 text-muted">Postmates available but not used</span>
+          </div>
+        </td>
+      </tr>
+      </tbody>
+    </table>
   </div>
 
   <table class="table table-sm mt-2 mb-3">

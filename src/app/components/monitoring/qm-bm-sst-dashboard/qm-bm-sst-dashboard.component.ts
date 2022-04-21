@@ -4,6 +4,8 @@ import { environment } from "../../../../environments/environment";
 import { PagerComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { Helper } from '../../../classes/helper';
 import { saveAs } from "file-saver/FileSaver";
+import {GlobalService} from "../../../services/global.service";
+
 declare var $: any;
 
 enum PlatformOptions {
@@ -93,7 +95,7 @@ enum KPIPeriodOptions {
   Monthly = 'Monthly'
 }
 
-enum googleReviewsOptions {
+enum GoogleReviewsOptions {
   None = 'None',
   _1_10 = '1-10',
   _11_25 = '11-25',
@@ -229,14 +231,14 @@ export class QmBmSstDashboardComponent implements OnInit {
   bmRTsPhoneDict = {};
   showSummary = false;
   showKPI = false;
+  showLegend = false;
   showChurn = false;
   churnFilters = {
     platform: PlatformOptions.Both,
     period: KPIPeriodOptions.Yearly,
     tier: 1,
     definition: ChurnDefinitionOptions.NoOrdersLast30d
-  }
-  churns = [];
+  };
   kpiFilters = {
     normal: {
       platform: PlatformOptions.Both,
@@ -256,13 +258,16 @@ export class QmBmSstDashboardComponent implements OnInit {
 
 
 
-  constructor(private _api: ApiService) { }
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
     $("[data-toggle='tooltip']").tooltip();
     await this.getViabilities();
     await this.preload();
-    await this.getUnifiedData();
+    // only ADMIN and CSR_MANAGER can see Summary, KPI and Churn info
+    if (this.isAdminOrCsrManager()) {
+      await this.getUnifiedData();
+    }
   }
 
   // reset filter if current model is false
@@ -270,10 +275,15 @@ export class QmBmSstDashboardComponent implements OnInit {
     if (!showModel.model) {
       Object.keys(this.filters).forEach(key => {
         if (showModel.value.manageFilters.some(f => f === key)) {
-          this.filters[key] = ''; 
+          this.filters[key] = '';
         }
       });
     }
+  }
+
+  isAdminOrCsrManager() {
+    let roles = this._global.user.roles;
+    return roles.includes('ADMIN') || roles.includes('CSR_MANAGER');
   }
 
   kpiNormalDownload() {
@@ -521,7 +531,7 @@ export class QmBmSstDashboardComponent implements OnInit {
       perspective: SalesPerspectiveOptions,
       worthiness: SalesWorthinessOptions,
       kpi_period: KPIPeriodOptions,
-      googleReviews: googleReviewsOptions,  // extra filters
+      google_reviews: GoogleReviewsOptions,  // extra filters
       coupons: couponsOptions,
       competitors: competitorsOptions,
       churn_definition: ChurnDefinitionOptions
@@ -541,15 +551,15 @@ export class QmBmSstDashboardComponent implements OnInit {
               address: "$googleAddress.formatted_address",
               cid: '$googleListing.cid',
               disabled: 1,
+              disabledAt: 1,
               website: "$web.qmenuWebsite",
               name: 1,
               courier: '$courier.name',
               lat: '$googleAddress.lat',
               lng: '$googleAddress.lng',
-              createdAt: "$createdAt",
+              createdAt: 1,
               owner: "$googleListing.gmbOwner",
               channels: 1,
-              ordersPerMonth: '$computed.tier.ordersPerMonth',
               competitorsCount: {
                 $size: {
                   $ifNull: [
@@ -576,7 +586,7 @@ export class QmBmSstDashboardComponent implements OnInit {
                   ]
                 }
               },
-              googleReviews: '$googleListing.totalReviews',
+              googleReviewsCount: '$googleListing.totalReviews',
               couponsCount: {
                 $size: {
                   $ifNull: [
@@ -585,21 +595,22 @@ export class QmBmSstDashboardComponent implements OnInit {
                   ]
                 }
               },
-              cuisine: {
+              cuisines: {
                 $ifNull: [
                   '$cuisine',
                   []
                 ]
               },
-              tiers: "$computed.tier"
+              activities: "$computed.activities",
+              activity: "$computed.activity.ordersInLast30Days"
             }
           }
         ],
-      }, 6000));
+      }, 5000));
       // populate cuisines
       this.qmRTs.forEach((rt) => {
-        if (rt.cuisine) {
-          rt.cuisine.forEach(c => {
+        if (rt.cuisines) {
+          rt.cuisines.forEach(c => {
             if (c && this.cuisines.indexOf(c) === -1) {
               this.cuisines.push(c);
             }
@@ -632,29 +643,23 @@ export class QmBmSstDashboardComponent implements OnInit {
 
       let date = new Date();
       date.setDate(date.getDate() - 30);
-      const rtsHasOrder = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'order',
-        aggregate: [
-          { $match: { createdAt: { $gte: { $date: date } } } },
-          { $group: { _id: { rt: '$restaurant' } } },
-          { $project: { rtId: "$_id.rt", _id: 0 } }
-        ]
-      }).toPromise();
-      let rtsHasOrderSet = new Set(rtsHasOrder.map(x => x.rtId));
-
+      let months = [], cursor = new Date(), i = 0;
+      while (i < 6) {
+        cursor.setMonth(cursor.getMonth() - 1);
+        months.push(`${cursor.getFullYear()}${Helper.padNumber(cursor.getMonth() + 1)}`);
+        i++;
+      }
       this.qmRTs.forEach(rt => {
         if (rt.place_id) {
           this.qmRTsPlaceDict[rt.place_id] = rt;
         }
         let key = rt.place_id + rt.cid;
         // active: has order in last 30 days
-        rt.inactive = !rtsHasOrderSet.has(rt._id);
-        let tiers = rt.tiers || [];
-        if (!Array.isArray(tiers)) {
-          tiers = [tiers];
-        }
-        let latest = tiers.sort((a, b) => new Date(b.time).valueOf() - new Date(a.time).valueOf())[0];
-        rt.tier = Helper.getTier(latest ? latest.ordersPerMonth : 0);
+        rt.inactive = !rt.activity;
+        let activities = rt.activities || {};
+        let totalOrders = months.reduce((a, c) => (activities[c] || 0) + a, 0);
+        rt.ordersPerMonth = totalOrders / 6;
+        rt.tier = Helper.getTier(rt.ordersPerMonth);
 
         rt.hasGmb = (gmbWebsiteOwnerDict[key] || gmbWebsiteOwnerDict[rt._id + rt.cid]) && accounts.some(acc => (acc.locations || []).some(loc => loc.cid === rt.cid && loc.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].includes(loc.role)))
         rt.hasGMBWebsite = gmbWebsiteOwnerDict[key] === 'qmenu' || gmbWebsiteOwnerDict[rt._id + rt.cid] === 'qmenu';
@@ -707,10 +712,12 @@ export class QmBmSstDashboardComponent implements OnInit {
           btier: Math.floor((TierDec2021 + TierNov2021 + TierOct2021) / 3),
           bpricing: pricing,
           bgoogleReviews: 0, // extra data use default value
-          bcuisine: [],
+          bcuisines: [],
           bcompetitorsCount: 0,
           bcouponsCount: 0,
-          btiers: {'10 2021': TierOct2021, '11 2021': TierNov2021, '12 2021': TierDec2021},
+          bactivities: {},
+          bactivity: 0,
+          bordersPerMonth: 0
         }
 
         if (place_id) {
@@ -792,7 +799,7 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   getTierColor(tier, btier) {
-    return ['bg-info', "bg-success", "bg-warning", "bg-danger"][this.getEitherTier({ tier, btier })]
+    return ['bg-lime', "bg-success", "bg-warning", "bg-danger"][this.getEitherTier({ tier, btier })]
   }
 
   getEitherTier({ tier, btier }) {
@@ -1010,36 +1017,36 @@ export class QmBmSstDashboardComponent implements OnInit {
     // cuisine
     if (cuisine) {
       let c = cuisine;
-      list = list.filter(({ cuisine }) => (cuisine || []).indexOf(c) >= 0 );
+      list = list.filter(({ cuisines, bcuisines }) => [...(cuisines || []), ...(bcuisines || [])].indexOf(c) >= 0 );
     }
     // google reviewers
     switch (googleReviews) {
-      case googleReviewsOptions.None:
-        list = list.filter(({ googleReviews }) => !googleReviews || googleReviews === 0);
+      case GoogleReviewsOptions.None:
+        list = list.filter(({ googleReviewsCount }) => !googleReviewsCount || googleReviewsCount === 0);
         break;
-      case googleReviewsOptions._1_10:
-        list = list.filter(({ googleReviews }) => googleReviews >= 1 && googleReviews <= 10);
+      case GoogleReviewsOptions._1_10:
+        list = list.filter(({ googleReviewsCount }) => googleReviewsCount >= 1 && googleReviewsCount <= 10);
         break;
-      case googleReviewsOptions._11_25:
-        list = list.filter(({ googleReviews }) => googleReviews >= 11 && googleReviews <= 25);
+      case GoogleReviewsOptions._11_25:
+        list = list.filter(({ googleReviewsCount }) => googleReviewsCount >= 11 && googleReviewsCount <= 25);
         break;
-      case googleReviewsOptions._26_50:
-        list = list.filter(({ googleReviews }) => googleReviews >= 26 && googleReviews <= 50);
+      case GoogleReviewsOptions._26_50:
+        list = list.filter(({ googleReviewsCount }) => googleReviewsCount >= 26 && googleReviewsCount <= 50);
         break;
-      case googleReviewsOptions._51_100:
-        list = list.filter(({ googleReviews }) => googleReviews >= 51 && googleReviews <= 100);
+      case GoogleReviewsOptions._51_100:
+        list = list.filter(({ googleReviewsCount }) => googleReviewsCount >= 51 && googleReviewsCount <= 100);
         break;
-      case googleReviewsOptions._101_200:
-        list = list.filter(({ googleReviews }) => googleReviews >= 101 && googleReviews <= 200);
+      case GoogleReviewsOptions._101_200:
+        list = list.filter(({ googleReviewsCount }) => googleReviewsCount >= 101 && googleReviewsCount <= 200);
         break;
-      case googleReviewsOptions._201_350:
-        list = list.filter(({ googleReviews }) => googleReviews >= 201 && googleReviews <= 350);
+      case GoogleReviewsOptions._201_350:
+        list = list.filter(({ googleReviewsCount }) => googleReviewsCount >= 201 && googleReviewsCount <= 350);
         break;
-      case googleReviewsOptions._351_500:
-        list = list.filter(({ googleReviews }) => googleReviews >= 351 && googleReviews <= 500);
+      case GoogleReviewsOptions._351_500:
+        list = list.filter(({ googleReviewsCount }) => googleReviewsCount >= 351 && googleReviewsCount <= 500);
         break;
-      case googleReviewsOptions.More_Than_500:
-        list = list.filter(({ googleReviews }) => googleReviews > 500);
+      case GoogleReviewsOptions.More_Than_500:
+        list = list.filter(({ googleReviewsCount }) => googleReviewsCount > 500);
         break;
     }
     // coupons
@@ -1141,5 +1148,12 @@ export class QmBmSstDashboardComponent implements OnInit {
     this.filter();
   }
 
+  getChurnList() {
+
+  }
+
+  churnDownload() {
+
+  }
 }
 
