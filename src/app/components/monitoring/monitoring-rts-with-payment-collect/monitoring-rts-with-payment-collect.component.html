@@ -37,13 +37,13 @@
       <!-- end with explanation -->
       <!-- start with send broadcast -->
       <div class="col-auto mb-3">
-        <select [(ngModel)]="sendBroadcastOption" class="form-control" (change)="filterRTs()">
-          <option *ngFor="let option of sendBroadcastOptions">{{option}}</option>
+        <select [(ngModel)]="sentBroadcastOption" class="form-control" (change)="filterRTs()">
+          <option *ngFor="let option of sentBroadcastOptions">{{option}}</option>
         </select>
       </div>
       <!-- end with send broadcast -->
       <!-- start with broadcast types -->
-      <div class="col-auto mb-3">
+      <div class="col-auto mb-3" *ngIf="sentBroadcastOption !== sentBroadcastTypes.All">
         <select [(ngModel)]="broadcast" class="form-control" (change)="filterRTs()">
           <option [ngValue]="''">Which Broadcast?</option>
           <option *ngFor="let b of broadcasts" [ngValue]="b._id">{{b.name}}</option>

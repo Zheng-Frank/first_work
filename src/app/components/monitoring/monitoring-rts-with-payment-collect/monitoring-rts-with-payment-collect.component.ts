@@ -54,8 +54,8 @@ enum languageTypes {
   None = 'NONE'
 }
 
-enum sendBroadcastTypes {
-  All = 'Send Broadcast?',
+enum sentBroadcastTypes {
+  All = 'Sent Broadcast?',
   Sent = 'Sent',
   Not_Sent = 'Not sent'
 }
@@ -86,8 +86,8 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   feieDisplayOption = feieDisplayTypes.All;
   languageOptions = [languageTypes.All, languageTypes.English, languageTypes.Chinese, languageTypes.None];
   languageOption = languageTypes.All;
-  sendBroadcastOptions = [sendBroadcastTypes.All, sendBroadcastTypes.Sent, sendBroadcastTypes.Not_Sent];
-  sendBroadcastOption = sendBroadcastTypes.All;
+  sentBroadcastOptions = [sentBroadcastTypes.All, sentBroadcastTypes.Sent, sentBroadcastTypes.Not_Sent];
+  sentBroadcastOption = sentBroadcastTypes.All;
 
   rows = [];
   filteredRows = [];
@@ -104,6 +104,10 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     await this.populateRTsByPmtCollect();
     await this.populatePrintClients();
     this.filterRTs();
+  }
+
+  get sentBroadcastTypes() {
+    return sentBroadcastTypes;
   }
 
   copyRTIDs() {
@@ -226,10 +230,10 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     }
 
     // filter by send broadcast
-    if (this.sendBroadcastOption !== sendBroadcastTypes.All) {
-      if (this.sendBroadcastOption === sendBroadcastTypes.Sent) {
+    if (this.sentBroadcastOption !== sentBroadcastTypes.All) {
+      if (this.sentBroadcastOption === sentBroadcastTypes.Sent) {
         this.filteredRows = this.filteredRows.filter(row => (row.broadcasts || []).some(b => b._id === this.paymentBroadcast));
-      } else if (this.sendBroadcastOption === sendBroadcastTypes.Not_Sent) {
+      } else if (this.sentBroadcastOption === sentBroadcastTypes.Not_Sent) {
         this.filteredRows = this.filteredRows.filter(row => !(row.broadcasts || []).some(b => b._id === this.paymentBroadcast));
       }
     }
