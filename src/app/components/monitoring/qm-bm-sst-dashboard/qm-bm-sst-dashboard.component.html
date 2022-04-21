@@ -46,20 +46,6 @@
         </select>
       </div>
 
-      <div class="col-auto mb-3" *ngIf="showModels.matchFilters.model">
-        <select class="form-control custom-select" [(ngModel)]="filters.hasPlaceId" (change)="filter()">
-          <option [ngValue]="''">Has place_id?</option>
-          <option *ngFor="let opt of dropdowns('place_id')" [ngValue]="opt">{{opt}}</option>
-        </select>
-      </div>
-
-      <div class="col-auto mb-3" *ngIf="showModels.matchFilters.model">
-        <select class="form-control custom-select" [(ngModel)]="filters.sameName" (change)="filter()">
-          <option [ngValue]="''">RT Name?</option>
-          <option *ngFor="let opt of dropdowns('name')" [ngValue]="opt">{{opt}}</option>
-        </select>
-      </div>
-
       <div class="col-auto d-inline-flex align-items-center mb-3">
         <select class="form-control custom-select" [(ngModel)]="filters.tier" (change)="filter()">
           <option [ngValue]="''">Tier?</option>
@@ -69,6 +55,20 @@
           title="Restaurants that are tier 1 in either the BM or QM platform indicated with green dot, tier 2 in either platform with yellow dot, and tier 3 in both platforms with red dot."></i>
       </div>
 
+      <div class="col-auto mb-3" *ngIf="showModels.matchFilters.model">
+        <select class="form-control custom-select" [(ngModel)]="filters.hasPlaceId" (change)="filter()">
+          <option [ngValue]="''">Has place_id?</option>
+          <option *ngFor="let opt of dropdowns('place_id')" [ngValue]="opt">{{opt}}</option>
+        </select>
+      </div>
+  
+      <div class="col-auto mb-3" *ngIf="showModels.matchFilters.model">
+        <select class="form-control custom-select" [(ngModel)]="filters.sameName" (change)="filter()">
+          <option [ngValue]="''">RT Name?</option>
+          <option *ngFor="let opt of dropdowns('name')" [ngValue]="opt">{{opt}}</option>
+        </select>
+      </div>
+     
       <div class="col-auto mb-3" *ngIf="showModels.gmbRelated.model">
         <select class="form-control custom-select" [(ngModel)]="filters.gmbStatus" (change)="filter()">
           <option [ngValue]="''">GMB Status?</option>
