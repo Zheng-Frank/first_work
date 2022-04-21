@@ -230,8 +230,10 @@ export class GmbWrongLinkComponent implements OnInit {
       let gmbBizreservations = gmbWebsiteOwnerDict[key] ? (gmbWebsiteOwnerDict[key].gmbBiz || {}).reservations : gmbWebsiteOwnerDict[r._id + r.googleListing.cid] ? (gmbWebsiteOwnerDict[r._id + r.googleListing.cid].gmbBiz || {}).reservations : [];
 
       let qmenuWebsite = ((r.web || {}).qmenuWebsite || '').trim().toLowerCase();
-      const aliasUrl = environment.customerUrl + '#/' + r.alias;
       let restaurantWebsite = ((r.web || {}).bizManagedWebsite || '').trim().toLowerCase();
+      let menuWebsite = ((r.web || {}).menuUrl || '').trim().toLowerCase();
+      let orderWebsite = ((r.web || {}).orderAheadUrl || '').trim().toLowerCase();
+      let reservationWebsite = ((r.web || {}).reservationUrl || '').trim().toLowerCase(); 
       // normalize websites!
       if (qmenuWebsite && !qmenuWebsite.startsWith('http')) {
         qmenuWebsite = 'http://' + qmenuWebsite;
@@ -240,13 +242,23 @@ export class GmbWrongLinkComponent implements OnInit {
       if (restaurantWebsite && !restaurantWebsite.startsWith('http')) {
         restaurantWebsite = 'http://' + restaurantWebsite;
       }
-      let menuUrl = restaurantWebsite || aliasUrl;
+
+      if(menuWebsite && !menuWebsite.startsWith('http')) {
+        menuWebsite = 'http://' + menuWebsite;
+      }
+
+      if(orderWebsite && !orderWebsite.startsWith('http')) {
+        orderWebsite = 'http://' + orderWebsite;
+      }
+
+      if(reservationWebsite && !reservationWebsite.startsWith('http')) {
+        reservationWebsite = 'http://' + reservationWebsite;
+      }
 
       r.linkStatuses = [
         {
           label: 'GMB Website',
           qmenu: qmenuWebsite,
-          // desired: Helper.getDesiredUrls(r).website,
           insisted: r.web && (r.web.useBizWebsite || r.web.useBizWebsiteForAll) ? restaurantWebsite : 'N/A',
           actual: gmbBizgmbWebsite,
           status: this.getWebsiteStatus([], 'gmbWebsite', r),
@@ -256,8 +268,7 @@ export class GmbWrongLinkComponent implements OnInit {
         {
           label: 'GMB Menu URLs',
           qmenu: qmenuWebsite,
-          // desired: Helper.getDesiredUrls(r).menuUrl,
-          insisted: r.web && (r.web.useBizMenuUrl || r.web.useBizWebsiteForAll) ? menuUrl : 'N/A',
+          insisted: r.web && (r.web.useBizMenuUrl || r.web.useBizWebsiteForAll) ? menuWebsite : 'N/A',
           actual: gmbBizmenuUrls,
           status: this.getWebsiteStatus(gmbBizmenuUrls, 'menuUrl', r),
           showMoreDesiredUrl: false,
@@ -265,8 +276,7 @@ export class GmbWrongLinkComponent implements OnInit {
         },
         {
           label: 'GMB Order Services',
-          // desired: Helper.getDesiredUrls(r).menuUrl,
-          insisted: r.web && (r.web.useBizOrderAheadUrl || r.web.useBizWebsiteForAll) ? true : false,
+          insisted: r.web && (r.web.useBizOrderAheadUrl || r.web.useBizWebsiteForAll) ? orderWebsite : 'N/A',
           actual: gmbBizserviceProviders,
           status: this.getWebsiteStatus(gmbBizserviceProviders, 'orderAheadUrl', r),
           showMoreDesiredUrl: false,
@@ -274,8 +284,7 @@ export class GmbWrongLinkComponent implements OnInit {
         },
         {
           label: 'GMB Reservations',
-          // desired: Helper.getDesiredUrls(r).reservation,
-          insisted: r.web && (r.web.useBizReservationUrl || r.web.useBizWebsiteForAll) ? true : false,
+          insisted: r.web && (r.web.useBizReservationUrl || r.web.useBizWebsiteForAll) ? reservationWebsite : 'N/A',
           actual: gmbBizreservations,
           status: this.getWebsiteStatus(gmbBizreservations, 'reservation', r),
           showMoreDesiredUrl: false,
