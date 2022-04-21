@@ -276,6 +276,7 @@ export class GmbWrongLinkComponent implements OnInit {
         },
         {
           label: 'GMB Order Services',
+          qmenu: qmenuWebsite,
           insisted: r.web && (r.web.useBizOrderAheadUrl || r.web.useBizWebsiteForAll) ? orderWebsite : 'N/A',
           actual: gmbBizserviceProviders,
           status: this.getWebsiteStatus(gmbBizserviceProviders, 'orderAheadUrl', r),
@@ -284,6 +285,7 @@ export class GmbWrongLinkComponent implements OnInit {
         },
         {
           label: 'GMB Reservations',
+          qmenu: qmenuWebsite,
           insisted: r.web && (r.web.useBizReservationUrl || r.web.useBizWebsiteForAll) ? reservationWebsite : 'N/A',
           actual: gmbBizreservations,
           status: this.getWebsiteStatus(gmbBizreservations, 'reservation', r),
@@ -396,9 +398,9 @@ export class GmbWrongLinkComponent implements OnInit {
     if (!link || link.length === 0) {
       return 'N/A';
     }
-    if (link.length < 50) {
+    if (link.length < 30) {
       return link;
     }
-    return link.slice(0, 50) + '...';
+    return link.slice(0, 30) + '...';
   }
 }

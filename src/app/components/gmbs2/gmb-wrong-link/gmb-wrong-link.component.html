@@ -54,19 +54,22 @@
                 </div>
               </td>
               <td>
-                <div>
-                  Desired URL:
-                  <ng-container *ngIf="!status.showMoreDesiredUrl;else desiredBlock">
+                <div *ngIf="status.qmenu">
+                  Qmenu:
+                  <ng-container *ngIf="!status.qmenu;else qmenuBlock">
                     {{formatLink(status.desired)}}
                   </ng-container>
                   <ng-template #desiredBlock>
-                    {{status.desired}} 
+                    {{status.desired}}
                   </ng-template>
                   <button class="btn btn-sm btn-link"
                     (click)="status.showMoreDesiredUrl = !status.showMoreDesiredUrl">View</button>
                 </div>
+                <div *ngIf="status.insisted">
+                  Insisted: {{status.insisted}}
+                </div>
                 <div>
-                  Actual URL:
+                  Actual:
                   <ng-container *ngIf="!status.showMoreActualUrl;else actualBlock">
                     {{formatLink(status.actual.join(', '))}}
                   </ng-container>
@@ -75,9 +78,6 @@
                   </ng-template>
                   <button class="btn btn-sm btn-link"
                     (click)="status.showMoreActualUrl = !status.showMoreActualUrl">View</button>
-                </div>
-                <div>
-                  Insisted: {{status.insisted}}
                 </div>
               </td>
             </tr>
