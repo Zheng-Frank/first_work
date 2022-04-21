@@ -63,10 +63,18 @@
       <div class="col-auto mb-3">
         <button class="btn btn-primary" (click)="populateRTsByPmtCollect()"><i class="fas fa-sync"></i> Reload</button>
       </div>
+      <!-- start with pagnation -->
+      <div class="col-auto mb-3">
+        <input type="checkbox" class="mt-2" [(ngModel)]="pagination">
+        <label class="mr-3 ml-1 mt-2">
+          Pagination
+        </label>
+      </div>
+      <!-- end with pagnation -->
     </div>
 
     <q-table [rows]="filteredRows" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
-      [pageSize]="100000">
+      [pageSize]="pagination ? 100 : 100000">
       <tr *tableRowTemplate="let r">
         <td>{{filteredRows.indexOf(r) + 1}}</td>
         <td>
