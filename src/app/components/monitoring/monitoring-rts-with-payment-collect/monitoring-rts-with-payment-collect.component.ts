@@ -93,7 +93,7 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   filteredRows = [];
   broadcasts = [];
   broadcast = '';
-  paymentBroadcast = '';
+  pagination = true;
   bulkShowPrintingCCInfo = true;
   bulkShowNonPCIData = true;
 
@@ -167,7 +167,6 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
       ]
     }).toPromise();
     this.broadcasts.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-    this.paymentBroadcast = this.broadcasts.find(b => b.name === "Restaurant Payment Broadcast")._id;
     // add a temp new property showPrintingCCInfo to control q-toggle
     this.rows.forEach(row => {
       row.showPrintingCCInfo = !row.hidePrintingCCInfo;
@@ -232,9 +231,9 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     // filter by send broadcast
     if (this.sentBroadcastOption !== sentBroadcastTypes.All) {
       if (this.sentBroadcastOption === sentBroadcastTypes.Sent) {
-        this.filteredRows = this.filteredRows.filter(row => (row.broadcasts || []).some(b => b._id === this.paymentBroadcast));
+        this.filteredRows = this.filteredRows.filter(row => row.broadcasts);
       } else if (this.sentBroadcastOption === sentBroadcastTypes.Not_Sent) {
-        this.filteredRows = this.filteredRows.filter(row => !(row.broadcasts || []).some(b => b._id === this.paymentBroadcast));
+        this.filteredRows = this.filteredRows.filter(row => !row.broadcasts);
       }
     }
 
