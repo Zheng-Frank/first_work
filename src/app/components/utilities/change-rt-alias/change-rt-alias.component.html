@@ -1,0 +1,34 @@
+<div class="row d-flex align-items-center mb-3">
+  <div class="col-md-3">
+    <strong>Enter Restaurant Id</strong>
+  </div>
+  <div class="col md-9">
+    <input type="text" class="form-control" placeholder="Previous Restaurant's Id" [(ngModel)]="restaurantId" />
+  </div>
+</div>
+
+<div class="row d-flex align-items-center mb-2">
+  <button (click)="findRestaurantById()" class="btn btn-primary btn-block">Find</button>
+</div>
+
+<ng-container *ngIf="restaurant">
+  <div class="row d-flex align-items-center mb-2">
+    <span>
+      Restaurant {{restaurant.name}} found. Existing alias: {{restaurant.alias}}
+    </span>
+  </div>
+  <div class="row d-flex align-items-center mb-2">
+    <div class="col-md-3">
+      <strong>New Alias</strong>
+      <i class="fa fa-info-circle ml-1" data-toggle="tooltip" data-placement="top"
+        title="Alias should be in the format new-alias-here (with hyphens between each word, all lower-case.)"></i>
+    </div>
+    <div class="col md-9">
+      <input type="text" class="form-control" placeholder="New restaurant's alias" [(ngModel)]="restaurant.alias" />
+    </div>
+  </div>
+
+  <div class="row d-flex align-items-center mb-1">
+    <button (click)="updateRestaurantAlias()" [disabled]="!restaurant.alias" class="btn btn-primary btn-block">Submit</button>
+  </div>
+</ng-container>
