@@ -45,7 +45,7 @@ export class ChangeRtAliasComponent implements OnInit {
       }
       this.restaurant = restaurant;
     } catch (error) {
-      
+      return this._global.publishAlert(AlertType.Danger, 'Some error happened while querying!');
     }
   }
 
