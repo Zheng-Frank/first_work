@@ -262,7 +262,7 @@ export class GmbWrongLinkComponent implements OnInit {
           insisted: r.web && (r.web.useBizWebsite || r.web.useBizWebsiteForAll) ? restaurantWebsite : 'N/A',
           actual: gmbBizgmbWebsite,
           status: this.getWebsiteStatus([], 'gmbWebsite', r),
-          showMoreDesiredUrl: false,
+          showMoreInsistUrl: false,
           showMoreActualUrl: false
         },
         {
