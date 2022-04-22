@@ -29,7 +29,7 @@ export class OtherModulesComponent implements OnInit {
       { name: 'SMS Problems', route: 'sms-problems', authRoles: ['CSR_MANAGER'] },
       { name: 'Deactivated Customers', route: 'deactivated-customers', authRoles: ['CSR', 'CSR_MANAGER'] },
       { name: 'RTs by Payment Collection', route: 'rts-with-payment-collect', authRoles: ['CSR', 'CSR_MANAGER'] },
-      { name: 'Win-back Compaign', route: 'win-back-compaign', authRoles: ['CSR', 'CSR_MANAGER'] },
+      { name: 'Win-back Campaign', route: 'win-back-campaign', authRoles: ['CSR', 'CSR_MANAGER'] },
     ],
     Developers: [
       { name: 'Json Schemas', route: 'schemas', authRoles: ['DEVELOPER'] },

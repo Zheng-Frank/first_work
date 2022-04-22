@@ -1,64 +1,105 @@
 <div class="card">
   <h2 class="card-title m-3">
-    <h1 class="text-center">Win-back Compaign ({{filteredRows.length || 0}})</h1>
+    <h1 class="text-center">Win-back Campaign ({{list.length || 0}})</h1>
   </h2>
   <div class="card-body">
     <div class="row mb-3">
       <div class="col-auto">
-        <div class="input-group d-flex align-items-center">
-<!--          <select [(ngModel)]="tier1PotentialOption" class="custom-select" (change)="filterRows()">-->
-<!--            <option *ngFor="let option of tier1PotentialOptions" [value]="option">{{option}}</option>-->
-<!--          </select>-->
-        </div>
+        <select [(ngModel)]="filters.potentialType" class="custom-select">
+          <option [value]="''">Tier 1 Potential Types?</option>
+          <option *ngFor="let option of dropdowns('potential_type')" [value]="option">{{option}}</option>
+        </select>
       </div>
       <div class="col-auto">
-<!--        <button class="btn btn-primary" (click)="populateWinBackRTs()"><i class="fas fa-sync"></i> Reload</button>-->
+        <select [(ngModel)]="filters.platform" class="custom-select" >
+          <option [value]="''">Platform?</option>
+          <option *ngFor="let option of dropdowns('platform')" [value]="option">{{option}}</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <select [(ngModel)]="filters.hasLogs" class="custom-select" >
+          <option [value]="''">Has logs?</option>
+          <option *ngFor="let option of dropdowns('has_logs')" [value]="option">{{option}}</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <select [(ngModel)]="filters.currentTier" class="custom-select" >
+          <option [value]="''">Current Tier?</option>
+          <option *ngFor="let option of dropdowns('current_tier')" [value]="option">{{option}}</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <input type="text" style="width: 240px" class="form-control" [(ngModel)]="filters.keyword" placeholder="Search by name or QM/BM ID">
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-primary" (click)="filter()">Search</button>
       </div>
     </div>
 
-    <q-table [rows]="filteredRows" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
-      [pageSize]="100000">
-      <tr *tableRowTemplate="let r;">
-        <td>{{filteredRows.indexOf(r) + 1}}</td>
+    <table class="table table-sm">
+      <thead>
+      <tr>
+        <th>Restaurant</th>
+        <th>Tier 1 Potential</th>
+        <th>Current Tier (orders/mo)</th>
+        <th>Logs</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let item of list">
         <td>
-          <a target="_blank" routerLink="/restaurants/{{r['_id']}}">{{r.name}} </a><br>
-          <span>{{r._id}}</span>
+          <div>{{item.name}}</div>
+          <div>
+            <a class="my-text-small btn-link" *ngIf="item.qm_id" target="_blank" [routerLink]="'/restaurants/' + item.qm_id">
+              {{item.qm_id}}
+            </a>
+          </div>
         </td>
+        <td class="text-unwrap">
+          <div class="d-flex align-items-center mb-2" *ngIf="item.gmbPositive">
+            <strong class="mr-1">GMB:</strong><strong class="text-success mr-1">{{item.gmbPositive.score}}</strong> orders/mo ({{item.gmbPositive.orders}} over {{item.gmbPositive.days}} "GMB days")
+          </div>
+          <div class="d-flex align-items-start" *ngIf="item.histories.length > 0">
+            <strong class="mr-1">Hist. Perf.:</strong>
+            <div class="histories">
+              <div class="history-item ml-1" *ngFor="let hist of item.histories">
+                <span class="text-unwrap"><strong class="text-success">{{hist.avg | number: '1.0-1'}}</strong> orders/mo</span>
+                <span class="text-unwrap">{{hist.start}} ~ {{hist.end}}</span>
+              </div>
+            </div>
+          </div>
+        </td>
+        <td>{{item.tier}}({{item.ordersPerMonth | number: '1.0-1'}})</td>
         <td>
-          <div>
-            GMB: {{r.gmbPositiveScore.ordersPerMonth}} orders/mo
-          </div>
-          <div>
-            Hist Perf.: Avg'd {{r.histPerfLast3Month}} orders/mo last 3 months
-          </div>
-        </td>
-        <td>{{r.tier | number : '1.0-0'}}</td>
-        <td style="width:40%;">
-          <table class="table table-sm">
-            <tr>
-              <th>User</th>
-              <th>Time</th>
-              <th>Problem</th>
-              <th>Response</th>
-            </tr>
-            <ng-container *ngFor="let log of r.logs">
-              <tr *ngIf="log.type === 'tier-1-winback'">
-                <td>{{log.username}}</td>
-                <td>{{log.time | adjustedDate : 'MMM d h:mm a' : r.googleAddress.timezone}}</td>
-                <td>{{log.problem}}</td>
-                <td>{{log.response}}</td>
+          <ng-container *ngIf="item.qm_id">
+            <table class="table table-sm">
+              <tr>
+                <th>User</th>
+                <th>Time</th>
+                <th>Problem</th>
+                <th>Response</th>
               </tr>
-            </ng-container>
-          </table>
-          <div>
-            <button class="btn btn-primary btn-sm" (click)="addLog(r)"><i class="fas fa-plus"></i>Add Log</button>
-          </div>
+              <ng-container *ngFor="let log of item.logs">
+                <tr>
+                  <td>{{log.username}}</td>
+                  <td>{{log.time | adjustedDate : 'MMM d h:mm a' : item.timezone}}</td>
+                  <td>{{log.problem}}</td>
+                  <td>{{log.response}}</td>
+                </tr>
+              </ng-container>
+            </table>
+            <div>
+              <button class="btn btn-primary btn-sm" (click)="addLog(item)"><i class="fas fa-plus"></i>Add Log</button>
+            </div>
+          </ng-container>
         </td>
-    </q-table>
+      </tr>
+      </tbody>
+    </table>
   </div>
 
   <q-modal #logEditingModal>
-    <app-log-editor [restaurant]="activeRow" [restaurantList]="[]" [log]="logInEditing"
+    <app-log-editor [restaurant]="loggingRT" [restaurantList]="[]" [log]="logInEditing"
       (success)="onSuccessAddLog($event)" (cancel)="onCancelAddLog()"></app-log-editor>
   </q-modal>
 </div>

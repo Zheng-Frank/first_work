@@ -64,12 +64,13 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     currentTier: ''
   };
   rows = [];
-  filteredRows = [];
-  activeRow;
+  list = [];
+  loggingRT: any = {};
   logInEditing: Log = new Log({ type: WIN_BACK_CAMPAIGN_LOG_TYPE, time: new Date() });
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
+    await this.populate();
   }
 
   getMonths() {
@@ -84,31 +85,82 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     return months;
   }
 
-  async getUnifiedData() {
-    let months = this.getMonths();
+  async getUnifiedData(months) {
+    let data = [], skip = 0, size = 8000;
     let oc_fields = {};
     months.forEach(m => oc_fields[`OC${m}`] = 1);
-    let rts = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
-      method: 'get',
-      resource: 'unified_koreanbbqv2',
-      query: {_id: {$exists: true}}, // any items
-      payload: {_id: 0, bm_id: 1, qm_id: 1, ...oc_fields},
-      limit: 10000000
-    }).toPromise();
-
-    let qmRTsDict = await this.getQmRTs();
-    this.rows = [];
-    let last6Months = [...months].reverse().slice(0, 6);
-    // first we merge data from unified and qm, filter RTs currently tier 2 or 3 but potentially tier 1
-    rts.forEach(rt => {
-      let orders = last6Months.reduce((a, c) => a + (rt[`OC${c}`] || 0), 0);
-
-      if (rt.qm_id) {
-        let qms = qmRTsDict[rt.qm_id];
+    while (true) {
+      const temp = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
+        method: 'get', resource: 'unified_koreanbbqv2',
+        query: { _id: { $exists: true } }, // any items
+        payload: {_id: 0, bm_id: 1, rt_name: 1, qm_id: 1, ...oc_fields},
+        skip, limit: size
+      }).toPromise();
+      data.push(...temp);
+      if (temp.length === size) {
+        skip += size;
+      } else {
+        break;
       }
+    }
+    return data;
+  }
+
+  async populate() {
+    let months = this.getMonths();
+    let rts = await this.getUnifiedData(months);
+
+    let qmRTsDict = await this.getQmRTs(), last6Months = months.slice(months.length - 6);
+    let rows = [];
+    // first we merge data from unified and qm, filter RTs currently tier 2 or 3 but potentially tier 1
+    rts.forEach(({bm_id, qm_id, rt_name, ...rest}) => {
+      let ordersPerMonth = last6Months.reduce((a, c) => a + (rest[`OC${c}`] || 0), 0) / 6;
+      let tier = Helper.getTier(ordersPerMonth);
+      if (tier <= 1) {
+        return;
+      }
+      let item: any = {name: rt_name, tier, ordersPerMonth, bm_id, qm_id, logs: []};
+      let gmb_potential = false;
+      if (qm_id) {
+        let qm_rt = qmRTsDict[qm_id];
+        if (qm_rt) {
+          let { logs, gmbPositiveScore } = qm_rt;
+          item.logs = logs || [];
+          gmbPositiveScore = gmbPositiveScore || {};
+          item.gmbPositive = {
+            score: gmbPositiveScore.ordersPerMonth || 0,
+            orders: gmbPositiveScore.orders || 0,
+            days: Math.round(gmbPositiveScore.duration / (1000 * 3600 * 24))
+          }
+          gmb_potential = Helper.getTier(gmbPositiveScore.ordersPerMonth) <= 1;
+        }
+      }
+      // detect if rt has tier 1 perf in continuous 3 months in history
+      let slide = [], slides = [];
+      months.forEach(m => {
+        let value = rest[`OC${m}`] || 0;
+        if (Helper.getTier(value) <= 1) {
+          slide.push({month: m, value});
+        } else {
+          if (slide.length > 3) {
+            slides.push(slide)
+          }
+          slide = [];
+        }
+      })
+      if (!gmb_potential && !slides.length) {
+        return;
+      }
+      item.histories = slides.map(s => {
+        let start = s[0].month, end = s[s.length - 1].month;
+        let avg = s.reduce((a, c) => a + c.value, 0) / s.length;
+        return {avg, start, end};
+      });
+      rows.push(item);
     });
 
-
+    this.rows = rows;
+    this.filter();
   }
 
   async getQmRTs() {
@@ -117,9 +169,8 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       aggregate: [
         {
           $project: {
-            name: 1,
             timezone: "$googleAddress.timezone",
-            gmbPositiveScore: "$computed.gmbPositiveScore.ordersPerMonth",
+            gmbPositiveScore: "$computed.gmbPositiveScore",
             logs: {
               $filter: {
                 input: '$logs',
@@ -138,63 +189,84 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     return dict;
   }
 
-  getTier(ordersPerMonth = 0) {
-    if (ordersPerMonth > 125) { // VIP
-      return 0;
-    }
-    if (ordersPerMonth > 40) {
-      return 1;
-    }
-    if (ordersPerMonth > 4) {
-      return 2;
-    }
-    return 3;
+  dropdowns(key) {
+    return Object.values({
+      platform: PlatformOptions,
+      potential_type: Tier1PotentialTypeOptions,
+      has_logs: HasLogsOptions,
+      current_tier: CurrentTierOptions
+    }[key])
   }
 
-  filterRows() {
-    this.filteredRows = this.rows;
+  filter() {
+    let list = this.rows;
+    let { keyword, hasLogs, platform, potentialType, currentTier } = this.filters;
+    switch (platform) {
+      case PlatformOptions.Qmenu:
+        list = list.filter(x => !!x.qm_id);
+        break;
+      case PlatformOptions.Bmenu:
+        list = list.filter(x => !!x.bm_id);
+        break;
+    }
+    switch (potentialType) {
+      case Tier1PotentialTypeOptions.GMB_Based:
+        list = list.filter(x => x.gmbPositive && x.gmbPositive.score > 40);
+        break;
+      case Tier1PotentialTypeOptions.History_Based:
+        list = list.filter(x => x.histories.length > 0);
+        break;
+    }
+    switch (hasLogs) {
+      case HasLogsOptions.HasLogs:
+        list = list.filter(x => x.logs.length > 0);
+        break;
+      case HasLogsOptions.NoLogs:
+        list = list.filter(x => x.logs.length === 0);
+        break;
+    }
+    switch (currentTier) {
+      case CurrentTierOptions.Tier2:
+        list = list.filter(x => x.tier === 2);
+        break;
+      case CurrentTierOptions.Tier3:
+        list = list.filter(x => x.tier === 3);
+        break;
+    }
+
+    const kwMatch = str => str && str.toString().toLowerCase().includes(keyword.toLowerCase());
+
+    if (keyword && keyword.trim()) {
+      list = list.filter(x => kwMatch(x.name) || kwMatch(x.bm_id) || kwMatch(x.qm_id))
+    }
+    this.list = list;
   }
 
-  async addLog(row) {
+  async addLog(item) {
     this.logInEditing = new Log({ type: WIN_BACK_CAMPAIGN_LOG_TYPE, time: new Date() });
-    this.activeRow = row;
-    let [restaurant] = await this.getRestaurant(this.activeRow._id);
-    this.activeRow.logs = restaurant.logs || [];
-    this.logEditingModal.show();
-  }
-
-  // load old logs of restaurant which need to be updated to ensure the integrity of data.
-  async getRestaurant(rtId) {
-    let restaurant = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    let [restaurant] = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {
-        _id: {
-          $oid: rtId
-        }
-      },
-      projection: {
-        logs: 1
-      },
+      query: {_id: {$oid: item.qm_id}},
+      projection: {logs: 1, name: 1},
       limit: 1
     }).toPromise();
-    return restaurant;
+    this.loggingRT = restaurant;
+    this.logEditingModal.show();
   }
 
   onSuccessAddLog(event) {
     event.log.time = event.log.time ? event.log.time : new Date();
     event.log.username = event.log.username ? event.log.username : this._global.user.username;
-    this.activeRow.logs.push(event.log);
 
-    const newRestaurant = { _id: this.activeRow._id, logs: [...this.activeRow.logs] };
+    const newRT = JSON.parse(JSON.stringify(this.loggingRT));
+    newRT.logs.push(event.log);
 
-    this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant',
-      [{
-        old: { _id: this.activeRow._id },
-        new: { _id: newRestaurant._id, logs: newRestaurant.logs }
-      }]).subscribe(result => {
+    this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{old: { _id: this.loggingRT._id }, new: newRT}])
+      .subscribe(result => {
         this._global.publishAlert(AlertType.Success, 'Log added successfully');
         event.formEvent.acknowledge(null);
         this.logEditingModal.hide();
+        this.loggingRT = {};
       },
         error => {
           this._global.publishAlert(AlertType.Danger, 'Error while adding log');
@@ -205,6 +277,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
 
   onCancelAddLog() {
     this.logEditingModal.hide();
+    this.loggingRT = {};
   }
 
 }
