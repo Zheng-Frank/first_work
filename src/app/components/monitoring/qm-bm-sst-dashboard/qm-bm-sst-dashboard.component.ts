@@ -1,9 +1,11 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
-import {ApiService} from "../../../services/api.service";
-import {environment} from "../../../../environments/environment";
-import {PagerComponent} from '@qmenu/ui/bundles/qmenu-ui.umd';
-import {Helper} from '../../../classes/helper';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { ApiService } from "../../../services/api.service";
+import { environment } from "../../../../environments/environment";
+import { PagerComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { Helper } from '../../../classes/helper';
 import { saveAs } from "file-saver/FileSaver";
+import {GlobalService} from "../../../services/global.service";
+
 declare var $: any;
 
 enum PlatformOptions {
@@ -93,6 +95,37 @@ enum KPIPeriodOptions {
   Monthly = 'Monthly'
 }
 
+enum GoogleReviewsOptions {
+  None = 'None',
+  _1_10 = '1-10',
+  _11_25 = '11-25',
+  _26_50 = '26-50',
+  _51_100 = '51-100',
+  _101_200 = '101-200',
+  _201_350 = '201-350',
+  _351_500 = '351-500',
+  More_Than_500 = '500+'
+}
+
+enum couponsOptions {
+  None = 'None',
+  _1_5 = '1-5',
+  _6_10 = '6-10',
+  _11_15 = '11-15',
+  _16_20 = '16-20',
+  _21_25 = '21-25',
+  More_Than_26 = '26+',
+}
+
+enum competitorsOptions {
+  None = 'None',
+  More_Than_1 = '1+',
+  More_Than_2 = '2+',
+  More_Than_3 = '3+',
+  More_Than_4 = '4+',
+  More_Than_5 = '5+'
+}
+
 enum ChurnDefinitionOptions {
   NoOrdersLast30d = 'No orders last 30d',
   Disabled = 'Disabled'
@@ -109,6 +142,51 @@ export class QmBmSstDashboardComponent implements OnInit {
   @ViewChild('myPager2') myPager2: PagerComponent;
   filteredRows = [];
 
+  showModels = {
+    pricing: {
+      label: 'Pricing',
+      model: false,
+      manageFilters: ['pricing']
+    },
+    phones: {
+      label: 'Phones',
+      model: false,
+      manageFilters: []
+    },
+    otherContacts: {
+      label: 'Other Contacts',
+      model: false,
+      manageFilters: []
+    },
+    postmatesStatus: {
+      label: 'Postmates Status',
+      model: false,
+      manageFilters: ['postmates']
+    },
+    salesFilters: {
+      label: 'Sales filters/functions',
+      model: false,
+      manageFilters: ['perspective', 'worthiness']
+    },
+    matchFilters: {
+      label: 'Match filters/functions',
+      model: false,
+      manageFilters: ['hasPlaceId', 'sameName']
+    },
+    gmbRelated: {
+      label: 'GMB-related',
+      model: false,
+      manageFilters: ['gmbStatus', 'gmbWebsite']
+    },
+    allExtraFilters: {
+      label: 'All extra filters',
+      model: false,
+      manageFilters: ['cuisine', 'googleReviews', 'coupons', 'competitors']
+    }
+  }
+
+  cuisines = [];
+
   filters = {
     keyword: '',
     platform: '',
@@ -122,7 +200,11 @@ export class QmBmSstDashboardComponent implements OnInit {
     pricing: '',
     perspective: '',
     worthiness: '',
-    gmbWebsite: ''
+    gmbWebsite: '',
+    cuisine: '', // extra filters
+    googleReviews: '',
+    coupons: '',
+    competitors: ''
   }
 
   sumBmActiveOnly = true;
@@ -147,21 +229,16 @@ export class QmBmSstDashboardComponent implements OnInit {
   qmRTsPhoneDict = {};
   bmRTsPlaceDict = {};
   bmRTsPhoneDict = {};
-  showPricing = false;
-  showPhones = false;
-  showOtherContacts = false;
   showSummary = false;
   showKPI = false;
+  showLegend = false;
   showChurn = false;
-  showPostmatesStatus = false;
-  showSalesWorthiness = false;
   churnFilters = {
     platform: PlatformOptions.Both,
     period: KPIPeriodOptions.Yearly,
     tier: 1,
     definition: ChurnDefinitionOptions.NoOrdersLast30d
-  }
-  churns = [];
+  };
   kpiFilters = {
     normal: {
       platform: PlatformOptions.Both,
@@ -179,13 +256,34 @@ export class QmBmSstDashboardComponent implements OnInit {
     [KPIPeriodOptions.Monthly]: []
   }
 
-  constructor(private _api: ApiService) { }
+
+
+  constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
     $("[data-toggle='tooltip']").tooltip();
     await this.getViabilities();
     await this.preload();
-    await this.getUnifiedData();
+    // only ADMIN and CSR_MANAGER can see Summary, KPI and Churn info
+    if (this.isAdminOrCsrManager()) {
+      await this.getUnifiedData();
+    }
+  }
+
+  // reset filter if current model is false
+  onChangeShowModels(showModel) {
+    if (!showModel.model) {
+      Object.keys(this.filters).forEach(key => {
+        if (showModel.value.manageFilters.some(f => f === key)) {
+          this.filters[key] = '';
+        }
+      });
+    }
+  }
+
+  isAdminOrCsrManager() {
+    let roles = this._global.user.roles;
+    return roles.includes('ADMIN') || roles.includes('CSR_MANAGER');
   }
 
   kpiNormalDownload() {
@@ -283,8 +381,8 @@ export class QmBmSstDashboardComponent implements OnInit {
     while (true) {
       const temp = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
         method: 'get', resource,
-        query: {_id: {$exists: true}}, // any items
-        payload: {_id: 0, count_orders: 1, sum_total: 1, month: 1, bmid: 1, qmid: 1},
+        query: { _id: { $exists: true } }, // any items
+        payload: { _id: 0, count_orders: 1, sum_total: 1, month: 1, bmid: 1, qmid: 1 },
         skip, limit: size
       }).toPromise();
       data.push(...temp);
@@ -301,8 +399,8 @@ export class QmBmSstDashboardComponent implements OnInit {
     let unified = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
       method: 'get',
       resource: 'unified_koreanbbqv2',
-      query: {_id: {$exists: true}}, // any items
-      payload: {_id: 1, bm_id: 1, qm_id: 1},
+      query: { _id: { $exists: true } }, // any items
+      payload: { _id: 1, bm_id: 1, qm_id: 1 },
       limit: 10000000
     }).toPromise();
 
@@ -317,8 +415,8 @@ export class QmBmSstDashboardComponent implements OnInit {
     const { unified, bm_data, qm_data } = await this.getMonthlyData();
 
     // use dict to save rt match relationship for easy access in below
-    const rt_dict = {bm: {}, qm: {}}, union_ids = new Set();
-    unified.forEach(({_id, bm_id, qm_id}) => {
+    const rt_dict = { bm: {}, qm: {} }, union_ids = new Set();
+    unified.forEach(({ _id, bm_id, qm_id }) => {
       if (bm_id) {
         rt_dict.bm[bm_id] = _id;
       }
@@ -328,14 +426,14 @@ export class QmBmSstDashboardComponent implements OnInit {
       union_ids.add(_id);
     });
 
-    const dict = {[KPIPeriodOptions.Yearly]: {}, [KPIPeriodOptions.Monthly]: {}, [KPIPeriodOptions.Quarterly]: {}};
+    const dict = { [KPIPeriodOptions.Yearly]: {}, [KPIPeriodOptions.Monthly]: {}, [KPIPeriodOptions.Quarterly]: {} };
     const Months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const non_union_ids = new Set();
-    const accumulate = (period_cat: KPIPeriodOptions, period, { platform, oc, gmv, id}) => {
+    const accumulate = (period_cat: KPIPeriodOptions, period, { platform, oc, gmv, id }) => {
       let temp = dict[period_cat][period] || {
-        gmv: {qm: 0, bm: 0, both: 0},
-        oc: {qm: 0, bm: 0, both: 0},
-        ar: {qm: new Set(), bm: new Set(), both: new Set()}
+        gmv: { qm: 0, bm: 0, both: 0 },
+        oc: { qm: 0, bm: 0, both: 0 },
+        ar: { qm: new Set(), bm: new Set(), both: new Set() }
       };
       let union_id = rt_dict[platform][id];
       if (union_id) {
@@ -353,10 +451,10 @@ export class QmBmSstDashboardComponent implements OnInit {
       dict[period_cat][period] = temp;
     };
     let years = new Set(), quarters = new Set(), months = new Set();
-    const process_item = ({id, platform, month, count_orders, sum_total}: any) => {
+    const process_item = ({ id, platform, month, count_orders, sum_total }: any) => {
       let [y, m] = month.split('T')[0].split('-');
       let quarter = Math.ceil(Number(m) / 3), shortYear = y.substr(2);
-      let tmp = { platform, oc: count_orders, gmv: sum_total, id};
+      let tmp = { platform, oc: count_orders, gmv: sum_total, id };
       let month_key = shortYear + ' ' + Months[Number(m) - 1], quarter_key = shortYear + ' ' + 'Q' + quarter;
       accumulate(KPIPeriodOptions.Monthly, month_key, tmp);
       accumulate(KPIPeriodOptions.Quarterly, quarter_key, tmp);
@@ -365,12 +463,12 @@ export class QmBmSstDashboardComponent implements OnInit {
       quarters.add(quarter_key);
       months.add(month_key);
     }
-    bm_data.forEach(({bmid, ...rest}) => process_item({id: bmid, platform: 'bm', ...rest}));
-    qm_data.forEach(({qmid, ...rest}) => process_item({id: qmid, platform: 'qm', ...rest}));
+    bm_data.forEach(({ bmid, ...rest }) => process_item({ id: bmid, platform: 'bm', ...rest }));
+    qm_data.forEach(({ qmid, ...rest }) => process_item({ id: qmid, platform: 'qm', ...rest }));
     [KPIPeriodOptions.Yearly, KPIPeriodOptions.Quarterly, KPIPeriodOptions.Monthly].forEach(cat => {
       // @ts-ignore
-      Object.entries(dict[cat]).forEach(([period, {ar: {qm, bm, both}}]) => {
-        dict[cat][period].ar = {qm: qm.size, bm: bm.size, both: both.size};
+      Object.entries(dict[cat]).forEach(([period, { ar: { qm, bm, both } }]) => {
+        dict[cat][period].ar = { qm: qm.size, bm: bm.size, both: both.size };
       })
     });
     this.kpi = dict;
@@ -405,11 +503,11 @@ export class QmBmSstDashboardComponent implements OnInit {
 
   calcSummary() {
     this.summary.overall = this.filteredRows;
-    this.summary.both = this.filteredRows.filter(({_id, _bid}) => _id && _bid);
-    this.summary.qmOnly = this.filteredRows.filter(({_id, _bid}) => _id && !_bid)
-    this.summary.bmOnly = this.filteredRows.filter(({_bid, _id}) => _bid && !_id)
-    this.summary.qmAll = this.filteredRows.filter(({_id, disabled}) => !!_id && (!this.sumQmActiveOnly || !disabled))
-    this.summary.bmAll = this.filteredRows.filter(({_bid, bdisabled}) => !!_bid && (!this.sumBmActiveOnly || !bdisabled))
+    this.summary.both = this.filteredRows.filter(({ _id, _bid }) => _id && _bid);
+    this.summary.qmOnly = this.filteredRows.filter(({ _id, _bid }) => _id && !_bid)
+    this.summary.bmOnly = this.filteredRows.filter(({ _bid, _id }) => _bid && !_id)
+    this.summary.qmAll = this.filteredRows.filter(({ _id, disabled }) => !!_id && (!this.sumQmActiveOnly || !disabled))
+    this.summary.bmAll = this.filteredRows.filter(({ _bid, bdisabled }) => !!_bid && (!this.sumBmActiveOnly || !bdisabled))
   }
 
   paginate(index) {
@@ -433,6 +531,9 @@ export class QmBmSstDashboardComponent implements OnInit {
       perspective: SalesPerspectiveOptions,
       worthiness: SalesWorthinessOptions,
       kpi_period: KPIPeriodOptions,
+      google_reviews: GoogleReviewsOptions,  // extra filters
+      coupons: couponsOptions,
+      competitors: competitorsOptions,
       churn_definition: ChurnDefinitionOptions
     }[key])
   }
@@ -450,27 +551,82 @@ export class QmBmSstDashboardComponent implements OnInit {
               address: "$googleAddress.formatted_address",
               cid: '$googleListing.cid',
               disabled: 1,
+              disabledAt: 1,
               website: "$web.qmenuWebsite",
               name: 1,
               courier: '$courier.name',
               lat: '$googleAddress.lat',
               lng: '$googleAddress.lng',
-              createdAt: "$createdAt",
+              createdAt: 1,
               owner: "$googleListing.gmbOwner",
               channels: 1,
-              tiers: "$computed.tier"
+              competitorsCount: {
+                $size: {
+                  $ifNull: [
+                    {
+                      $filter: {
+                        input: "$providers",
+                        as: "provider",
+                        cond: {
+                          $and: [
+                            {
+                              $ne: ["$$provider.name", "beyondmenu"]
+                            },
+                            {
+                              $ne: ["$$provider.name", "qmenu"]
+                            },
+                            {
+                              $ne: ["$$provider.name", null]
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    []
+                  ]
+                }
+              },
+              googleReviewsCount: '$googleListing.totalReviews',
+              couponsCount: {
+                $size: {
+                  $ifNull: [
+                    '$promotions',
+                    []
+                  ]
+                }
+              },
+              cuisines: {
+                $ifNull: [
+                  '$cuisine',
+                  []
+                ]
+              },
+              activities: "$computed.activities",
+              activity: "$computed.activity.ordersInLast30Days"
             }
           }
         ],
-      }, 6000));
+      }, 5000));
+      // populate cuisines
+      this.qmRTs.forEach((rt) => {
+        if (rt.cuisines) {
+          rt.cuisines.forEach(c => {
+            if (c && this.cuisines.indexOf(c) === -1) {
+              this.cuisines.push(c);
+            }
+          });
+        }
+      });
+
+      this.cuisines.sort((a, b) => a.localeCompare(b));
 
       const gmbBiz = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbBiz',
-        projection: {cid: 1, gmbOwner: 1, qmenuId: 1, place_id: 1, gmbWebsite: 1},
+        projection: { cid: 1, gmbOwner: 1, qmenuId: 1, place_id: 1, gmbWebsite: 1 },
         limit: 1000000000
       }).toPromise();
       let gmbWebsiteOwnerDict = {}, gmbWebsiteDict = {};
-      gmbBiz.forEach(({cid, place_id, qmenuId, gmbOwner, gmbWebsite}) => {
+      gmbBiz.forEach(({ cid, place_id, qmenuId, gmbOwner, gmbWebsite }) => {
         let key = place_id + cid;
         gmbWebsiteOwnerDict[key] = gmbOwner;
         if (qmenuId) {
@@ -482,43 +638,37 @@ export class QmBmSstDashboardComponent implements OnInit {
       const accounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbAccount',
         query: {},
-        projection: {'locations.cid': 1, 'locations.status': 1, 'locations.role': 1}
+        projection: { 'locations.cid': 1, 'locations.status': 1, 'locations.role': 1 }
       }, 500);
 
       let date = new Date();
       date.setDate(date.getDate() - 30);
-      const rtsHasOrder = await this._api.get(environment.qmenuApiUrl + 'generic', {
-        resource: 'order',
-        aggregate: [
-          {$match: {createdAt: {$gte: {$date: date}}}},
-          {$group: {_id: {rt: '$restaurant'}}},
-          {$project: {rtId: "$_id.rt", _id: 0}}
-        ]
-      }).toPromise();
-      let rtsHasOrderSet = new Set(rtsHasOrder.map(x => x.rtId));
-
+      let months = [], cursor = new Date(), i = 0;
+      while (i < 6) {
+        cursor.setMonth(cursor.getMonth() - 1);
+        months.push(`${cursor.getFullYear()}${Helper.padNumber(cursor.getMonth() + 1)}`);
+        i++;
+      }
       this.qmRTs.forEach(rt => {
         if (rt.place_id) {
           this.qmRTsPlaceDict[rt.place_id] = rt;
         }
         let key = rt.place_id + rt.cid;
         // active: has order in last 30 days
-        rt.inactive = !rtsHasOrderSet.has(rt._id);
-        let tiers = rt.tiers || [];
-        if (!Array.isArray(tiers)) {
-          tiers = [tiers];
-        }
-        let latest = tiers.sort((a, b) => new Date(b.time).valueOf() - new Date(a.time).valueOf())[0];
-        rt.tier = this.getTier(latest ? latest.ordersPerMonth : 0);
+        rt.inactive = !rt.activity;
+        let activities = rt.activities || {};
+        let totalOrders = months.reduce((a, c) => (activities[c] || 0) + a, 0);
+        rt.ordersPerMonth = totalOrders / 6;
+        rt.tier = Helper.getTier(rt.ordersPerMonth);
 
         rt.hasGmb = (gmbWebsiteOwnerDict[key] || gmbWebsiteOwnerDict[rt._id + rt.cid]) && accounts.some(acc => (acc.locations || []).some(loc => loc.cid === rt.cid && loc.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].includes(loc.role)))
         rt.hasGMBWebsite = gmbWebsiteOwnerDict[key] === 'qmenu' || gmbWebsiteOwnerDict[rt._id + rt.cid] === 'qmenu';
 
         rt.postmatesAvailable = this.postmatesAvailable(rt)
         if (rt.channels && rt.channels.length > 0) {
-          let mainChannel = rt.channels.find(({type, notifications}) => type === 'Phone' && (notifications || []).includes('Business'));
+          let mainChannel = rt.channels.find(({ type, notifications }) => type === 'Phone' && (notifications || []).includes('Business'));
           if (!mainChannel) {
-            mainChannel = rt.channels.find(({type}) => type === 'Phone');
+            mainChannel = rt.channels.find(({ type }) => type === 'Phone');
           }
           if (mainChannel) {
             rt.mainPhone = mainChannel.value;
@@ -534,14 +684,14 @@ export class QmBmSstDashboardComponent implements OnInit {
         const channels = [];
         [1, 2, 3, 4].map(num => {
           if (item[`Phone${num}`]) {
-            channels.push({ type: 'Phone', value: item[`Phone${num}`]});
+            channels.push({ type: 'Phone', value: item[`Phone${num}`] });
           }
           if (item[`CellPhone${num}`]) {
-            channels.push({ type: 'Phone', value: item[`CellPhone${num}`]});
+            channels.push({ type: 'Phone', value: item[`CellPhone${num}`] });
           }
         });
         let place_id = item.GooglePlaceID;
-        let {TierDec2021, TierNov2021, TierOct2021} = item;
+        let { TierDec2021, TierNov2021, TierOct2021 } = item;
         let pricing = [
           "OrderFixedFeePerOrder", "CreditCardFixedFeePerOrder", "OrderMonthlyFee", "CreditCardFeePercentage",
           "AmexFeePercentage", "FaxUnitPrice", "PhoneUnitPrice", "OrderCommissionPercentage", "OrderCommissionMaximum",
@@ -560,8 +710,14 @@ export class QmBmSstDashboardComponent implements OnInit {
           bmainPhone: item.Phone1,
           createdAt: item.createdAt,
           btier: Math.floor((TierDec2021 + TierNov2021 + TierOct2021) / 3),
-          btiers: {'10 2021': TierOct2021, '11 2021': TierNov2021, '12 2021': TierDec2021},
-          bpricing: pricing
+          bpricing: pricing,
+          bgoogleReviews: 0, // extra data use default value
+          bcuisines: [],
+          bcompetitorsCount: 0,
+          bcouponsCount: 0,
+          bactivities: {},
+          bactivity: 0,
+          bordersPerMonth: 0
         }
 
         if (place_id) {
@@ -575,14 +731,14 @@ export class QmBmSstDashboardComponent implements OnInit {
       console.log(bmRTs);
       // 1. Match by google place_id (already the case)
       // 2. followed by main phone number to the extent the first type of matching didn't produce a match.
-      let bmOnly = this.bmRTs.filter(({bplace_id, bmainPhone}) => (!bplace_id || !this.qmRTsPlaceDict[bplace_id]) && (!bmainPhone || !this.qmRTsPhoneDict[bmainPhone]));
+      let bmOnly = this.bmRTs.filter(({ bplace_id, bmainPhone }) => (!bplace_id || !this.qmRTsPlaceDict[bplace_id]) && (!bmainPhone || !this.qmRTsPhoneDict[bmainPhone]));
       this.unionRTs = [...this.qmRTs, ...bmOnly].map(x => {
-        let item = {...x, ...(this.bmRTsPlaceDict[x.place_id]) || this.bmRTsPhoneDict[x.mainPhone] || {}};
+        let item = { ...x, ...(this.bmRTsPlaceDict[x.place_id]) || this.bmRTsPhoneDict[x.mainPhone] || {} };
         item.worthy = item._bid && (item.bdisabled || !item.bhasGmb);
         item.bworthy = item._id && (item.disabled || (!item.hasGmb && !item.hasGMBWebsite))
         return item;
       });
-      console.log('gmb conflict...', this.unionRTs.filter(x => x.hasGmb && x.bhasGmb).map(({_id, _bid}) => ({_id, _bid})));
+      console.log('gmb conflict...', this.unionRTs.filter(x => x.hasGmb && x.bhasGmb).map(({ _id, _bid }) => ({ _id, _bid })));
       this.filter();
     } catch (error) {
       console.error(error);
@@ -618,7 +774,7 @@ export class QmBmSstDashboardComponent implements OnInit {
     return s;
   }
 
-  postmatesAvailable({lat, lng}) {
+  postmatesAvailable({ lat, lng }) {
     let distances = [];
     this.viabilities.forEach(item => {
       if (item.Latitude && item.Longitude) {
@@ -632,19 +788,6 @@ export class QmBmSstDashboardComponent implements OnInit {
     return minDistance < 0.5 && (['V1', 'V2', 'V3', 'V4'].includes(this.viabilities[index].Viability));
   }
 
-  getTier(ordersPerMonth) {
-    if (ordersPerMonth > 125) { // VIP
-      return 0;
-    }
-    if (ordersPerMonth > 40) {
-      return 1;
-    }
-    if (ordersPerMonth > 4) {
-      return 2;
-    }
-    return 3;
-  }
-
   getPlaceId(row) {
     if (row.place_id && !row.hide) {
       return row.place_id;
@@ -656,10 +799,10 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   getTierColor(tier, btier) {
-    return ['bg-info', "bg-success", "bg-warning", "bg-danger"][this.getEitherTier({tier, btier})]
+    return ['bg-lime', "bg-success", "bg-warning", "bg-danger"][this.getEitherTier({ tier, btier })]
   }
 
-  getEitherTier({tier, btier}) {
+  getEitherTier({ tier, btier }) {
     let qt = Number.isInteger(tier) ? tier : 3, bt = Number.isInteger(btier) ? btier : 3;
     return Math.min(qt, bt);
   }
@@ -681,8 +824,8 @@ export class QmBmSstDashboardComponent implements OnInit {
 
   worthyFilter(list, perspective, worthiness) {
     if (perspective) {
-      let field = {[SalesPerspectiveOptions.BM]: 'bworthy', [SalesPerspectiveOptions.QM]: 'worthy'}[perspective]
-      let id = {[SalesPerspectiveOptions.BM]: '_bid', [SalesPerspectiveOptions.QM]: '_id'}[perspective]
+      let field = { [SalesPerspectiveOptions.BM]: 'bworthy', [SalesPerspectiveOptions.QM]: 'worthy' }[perspective]
+      let id = { [SalesPerspectiveOptions.BM]: '_bid', [SalesPerspectiveOptions.QM]: '_id' }[perspective]
       if (worthiness) {
         if (worthiness === SalesWorthinessOptions.Worthy) {
           list = list.filter(rt => !rt[id] && rt[field])
@@ -692,7 +835,6 @@ export class QmBmSstDashboardComponent implements OnInit {
       }
     } else {
       this.filters.worthiness = ''
-      this.showSalesWorthiness = false;
     }
     return list;
   }
@@ -709,18 +851,19 @@ export class QmBmSstDashboardComponent implements OnInit {
     let {
       platform, status, tier, hasPlaceId,
       sameName, gmbStatus, gmbWebsite, pricing, postmates,
-      perspective, worthiness, keyword
+      perspective, worthiness, keyword,
+      cuisine, googleReviews, coupons, competitors// extra filters
     } = this.filters;
     let list = this.unionRTs;
     switch (platform) {
       case PlatformOptions.Both:
-        list = list.filter(({_id, _bid}) => _id && _bid);
+        list = list.filter(({ _id, _bid }) => _id && _bid);
         break;
       case PlatformOptions.BmOnly:
-        list = list.filter(({_id, _bid}) => !_id && _bid)
+        list = list.filter(({ _id, _bid }) => !_id && _bid)
         break;
       case PlatformOptions.QmOnly:
-        list = list.filter(({_id, _bid}) => _id && !_bid)
+        list = list.filter(({ _id, _bid }) => _id && !_bid)
         break;
     }
 
@@ -765,19 +908,19 @@ export class QmBmSstDashboardComponent implements OnInit {
 
     switch (hasPlaceId) {
       case PlaceIdOptions.Has:
-        list = list.filter(({place_id, bplace_id}) => place_id || bplace_id)
+        list = list.filter(({ place_id, bplace_id }) => place_id || bplace_id)
         break;
       case PlaceIdOptions.Missing:
-        list = list.filter(({place_id, bplace_id}) => !place_id && !bplace_id)
+        list = list.filter(({ place_id, bplace_id }) => !place_id && !bplace_id)
         break;
     }
 
     switch (sameName) {
       case RTsNameOptions.Same:
-        list = list.filter(({name, bname}) => name === bname);
+        list = list.filter(({ name, bname }) => name === bname);
         break;
       case RTsNameOptions.Diff:
-        list = list.filter(({name, bname}) => name && bname && name !== bname);
+        list = list.filter(({ name, bname }) => name && bname && name !== bname);
         break;
     }
 
@@ -865,11 +1008,93 @@ export class QmBmSstDashboardComponent implements OnInit {
     if (keyword && keyword.trim()) {
       const kwMatch = str => str && str.toString().toLowerCase().includes(keyword.toLowerCase())
       let digits = keyword.replace(/[^a-zA-Z0-9]/g, '');
-      list = list.filter(({_id, _bid, name, bname, address, baddress, channels, bchannels}) => {
+      list = list.filter(({ _id, _bid, name, bname, address, baddress, channels, bchannels }) => {
         return [_id, _bid, name, bname, address, baddress].some(x => kwMatch(x))
-        || (digits && ((channels || []).some(p => p.type === 'Phone' && p.value.includes(digits)) || (bchannels || []).some(p => p.value.includes(digits))))
+          || (digits && ((channels || []).some(p => p.type === 'Phone' && p.value.includes(digits)) || (bchannels || []).some(p => p.value.includes(digits))))
       })
     }
+    // filter by extra filter
+    // cuisine
+    if (cuisine) {
+      let c = cuisine;
+      list = list.filter(({ cuisines, bcuisines }) => [...(cuisines || []), ...(bcuisines || [])].indexOf(c) >= 0 );
+    }
+    // google reviewers
+    switch (googleReviews) {
+      case GoogleReviewsOptions.None:
+        list = list.filter(({ googleReviewsCount }) => !googleReviewsCount || googleReviewsCount === 0);
+        break;
+      case GoogleReviewsOptions._1_10:
+        list = list.filter(({ googleReviewsCount }) => googleReviewsCount >= 1 && googleReviewsCount <= 10);
+        break;
+      case GoogleReviewsOptions._11_25:
+        list = list.filter(({ googleReviewsCount }) => googleReviewsCount >= 11 && googleReviewsCount <= 25);
+        break;
+      case GoogleReviewsOptions._26_50:
+        list = list.filter(({ googleReviewsCount }) => googleReviewsCount >= 26 && googleReviewsCount <= 50);
+        break;
+      case GoogleReviewsOptions._51_100:
+        list = list.filter(({ googleReviewsCount }) => googleReviewsCount >= 51 && googleReviewsCount <= 100);
+        break;
+      case GoogleReviewsOptions._101_200:
+        list = list.filter(({ googleReviewsCount }) => googleReviewsCount >= 101 && googleReviewsCount <= 200);
+        break;
+      case GoogleReviewsOptions._201_350:
+        list = list.filter(({ googleReviewsCount }) => googleReviewsCount >= 201 && googleReviewsCount <= 350);
+        break;
+      case GoogleReviewsOptions._351_500:
+        list = list.filter(({ googleReviewsCount }) => googleReviewsCount >= 351 && googleReviewsCount <= 500);
+        break;
+      case GoogleReviewsOptions.More_Than_500:
+        list = list.filter(({ googleReviewsCount }) => googleReviewsCount > 500);
+        break;
+    }
+    // coupons
+    switch (coupons) {
+      case couponsOptions.None:
+        list = list.filter(({ couponsCount }) => !couponsCount || couponsCount === 0);
+        break;
+      case couponsOptions._1_5:
+        list = list.filter(({ couponsCount }) => couponsCount >= 1 && couponsCount <= 5);
+        break;
+      case couponsOptions._6_10:
+        list = list.filter(({ couponsCount }) => couponsCount >= 6 && couponsCount <= 10);
+        break;
+      case couponsOptions._11_15:
+        list = list.filter(({ couponsCount }) => couponsCount >= 11 && couponsCount <= 15);
+        break;
+      case couponsOptions._16_20:
+        list = list.filter(({ couponsCount }) => couponsCount >= 16 && couponsCount <= 20);
+        break;
+      case couponsOptions._21_25:
+        list = list.filter(({ couponsCount }) => couponsCount >= 21 && couponsCount <= 25);
+        break;
+      case couponsOptions.More_Than_26:
+        list = list.filter(({ couponsCount }) => couponsCount > 26);
+        break;
+    }
+    // num competitors
+    switch (competitors) {
+      case competitorsOptions.None:
+        list = list.filter(({ competitorsCount }) => !competitorsCount || competitorsCount === 0 );
+        break;
+      case competitorsOptions.More_Than_1:
+        list = list.filter(({ competitorsCount }) => competitorsCount > 1);
+        break;
+      case competitorsOptions.More_Than_2:
+        list = list.filter(({ competitorsCount }) => competitorsCount > 2);
+        break;
+      case competitorsOptions.More_Than_3:
+        list = list.filter(({ competitorsCount }) => competitorsCount > 3);
+        break;
+      case competitorsOptions.More_Than_4:
+        list = list.filter(({ competitorsCount }) => competitorsCount > 4);
+        break;
+      case competitorsOptions.More_Than_5:
+        list = list.filter(({ competitorsCount }) => competitorsCount > 5);
+        break;
+    }
+
     this.filteredRows = list;
     this.calcSummary();
     this.paginate(0)
@@ -879,7 +1104,7 @@ export class QmBmSstDashboardComponent implements OnInit {
     return this.filteredRows.slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize)
   }
 
-  groupChannels({channels, bchannels, hide, bhide}, type) {
+  groupChannels({ channels, bchannels, hide, bhide }, type) {
     let qmWhole = hide ? [] : (channels || []).filter(c => c.type === type).map(c => c.value);
     let bmWhole = bhide ? [] : (bchannels || []).filter(c => c.type === type).map(c => c.value);
     let whole = Array.from(new Set([...qmWhole, ...bmWhole]))
@@ -902,22 +1127,33 @@ export class QmBmSstDashboardComponent implements OnInit {
   clearFilter() {
     this.filters = {
       keyword: '',
-      activeDefinition: '',
-      status: '',
       platform: '',
+      status: '',
+      activeDefinition: '',
       hasPlaceId: '',
       sameName: '',
       tier: '',
       gmbStatus: '',
-      gmbWebsite: '',
       postmates: '',
       pricing: '',
       perspective: '',
-      worthiness: ''
+      worthiness: '',
+      gmbWebsite: '',
+      cuisine: '', // extra filters
+      googleReviews: '',
+      coupons: '',
+      competitors: ''
     }
 
     this.filter();
   }
 
+  getChurnList() {
+
+  }
+
+  churnDownload() {
+
+  }
 }
 

@@ -157,7 +157,9 @@ export class HomeComponent implements OnInit {
     this.restaurantList = await this._global.getCachedRestaurantListForPicker();
     // const result = await this._api.get2(environment.qmenuApiUrl + 'generic2', {a: 123, b: 456, c: 789}).toPromise();
     // console.log(result);
-    this.sendMessageComponent.init();
+    if (this.sendMessageComponent) {
+      this.sendMessageComponent.init();
+    }
   }
 
   select(restaurant) {
@@ -176,6 +178,7 @@ export class HomeComponent implements OnInit {
       "gmb-campaign": ['ADMIN'],
       "bulk-messaging": ['ADMIN'],
       "courier-availability": ['ADMIN', 'CSR', 'CSR_MANAGER', 'MARKETER'],
+      "change-rt-alias": ['ADMIN', 'CSR_MANAGER'],
       "send-fax": ["ADMIN", 'CSR', 'CSR_MANAGER', 'MARKETER', 'MARKETER_INTERNAL'],
       "send-text-message": ['ADMIN', 'CSR', 'CSR_MANAGER', 'MENU_EDITOR', 'MARKETER'],
       "broadcasting": ['ADMIN', 'CSR', 'CSR_MANAGER'],

@@ -2,9 +2,10 @@ import { AlertType } from 'src/app/classes/alert-type';
 import { environment } from 'src/environments/environment';
 import { GlobalService } from './../../../services/global.service';
 import { ApiService } from './../../../services/api.service';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { RouterLinkWithHref } from '@angular/router';
-
+declare var $: any;
 enum pmtCollectTypes {
   All = 'Payment Collect Type?',
   Cash = 'Cash',
@@ -18,6 +19,12 @@ enum pciDisplayTypes {
   All = 'Select PCI Settings Filter',
   Hide_Non_PCI = 'PCI Compliant RTs',
   Show_Non_PCI = 'PCI Non-Compliant RTs'
+};
+
+enum feieDisplayTypes {
+  All = 'Select fei-e Settings Filter',
+  Feie_Enabled = 'RTs with fei-e printing',
+  Feie_Disabled = 'RTs without fei-e printing'
 };
 
 enum printCCTypes {
@@ -40,6 +47,19 @@ enum pmyMethodTypes {
   Stripe = 'STRIPE'
 };
 
+enum languageTypes {
+  All = 'Language?',
+  English = 'ENGLISH',
+  Chinese = 'CHINESE',
+  None = 'NONE'
+}
+
+enum sentBroadcastTypes {
+  All = 'Sent Broadcast?',
+  Sent = 'Sent',
+  Not_Sent = 'Not sent'
+}
+
 const sortAlphabetical = (a, b) => (a || '').localeCompare(b || '');
 
 @Component({
@@ -48,7 +68,7 @@ const sortAlphabetical = (a, b) => (a || '').localeCompare(b || '');
   styleUrls: ['./monitoring-rts-with-payment-collect.component.css']
 })
 export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
-
+  @ViewChild('bulkActionModal') bulkActionModal: ModalComponent;
   restaurants = [];
   restaurantsColumnDescriptors = [
     { label: '#' },
@@ -62,14 +82,53 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   printCCOption = printCCTypes.All;
   pciDisplayOptions = [pciDisplayTypes.All, pciDisplayTypes.Hide_Non_PCI, pciDisplayTypes.Show_Non_PCI];
   pciDisplayOption = pciDisplayTypes.All;
+  feieDisplayOptions = [feieDisplayTypes.All, feieDisplayTypes.Feie_Enabled, feieDisplayTypes.Feie_Disabled];
+  feieDisplayOption = feieDisplayTypes.All;
+  languageOptions = [languageTypes.All, languageTypes.English, languageTypes.Chinese, languageTypes.None];
+  languageOption = languageTypes.All;
+  sentBroadcastOptions = [sentBroadcastTypes.All, sentBroadcastTypes.Sent, sentBroadcastTypes.Not_Sent];
+  sentBroadcastOption = sentBroadcastTypes.All;
 
   rows = [];
   filteredRows = [];
+  broadcasts = [];
+  broadcast = '';
+  pagination = true;
+  bulkShowPrintingCCInfo = true;
+  bulkShowNonPCIData = true;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
-    this.populateRTsByPmtCollect();
+    $("[data-toggle='tooltip']").tooltip();
+    await this.populateRTsByPmtCollect();
+    await this.populatePrintClients();
+    this.filterRTs();
+  }
+
+  get sentBroadcastTypes() {
+    return sentBroadcastTypes;
+  }
+
+  copyRTIDs() {
+    let rtIDs = this.filteredRows.map(row => row._id).join(', ');
+    let text = `${rtIDs}`;
+    const handleCopy = (e: ClipboardEvent) => {
+      // clipboardData maybe null
+      e.clipboardData && e.clipboardData.setData('text/plain', text);
+      e.preventDefault();
+      // removeEventListener should input second params
+      document.removeEventListener('copy', handleCopy);
+    };
+    document.addEventListener('copy', handleCopy);
+    document.execCommand('copy');
+    this._global.publishAlert(AlertType.Success, 'the data of order has copyed to your clipboard ~', 1000);
+  }
+
+  openBulkActionModal() {
+    this.bulkShowNonPCIData = true;
+    this.bulkShowPrintingCCInfo = true;
+    this.bulkActionModal.show();
   }
 
   async populateRTsByPmtCollect() {
@@ -83,6 +142,8 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
             serviceSettings: 1,
             hidePrintingCCInfo: 1,
             hideNonPCIData: 1,
+            preferredLanguage: 1,
+            broadcasts: 1
           }
         },
         {
@@ -91,12 +152,26 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
       ]
     }).toPromise();
     this.rows = restaurants;
+    // populate existing broadcasts of our system
+    this.broadcasts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'broadcast',
+      aggregate: [
+        {
+          $project: {
+            name: 1
+          }
+        },
+        {
+          $limit: 100000
+        }
+      ]
+    }).toPromise();
+    this.broadcasts.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     // add a temp new property showPrintingCCInfo to control q-toggle
     this.rows.forEach(row => {
       row.showPrintingCCInfo = !row.hidePrintingCCInfo;
       row.showNonPCIData = !row.hideNonPCIData;
     });
-    this.filterRTs();
   }
 
   filterRTs() {
@@ -132,9 +207,38 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
         this.filteredRows = this.filteredRows.filter(row => !row.showNonPCIData);
       }
     }
+
+    // filter by feie printing
+    if (this.feieDisplayOption !== feieDisplayTypes.All) {
+      if (this.feieDisplayOption === feieDisplayTypes.Feie_Enabled) {
+        this.filteredRows = this.filteredRows.filter(row => row.hasFeiePrinting);
+      } else if (this.feieDisplayOption === feieDisplayTypes.Feie_Disabled) {
+        this.filteredRows = this.filteredRows.filter(row => !row.hasFeiePrinting);
+      }
+    }
+
+    // filter by language
+    if (this.languageOption !== languageTypes.All) {
+      if (this.languageOption === languageTypes.English) {
+        this.filteredRows = this.filteredRows.filter(row => row.preferredLanguage === languageTypes.English);
+      } else if (this.languageOption === languageTypes.Chinese) {
+        this.filteredRows = this.filteredRows.filter(row => row.preferredLanguage === languageTypes.Chinese);
+      } else if (this.languageOption === languageTypes.None) {
+        this.filteredRows = this.filteredRows.filter(row => !row.preferredLanguage);
+      }
+    }
+
+    // filter by selected broadcast
+    if (this.broadcast !== '') {
+      if (this.sentBroadcastOption === sentBroadcastTypes.Sent) {
+        this.filteredRows = this.filteredRows.filter(row => (row.broadcasts || []).some(b => b._id === this.broadcast));
+      } else if (this.sentBroadcastOption === sentBroadcastTypes.Not_Sent) {
+        this.filteredRows = this.filteredRows.filter(row => !(row.broadcasts || []).some(b => b._id === this.broadcast));
+      }
+    }
   }
 
-  async toggleEnabled(rt, property) {
+  async toggleEnabledForRow(rt, property) {
     rt[property] = !rt[property];
     const oldNewPatchData = {
       old: { _id: rt._id },
@@ -153,5 +257,64 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
 
     // RT may have changed category after the toggle, so we should re-filter
     this.filterRTs();
+  }
+
+  // bulk toggle update
+  async bulkToggleEnabled() {
+    let oldNewPairs = [];
+    this.filteredRows.forEach(row => {
+      let oldNewPatchData = {
+        old: { _id: row._id },
+        new: { _id: row._id }
+      }
+      oldNewPatchData.new['hidePrintingCCInfo'] = !this.bulkShowPrintingCCInfo;
+      oldNewPatchData.new['hideNonPCIData'] = !this.bulkShowNonPCIData;
+      // update filter row
+      row['hidePrintingCCInfo'] = !this.bulkShowPrintingCCInfo;
+      row['hideNonPCIData'] = !this.bulkShowNonPCIData;
+      row['showPrintingCCInfo'] = this.bulkShowPrintingCCInfo;
+      row['showNonPCIData'] = this.bulkShowNonPCIData;
+      // update origin row
+      let index = this.rows.findIndex(r => r._id === row._id);
+      this.rows[index]['hidePrintingCCInfo'] = !this.bulkShowPrintingCCInfo;
+      this.rows[index]['hideNonPCIData'] = !this.bulkShowNonPCIData;
+      this.rows[index]['showPrintingCCInfo'] = this.bulkShowPrintingCCInfo;
+      this.rows[index]['showNonPCIData'] = this.bulkShowNonPCIData;
+      oldNewPairs.push(oldNewPatchData);
+    });
+
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', oldNewPairs).subscribe(results => {
+      this._global.publishAlert(AlertType.Success, `Bulk updated!`);
+    },
+      error => {
+        this._global.publishAlert(AlertType.Danger, error);
+      });
+    this.bulkActionModal.hide();
+    // RT may have changed category after the toggle, so we should re-filter
+    this.filterRTs();
+  }
+
+  async populatePrintClients() {
+    const feieClients = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'print-client',
+      query: { type: 'fei-e' },
+      projection: { _id: 1, "restaurant._id": 1 }
+    }).toPromise();
+
+    for (let row of this.rows) {
+      row.hasFeiePrinting = false;
+
+      const rtMatch = feieClients.filter(client => client.restaurant._id === row._id);
+      if ((rtMatch || []).length) {
+        row.hasFeiePrinting = true;
+      }
+    }
+  }
+
+  displayFeieMessage(r) {
+    if (r.hasFeiePrinting === true) {
+      return 'ENABLED';
+    }
+    return 'Not enabled'
   }
 }

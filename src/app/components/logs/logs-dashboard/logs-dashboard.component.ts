@@ -1,3 +1,4 @@
+import { Helper } from 'src/app/classes/helper';
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
@@ -33,7 +34,7 @@ export class LogsDashboardComponent implements OnInit {
   adjustmentOnly = false;
   last7DaysOnly = true;
   agent;
-  
+
 
   restaurantLogs = [];
   agentList = [];
@@ -55,25 +56,6 @@ export class LogsDashboardComponent implements OnInit {
     this.populate();
   }
 
-  getTier(score) {
-    // 30.2: avg days per month, 0.7: discount factor
-    let value = (score || 0) * 30.2 * 0.7;
-
-    if (value > 125) { // VIP
-      return 0;
-    }
-
-    if (value > 40) {
-      return 1;
-    }
-    if (value > 4) {
-      return 2;
-    }
-    if (value >= 0) {
-      return 3;
-    }
-  }
-
   async populate() {
     try {
       this.restaurantList = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
@@ -85,17 +67,23 @@ export class LogsDashboardComponent implements OnInit {
           logo: 1,
           'channels.value': 1,
           "googleAddress.formatted_address": 1,
-          score: 1
+          "computed.activities": 1
         }
       }, 3000);
-
+      let months = [], cursor = new Date(), i = 0;
+      while (i < 6) {
+        cursor.setMonth(cursor.getMonth() - 1);
+        months.push(`${cursor.getFullYear()}${Helper.padNumber(cursor.getMonth() + 1)}`);
+        i++;
+      }
       // convert log to type of Log
       this.restaurantList.map(r => {
         if (r.logs) {
           r.logs = r.logs.map(log => new Log(log));
         }
-        // compute tier of rt
-        r['tier'] = this.getTier(r.score);
+        let activities = (r.computed || {}).activities || {};
+        let totalOrders = months.reduce((a, c) => (activities[c] || 0) + a, 0);
+        r.tier = Helper.getTier(totalOrders / 6);
       });
 
       // sort logs
@@ -177,8 +165,8 @@ export class LogsDashboardComponent implements OnInit {
 
     // const now = new Date();
     // Hide outdated logs! (more than 60 days and resolved)
-    //const visibleMs = 7 * 24 * 3600 * 1000;
-    //this.filteredRestaurantLogs = this.filteredRestaurantLogs.filter(rl => !rl.log.resolved || now.valueOf() - (rl.log.time || new Date(0)).valueOf() < visibleMs);
+    // const visibleMs = 7 * 24 * 3600 * 1000;
+    // this.filteredRestaurantLogs = this.filteredRestaurantLogs.filter(rl => !rl.log.resolved || now.valueOf() - (rl.log.time || new Date(0)).valueOf() < visibleMs);
 
     // sort DESC by time!
     // one without time

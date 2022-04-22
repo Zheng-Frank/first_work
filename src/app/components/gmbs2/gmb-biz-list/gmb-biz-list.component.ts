@@ -1,10 +1,10 @@
+import { Helper } from 'src/app/classes/helper';
 import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from '../../../services/global.service';
 import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { AlertType } from 'src/app/classes/alert-type';
-import { Helper } from 'src/app/classes/helper';
 
 enum SkipFilterTypes {
   Title = 'Skip GMB?',
@@ -67,25 +67,6 @@ export class GmbBizListComponent implements OnInit {
   ngOnInit() {
   }
 
-  getTier(score) {
-    // 30.2: avg days per month, 0.7: discount factor
-    let value = (score || 0) * 30.2 * 0.7;
-
-    if (value > 125) { // VIP
-      return 0;
-    }
-
-    if (value > 40) {
-      return 1;
-    }
-    if (value > 4) {
-      return 2;
-    }
-    if (value >= 0) {
-      return 3;
-    }
-  }
-
   async refresh() {
     // restaurants -> gmbBiz -> published status
     const rtQuery = this._api.getBatch(environment.qmenuApiUrl + "generic", {
@@ -112,9 +93,10 @@ export class GmbBizListComponent implements OnInit {
         "web.useBizMenuUrl": 1,
         "web.useBizOrderAheadUrl": 1,
         "web.useBizReservationUrl": 1,
-        "web.ignoreGmbOwnershipRequest": 1
+        "web.ignoreGmbOwnershipRequest": 1,
+        "computed.activities": 1
       }
-    }, 8000);
+    }, 5000);
     const gmbBizQuery = this._api.get(environment.qmenuApiUrl + "generic", {
       resource: 'gmbBiz',
       projection: {
@@ -159,11 +141,16 @@ export class GmbBizListComponent implements OnInit {
 
     const [restaurants, gmbBizList, gmbAccounts] = await Promise.all([
       rtQuery, gmbBizQuery, gmbAccountQuery
-    ]);;
+    ]);
 
     // create a cidMap
     const cidMap = {};
-
+    let months = [], cursor = new Date(), i = 0;
+    while (i < 6) {
+      cursor.setMonth(cursor.getMonth() - 1);
+      months.push(`${cursor.getFullYear()}${Helper.padNumber(cursor.getMonth() + 1)}`);
+      i++;
+    }
     const agentSet = new Set();
     restaurants.map(r => {
       if (r.googleListing && r.googleListing.cid) {
@@ -175,6 +162,9 @@ export class GmbBizListComponent implements OnInit {
         agentSet.add((r.rateSchedules[0].agent || '').toLowerCase());
         r.agent = (r.rateSchedules[0].agent || '').toLowerCase();
       }
+      let activities = (r.computed || {}).activities || {};
+      let totalOrders = months.reduce((a, c) => (activities[c] || 0) + a, 0);
+      r.tier = Helper.getTier(totalOrders / 6);
     });
 
     this.agents = [...agentSet].sort((a1, a2) => a1 > a2 ? 1 : -1);
@@ -263,11 +253,6 @@ export class GmbBizListComponent implements OnInit {
 
     // if a row has no restaurant._id && cid !== 0 &&  status === Published or Suspended
     this.rows = this.rows.filter(r => r.restaurant._id || (r.accountLocations.some(al => al.location.cid && al.location.cid.length > 3 && al.location.status === 'Published' || al.location.status === 'Suspended')));
-    // generate tier data
-    this.rows.forEach(row => {
-      // compute tier of rt
-      row.restaurant['tier'] = this.getTier(row.restaurant.score);
-    });
     this.filter();
 
   }
@@ -505,7 +490,7 @@ export class GmbBizListComponent implements OnInit {
 
       // assign to original
       gmbBiz.qmenuId = qmenuId;
-      row.restaurant = this.rows.filter(row => row.restaurant._id === qmenuId).map(row => row.restaurant)[0];
+      row.restaurant = this.rows.filter(r => r.restaurant._id === qmenuId).map(r => r.restaurant)[0];
 
     }
 

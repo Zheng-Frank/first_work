@@ -14,6 +14,12 @@
   <label class="mr-3 ml-1" for="paginationCheck">
     Pagination
   </label>
+  <!-- start with mode -->
+  <label class="mr-2"> Mode:</label>
+  <select class="form-control mr-3 filter-select-width" [(ngModel)]="modeOption" (change)="filter()">
+    <option *ngFor="let option of modeOptions">{{option}}</option>
+  </select>
+  <!-- end with mode -->
   <label class="mr-2"> Task Status:</label>
   <select class="form-control mr-3 filter-select-width" [(ngModel)]="selectedStatus" (change)="filter()">
     <option *ngFor="let option of statusOptions">{{option}}</option>
@@ -37,6 +43,7 @@
       </div>
     </td>
     <td>{{r.score | number : '1.0-0'}}</td>
+    <td>{{r.gmbPositiveScore | number : '1.0-0'}}</td>
     <td>{{r.lostDate | ago : now}}</td>
     <td>{{r.owner}}</td>
     <td class="mw-50">

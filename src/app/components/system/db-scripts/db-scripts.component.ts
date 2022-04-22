@@ -101,7 +101,8 @@ export class DbScriptsComponent implements OnInit {
         }
         score.orders += totalOrders;
         score.duration += totalDuration;
-        score.ordersPerMonth = Math.ceil(score.orders / (score.duration / (1000 * 3600 * 24 * 30)));
+        // 30.416 is accurate days per month
+        score.ordersPerMonth = Math.ceil(score.orders / (score.duration / (1000 * 3600 * 24 * 30.416)));
       }
       score.time = new Date();
       batchOps.push({old: {_id: rt._id, 'computed.gmbPositiveScore': prev}, new: {_id: rt._id, 'computed.gmbPositiveScore': score}});
@@ -112,47 +113,73 @@ export class DbScriptsComponent implements OnInit {
     }
   }
 
-  async calculateTier() {
+  async calculateActivities() {
     const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      projection: { _id: 1, 'computed.tier': 1},
-    }, 5000);
-    const batchOps = [], data: {[key: string]: number} = {};
-    let i = 6, start = new Date(), end = new Date();
-    start.setMonth(start.getMonth() - 1);
-    while (i > 0) {
-      let temp = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      aggregate: [{$project: {_id: 1, 'activities': '$computed.activities'}}]
+    }, 10000);
+    const id2date = id => new Date(parseInt(id.substring(0, 8), 16) * 1000);
+    let earliestRT = new Date().valueOf();
+    let lastRun = rts.map(({_id, activities}) => {
+      earliestRT = Math.min(id2date(_id).valueOf(), earliestRT);
+      if (activities) {
+         let yms = Object.keys(activities).map(k => {
+           let n = Number(k);
+           return Number.isNaN(n) ? 0 : n;
+         });
+         return Math.max(...yms);
+      }
+      return 0;
+    }).sort((a, b) => b - a)[0];
+    let lastRunStr = lastRun.toString();
+    let y = lastRunStr.substring(0, 4), m = lastRunStr.substring(4);
+    let startMonth = new Date(`${y}-${m}-01`);
+    startMonth.setMonth(startMonth.getMonth() + 1);
+    // if last run earlier than the earliest RT createdAt, use the earliest RT createdAt
+    if (startMonth.valueOf() < earliestRT) {
+      startMonth = new Date(earliestRT);
+    }
+    let endMonth = new Date();
+    endMonth.setDate(1);
+    endMonth.setHours(0, 0, 0, 0);
+    console.log(startMonth, endMonth);
+    let cursor = new Date(startMonth), span = 8;
+    cursor.setDate(cursor.getDate() + span);
+    const rtOrderCount = {}, batchOps = [];
+    while (startMonth.valueOf() < endMonth.valueOf()) {
+      let counts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
         resource: 'order',
         aggregate: [
-          { $match: { createdAt: { $gte: {$date: start}, $lt: {$date: end} } } },
-          { $group: {_id: "$restaurant", count: {$sum: 1}} }
-        ],
-        limit: 20000
-      }).toPromise();
-      temp.forEach(({_id, count}) => {
-        data[_id] = data[_id] || 0;
-        data[_id] += count;
+          { $match: {createdAt: {$gte: {$date: startMonth}, $lt: {$date: cursor}}} },
+          { $group: {_id: "$restaurant", months: {$push: {$dateToString: {date: "$createdAt", format: "%Y%m"}}}} },
+        ]
+      }, 20000);
+      counts.forEach(({_id, months}) => {
+        let tmp = rtOrderCount[_id] || {};
+        months.forEach(month => {
+          tmp[month] = tmp[month] || 0;
+          tmp[month] += 1;
+        })
+        rtOrderCount[_id] = tmp;
       });
-      start.setMonth(start.getMonth() - 1);
-      end.setMonth(end.getMonth() - 1);
-      i--;
-    }
-    rts.forEach(({_id, computed}) => {
-      let cur = computed ? (computed.tier || []) : [], next = [];
-      let ordersPerMonth = Math.ceil((data[_id] || 0) / 6);
-      if (cur) {
-        if (Array.isArray(cur)) {
-          next = cur
-        } else {
-          next.push(cur)
-        }
+      startMonth.setDate(startMonth.getDate() + span);
+      cursor.setDate(cursor.getDate() + span);
+      if (cursor.valueOf() > endMonth.valueOf()) {
+        cursor = new Date(endMonth);
       }
-      next.unshift({ordersPerMonth, time: new Date()});
-      batchOps.push({old: {_id: _id}, new: {_id: _id, 'computed.tier': next}});
+    }
+    rts.forEach(({_id, activities}) => {
+      let newly = rtOrderCount[_id];
+      if (newly) {
+        // only update RTs with new order data
+        batchOps.push({old: {_id}, new: {_id, 'computed.activities': {...(activities || {}), ...newly}}});
+      }
     })
     console.log(batchOps);
     if (batchOps.length > 0) {
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', batchOps).toPromise();
+    } else {
+      this._global.publishAlert(AlertType.Info, 'Monthly data before current month already calculated, data of current month will be calculated at next month');
     }
   }
 
