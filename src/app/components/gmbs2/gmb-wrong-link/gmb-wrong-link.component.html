@@ -29,10 +29,10 @@
       <td>
         {{row.restaurant.accountLoc.location.role}}
       </td>
-      <td>
+      <td style="width: 5%;">
         {{row.restaurant.score}}
       </td>
-      <td>
+      <td style="width: 5%;">
         <app-gmb-account-hotlink [email]="row.restaurant.accountLoc.account.email"
           [appealId]="row.restaurant.accountLoc.location.appealId">
         </app-gmb-account-hotlink>
@@ -44,43 +44,53 @@
             <th>URL(Desired/Insisted/Actual)</th>
           </thead>
           <tbody>
-            <tr *ngFor="let status of row.restaurant.linkStatuses">
-              <td>
-                <div>
-                  {{status.label}}
-                </div>
-                <div>
-                  <i class="{{status.status.style}}">{{status.status.text}}</i>
-                </div>
-              </td>
-              <td>
-                <div *ngIf="status.qmenu">
-                  Qmenu:
-                  <ng-container *ngIf="!status.qmenu;else qmenuBlock">
-                    {{formatLink(status.desired)}}
-                  </ng-container>
-                  <ng-template #desiredBlock>
-                    {{status.desired}}
-                  </ng-template>
-                  <button class="btn btn-sm btn-link"
-                    (click)="status.showMoreDesiredUrl = !status.showMoreDesiredUrl">View</button>
-                </div>
-                <div *ngIf="status.insisted">
-                  Insisted: {{status.insisted}}
-                </div>
-                <div>
-                  Actual:
-                  <ng-container *ngIf="!status.showMoreActualUrl;else actualBlock">
-                    {{formatLink(status.actual.join(', '))}}
-                  </ng-container>
-                  <ng-template #actualBlock>
-                    {{status.actual.join(', ')}}
-                  </ng-template>
-                  <button class="btn btn-sm btn-link"
-                    (click)="status.showMoreActualUrl = !status.showMoreActualUrl">View</button>
-                </div>
-              </td>
-            </tr>
+            <ng-container *ngFor="let status of row.restaurant.linkStatuses">
+              <tr>
+                <td>
+                  <div>
+                    {{status.label}}
+                  </div>
+                  <div>
+                    <i class="{{status.status.style}}">{{status.status.text}}</i>
+                  </div>
+                </td>
+                <td>
+                  <div *ngIf="status.qmenu" style="white-space: nowrap;">
+                    Qmenu:
+                    <ng-container *ngIf="!status.showMoreQmenuUrl;else qmenuBlock">
+                      {{formatLink(status.qmenu)}}
+                    </ng-container>
+                    <ng-template #qmenuBlock>
+                      {{status.qmenu}}
+                    </ng-template>
+                    <button class="btn btn-sm btn-link"
+                      (click)="status.showMoreQmenuUrl = !status.showMoreQmenuUrl">{{ !status.showMoreQmenuUrl ? 'More' : 'Hide'}}</button>
+                  </div>
+                  <div *ngIf="status.insisted" style="white-space: nowrap;">
+                    Insisted:
+                    <ng-container *ngIf="!status.showMoreInsistUrl;else insistedBlock">
+                      {{formatLink(status.insisted)}}
+                    </ng-container>
+                    <ng-template #insistedBlock>
+                      {{status.insisted}}
+                    </ng-template>
+                    <button class="btn btn-sm btn-link"
+                      (click)="status.showMoreInsistUrl = !status.showMoreInsistUrl">{{ !status.showMoreInsistUrl ? 'More' : 'Hide'}}</button>
+                  </div>
+                  <div *ngIf="isActualUrlValid(status.actual)" style="white-space: nowrap;">
+                    Actual:
+                    <ng-container *ngIf="!status.showMoreActualUrl;else actualBlock">
+                      {{formatLink(status.actual.join(', '))}}
+                    </ng-container>
+                    <ng-template #actualBlock>
+                      {{status.actual.join(', ')}}
+                    </ng-template>
+                    <button class="btn btn-sm btn-link"
+                      (click)="status.showMoreActualUrl = !status.showMoreActualUrl">{{ !status.showMoreActualUrl ? 'More' : 'Hide'}}</button>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
           </tbody>
         </table>
       </td>

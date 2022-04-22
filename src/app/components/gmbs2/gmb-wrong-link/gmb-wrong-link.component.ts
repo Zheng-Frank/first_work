@@ -233,7 +233,7 @@ export class GmbWrongLinkComponent implements OnInit {
       let restaurantWebsite = ((r.web || {}).bizManagedWebsite || '').trim().toLowerCase();
       let menuWebsite = ((r.web || {}).menuUrl || '').trim().toLowerCase();
       let orderWebsite = ((r.web || {}).orderAheadUrl || '').trim().toLowerCase();
-      let reservationWebsite = ((r.web || {}).reservationUrl || '').trim().toLowerCase(); 
+      let reservationWebsite = ((r.web || {}).reservationUrl || '').trim().toLowerCase();
       // normalize websites!
       if (qmenuWebsite && !qmenuWebsite.startsWith('http')) {
         qmenuWebsite = 'http://' + qmenuWebsite;
@@ -243,15 +243,15 @@ export class GmbWrongLinkComponent implements OnInit {
         restaurantWebsite = 'http://' + restaurantWebsite;
       }
 
-      if(menuWebsite && !menuWebsite.startsWith('http')) {
+      if (menuWebsite && !menuWebsite.startsWith('http')) {
         menuWebsite = 'http://' + menuWebsite;
       }
 
-      if(orderWebsite && !orderWebsite.startsWith('http')) {
+      if (orderWebsite && !orderWebsite.startsWith('http')) {
         orderWebsite = 'http://' + orderWebsite;
       }
 
-      if(reservationWebsite && !reservationWebsite.startsWith('http')) {
+      if (reservationWebsite && !reservationWebsite.startsWith('http')) {
         reservationWebsite = 'http://' + reservationWebsite;
       }
 
@@ -259,42 +259,50 @@ export class GmbWrongLinkComponent implements OnInit {
         {
           label: 'GMB Website',
           qmenu: qmenuWebsite,
-          insisted: r.web && (r.web.useBizWebsite || r.web.useBizWebsiteForAll) ? restaurantWebsite : 'N/A',
+          insisted: r.web && (r.web.useBizWebsite || r.web.useBizWebsiteForAll) ? restaurantWebsite : '',
           actual: gmbBizgmbWebsite,
           status: this.getWebsiteStatus([], 'gmbWebsite', r),
+          showMoreQmenuLink: false,
           showMoreInsistUrl: false,
           showMoreActualUrl: false
         },
         {
           label: 'GMB Menu URLs',
           qmenu: qmenuWebsite,
-          insisted: r.web && (r.web.useBizMenuUrl || r.web.useBizWebsiteForAll) ? menuWebsite : 'N/A',
+          insisted: r.web && (r.web.useBizMenuUrl || r.web.useBizWebsiteForAll) ? menuWebsite : '',
           actual: gmbBizmenuUrls,
           status: this.getWebsiteStatus(gmbBizmenuUrls, 'menuUrl', r),
-          showMoreDesiredUrl: false,
+          showMoreQmenuUrl: false,
+          showMoreInsistUrl: false,
           showMoreActualUrl: false
         },
         {
           label: 'GMB Order Services',
           qmenu: qmenuWebsite,
-          insisted: r.web && (r.web.useBizOrderAheadUrl || r.web.useBizWebsiteForAll) ? orderWebsite : 'N/A',
+          insisted: r.web && (r.web.useBizOrderAheadUrl || r.web.useBizWebsiteForAll) ? orderWebsite : '',
           actual: gmbBizserviceProviders,
           status: this.getWebsiteStatus(gmbBizserviceProviders, 'orderAheadUrl', r),
-          showMoreDesiredUrl: false,
+          showMoreQmenuUrl: false,
+          showMoreInsistUrl: false,
           showMoreActualUrl: false
         },
         {
           label: 'GMB Reservations',
           qmenu: qmenuWebsite,
-          insisted: r.web && (r.web.useBizReservationUrl || r.web.useBizWebsiteForAll) ? reservationWebsite : 'N/A',
+          insisted: r.web && (r.web.useBizReservationUrl || r.web.useBizWebsiteForAll) ? reservationWebsite : '',
           actual: gmbBizreservations,
           status: this.getWebsiteStatus(gmbBizreservations, 'reservation', r),
-          showMoreDesiredUrl: false,
+          showMoreQmenuUrl: false,
+          showMoreInsistUrl: false,
           showMoreActualUrl: false
         }
       ]
     });
     this.changeFilter();
+  }
+
+  isActualUrlValid(actual) {
+    return (actual || []).length >= 1 && (actual || []).every(a => a);
   }
 
   /** otherUrls is in {menuUrls, reservations, and serviceProviders} */
@@ -396,7 +404,7 @@ export class GmbWrongLinkComponent implements OnInit {
 
   formatLink(link) {
     if (!link || link.length === 0) {
-      return 'N/A';
+      return '';
     }
     if (link.length < 30) {
       return link;
