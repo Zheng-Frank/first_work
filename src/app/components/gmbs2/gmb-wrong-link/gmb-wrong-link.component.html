@@ -61,7 +61,7 @@
                       {{status.qmenu}}
                     </ng-template>
                     <button class="btn btn-sm btn-link"
-                      (click)="status.showMoreQmenuUrl = !status.showMoreQmenuUrl" *ngIf="status.qmenu.indexOf('...')>=0">{{ !status.showMoreQmenuUrl ? 'More' : 'Hide'}}</button>
+                      (click)="status.showMoreQmenuUrl = !status.showMoreQmenuUrl" *ngIf="shouldShowMoreUrl(formatLink(status.qmenu))">{{ !status.showMoreQmenuUrl ? 'More' : 'Hide'}}</button>
                   </div>
                   <div *ngIf="status.insisted" style="white-space: nowrap;">
                     Insisted:
@@ -72,7 +72,7 @@
                       {{status.insisted}}
                     </ng-template>
                     <button class="btn btn-sm btn-link"
-                      (click)="status.showMoreInsistUrl = !status.showMoreInsistUrl" *ngIf="status.insisted.indexOf('...')>=0">{{ !status.showMoreInsistUrl ? 'More' : 'Hide'}}</button>
+                      (click)="status.showMoreInsistUrl = !status.showMoreInsistUrl" *ngIf="shouldShowMoreUrl(formatLink(status.insisted))">{{ !status.showMoreInsistUrl ? 'More' : 'Hide'}}</button>
                   </div>
                   <div *ngIf="isActualUrlValid(status.actual)" style="white-space: nowrap;">
                     Actual:
@@ -83,7 +83,7 @@
                       {{status.actual.join(', ')}}
                     </ng-template>
                     <button class="btn btn-sm btn-link"
-                      (click)="status.showMoreActualUrl = !status.showMoreActualUrl" *ngIf="status.actual.join(', ').indexOf('...')>=0">{{ !status.showMoreActualUrl ? 'More' : 'Hide'}}</button>
+                      (click)="status.showMoreActualUrl = !status.showMoreActualUrl" *ngIf="shouldShowMoreUrl(formatLink(status.actual.join(', ')))">{{ !status.showMoreActualUrl ? 'More' : 'Hide'}}</button>
                   </div>
                 </td>
               </tr>

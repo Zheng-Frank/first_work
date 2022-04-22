@@ -208,7 +208,6 @@ export class GmbWrongLinkComponent implements OnInit {
         gmbWebsiteOwnerDict[qmenuId + cid] = gmbOwner;
       }
     })
-
     this.restaurants.map(r => {
       r.createdAt = new Date(parseInt(r._id.substring(0, 8), 16) * 1000);
       if (r.googleListing && r.googleListing.cid) {
@@ -330,11 +329,12 @@ export class GmbWrongLinkComponent implements OnInit {
       default:
         break;
     }
+
     // restaurant insisted web
-    if ((target === 'gmbWebsite' && !(rt.web && (rt.web.useBizWebsite || rt.web.useBizWebsiteForAll))) ||
-      (target === 'menuUrl' && !(rt.web && (rt.web.useBizMenuUrl || rt.web.useBizWebsiteForAll))) ||
-      (target === 'orderAheadUrl' && !(rt.web && (rt.web.useBizOrderAheadUrl || rt.web.useBizWebsiteForAll))) ||
-      (target === 'reservation' && !(rt.web && (rt.web.useBizReservationUrl || rt.web.useBizWebsiteForAll)))) {
+    if ((target === 'gmbWebsite' && (rt.web && (rt.web.useBizWebsite || rt.web.useBizWebsiteForAll))) ||
+      (target === 'menuUrl' && (rt.web && (rt.web.useBizMenuUrl || rt.web.useBizWebsiteForAll))) ||
+      (target === 'orderAheadUrl' && (rt.web && (rt.web.useBizOrderAheadUrl || rt.web.useBizWebsiteForAll))) ||
+      (target === 'reservation' && (rt.web && (rt.web.useBizReservationUrl || rt.web.useBizWebsiteForAll)))) {
       if ((!isEqualsToRT && !isEqualsToQmenu) || isEqualsToQmenu) {
         return {
           style: styleMap['canNotControl'],
@@ -424,5 +424,9 @@ export class GmbWrongLinkComponent implements OnInit {
       return link;
     }
     return link.slice(0, 50) + '...';
+  }
+
+  shouldShowMoreUrl(url) {
+    return (url || "").includes("...");
   }
 }
