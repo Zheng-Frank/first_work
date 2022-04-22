@@ -140,7 +140,7 @@ export class GmbWrongLinkComponent implements OnInit {
         "web.ignoreGmbOwnershipRequest": 1,
         "rateSchedules.agent": 1,
       }
-    }, 2000);
+    }, 11000);
 
     // const restaurants = rawRestaurants.filter(r => r._id === "608ddea741bf021081ac586e");
 
