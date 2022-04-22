@@ -84,6 +84,12 @@
           <div>{{r._id}}</div>
         </td>
         <td>
+          {{ r.score | number : '1.0-0' }}
+        </td>
+        <td>
+          {{getTimezoneCity(r.googleAddress?.timezone)}} ({{getTimeOffsetByTimezone(r.googleAddress?.timezone)}})
+        </td>
+        <td>
           <div *ngFor="let service of (r.serviceSettings || [])">
             {{service.name}}: {{(service.paymentMethods || []).join(', ') || 'N/A'}}
           </div>

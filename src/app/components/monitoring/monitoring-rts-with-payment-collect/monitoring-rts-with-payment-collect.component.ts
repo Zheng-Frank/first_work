@@ -5,6 +5,7 @@ import { ApiService } from './../../../services/api.service';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { RouterLinkWithHref } from '@angular/router';
+import { TimezoneHelper } from '@qmenu/ui';
 declare var $: any;
 enum pmtCollectTypes {
   All = 'Payment Collect Type?',
@@ -73,6 +74,8 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   restaurantsColumnDescriptors = [
     { label: '#' },
     { label: 'Restaurant', paths: ['name'], sort: sortAlphabetical },
+    { label: 'Score', paths: ['score'], sort: (a, b) => a - b  },
+    { label: 'Timezone (as Offset to EST)'},
     { label: 'Payment' },
   ];
 
@@ -96,6 +99,7 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   pagination = true;
   bulkShowPrintingCCInfo = true;
   bulkShowNonPCIData = true;
+  now = new Date();
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -131,6 +135,23 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     this.bulkActionModal.show();
   }
 
+  // our salesperson only wants to know what is the time offset
+  // between EST and the location of restaurant
+  getTimeOffsetByTimezone(timezone){
+    if(timezone){
+      let localTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), timezone);
+      let ESTTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), 'America/New_York');
+      let offset = (ESTTime.valueOf() - localTime.valueOf())/(3600*1000);
+      return offset > 0 ? "+"+offset.toFixed(0) : offset.toFixed(0);
+    }else{
+      return 'N/A';
+    }
+  }
+
+  getTimezoneCity(timezone){
+    return (timezone || '').split('/')[1] || '';
+  }
+
   async populateRTsByPmtCollect() {
     const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
@@ -143,7 +164,9 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
             hidePrintingCCInfo: 1,
             hideNonPCIData: 1,
             preferredLanguage: 1,
-            broadcasts: 1
+            broadcasts: 1,
+            score: 1,
+            'googleAddress.timezone': 1 
           }
         },
         {
