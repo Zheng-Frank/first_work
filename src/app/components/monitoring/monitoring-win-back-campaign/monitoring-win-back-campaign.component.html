@@ -41,7 +41,7 @@
       <tr>
         <th>Restaurant</th>
         <th>Tier 1 Potential</th>
-        <th>Current Tier (orders/mo)</th>
+        <th>Current Tier (OPM)</th>
         <th>Logs</th>
       </tr>
       </thead>
@@ -49,22 +49,27 @@
       <tr *ngFor="let item of list">
         <td>
           <div>{{item.name}}</div>
-          <div>
-            <a class="my-text-small btn-link" *ngIf="item.qm_id" target="_blank" [routerLink]="'/restaurants/' + item.qm_id">
+          <div *ngIf="item.qm_id">
+            QM ID: <a class="my-text-small btn-link" target="_blank" [routerLink]="'/restaurants/' + item.qm_id">
               {{item.qm_id}}
             </a>
           </div>
+          <div *ngIf="item.bm_id">BM ID: {{item.bm_id}}</div>
         </td>
-        <td class="text-unwrap">
+        <td>
           <div class="d-flex align-items-center mb-2" *ngIf="item.gmbPositive">
-            <strong class="mr-1">GMB:</strong><strong class="text-success mr-1">{{item.gmbPositive.score}}</strong> orders/mo ({{item.gmbPositive.orders}} over {{item.gmbPositive.days}} "GMB days")
+            <strong class="mr-1">GMB:</strong>
+            <span class="gray-block">
+              <strong class="text-success mr-1">{{item.gmbPositive.score}}</strong> OPM ({{item.gmbPositive.orders}} over {{item.gmbPositive.days}} "GMB days")
+            </span>
           </div>
           <div class="d-flex align-items-start" *ngIf="item.histories.length > 0">
-            <strong class="mr-1">Hist. Perf.:</strong>
+            <strong class="mr-1">Hist.:</strong>
             <div class="histories">
-              <div class="history-item ml-1" *ngFor="let hist of item.histories">
-                <span class="text-unwrap"><strong class="text-success">{{hist.avg | number: '1.0-1'}}</strong> orders/mo</span>
-                <span class="text-unwrap">{{hist.start}} ~ {{hist.end}}</span>
+              <div class="mb-1" *ngFor="let line of item.histories">
+                <span class="history-item gray-block mr-2 text-unwrap" *ngFor="let hist of line">
+                  <strong class="text-success mr-1">{{hist.avg | number: '1.0-1'}}</strong> OPM ({{hist.start}} ~ {{hist.end}})
+                </span>
               </div>
             </div>
           </div>

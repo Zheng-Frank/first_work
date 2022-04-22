@@ -106,6 +106,15 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     return data;
   }
 
+  pageHistories(list: any[]) {
+    let size = 2, res = [];
+    while (list.length > 0) {
+      res.push(list.slice(0, size));
+      list = list.slice(size);
+    }
+    return res;
+  }
+
   async populate() {
     let months = this.getMonths();
     let rts = await this.getUnifiedData(months);
@@ -151,11 +160,15 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       if (!gmb_potential && !slides.length) {
         return;
       }
-      item.histories = slides.map(s => {
-        let start = s[0].month, end = s[s.length - 1].month;
+      let flatten = slides.map(s => {
+        let start = s[0].month.split(''), end = s[s.length - 1].month.split('');
+        start.splice(4, 0, '-');
+        end.splice(4, 0, '-');
         let avg = s.reduce((a, c) => a + c.value, 0) / s.length;
-        return {avg, start, end};
+        return {avg, start: start.join(''), end: end.join('')};
       });
+
+      item.histories = this.pageHistories(flatten);
       rows.push(item);
     });
 
