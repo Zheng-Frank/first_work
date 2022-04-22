@@ -279,6 +279,7 @@ import { MornitoringSmsComponent } from './components/monitoring/mornitoring-sms
 import { MonitoringDeactivatedCustomersComponent } from './components/monitoring/monitoring-deactivated-customers/monitoring-deactivated-customers.component';
 import { MonitoringRtsWithPaymentCollectComponent } from './components/monitoring/monitoring-rts-with-payment-collect/monitoring-rts-with-payment-collect.component';
 import { ChangeRtAliasComponent } from './components/utilities/change-rt-alias/change-rt-alias.component';
+import { MonitoringWinBackCampaignComponent } from './components/monitoring/monitoring-win-back-campaign/monitoring-win-back-campaign.component';
 
 
 
@@ -529,7 +530,8 @@ import { ChangeRtAliasComponent } from './components/utilities/change-rt-alias/c
     MornitoringSmsComponent,
     MonitoringDeactivatedCustomersComponent,
     MonitoringRtsWithPaymentCollectComponent,
-    ChangeRtAliasComponent
+    ChangeRtAliasComponent,
+    MonitoringWinBackCampaignComponent
   ],
   imports: [
     BrowserModule,

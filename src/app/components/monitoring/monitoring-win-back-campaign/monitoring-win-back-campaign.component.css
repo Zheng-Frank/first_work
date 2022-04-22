@@ -1,0 +1,20 @@
+.histories div {
+  display: flex;
+  align-items: center;
+}
+
+.history-item {
+  display: inline-flex;
+  align-items: center;
+}
+
+.gray-block {
+  background-color: #dddddd;
+  padding: 3px 6px;
+  font-size: small;
+}
+
+.text-unwrap {
+  white-space: nowrap;
+  word-break: keep-all;
+}

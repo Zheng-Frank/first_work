@@ -1,0 +1,110 @@
+<div class="card">
+  <h2 class="card-title m-3">
+    <h1 class="text-center">Win-back Campaign ({{list.length || 0}})</h1>
+  </h2>
+  <div class="card-body">
+    <div class="row mb-3">
+      <div class="col-auto">
+        <select [(ngModel)]="filters.potentialType" class="custom-select">
+          <option [value]="''">Tier 1 Potential Types?</option>
+          <option *ngFor="let option of dropdowns('potential_type')" [value]="option">{{option}}</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <select [(ngModel)]="filters.platform" class="custom-select" >
+          <option [value]="''">Platform?</option>
+          <option *ngFor="let option of dropdowns('platform')" [value]="option">{{option}}</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <select [(ngModel)]="filters.hasLogs" class="custom-select" >
+          <option [value]="''">Has logs?</option>
+          <option *ngFor="let option of dropdowns('has_logs')" [value]="option">{{option}}</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <select [(ngModel)]="filters.currentTier" class="custom-select" >
+          <option [value]="''">Current Tier?</option>
+          <option *ngFor="let option of dropdowns('current_tier')" [value]="option">{{option}}</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <input type="text" style="width: 240px" class="form-control" [(ngModel)]="filters.keyword" placeholder="Search by name or QM/BM ID">
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-primary" (click)="filter()">Search</button>
+      </div>
+    </div>
+
+    <table class="table table-sm">
+      <thead>
+      <tr>
+        <th>Restaurant</th>
+        <th>Tier 1 Potential</th>
+        <th>Current Tier (OPM)</th>
+        <th>Logs</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let item of list">
+        <td>
+          <div>{{item.name}}</div>
+          <div *ngIf="item.qm_id">
+            QM ID: <a class="my-text-small btn-link" target="_blank" [routerLink]="'/restaurants/' + item.qm_id">
+              {{item.qm_id}}
+            </a>
+          </div>
+          <div *ngIf="item.bm_id">BM ID: {{item.bm_id}}</div>
+        </td>
+        <td>
+          <div class="d-flex align-items-center mb-2" *ngIf="item.gmbPositive">
+            <strong class="mr-1">GMB:</strong>
+            <span class="gray-block">
+              <strong class="text-success mr-1">{{item.gmbPositive.score}}</strong> OPM ({{item.gmbPositive.orders}} over {{item.gmbPositive.days}} "GMB days")
+            </span>
+          </div>
+          <div class="d-flex align-items-start" *ngIf="item.histories.length > 0">
+            <strong class="mr-1">Hist.:</strong>
+            <div class="histories">
+              <div class="mb-1" *ngFor="let line of item.histories">
+                <span class="history-item gray-block mr-2 text-unwrap" *ngFor="let hist of line">
+                  <strong class="text-success mr-1">{{hist.avg | number: '1.0-1'}}</strong> OPM ({{hist.start}} ~ {{hist.end}})
+                </span>
+              </div>
+            </div>
+          </div>
+        </td>
+        <td>{{item.tier}}({{item.ordersPerMonth | number: '1.0-1'}})</td>
+        <td>
+          <ng-container *ngIf="item.qm_id">
+            <table class="table table-sm">
+              <tr>
+                <th>User</th>
+                <th>Time</th>
+                <th>Problem</th>
+                <th>Response</th>
+              </tr>
+              <ng-container *ngFor="let log of item.logs">
+                <tr>
+                  <td>{{log.username}}</td>
+                  <td>{{log.time | adjustedDate : 'MMM d h:mm a' : item.timezone}}</td>
+                  <td>{{log.problem}}</td>
+                  <td>{{log.response}}</td>
+                </tr>
+              </ng-container>
+            </table>
+            <div>
+              <button class="btn btn-primary btn-sm" (click)="addLog(item)"><i class="fas fa-plus"></i>Add Log</button>
+            </div>
+          </ng-container>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <q-modal #logEditingModal>
+    <app-log-editor [restaurant]="loggingRT" [restaurantList]="[]" [log]="logInEditing"
+      (success)="onSuccessAddLog($event)" (cancel)="onCancelAddLog()"></app-log-editor>
+  </q-modal>
+</div>
