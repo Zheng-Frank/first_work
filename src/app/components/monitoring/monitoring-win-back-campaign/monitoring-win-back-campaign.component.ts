@@ -86,7 +86,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
   }
 
   async getUnifiedData(months) {
-    let data = [], skip = 0, size = 8000;
+    let data = [], skip = 0, size = 9000;
     let oc_fields = {};
     months.forEach(m => oc_fields[`OC${m}`] = 1);
     while (true) {
@@ -247,7 +247,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     let [restaurant] = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: {_id: {$oid: item.qm_id}},
-      projection: {logs: 1, name: 1},
+      projection: {logs: 1, name: 1, log: 1, logo: 1, phones: 1, channels: 1, googleAddress: 1},
       limit: 1
     }).toPromise();
     this.loggingRT = restaurant;
@@ -257,14 +257,14 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
   onSuccessAddLog(event) {
     event.log.time = event.log.time ? event.log.time : new Date();
     event.log.username = event.log.username ? event.log.username : this._global.user.username;
-
     const newRT = JSON.parse(JSON.stringify(this.loggingRT));
     newRT.logs.push(event.log);
-
     this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{old: { _id: this.loggingRT._id }, new: newRT}])
       .subscribe(result => {
         this._global.publishAlert(AlertType.Success, 'Log added successfully');
         event.formEvent.acknowledge(null);
+        let index = this.rows.findIndex(x => x.qm_id === this.loggingRT._id);
+        this.rows[index].logs = newRT.logs.filter(x => x.type === WIN_BACK_CAMPAIGN_LOG_TYPE);
         this.logEditingModal.hide();
         this.loggingRT = {};
       },
