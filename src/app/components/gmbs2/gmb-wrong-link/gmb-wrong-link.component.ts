@@ -2,10 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from '../../../services/global.service';
-import { Gmb3Service } from 'src/app/services/gmb3.service';
 import { AlertType } from 'src/app/classes/alert-type';
 import { Helper } from 'src/app/classes/helper';
-import { lineSplit } from 'pdf-lib';
+
+enum modeTypes {
+  Not_Even_1 = 'Not even 1 QM link',
+  Main_Link_Not = 'Main link not QM'
+}
 
 @Component({
   selector: 'app-gmb-wrong-link',
@@ -23,6 +26,8 @@ export class GmbWrongLinkComponent implements OnInit {
     'missing',
     'not missing'
   ];
+  modeOptions = [modeTypes.Not_Even_1, modeTypes.Main_Link_Not];
+  modeOption = modeTypes.Not_Even_1;
   myColumnDescriptors = [
     {
       label: "#"
@@ -51,12 +56,14 @@ export class GmbWrongLinkComponent implements OnInit {
       label: "GMB Account",
     },
     {
-      label: "Websites",
+      label: "Link Status"
     },
     {
       label: "Notes",
     }
   ];
+  restaurants = [];
+  gmbWebsiteOwnerDict = {};
   constructor(private _api: ApiService, private _global: GlobalService) {
     // put a nice default of filtering of only missing qmenu website for marketers
     this.websiteStatus = this._global.user.roles.some(r => r === 'MARKETER_INTERNAL') ? 'missing' : 'any'
@@ -68,6 +75,33 @@ export class GmbWrongLinkComponent implements OnInit {
   }
 
   changeFilter() {
+    // filter mode
+    switch (this.modeOption) {
+      case modeTypes.Not_Even_1:
+        this.rows = this.restaurants.filter(restaurant => {
+          // define conditions that lead us to conclude that a RT has incorrect links
+          const isEnabled = restaurant.disabled ? !restaurant.disabled : true; // 1) RT must not be disabled
+          let isqMenuLinkOnGmb;
+          if (restaurant.web && restaurant.googleListing) {
+            isqMenuLinkOnGmb = this.isWebsiteOk(restaurant); // 3) qMenu link should not already be on GMB
+          } else {
+            isqMenuLinkOnGmb = false;
+          }
+          const rtInsistsOwnLinks = restaurant.web && (restaurant.web.useBizWebsiteForAll || restaurant.web.useBizWebsite || restaurant.web.useBizMenuUrl
+            || restaurant.web.useBizOrderAheadUrl || restaurant.web.useBizReservationUrl) // 4) rt should not have their own insisted links
+
+          return isEnabled && !isqMenuLinkOnGmb && !rtInsistsOwnLinks;
+        }).filter(r => r.accountLoc && r.accountLoc.location.status === 'Published').map(r => ({ restaurant: r }));
+        break;
+      case modeTypes.Main_Link_Not:
+        this.rows = this.restaurants.filter(r => r.hasGmb && !r.hasGMBWebsite).map(r => ({ restaurant: r }));
+        break;
+      default:
+        break;
+    }
+    // sort by name!
+    this.rows.sort((r1, r2) => r1.restaurant.name > r2.restaurant.name ? 1 : (r1.restaurant.name < r2.restaurant.name ? -1 : 0));
+    // filter by websiteStatus
     this.filteredRows = this.rows.filter(r => {
       switch (this.websiteStatus) {
         case 'missing':
@@ -82,11 +116,12 @@ export class GmbWrongLinkComponent implements OnInit {
 
   async populate() {
     // restaurants -> gmbBiz -> published status
-    const restaurants = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+    this.restaurants = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
       resource: 'restaurant',
       projection: {
         name: 1,
         "googleListing.cid": 1,
+        "googleListing.place_id": 1,
         "googleListing.gmbOwner": 1,
         "googleListing.gmbWebsite": 1,
         "googleAddress.formatted_address": 1,
@@ -94,6 +129,9 @@ export class GmbWrongLinkComponent implements OnInit {
         score: 1,
         "web.qmenuWebsite": 1,
         "web.bizManagedWebsite": 1,
+        "web.menuUrl": 1,
+        "web.orderAheadUrl": 1,
+        "web.reservationUrl": 1,
         "web.useBizWebsite": 1,
         "web.useBizWebsiteForAll": 1,
         "web.useBizMenuUrl": 1,
@@ -150,33 +188,180 @@ export class GmbWrongLinkComponent implements OnInit {
       }
     }));
 
-    restaurants.map(r => {
+    const gmbBiz = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: { cid: 1, gmbOwner: 1, qmenuId: 1, place_id: 1, gmbWebsite: 1, menuUrls: 1, reservations: 1, serviceProviders: 1 },
+    }, 10000);
+    const gmbWebsiteOwnerDict = {};
+    gmbBiz.forEach(({ cid, place_id, qmenuId, gmbOwner, gmbWebsite, menuUrls, reservations, serviceProviders }) => {
+      let key = place_id + cid;
+      gmbWebsiteOwnerDict[key] = {
+        gmbOwner: gmbOwner,
+        gmbBiz: {
+          gmbWebsite: gmbWebsite || '',
+          menuUrls: menuUrls || [],
+          reservations: reservations || [],
+          serviceProviders: serviceProviders || []
+        }
+      };
+      if (qmenuId) {
+        gmbWebsiteOwnerDict[qmenuId + cid] = gmbOwner;
+      }
+    })
+
+    this.restaurants.map(r => {
       r.createdAt = new Date(parseInt(r._id.substring(0, 8), 16) * 1000);
       if (r.googleListing && r.googleListing.cid) {
         r.accountLoc = cidAccountLocationMap[r.googleListing.cid];
       }
       r.agent = (r.rateSchedules || []).map(rs => rs.agent).filter(a => a)[0];
-    });
+      /*
+      Not all the RTs that should be on this page are actually appearing on the page. 
+      Any RT where we own the GMB but our Qmenu link isn't on the GMB 
+      (or some competitor's link is on the GMB instead), should appear on that page. 
+      */
+      let key = r.googleListing.place_id + r.googleListing.cid;
+      r.hasGmb = (gmbWebsiteOwnerDict[key] || gmbWebsiteOwnerDict[r._id + r.googleListing.cid]) && gmbAccounts.some(acc => (acc.locations || []).some(loc => loc.cid === r.googleListing.cid && loc.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].includes(loc.role)))
+      r.hasGMBWebsite = gmbWebsiteOwnerDict[key] === 'qmenu' || gmbWebsiteOwnerDict[r._id + r.googleListing.cid] === 'qmenu';
+      // generate link status
+      let gmbBizgmbWebsite = gmbWebsiteOwnerDict[key] ? [(gmbWebsiteOwnerDict[key].gmbBiz || {}).gmbWebsite] : gmbWebsiteOwnerDict[r._id + r.googleListing.cid] ? [(gmbWebsiteOwnerDict[r._id + r.googleListing.cid].gmbBiz || {}).gmbWebsite] : [];
+      let gmbBizmenuUrls = gmbWebsiteOwnerDict[key] ? (gmbWebsiteOwnerDict[key].gmbBiz || {}).menuUrls : gmbWebsiteOwnerDict[r._id + r.googleListing.cid] ? (gmbWebsiteOwnerDict[r._id + r.googleListing.cid].gmbBiz || {}).menuUrls : [];
+      let gmbBizserviceProviders = gmbWebsiteOwnerDict[key] ? (gmbWebsiteOwnerDict[key].gmbBiz || {}).serviceProviders : gmbWebsiteOwnerDict[r._id + r.googleListing.cid] ? (gmbWebsiteOwnerDict[r._id + r.googleListing.cid].gmbBiz || {}).serviceProviders : [];
+      let gmbBizreservations = gmbWebsiteOwnerDict[key] ? (gmbWebsiteOwnerDict[key].gmbBiz || {}).reservations : gmbWebsiteOwnerDict[r._id + r.googleListing.cid] ? (gmbWebsiteOwnerDict[r._id + r.googleListing.cid].gmbBiz || {}).reservations : [];
 
-    const mismatchedRestaurants = restaurants.filter(restaurant => {
-      // define conditions that lead us to conclude that a RT has incorrect links
-      const isEnabled = restaurant.disabled ? !restaurant.disabled : true; // 1) RT must not be disabled
-      let isqMenuLinkOnGmb;
-      if (restaurant.web && restaurant.googleListing) {
-        isqMenuLinkOnGmb = this.isWebsiteOk(restaurant); // 3) qMenu link should not already be on GMB
-      } else {
-        isqMenuLinkOnGmb = false;
+      let qmenuWebsite = ((r.web || {}).qmenuWebsite || '').trim().toLowerCase();
+      let restaurantWebsite = ((r.web || {}).bizManagedWebsite || '').trim().toLowerCase();
+      let menuWebsite = ((r.web || {}).menuUrl || '').trim().toLowerCase();
+      let orderWebsite = ((r.web || {}).orderAheadUrl || '').trim().toLowerCase();
+      let reservationWebsite = ((r.web || {}).reservationUrl || '').trim().toLowerCase();
+      // normalize websites!
+      if (qmenuWebsite && !qmenuWebsite.startsWith('http')) {
+        qmenuWebsite = 'http://' + qmenuWebsite;
       }
-      const rtInsistsOwnLinks = restaurant.web && (restaurant.web.useBizWebsiteForAll || restaurant.web.useBizWebsite || restaurant.web.useBizMenuUrl
-        || restaurant.web.useBizOrderAheadUrl || restaurant.web.useBizReservationUrl) // 4) rt should not have their own insisted links
 
-      return isEnabled && !isqMenuLinkOnGmb && !rtInsistsOwnLinks;
+      if (restaurantWebsite && !restaurantWebsite.startsWith('http')) {
+        restaurantWebsite = 'http://' + restaurantWebsite;
+      }
+
+      if (menuWebsite && !menuWebsite.startsWith('http')) {
+        menuWebsite = 'http://' + menuWebsite;
+      }
+
+      if (orderWebsite && !orderWebsite.startsWith('http')) {
+        orderWebsite = 'http://' + orderWebsite;
+      }
+
+      if (reservationWebsite && !reservationWebsite.startsWith('http')) {
+        reservationWebsite = 'http://' + reservationWebsite;
+      }
+
+      r.linkStatuses = [
+        {
+          label: 'GMB Website',
+          qmenu: qmenuWebsite,
+          insisted: r.web && (r.web.useBizWebsite || r.web.useBizWebsiteForAll) ? restaurantWebsite : '',
+          actual: gmbBizgmbWebsite,
+          status: this.getWebsiteStatus([], 'gmbWebsite', r),
+          showMoreQmenuLink: false,
+          showMoreInsistUrl: false,
+          showMoreActualUrl: false
+        },
+        {
+          label: 'GMB Menu URLs',
+          qmenu: qmenuWebsite,
+          insisted: r.web && r.web.useBizMenuUrl ? menuWebsite : r.web && r.web.useBizWebsiteForAll ? restaurantWebsite : '',
+          actual: gmbBizmenuUrls,
+          status: this.getWebsiteStatus(gmbBizmenuUrls, 'menuUrl', r),
+          showMoreQmenuUrl: false,
+          showMoreInsistUrl: false,
+          showMoreActualUrl: false
+        },
+        {
+          label: 'GMB Order Services',
+          qmenu: qmenuWebsite,
+          insisted: r.web && r.web.useBizOrderAheadUrl ? orderWebsite : r.web && r.web.useBizWebsiteForAll ? restaurantWebsite : '',
+          actual: gmbBizserviceProviders,
+          status: this.getWebsiteStatus(gmbBizserviceProviders, 'orderAheadUrl', r),
+          showMoreQmenuUrl: false,
+          showMoreInsistUrl: false,
+          showMoreActualUrl: false
+        },
+        {
+          label: 'GMB Reservations',
+          qmenu: qmenuWebsite,
+          insisted: r.web && r.web.useBizReservationUrl ? reservationWebsite : r.web && r.web.useBizWebsiteForAll ? restaurantWebsite : '',
+          actual: gmbBizreservations,
+          status: this.getWebsiteStatus(gmbBizreservations, 'reservation', r),
+          showMoreQmenuUrl: false,
+          showMoreInsistUrl: false,
+          showMoreActualUrl: false
+        }
+      ]
     });
-
-    const publishedMismatchedRestaurants = mismatchedRestaurants.filter(r => r.accountLoc && r.accountLoc.location.status === 'Published');
-    // sort by name!
-    this.rows = publishedMismatchedRestaurants.map(r => ({ restaurant: r })).sort((r1, r2) => r1.restaurant.name > r2.restaurant.name ? 1 : (r1.restaurant.name < r2.restaurant.name ? -1 : 0));
     this.changeFilter();
+  }
+
+  isActualUrlValid(actual) {
+    return (actual || []).length >= 1 && (actual || []).every(a => a);
+  }
+
+  /** otherUrls is in {menuUrls, reservations, and serviceProviders} */
+  /** target is {website, menuUrl, orderAheadUrl, reservation} */
+  getWebsiteStatus(otherUrls, target, rt) {
+    let styleMap = {
+      'isOK': 'text-success',
+      'canControl': 'text-danger',
+      'canNotControl': 'text-muted'
+    };
+
+    let isEqualsToRT = false;
+    let isEqualsToQmenu = false;
+    switch (target) {
+      case 'gmbWebsite':
+        isEqualsToRT = Helper.areDomainsSame(rt.googleListing.gmbWebsite, (rt.web || {}).bizManagedWebsite);
+        isEqualsToQmenu = Helper.areDomainsSame(rt.googleListing.gmbWebsite, (rt.web || {}).qmenuWebsite);
+        break;
+      case 'menuUrl':
+      case 'orderAheadUrl':
+      case 'reservation':
+        isEqualsToRT = (otherUrls || []).some(url => Helper.areDomainsSame(url, (rt.web || {}).bizManagedWebsite));
+        isEqualsToQmenu = (otherUrls || []).some(url => Helper.areDomainsSame(url, (rt.web || {}).qmenuWebsite));
+        break;
+      default:
+        break;
+    }
+
+    // restaurant insisted web
+    if ((target === 'gmbWebsite' && (rt.web && (rt.web.useBizWebsite || rt.web.useBizWebsiteForAll))) ||
+      (target === 'menuUrl' && (rt.web && (rt.web.useBizMenuUrl || rt.web.useBizWebsiteForAll))) ||
+      (target === 'orderAheadUrl' && (rt.web && (rt.web.useBizOrderAheadUrl || rt.web.useBizWebsiteForAll))) ||
+      (target === 'reservation' && (rt.web && (rt.web.useBizReservationUrl || rt.web.useBizWebsiteForAll)))) {
+
+      if ((!isEqualsToRT && !isEqualsToQmenu) || isEqualsToQmenu) {
+        return {
+          style: styleMap['canNotControl'],
+          text: '✗'
+        }
+      }
+      if (isEqualsToRT) {
+        return {
+          style: styleMap['isOK'],
+          text: '✓'
+        }
+      }
+    } else { // restaurant not insisted web
+      if (isEqualsToQmenu) {
+        return {
+          style: styleMap['isOK'],
+          text: '✓'
+        }
+      } else {
+        return {
+          style: styleMap['canControl'],
+          text: '✗'
+        }
+      }
+    }
   }
 
   isWebsiteOk(rt) {
@@ -235,11 +420,15 @@ export class GmbWrongLinkComponent implements OnInit {
 
   formatLink(link) {
     if (!link || link.length === 0) {
-      return 'N/A';
+      return '';
     }
-    if (link.length < 90) {
+    if (link.length < 50) {
       return link;
     }
-    return link.slice(0, 90) + '...';
+    return link.slice(0, 50) + '...';
+  }
+
+  shouldShowMoreUrl(url) {
+    return (url || "").includes("...");
   }
 }
