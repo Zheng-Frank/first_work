@@ -25,8 +25,8 @@
       <td>
         <small>{{row.restaurant.createdAt | ago : now}}</small>
       </td>
-      <td>{{row.restaurant.agent}}</td>
-      <td>
+      <td style="width: 5%;">{{row.restaurant.agent}}</td>
+      <td style="width: 5%;">
         {{row.restaurant.accountLoc.location.role}}
       </td>
       <td style="width: 5%;">
@@ -46,12 +46,9 @@
           <tbody>
             <ng-container *ngFor="let status of row.restaurant.linkStatuses">
               <tr>
-                <td>
+                <td style="white-space: nowrap;">
                   <div>
-                    {{status.label}}
-                  </div>
-                  <div>
-                    <i class="{{status.status.style}}">{{status.status.text}}</i>
+                    {{status.label}} <i class="{{status.status.style}}" style="font-size: 1.75rem">{{status.status.text}}</i>
                   </div>
                 </td>
                 <td>
@@ -64,7 +61,7 @@
                       {{status.qmenu}}
                     </ng-template>
                     <button class="btn btn-sm btn-link"
-                      (click)="status.showMoreQmenuUrl = !status.showMoreQmenuUrl">{{ !status.showMoreQmenuUrl ? 'More' : 'Hide'}}</button>
+                      (click)="status.showMoreQmenuUrl = !status.showMoreQmenuUrl" *ngIf="status.qmenu.indexOf('...')>=0">{{ !status.showMoreQmenuUrl ? 'More' : 'Hide'}}</button>
                   </div>
                   <div *ngIf="status.insisted" style="white-space: nowrap;">
                     Insisted:
@@ -75,7 +72,7 @@
                       {{status.insisted}}
                     </ng-template>
                     <button class="btn btn-sm btn-link"
-                      (click)="status.showMoreInsistUrl = !status.showMoreInsistUrl">{{ !status.showMoreInsistUrl ? 'More' : 'Hide'}}</button>
+                      (click)="status.showMoreInsistUrl = !status.showMoreInsistUrl" *ngIf="status.insisted.indexOf('...')>=0">{{ !status.showMoreInsistUrl ? 'More' : 'Hide'}}</button>
                   </div>
                   <div *ngIf="isActualUrlValid(status.actual)" style="white-space: nowrap;">
                     Actual:
@@ -86,7 +83,7 @@
                       {{status.actual.join(', ')}}
                     </ng-template>
                     <button class="btn btn-sm btn-link"
-                      (click)="status.showMoreActualUrl = !status.showMoreActualUrl">{{ !status.showMoreActualUrl ? 'More' : 'Hide'}}</button>
+                      (click)="status.showMoreActualUrl = !status.showMoreActualUrl" *ngIf="status.actual.join(', ').indexOf('...')>=0">{{ !status.showMoreActualUrl ? 'More' : 'Hide'}}</button>
                   </div>
                 </td>
               </tr>

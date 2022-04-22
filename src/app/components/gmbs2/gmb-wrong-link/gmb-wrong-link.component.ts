@@ -310,8 +310,8 @@ export class GmbWrongLinkComponent implements OnInit {
   getWebsiteStatus(otherUrls, target, rt) {
     let styleMap = {
       'isOK': 'text-success',
-      'equalsToRT': 'text-danger',
-      'NotEqualsToBoth': 'text-muted'
+      'canControl': 'text-danger',
+      'canNotControl': 'text-muted'
     };
 
     let isEqualsToRT = false;
@@ -330,20 +330,34 @@ export class GmbWrongLinkComponent implements OnInit {
       default:
         break;
     }
-    if (isEqualsToRT) {
-      return {
-        style: styleMap['equalsToRT'],
-        text: '✗'
+    // restaurant insisted web
+    if ((target === 'gmbWebsite' && !(rt.web && (rt.web.useBizWebsite || rt.web.useBizWebsiteForAll))) ||
+      (target === 'menuUrl' && !(rt.web && (rt.web.useBizMenuUrl || rt.web.useBizWebsiteForAll))) ||
+      (target === 'orderAheadUrl' && !(rt.web && (rt.web.useBizOrderAheadUrl || rt.web.useBizWebsiteForAll))) ||
+      (target === 'reservation' && !(rt.web && (rt.web.useBizReservationUrl || rt.web.useBizWebsiteForAll)))) {
+      if ((!isEqualsToRT && !isEqualsToQmenu) || isEqualsToQmenu) {
+        return {
+          style: styleMap['canNotControl'],
+          text: '✗'
+        }
       }
-    } else if (isEqualsToQmenu) {
-      return {
-        style: styleMap['isOK'],
-        text: '✓'
+      if (isEqualsToRT) {
+        return {
+          style: styleMap['isOK'],
+          text: '✓'
+        }
       }
-    } else {
-      return {
-        style: styleMap['NotEqualsToBoth'],
-        text: '✗'
+    } else { // restaurant not insisted web
+      if (isEqualsToQmenu) {
+        return {
+          style: styleMap['isOK'],
+          text: '✓'
+        }
+      } else {
+        return {
+          style: styleMap['canControl'],
+          text: '✗'
+        }
       }
     }
   }
@@ -406,9 +420,9 @@ export class GmbWrongLinkComponent implements OnInit {
     if (!link || link.length === 0) {
       return '';
     }
-    if (link.length < 30) {
+    if (link.length < 50) {
       return link;
     }
-    return link.slice(0, 30) + '...';
+    return link.slice(0, 50) + '...';
   }
 }
