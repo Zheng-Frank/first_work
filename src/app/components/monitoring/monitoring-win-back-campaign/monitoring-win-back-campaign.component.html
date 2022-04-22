@@ -6,13 +6,13 @@
     <div class="row mb-3">
       <div class="col-auto">
         <div class="input-group d-flex align-items-center">
-          <select [(ngModel)]="tier1PotentialOption" class="custom-select" (change)="filterRows()">
-            <option *ngFor="let option of tier1PotentialOptions" [value]="option">{{option}}</option>
-          </select>
+<!--          <select [(ngModel)]="tier1PotentialOption" class="custom-select" (change)="filterRows()">-->
+<!--            <option *ngFor="let option of tier1PotentialOptions" [value]="option">{{option}}</option>-->
+<!--          </select>-->
         </div>
       </div>
       <div class="col-auto">
-        <button class="btn btn-primary" (click)="populateWinBackRTs()"><i class="fas fa-sync"></i> Reload</button>
+<!--        <button class="btn btn-primary" (click)="populateWinBackRTs()"><i class="fas fa-sync"></i> Reload</button>-->
       </div>
     </div>
 
@@ -25,16 +25,12 @@
           <span>{{r._id}}</span>
         </td>
         <td>
-          <ng-container *ngIf="tier1PotentialOption !== tier1PotentialTypes.History_Based">
-            <div>
-              GMB: {{r.gmbPositiveScore.ordersPerMonth}} orders/mo
-            </div>
-          </ng-container>
-          <ng-container *ngIf="tier1PotentialOption !== tier1PotentialTypes.GMB_Based">
-            <div>
-              Hist Perf.: Avg'd {{r.histPerfLast3Month}} orders/mo last 3 months
-            </div>
-          </ng-container>
+          <div>
+            GMB: {{r.gmbPositiveScore.ordersPerMonth}} orders/mo
+          </div>
+          <div>
+            Hist Perf.: Avg'd {{r.histPerfLast3Month}} orders/mo last 3 months
+          </div>
         </td>
         <td>{{r.tier | number : '1.0-0'}}</td>
         <td style="width:40%;">
