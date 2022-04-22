@@ -140,7 +140,7 @@ export class GmbWrongLinkComponent implements OnInit {
         "web.ignoreGmbOwnershipRequest": 1,
         "rateSchedules.agent": 1,
       }
-    }, 11000);
+    }, 2000);
 
     // const restaurants = rawRestaurants.filter(r => r._id === "608ddea741bf021081ac586e");
 
@@ -208,6 +208,7 @@ export class GmbWrongLinkComponent implements OnInit {
         gmbWebsiteOwnerDict[qmenuId + cid] = gmbOwner;
       }
     })
+
     this.restaurants.map(r => {
       r.createdAt = new Date(parseInt(r._id.substring(0, 8), 16) * 1000);
       if (r.googleListing && r.googleListing.cid) {
@@ -268,7 +269,7 @@ export class GmbWrongLinkComponent implements OnInit {
         {
           label: 'GMB Menu URLs',
           qmenu: qmenuWebsite,
-          insisted: r.web && (r.web.useBizMenuUrl || r.web.useBizWebsiteForAll) ? menuWebsite : '',
+          insisted: r.web && r.web.useBizMenuUrl ? menuWebsite : r.web && r.web.useBizWebsiteForAll ? restaurantWebsite : '',
           actual: gmbBizmenuUrls,
           status: this.getWebsiteStatus(gmbBizmenuUrls, 'menuUrl', r),
           showMoreQmenuUrl: false,
@@ -278,7 +279,7 @@ export class GmbWrongLinkComponent implements OnInit {
         {
           label: 'GMB Order Services',
           qmenu: qmenuWebsite,
-          insisted: r.web && (r.web.useBizOrderAheadUrl || r.web.useBizWebsiteForAll) ? orderWebsite : '',
+          insisted: r.web && r.web.useBizOrderAheadUrl ? orderWebsite : r.web && r.web.useBizWebsiteForAll ? restaurantWebsite : '',
           actual: gmbBizserviceProviders,
           status: this.getWebsiteStatus(gmbBizserviceProviders, 'orderAheadUrl', r),
           showMoreQmenuUrl: false,
@@ -288,7 +289,7 @@ export class GmbWrongLinkComponent implements OnInit {
         {
           label: 'GMB Reservations',
           qmenu: qmenuWebsite,
-          insisted: r.web && (r.web.useBizReservationUrl || r.web.useBizWebsiteForAll) ? reservationWebsite : '',
+          insisted: r.web && r.web.useBizReservationUrl ? reservationWebsite : r.web && r.web.useBizWebsiteForAll ? restaurantWebsite : '',
           actual: gmbBizreservations,
           status: this.getWebsiteStatus(gmbBizreservations, 'reservation', r),
           showMoreQmenuUrl: false,
@@ -335,6 +336,7 @@ export class GmbWrongLinkComponent implements OnInit {
       (target === 'menuUrl' && (rt.web && (rt.web.useBizMenuUrl || rt.web.useBizWebsiteForAll))) ||
       (target === 'orderAheadUrl' && (rt.web && (rt.web.useBizOrderAheadUrl || rt.web.useBizWebsiteForAll))) ||
       (target === 'reservation' && (rt.web && (rt.web.useBizReservationUrl || rt.web.useBizWebsiteForAll)))) {
+
       if ((!isEqualsToRT && !isEqualsToQmenu) || isEqualsToQmenu) {
         return {
           style: styleMap['canNotControl'],
