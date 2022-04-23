@@ -133,7 +133,7 @@ export class RoutineInstanceListComponent implements OnChanges {
         })
       });
       this.instanceColumnDescriptors[routine.name] = [number, createdAt, ...routineDescriptors];
-      this.fullDisplayInstanceColumnDescriptors[routine.name] = [createdAt, username, ...routineDescriptors];
+      this.fullDisplayInstanceColumnDescriptors[routine.name] = [createdAt, number, username, ...routineDescriptors];
     });
   }
 
