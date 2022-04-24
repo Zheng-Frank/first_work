@@ -214,6 +214,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   hasGMBWebsite = false;
   hasGMBOwner = false;
   managers = [];
+  enabledInBM = false;
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
     const tabVisibilityRolesMap = {
@@ -826,12 +827,20 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   }
 
   async loadDetails() {
+    
     this.readonly = true;
 
     if (this.id) {
       this.apiRequesting = true;
       const query = { _id: { $oid: this.id } };
       this.managers = await this.getManagerAndUsers();
+      let bmRTs = [];
+      // --- BeyondMenu restaurants
+      try {
+        bmRTs = await this._api.post(environment.gmbNgrok + 'get-bm-restaurant').toPromise();
+      } catch (error) {
+        console.log('bm rt query error');
+      }
       this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'restaurant',
         query: query,
@@ -867,7 +876,11 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
             this.getInvoicesCountOfRT();
           }
           this.getDelinquentDates();
-          this.computeGMBStatus()
+          this.computeGMBStatus();
+          // judge the status of this restaurant in beyond menu platform
+          let bmRT = bmRTs.filter(bm => bm.name === rt.name);  
+          console.log(bmRT);
+          this.enabledInBM = bmRT ? true : false;
         },
         error => {
           this.apiRequesting = false;
