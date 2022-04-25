@@ -1,4 +1,5 @@
 import {Helper} from "../../../classes/helper";
+import {KPIPeriodOptions, PlatformOptions} from "./qm-bm-sst-dashboard.component";
 
 const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -72,13 +73,14 @@ const baseChurnSets = (): BaseChurnSets => {
   })
   return obj;
 }
+const tier_key = t => `tier_${t}` as keyof PlatformPeriodChurnSets
 
 const defaultChurnValue = (): PeriodChurnSets => {
   let obj = {} as PeriodChurnSets;
   ["qm", "bm", "both"].forEach(plat => {
     obj[plat] = {} as PlatformPeriodChurnSets;
     [0, 1, 2, 3].forEach(tier => {
-      obj[plat][`tier_${tier}`] = baseChurnSets();
+      obj[plat][tier_key(tier)] = baseChurnSets();
     })
   });
   return obj;
@@ -92,7 +94,26 @@ const baseChurnCount = (): BaseChurnCount => {
   return obj;
 }
 
-const tier_key = t => `tier_${t}` as keyof PlatformPeriodChurnSets
+
+const sort_month = (ka, kb) => {
+  let [year_a, month_a] = ka.split(' '),
+    [year_b, month_b] = kb.split(' ');
+  if (year_a !== year_b) {
+    return Number(year_a) - Number(year_b);
+  }
+  return MONTH_ABBR.indexOf(month_a) - MONTH_ABBR.indexOf(month_b);
+};
+
+const sort_quarter = (ka, kb) => {
+  let [year_a, quarter_a] = ka.split(' '),
+    [year_b, quarter_b] = kb.split(' ');
+  if (year_a !== year_b) {
+    return Number(year_a) - Number(year_b);
+  }
+  return Number(quarter_a.substr(1)) - Number(quarter_b.substr(1));
+};
+
+const sort_year = (ka, kb) => Number(ka) - Number(kb);
 
 export default class ChurnHelper {
 
@@ -103,6 +124,156 @@ export default class ChurnHelper {
   static yearly: ChurnCount = {};
   static quarterly: ChurnCount = {};
   static monthly: ChurnCount = {};
+
+  static getList({platform, period_type, tier, definition}) {
+    let data = {
+      [KPIPeriodOptions.Yearly]: this.yearly,
+      [KPIPeriodOptions.Quarterly]: this.quarterly,
+      [KPIPeriodOptions.Monthly]: this.monthly
+    }[period_type];
+    let tk = tier_key(tier), sorter = {
+      [KPIPeriodOptions.Yearly]: sort_year,
+      [KPIPeriodOptions.Quarterly]: sort_quarter,
+      [KPIPeriodOptions.Monthly]: sort_month
+    }[period_type];
+    let plat_key = {
+      [PlatformOptions.Both]: 'both',
+      [PlatformOptions.BmOnly]: 'bm',
+      [PlatformOptions.QmOnly]: 'qm'
+    }[platform]
+    console.log(data)
+    return Object.entries(data).map(([key, value]) => {
+      let tmp = value[plat_key][tk];
+      return {period: key, ...tmp}
+    }).sort((a, b) => sorter(b.period, a.period));
+  }
+
+
+  static aggregate(origin, sorter) {
+    const result = {};
+    let prev = defaultChurnValue();
+    Object.entries(origin).sort(sorter).forEach(([period, rts]) => {
+      let tmp = result[period] || defaultChurnValue();
+      Object.entries(rts).forEach(([rt_id, counts]) => {
+        ['qm', 'bm', 'both'].forEach(plat => {
+          let tk = tier_key(Helper.getTier(counts[plat]));
+          tmp[plat][tk].end.add(rt_id);
+        });
+      });
+      result[period] = tmp;
+      prev = {...tmp};
+    });
+    return result;
+  }
+
+  static prepare(union_rts, union_rt_dict, bm_data, qm_data) {
+    const rts_monthly = {}, rts_quarterly = {}, rts_yearly = {};
+    const cur_mon = new Date().getMonth() + 1, cur_year = new Date().getFullYear();
+    const first_accumulate = (accumulated, key, count, union_id) => {
+      let tmp = accumulated[key] || {};
+      tmp[union_id] = {bm: count, both: count, qm: 0};
+      accumulated[key] = tmp;
+    };
+    const Years = new Set(), Quarters = new Set(), Months = new Set();
+    let earliest = new Date().valueOf();
+    bm_data.forEach(({bmid, month, count_orders}) => {
+      earliest = Math.min(earliest, new Date(month).valueOf())
+      let [y, m] = month.split('T')[0].split('-'), n_y = Number(y), n_m = Number(m);
+      let quarter = Math.ceil(n_m / 3), shortYear = y.substr(2);
+      let month_key = shortYear + ' ' + MONTH_ABBR[n_m - 1], quarter_key = shortYear + ' ' + 'Q' + quarter;
+      Years.add(y);
+      Quarters.add(quarter_key);
+      Months.add(month_key);
+      let union_id = union_rt_dict.bm[bmid];
+      if (union_id) {
+        first_accumulate(rts_monthly, month_key, count_orders, union_id);
+
+        let is_latest_month = n_y === cur_year && n_m === cur_mon - 1;
+        if (n_m % 3 === 0 || is_latest_month) {
+          first_accumulate(rts_quarterly, quarter_key, count_orders, union_id);
+        }
+        if (n_m === 12 || is_latest_month) {
+          first_accumulate(rts_yearly, y, count_orders, union_id);
+        }
+      }
+    });
+    const second_accumulate = (accumulated, key, count, union_id) => {
+      let tmp = accumulated[key] || {};
+      let tmp_rt = tmp[union_id] || {bm: 0, both: 0, qm: 0};
+      tmp_rt.qm = count;
+      tmp_rt.both += count;
+      tmp[union_id] = tmp_rt;
+      accumulated[key] = tmp;
+    };
+    qm_data.forEach(({qmid, month, count_orders}) => {
+      earliest = Math.min(earliest, new Date(month).valueOf())
+      let [y, m] = month.split('T')[0].split('-'), n_y = Number(y), n_m = Number(m);
+      let quarter = Math.ceil(n_m / 3), shortYear = y.substr(2);
+      let month_key = shortYear + ' ' + MONTH_ABBR[n_m - 1], quarter_key = shortYear + ' ' + 'Q' + quarter;
+      Years.add(y);
+      Quarters.add(quarter_key);
+      Months.add(month_key);
+      let union_id = union_rt_dict.qm[qmid];
+      if (union_id) {
+        second_accumulate(rts_monthly, month_key, count_orders, union_id);
+
+        let is_latest_month = n_y === cur_year && n_m === cur_mon - 1;
+        if (n_m % 3 === 0 || is_latest_month) {
+          second_accumulate(rts_quarterly, quarter_key, count_orders, union_id);
+        }
+        if (n_m === 12 || is_latest_month) {
+          second_accumulate(rts_yearly, y, count_orders, union_id);
+        }
+      }
+    });
+
+    const monthly_data = this.aggregate(rts_monthly, ([ka], [kb]) => sort_month(ka, kb));
+    const quarterly_data = this.aggregate(rts_quarterly, ([ka], [kb]) => sort_quarter(ka, kb));
+    const yearly_data = this.aggregate(rts_yearly, ([ka], [kb]) => sort_year(ka, kb));
+
+    // add created and disabled data;
+    union_rts.forEach(({_id, disabledAt, createdAt}) => {
+      earliest = Math.min(earliest, new Date(createdAt).valueOf());
+      let disabled = getDurationKeys(getYM(disabledAt)), created = getDurationKeys(getYM(createdAt));
+      let union_id = union_rt_dict[_id];
+      if (union_id) {
+         let qm_created_month = monthly_data[created.month].qm;
+         let qm_disabled_month = monthly_data[disabled.month].qm;
+         let qm_created_quarter = quarterly_data[created.quarter].qm;
+         let qm_disabled_quarter = quarterly_data[disabled.quarter].qm;
+         let qm_created_year = yearly_data[created.year].qm;
+         let qm_disabled_year = yearly_data[created.year].qm;
+         console.log(qm_created_month, qm_disabled_month);
+
+        [0, 1, 2, 3].forEach(t => {
+          let tk = tier_key(t);
+          if (qm_created_month[tk].end.has(union_id)) {
+            monthly_data[created.month].qm[tk].created.add(union_id)
+          }
+          if (qm_disabled_month[tk].start.has(union_id)) {
+            monthly_data[disabled.month].qm[tk].canceled.add(union_id)
+          }
+          if (qm_created_quarter[tk].end.has(union_id)) {
+            monthly_data[created.quarter].qm[tk].created.add(union_id)
+          }
+          if (qm_disabled_quarter[tk].start.has(union_id)) {
+            monthly_data[disabled.quarter].qm[tk].canceled.add(union_id)
+          }
+          if (qm_created_year[tk].end.has(union_id)) {
+            monthly_data[created.year].qm[tk].created.add(union_id)
+          }
+          if (qm_disabled_year[tk].start.has(union_id)) {
+            monthly_data[disabled.year].qm[tk].canceled.add(union_id)
+          }
+        })
+      }
+    })
+
+    // complement duration data
+    this.complement(Years, Quarters, Months, earliest);
+    // calculate changes
+    this.stat(monthly_data, quarterly_data, yearly_data);
+  }
 
   static process(accum, uuid, platform, period, count, disabled, created) {
     let tier = Helper.getTier(count);
@@ -315,7 +486,6 @@ export default class ChurnHelper {
         })
       })
     });
-    console.log(this.years, this.yearly)
 
     this.quarterly = {} as ChurnCount;
     this.quarters.forEach((quarter, index) => {
@@ -330,7 +500,6 @@ export default class ChurnHelper {
         })
       })
     });
-    console.log(this.quarters, this.quarterly)
 
     this.monthly = {} as ChurnCount;
     this.months.forEach((month, index) => {
@@ -345,6 +514,5 @@ export default class ChurnHelper {
         })
       })
     });
-    console.log(this.months, this.monthly);
   }
 }

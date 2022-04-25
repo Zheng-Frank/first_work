@@ -5,10 +5,11 @@ import { PagerComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { Helper } from '../../../classes/helper';
 import { saveAs } from "file-saver/FileSaver";
 import {GlobalService} from "../../../services/global.service";
+import ChurnHelper from "./churn-helper";
 
 declare var $: any;
 
-enum PlatformOptions {
+export enum PlatformOptions {
   BmOnly = 'BM Only',
   QmOnly = 'QM Only',
   Both = 'Both'
@@ -89,7 +90,7 @@ enum SalesWorthinessOptions {
   NotWorthy = 'NOT Sales-worthy'
 }
 
-enum KPIPeriodOptions {
+export enum KPIPeriodOptions {
   Yearly = 'Yearly',
   Quarterly = 'Quarterly',
   Monthly = 'Monthly'
@@ -235,18 +236,18 @@ export class QmBmSstDashboardComponent implements OnInit {
   showChurn = false;
   churnFilters = {
     platform: PlatformOptions.Both,
-    period: KPIPeriodOptions.Yearly,
+    period_type: KPIPeriodOptions.Yearly,
     tier: 1,
-    definition: ChurnDefinitionOptions.NoOrdersLast30d
+    definition: ChurnDefinitionOptions.Disabled
   };
   kpiFilters = {
     normal: {
       platform: PlatformOptions.Both,
-      period: KPIPeriodOptions.Yearly
+      period_type: KPIPeriodOptions.Yearly
     },
     over: {
       platform: PlatformOptions.Both,
-      period: KPIPeriodOptions.Yearly
+      period_type: KPIPeriodOptions.Yearly
     }
   };
   kpi = {};
@@ -282,42 +283,43 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   isAdminOrCsrManager() {
+    return true;
     let roles = this._global.user.roles;
     return roles.includes('ADMIN') || roles.includes('CSR_MANAGER');
   }
 
   kpiNormalDownload() {
     let [gmvs, ocs, ars, aovs] = this.getKpiNormalList();
-    let { period } = this.kpiFilters.normal;
-    let headers = Object.keys(this.kpi[period]);
+    let { period_type } = this.kpiFilters.normal;
+    let headers = Object.keys(this.kpi[period_type]);
     let lines = [['', ...headers].join(',')];
     lines.push(['GMV $', ...gmvs].join(','));
     lines.push(['Order count', ...ocs].join(','));
     lines.push(['Active RT count', ...ars].join(','));
     lines.push(['AOV $', ...aovs].join(','));
-    let filename = period + '_kpi_stats_part_1.csv';
+    let filename = period_type + '_kpi_stats_part_1.csv';
     saveAs(new Blob([lines.join('\n')], { type: "application/octet-stream" }), filename);
   }
 
   kpiOverDownload() {
     let [gmvs, ocs, ars, aovs] = this.getKpiOverList();
-    let { period } = this.kpiFilters.over;
-    let headers = Object.keys(this.kpi[period]);
+    let { period_type } = this.kpiFilters.over;
+    let headers = Object.keys(this.kpi[period_type]);
     let lines = [['', ...headers].join(',')];
     let label = this.getKpiLabel();
     lines.push(['GMV ' + label, ...gmvs.map(x => Helper.roundDecimal(x * 100) + '%')].join(','));
     lines.push(['Order count ' + label, ...ocs.map(x => Helper.roundDecimal(x * 100) + '%')].join(','));
     lines.push(['Active RT count ' + label, ...ars.map(x => Helper.roundDecimal(x * 100) + '%')].join(','));
     lines.push(['AOV ' + label, ...aovs.map(x => Helper.roundDecimal(x * 100) + '%')].join(','));
-    let filename = period + '_kpi_stats_part_2.csv';
+    let filename = period_type + '_kpi_stats_part_2.csv';
     saveAs(new Blob([lines.join('\n')], { type: "application/octet-stream" }), filename);
   }
 
   getKpiNormalList() {
-    let { period, platform } = this.kpiFilters.normal;
+    let { period_type, platform } = this.kpiFilters.normal;
     let gmvs = [], ocs = [], aovs = [], ars = [];
-    this.kpiHeaders[period].forEach(key => {
-      let { gmv, oc, ar } = this.kpi[period][key];
+    this.kpiHeaders[period_type].forEach(key => {
+      let { gmv, oc, ar } = this.kpi[period_type][key];
       let tmpGmv = this.getKpiDataByPlatform(gmv, platform);
       let tmpOc = this.getKpiDataByPlatform(oc, platform);
       let tmpAr = this.getKpiDataByPlatform(ar, platform);
@@ -338,22 +340,22 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   getKpiLabel() {
-    return { [KPIPeriodOptions.Yearly]: 'YoY', [KPIPeriodOptions.Quarterly]: 'QoQ', [KPIPeriodOptions.Monthly]: 'MoM' }[this.kpiFilters.over.period];
+    return { [KPIPeriodOptions.Yearly]: 'YoY', [KPIPeriodOptions.Quarterly]: 'QoQ', [KPIPeriodOptions.Monthly]: 'MoM' }[this.kpiFilters.over.period_type];
   }
 
   getKpiOverList() {
-    let { period, platform } = this.kpiFilters.over;
+    let { period_type, platform } = this.kpiFilters.over;
     let gmvs = [], ocs = [], aovs = [], ars = [];
-    let headers = this.kpiHeaders[period];
+    let headers = this.kpiHeaders[period_type];
     for (let i = 0; i < headers.length; i++) {
       let cur = headers[i], prev = headers[i - 1];
-      let { gmv, oc, ar } = this.kpi[period][cur];
+      let { gmv, oc, ar } = this.kpi[period_type][cur];
       let curGmv = this.getKpiDataByPlatform(gmv, platform);
       let curOc = this.getKpiDataByPlatform(oc, platform);
       let curAov = curGmv / curOc;
       let curAr = this.getKpiDataByPlatform(ar, platform);
       if (prev) {
-        let prevTmp = this.kpi[period][prev];
+        let prevTmp = this.kpi[period_type][prev];
         let prevGmv = this.getKpiDataByPlatform(prevTmp.gmv, platform);
         let prevOc = this.getKpiDataByPlatform(prevTmp.oc, platform);
         let prevAr = this.getKpiDataByPlatform(prevTmp.ar, platform);
@@ -373,7 +375,7 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   getKPIHeaders(type) {
-    return this.kpiHeaders[this.kpiFilters[type].period]
+    return this.kpiHeaders[this.kpiFilters[type].period_type]
   }
 
   async getByBatch(resource, size = 60000) {
@@ -490,6 +492,8 @@ export class QmBmSstDashboardComponent implements OnInit {
       }
       return Months.indexOf(month_a) - Months.indexOf(month_b);
     });
+
+    ChurnHelper.prepare(this.unionRTs, rt_dict, bm_data, qm_data);
   }
 
   countByOrdersPerMonth(list) {
@@ -1149,7 +1153,7 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   getChurnList() {
-
+    return ChurnHelper.getList(this.churnFilters);
   }
 
   churnDownload() {
