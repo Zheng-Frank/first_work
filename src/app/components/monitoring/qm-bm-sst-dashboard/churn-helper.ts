@@ -141,7 +141,6 @@ export default class ChurnHelper {
       [PlatformOptions.BmOnly]: 'bm',
       [PlatformOptions.QmOnly]: 'qm'
     }[platform]
-    console.log(data)
     return Object.entries(data).map(([key, value]) => {
       let tmp = value[plat_key][tk];
       return {period: key, ...tmp}
@@ -232,42 +231,42 @@ export default class ChurnHelper {
     const yearly_data = this.aggregate(rts_yearly, ([ka], [kb]) => sort_year(ka, kb));
 
     // add created and disabled data;
-    union_rts.forEach(({_id, disabledAt, createdAt}) => {
-      earliest = Math.min(earliest, new Date(createdAt).valueOf());
-      let disabled = getDurationKeys(getYM(disabledAt)), created = getDurationKeys(getYM(createdAt));
-      let union_id = union_rt_dict[_id];
-      if (union_id) {
-         let qm_created_month = monthly_data[created.month].qm;
-         let qm_disabled_month = monthly_data[disabled.month].qm;
-         let qm_created_quarter = quarterly_data[created.quarter].qm;
-         let qm_disabled_quarter = quarterly_data[disabled.quarter].qm;
-         let qm_created_year = yearly_data[created.year].qm;
-         let qm_disabled_year = yearly_data[created.year].qm;
-         console.log(qm_created_month, qm_disabled_month);
-
-        [0, 1, 2, 3].forEach(t => {
-          let tk = tier_key(t);
-          if (qm_created_month[tk].end.has(union_id)) {
-            monthly_data[created.month].qm[tk].created.add(union_id)
-          }
-          if (qm_disabled_month[tk].start.has(union_id)) {
-            monthly_data[disabled.month].qm[tk].canceled.add(union_id)
-          }
-          if (qm_created_quarter[tk].end.has(union_id)) {
-            monthly_data[created.quarter].qm[tk].created.add(union_id)
-          }
-          if (qm_disabled_quarter[tk].start.has(union_id)) {
-            monthly_data[disabled.quarter].qm[tk].canceled.add(union_id)
-          }
-          if (qm_created_year[tk].end.has(union_id)) {
-            monthly_data[created.year].qm[tk].created.add(union_id)
-          }
-          if (qm_disabled_year[tk].start.has(union_id)) {
-            monthly_data[disabled.year].qm[tk].canceled.add(union_id)
-          }
-        })
-      }
-    })
+    // union_rts.forEach(({_id, disabledAt, createdAt}) => {
+    //   earliest = Math.min(earliest, new Date(createdAt).valueOf());
+    //   let disabled = getDurationKeys(getYM(disabledAt)), created = getDurationKeys(getYM(createdAt));
+    //   let union_id = union_rt_dict.qm[_id];
+    //   if (union_id) {
+    //     // need to check if this period data exists (since order data mostly from later than createdAt)
+    //      let qm_created_month = monthly_data[created.month].qm;
+    //      let qm_disabled_month = monthly_data[disabled.month].qm;
+    //      let qm_created_quarter = quarterly_data[created.quarter].qm;
+    //      let qm_disabled_quarter = quarterly_data[disabled.quarter].qm;
+    //      let qm_created_year = yearly_data[created.year].qm;
+    //      let qm_disabled_year = yearly_data[created.year].qm;
+    //
+    //     [0, 1, 2, 3].forEach(t => {
+    //       let tk = tier_key(t);
+    //       if (qm_created_month[tk].end.has(union_id)) {
+    //         monthly_data[created.month].qm[tk].created.add(union_id)
+    //       }
+    //       if (qm_disabled_month[tk].start.has(union_id)) {
+    //         monthly_data[disabled.month].qm[tk].canceled.add(union_id)
+    //       }
+    //       if (qm_created_quarter[tk].end.has(union_id)) {
+    //         monthly_data[created.quarter].qm[tk].created.add(union_id)
+    //       }
+    //       if (qm_disabled_quarter[tk].start.has(union_id)) {
+    //         monthly_data[disabled.quarter].qm[tk].canceled.add(union_id)
+    //       }
+    //       if (qm_created_year[tk].end.has(union_id)) {
+    //         monthly_data[created.year].qm[tk].created.add(union_id)
+    //       }
+    //       if (qm_disabled_year[tk].start.has(union_id)) {
+    //         monthly_data[disabled.year].qm[tk].canceled.add(union_id)
+    //       }
+    //     })
+    //   }
+    // })
 
     // complement duration data
     this.complement(Years, Quarters, Months, earliest);
