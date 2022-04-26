@@ -160,11 +160,15 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     let rows = [];
     // first we merge data from unified and qm, filter RTs currently tier 2 or 3 but potentially tier 1
     rts.forEach(({ bm_id, qm_id, rt_name, ...rest }) => {
+      // filter qm rts
+      if (qm_id && !qmRTsDict[qm_id]) {
+        return;
+      }
       let ordersPerMonth = last6Months.reduce((a, c) => a + (rest[`OC${c}`] || 0), 0) / 6;
       let tier = Helper.getTier(ordersPerMonth);
       if (tier <= 1) {
-        if (qm_id) {
-          if (!qmRTsDict[qm_id] || !(qmRTsDict[qm_id].logs || []).some(log => log.type === WIN_BACK_CAMPAIGN_LOG_TYPE)) {
+        if(qm_id) {
+          if((qmRTsDict[qm_id] && !(qmRTsDict[qm_id].logs || []).some(log => log.type === WIN_BACK_CAMPAIGN_LOG_TYPE))){
             return;
           }
         } else {
@@ -246,6 +250,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
         }
       ],
     }).toPromise();
+    
     const dict = {};
     rts.forEach(rt => dict[rt._id] = rt);
     return dict;
@@ -323,6 +328,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     }
 
     this.list = list;
+    
   }
 
   async addLog(item) {
