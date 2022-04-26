@@ -53,7 +53,7 @@ export class ChangeRtAliasComponent implements OnInit {
     }
   }
 
-  updateRestaurantAlias() {
+  async updateRestaurantAlias() {
     if (this.restaurants.some(rt => rt.alias === this.restaurant.alias)) {
       return this._global.publishAlert(AlertType.Danger, 'Another restaurant with this alias already exists! Please try a different alias.');
     }
@@ -64,7 +64,7 @@ export class ChangeRtAliasComponent implements OnInit {
 
     const newRestaurant = { _id: this.restaurant._id, alias: this.restaurant.alias };
 
-    this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant',
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant',
       [{
         old: { _id: this.restaurant._id },
         new: newRestaurant
@@ -80,7 +80,7 @@ export class ChangeRtAliasComponent implements OnInit {
           this._global.publishAlert(AlertType.Danger, 'Error while updating alias!');
         }
       );
-      this.republishToAWS();
+    await this.republishToAWS();
   }
 
   async republishToAWS() {
