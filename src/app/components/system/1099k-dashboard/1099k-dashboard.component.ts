@@ -429,7 +429,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     const lines = [], errors = [];
     const purify = str => str.replace(/\s+/g, ' ').trim();
     this.filteredRows.forEach(({form1099k, rtTIN, payeeName, id}) => {
-      form1099k.filter(x => x.required && !x.refuseForm && x.year === Number(this.taxYear))
+      form1099k.filter(x => x.year === Number(this.taxYear))
         .forEach(form => {
           let tin = form.periodTin || rtTIN,
             payee = form.periodPayeeName || payeeName;
@@ -441,6 +441,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
         });
     });
     if (errors.length > 0) {
+      console.log('missing...', errors);
       if (confirm('Some restaurants are missing payee and/or TIN. Do you want to proceed with download anyway?')) {
         download("TIN_Matching", this.taxYear, lines.join('\n'))
       }
