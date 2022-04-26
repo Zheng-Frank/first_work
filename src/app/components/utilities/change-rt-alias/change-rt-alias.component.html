@@ -1,34 +1,78 @@
-<div class="row d-flex align-items-center mb-3">
-  <div class="col-md-3">
-    <strong>Enter Restaurant Id</strong>
-  </div>
-  <div class="col md-9">
-    <input type="text" class="form-control" placeholder="Previous Restaurant's Id" [(ngModel)]="restaurantId" />
+<div class="card">
+  <h2 class="card-title m-3">
+    <h1 class="text-center">Change Restaurant Alias Tool</h1>
+  </h2>
+  <div class="card-body">
+    <!-- start with alert -->
+    <div class="row d-flex align-items-center mb-3">
+      <button class="btn btn-link"
+        (click)="showEnglishWarning = !showEnglishWarning">{{showEnglishWarning ? '显示中文' : 'Show English'}}</button>
+    </div>
+    <div class="row d-flex align-items-center mb-3 alert alert-danger" style="border-radius:2px;">
+      <div class="col-1 text-center">
+        <i class="fas fa-exclamation-triangle tip-icon"></i>
+      </div>
+      <div class="col-11">
+        <ng-container *ngIf="showEnglishWarning;else tipBlock;">
+          <strong>
+            YOU MUST READ THIS FIRST! <br>
+            Step 1. Changing a restaurant's alias is a potentially COSTLY action, as it can affect the ranking of our
+            website for that restaurant on Google. Decide if it’s really worth it FIRST! It's ok to change the alias for
+            a new restaurant that doesn't have any orders yet, but if it’s a restaurant that has a longer history in our
+            system, try to persuade the restaurant NOT to make us change the alias. If they insist, proceed to the next
+            step. <br>
+            Step 2. Change the alias <br>
+            Step 3. If any of the qMenu URLs currently listed on the restaurant's GMB are the restaurant alias itself
+            (rather than a custom domain), those will need to be changed as well. Ask an authorized GMB agent to change
+            the alias on the GMB for you.
+          </strong>
+        </ng-container>
+        <ng-template #tipBlock>
+          <strong>
+            请先阅读以下信息! <br>
+            1. 更改餐厅的别名可能是一项花费很大的行动，因为它会影响我们网站在 Google 上对该餐厅的排名。 首先确定它是否真的值得做！
+            为还没有任何订单的新餐厅更改别名没问题，但如果它是和我们合作了很长时间的餐馆，请尽量说服该餐厅不要让我们更改别名， 如果他们仍执意更改的话请参照以下步骤
+            <br>
+            2. 更改别名
+            <br>
+            3. 如果餐厅 GMB 上当前列出的任何 qMenu URL 是餐厅别名本身（而不是自定义域），则也需要更改这些 URL。 请转给 GMB 小组为您更改 GMB 上的别名。
+          </strong>
+        </ng-template>
+      </div>
+    </div>
+    <!-- end with alert -->
+    <div class="row d-flex align-items-center mb-3">
+      <div class="col-md-2 text-center">
+        <strong>Enter Restaurant Id</strong>
+      </div>
+      <div class="col-md-4">
+        <input type="text" class="form-control" placeholder="Previous Restaurant's Id" [(ngModel)]="restaurantId" />
+      </div>
+      <div class="col-md-2">
+        <button (click)="findRestaurantById()" class="btn btn-primary btn-block">Find</button>
+      </div>
+    </div>
+
+    <ng-container *ngIf="restaurant">
+      <div class="row d-flex align-items-center mb-2 ml-5">
+        <span>
+          Restaurant {{restaurant.name}} found. Existing alias: {{restaurant.alias}}
+        </span>
+      </div>
+      <div class="row d-flex align-items-center mb-2">
+        <div class="col-md-2 text-center">
+          <strong>New Alias</strong>
+          <i class="fa fa-info-circle ml-1" data-toggle="tooltip" data-placement="top"
+            title="Alias should be in the format new-alias-here (with hyphens between each word, all lower-case.)"></i>
+        </div>
+        <div class="col-md-4">
+          <input type="text" class="form-control" placeholder="New restaurant's alias" [(ngModel)]="restaurant.alias" />
+        </div>
+        <div class="col-md-2">
+          <button (click)="updateRestaurantAlias()" [disabled]="!restaurant.alias"
+            class="btn btn-primary btn-block">Submit</button>
+        </div>
+      </div>
+    </ng-container>
   </div>
 </div>
-
-<div class="row d-flex align-items-center mb-2">
-  <button (click)="findRestaurantById()" class="btn btn-primary btn-block">Find</button>
-</div>
-
-<ng-container *ngIf="restaurant">
-  <div class="row d-flex align-items-center mb-2">
-    <span>
-      Restaurant {{restaurant.name}} found. Existing alias: {{restaurant.alias}}
-    </span>
-  </div>
-  <div class="row d-flex align-items-center mb-2">
-    <div class="col-md-3">
-      <strong>New Alias</strong>
-      <i class="fa fa-info-circle ml-1" data-toggle="tooltip" data-placement="top"
-        title="Alias should be in the format new-alias-here (with hyphens between each word, all lower-case.)"></i>
-    </div>
-    <div class="col md-9">
-      <input type="text" class="form-control" placeholder="New restaurant's alias" [(ngModel)]="restaurant.alias" />
-    </div>
-  </div>
-
-  <div class="row d-flex align-items-center mb-1">
-    <button (click)="updateRestaurantAlias()" [disabled]="!restaurant.alias" class="btn btn-primary btn-block">Submit</button>
-  </div>
-</ng-container>
