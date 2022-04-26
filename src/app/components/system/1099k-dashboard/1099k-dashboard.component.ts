@@ -437,7 +437,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
             errors.push(id);
             return;
           }
-          lines.push(`3;${purify(tin.replace(/[-\s]/g, ''))};${purify(payee)};${id}`);
+          lines.push(`3;${purify(tin.replace(/[-\s]/g, ''))};${purify(payee)};${id.substr(0, 6)}`);
         });
     });
     if (errors.length > 0) {
