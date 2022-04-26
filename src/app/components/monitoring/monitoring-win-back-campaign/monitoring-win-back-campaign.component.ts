@@ -31,7 +31,6 @@ enum CurrentTierOptions {
 }
 
 enum OPMSortOptions {
-  All = 'OPM Sort By?',
   GMB_Sort = 'GMB Sort',
   Hist_Sort = 'Hist Sort'
 }
@@ -212,10 +211,10 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
         end.splice(4, 0, '-');
         let avg = s.reduce((a, c) => a + c.value, 0) / s.length;
         return { avg, start: start.join(''), end: end.join('') };
-      });
+      }).reverse();
 
       item.histories = this.pageHistories(flatten);
-      item.histories.sort((a, b) => new Date(b.end).valueOf() - new Date(a.end).valueOf());
+      item.lastestHistAvg = (flatten[0] || {} as any).avg || 0;
       rows.push(item);
     });
 
@@ -303,7 +302,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
         list = list.filter(x => x.tier === 2 || x.tier === 3);
         break;
       case CurrentTierOptions.Inactive_Last_30d:
-        list = list.filter(x => x.activity.ordersInLast30Days === 0);
+        list = list.filter(x => (x.activity || {}).ordersInLast30Days === 0);
         break;
     }
 
@@ -315,10 +314,10 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
 
     switch (OPMSort) {
       case OPMSortOptions.GMB_Sort:
-        list.sort((a, b) => (b.gmbPositive || {}).score - (a.gmbPositive || {}).score);
+        list.sort((a, b) => ((b.gmbPositive || {}).score || 0) - ((a.gmbPositive || {}).score || 0));
         break;
       case OPMSortOptions.Hist_Sort:
-        list.sort((a, b) => (b.histories[0] || {}).avg - (a.histories[0] || {}).avg);
+        list.sort((a, b) => b.lastestHistAvg - a.lastestHistAvg);
         break;
     }
 
