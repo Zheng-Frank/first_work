@@ -21,7 +21,7 @@
             a new restaurant that doesn't have any orders yet, but if it’s a restaurant that has a longer history in our
             system, try to persuade the restaurant NOT to make us change the alias. If they insist, proceed to the next
             step. <br>
-            Step 2. Change the alias  <br>
+            Step 2. Change the alias <br>
             Step 3. If any of the qMenu URLs currently listed on the restaurant's GMB are the restaurant alias itself
             (rather than a custom domain), those will need to be changed as well. Ask an authorized GMB agent to change
             the alias on the GMB for you.
@@ -42,38 +42,36 @@
     </div>
     <!-- end with alert -->
     <div class="row d-flex align-items-center mb-3">
-      <div class="col-md-3">
+      <div class="col-md-2 text-center">
         <strong>Enter Restaurant Id</strong>
       </div>
-      <div class="col md-9">
+      <div class="col-md-4">
         <input type="text" class="form-control" placeholder="Previous Restaurant's Id" [(ngModel)]="restaurantId" />
       </div>
-    </div>
-
-    <div class="row d-flex align-items-center mb-2">
-      <button (click)="findRestaurantById()" class="btn btn-primary btn-block">Find</button>
+      <div class="col-md-2">
+        <button (click)="findRestaurantById()" class="btn btn-primary btn-block">Find</button>
+      </div>
     </div>
 
     <ng-container *ngIf="restaurant">
-      <div class="row d-flex align-items-center mb-2">
+      <div class="row d-flex align-items-center mb-2 ml-5">
         <span>
           Restaurant {{restaurant.name}} found. Existing alias: {{restaurant.alias}}
         </span>
       </div>
       <div class="row d-flex align-items-center mb-2">
-        <div class="col-md-3">
+        <div class="col-md-2 text-center">
           <strong>New Alias</strong>
           <i class="fa fa-info-circle ml-1" data-toggle="tooltip" data-placement="top"
             title="Alias should be in the format new-alias-here (with hyphens between each word, all lower-case.)"></i>
         </div>
-        <div class="col md-9">
+        <div class="col-md-4">
           <input type="text" class="form-control" placeholder="New restaurant's alias" [(ngModel)]="restaurant.alias" />
         </div>
-      </div>
-
-      <div class="row d-flex align-items-center mb-1">
-        <button (click)="updateRestaurantAlias()" [disabled]="!restaurant.alias"
-          class="btn btn-primary btn-block">Submit</button>
+        <div class="col-md-2">
+          <button (click)="updateRestaurantAlias()" [disabled]="!restaurant.alias"
+            class="btn btn-primary btn-block">Submit</button>
+        </div>
       </div>
     </ng-container>
   </div>
