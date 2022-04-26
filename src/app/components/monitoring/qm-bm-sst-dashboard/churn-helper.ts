@@ -153,10 +153,13 @@ export default class ChurnHelper {
     let prev = defaultChurnValue();
     Object.entries(origin).sort(sorter).forEach(([period, rts]) => {
       let tmp = result[period] || defaultChurnValue();
-      Object.entries(rts).forEach(([rt_id, counts]) => {
+      Object.entries(rts).forEach(([union_id, counts]) => {
         ['qm', 'bm', 'both'].forEach(plat => {
           let tk = tier_key(Helper.getTier(counts[plat]));
-          tmp[plat][tk].end.add(rt_id);
+          tmp[plat][tk].end.add(union_id);
+          if (!counts[plat]) {
+            tmp[plat][tk].inactive.add(union_id)
+          }
         });
       });
       result[period] = tmp;
@@ -166,6 +169,9 @@ export default class ChurnHelper {
   }
 
   static prepare(union_rts, union_rt_dict, bm_data, qm_data) {
+    console.log('created at...', union_rts.filter(x => !!x.createdAt))
+    console.log('disabled at...', union_rts.filter(x => !!x.disabledAt));
+
     const rts_monthly = {}, rts_quarterly = {}, rts_yearly = {};
     const cur_mon = new Date().getMonth() + 1, cur_year = new Date().getFullYear();
     const first_accumulate = (accumulated, key, count, union_id) => {
@@ -229,49 +235,140 @@ export default class ChurnHelper {
     const monthly_data = this.aggregate(rts_monthly, ([ka], [kb]) => sort_month(ka, kb));
     const quarterly_data = this.aggregate(rts_quarterly, ([ka], [kb]) => sort_quarter(ka, kb));
     const yearly_data = this.aggregate(rts_yearly, ([ka], [kb]) => sort_year(ka, kb));
-
-    // add created and disabled data;
-    // union_rts.forEach(({_id, disabledAt, createdAt}) => {
-    //   earliest = Math.min(earliest, new Date(createdAt).valueOf());
-    //   let disabled = getDurationKeys(getYM(disabledAt)), created = getDurationKeys(getYM(createdAt));
-    //   let union_id = union_rt_dict.qm[_id];
-    //   if (union_id) {
-    //     // need to check if this period data exists (since order data mostly from later than createdAt)
-    //      let qm_created_month = monthly_data[created.month].qm;
-    //      let qm_disabled_month = monthly_data[disabled.month].qm;
-    //      let qm_created_quarter = quarterly_data[created.quarter].qm;
-    //      let qm_disabled_quarter = quarterly_data[disabled.quarter].qm;
-    //      let qm_created_year = yearly_data[created.year].qm;
-    //      let qm_disabled_year = yearly_data[created.year].qm;
-    //
-    //     [0, 1, 2, 3].forEach(t => {
-    //       let tk = tier_key(t);
-    //       if (qm_created_month[tk].end.has(union_id)) {
-    //         monthly_data[created.month].qm[tk].created.add(union_id)
-    //       }
-    //       if (qm_disabled_month[tk].start.has(union_id)) {
-    //         monthly_data[disabled.month].qm[tk].canceled.add(union_id)
-    //       }
-    //       if (qm_created_quarter[tk].end.has(union_id)) {
-    //         monthly_data[created.quarter].qm[tk].created.add(union_id)
-    //       }
-    //       if (qm_disabled_quarter[tk].start.has(union_id)) {
-    //         monthly_data[disabled.quarter].qm[tk].canceled.add(union_id)
-    //       }
-    //       if (qm_created_year[tk].end.has(union_id)) {
-    //         monthly_data[created.year].qm[tk].created.add(union_id)
-    //       }
-    //       if (qm_disabled_year[tk].start.has(union_id)) {
-    //         monthly_data[disabled.year].qm[tk].canceled.add(union_id)
-    //       }
-    //     })
-    //   }
-    // })
-
+    this.created_disabled(union_rts, earliest, union_rt_dict, monthly_data, quarterly_data, yearly_data);
     // complement duration data
     this.complement(Years, Quarters, Months, earliest);
     // calculate changes
     this.stat(monthly_data, quarterly_data, yearly_data);
+  }
+
+  static created_disabled(union_rts, earliest, union_rt_dict, monthly_data, quarterly_data, yearly_data) {
+
+    const place_created = (union_id, create_dates) => {
+      create_dates.forEach(({platform, date}) => {
+        let { month, quarter, year } = getDurationKeys(getYM(date));
+        let tmp_month = monthly_data[month] || defaultChurnValue();
+        let tmp_quarter = quarterly_data[quarter] || defaultChurnValue();
+        let tmp_year = yearly_data[year] || defaultChurnValue();
+
+        [0, 1, 2, 3].forEach(t => {
+          let tk = tier_key(t);
+
+          if (tmp_month[platform][tk].end.has(union_id)) {
+            tmp_month[platform][tk].created.add(union_id);
+            monthly_data[month] = tmp_month;
+          }
+          if (tmp_quarter[platform][tk].end.has(union_id)) {
+            tmp_quarter[platform][tk].created.add(union_id);
+            quarterly_data[quarter] = tmp_quarter;
+          }
+          if (tmp_year[platform][tk].end.has(union_id)) {
+            tmp_year[platform][tk].created.add(union_id);
+            yearly_data[year] = tmp_year;
+          }
+        })
+      })
+    }
+
+    const get_prev_month = month => {
+      let [y, mo] = month.split(' ');
+      y = Number(y);
+      let m = Number(MONTH_ABBR.indexOf(mo));
+      m--;
+      if (m < 0) {
+        y--;
+        m = 11
+      }
+      return `${y} ${MONTH_ABBR[m]}`;
+    }
+    const get_prev_quarter = quarter => {
+      let [y, q] = quarter.split(' ');
+      y = Number(y);
+      q = Number(q.substr(1));
+      q--;
+      if (q === 0) {
+        y--;
+        q = 4;
+      }
+      return `${y} Q${q}`;
+    }
+
+    const get_prev_year = year => `${Number(year) - 1}`;
+
+    const place_disabled = (union_id, disabled_dates) => {
+      disabled_dates.forEach(({platform, date}) => {
+        let { month, quarter, year } = getDurationKeys(getYM(date));
+        let cur_month = monthly_data[month] || defaultChurnValue();
+        let cur_quarter = quarterly_data[quarter] || defaultChurnValue();
+        let cur_year = yearly_data[year] || defaultChurnValue();
+
+        let prev_month = monthly_data[get_prev_month(month)] || defaultChurnValue(),
+          prev_quarter = quarterly_data[get_prev_quarter(quarter)] || defaultChurnValue(),
+          prev_year = yearly_data[get_prev_year(year)] || defaultChurnValue();
+
+        [0, 1, 2, 3].forEach(t => {
+          let tk = tier_key(t);
+
+          // canceled should count on start tier (prev month's end tier)
+          if (prev_month[platform][tk].end.has(union_id)) {
+            cur_month[platform][tk].canceled.add(union_id);
+          }
+          cur_month[platform][tk].end.delete(union_id)
+          monthly_data[month] = cur_month;
+
+          if (prev_quarter[platform][tk].end.has(union_id)) {
+            cur_quarter[platform][tk].canceled.add(union_id);
+          }
+          cur_quarter[platform][tk].end.delete(union_id);
+          quarterly_data[quarter] = cur_quarter;
+
+
+          if (prev_year[platform][tk].end.has(union_id)) {
+            cur_year[platform][tk].canceled.add(union_id);
+          }
+          cur_year[platform][tk].end.delete(union_id);
+          yearly_data[year] = cur_year;
+
+        })
+      })
+    }
+
+    // add created and disabled data;
+    union_rts.forEach(({_id, disabledAt, createdAt, bdisabledAt, bcreatedAt}) => {
+      let last_disabled_at = -Infinity, first_created_at = Infinity;
+      const created_dates = [], disabled_dates = [];
+      if (createdAt) {
+        // earliest = Math.min(earliest, new Date(createdAt).valueOf());
+        created_dates.push({platform: 'qm', date: createdAt});
+        first_created_at = new Date(createdAt).valueOf();
+      }
+      if (disabledAt) {
+        disabled_dates.push({platform: 'qm', date: disabledAt});
+        last_disabled_at = new Date(disabledAt).valueOf();
+      }
+      if (bcreatedAt) {
+        // earliest = Math.min(earliest, new Date(bcreatedAt).valueOf());
+        created_dates.push({platform: 'bm', date: bcreatedAt});
+        first_created_at = Math.min(first_created_at, new Date(bcreatedAt).valueOf());
+      }
+      if (bdisabledAt) {
+        disabled_dates.push({platform: 'bm', date: bdisabledAt});
+        last_disabled_at = Math.max(last_disabled_at, new Date(bdisabledAt).valueOf());
+      }
+      if (first_created_at !== Infinity) {
+        created_dates.push({platform: 'both', date: first_created_at});
+      }
+      if (last_disabled_at !== -Infinity) {
+        disabled_dates.push({platform: 'both', date: last_disabled_at});
+      }
+
+      let union_id = union_rt_dict.qm[_id];
+      if (union_id) {
+        // need to check if this period data exists (since order data mostly from later than createdAt)
+        place_created(union_id, created_dates);
+        place_disabled(union_id, disabled_dates);
+      }
+    });
   }
 
   static process(accum, uuid, platform, period, count, disabled, created) {
