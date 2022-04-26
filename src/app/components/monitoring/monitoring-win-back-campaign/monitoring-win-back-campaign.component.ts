@@ -86,6 +86,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
   loggingRT: any = {};
   logInEditing: Log = new Log({ type: WIN_BACK_CAMPAIGN_LOG_TYPE, time: new Date() });
   now = new Date();
+  pagination = true;
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {

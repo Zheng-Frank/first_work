@@ -43,6 +43,14 @@
       <div class="col-auto">
         <button class="btn btn-primary" (click)="filter()">Search</button>
       </div>
+      <!-- start with pagnation -->
+      <div class="col-auto">
+        <input type="checkbox" class="mt-2" [(ngModel)]="pagination">
+        <label class="mr-3 ml-1 mt-2">
+          Pagination
+        </label>
+      </div>
+      <!-- end with pagnation -->
     </div>
 
     <q-table [rows]="list" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
