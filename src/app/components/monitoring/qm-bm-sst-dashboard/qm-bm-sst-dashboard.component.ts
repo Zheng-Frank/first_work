@@ -406,6 +406,7 @@ export class QmBmSstDashboardComponent implements OnInit {
       limit: 10000000
     }).toPromise();
 
+    console.log('unified...', unified);
     const bm_data = await this.getByBatch('bm-monthly-summary');
 
     const qm_data = await this.getByBatch('qm-monthly-summary', 50000);
@@ -654,6 +655,9 @@ export class QmBmSstDashboardComponent implements OnInit {
         i++;
       }
       this.qmRTs.forEach(rt => {
+        if (rt._id === '5e4dff062ec19e92fd076de3') {
+          console.log(rt)
+        }
         if (rt.place_id) {
           this.qmRTsPlaceDict[rt.place_id] = rt;
         }
@@ -680,8 +684,14 @@ export class QmBmSstDashboardComponent implements OnInit {
           }
         }
       });
+      console.log('qm...', this.qmRTs);
       // --- BeyondMenu restaurants
-      let bmRTs = await this._api.post(environment.gmbNgrok + 'get-bm-restaurant').toPromise();
+      let bmRTs = [];
+      try {
+        bmRTs = await this._api.post(environment.gmbNgrok + 'get-bm-restaurant').toPromise();
+      } catch (e) {
+        console.error(e);
+      }
       this.bmRTsPlaceDict = {};
       this.bmRTs = bmRTs.map(item => {
         // --- phone and cellphone
@@ -732,7 +742,7 @@ export class QmBmSstDashboardComponent implements OnInit {
         }
         return data;
       });
-      console.log(bmRTs);
+      console.log('bm...', bmRTs);
       // 1. Match by google place_id (already the case)
       // 2. followed by main phone number to the extent the first type of matching didn't produce a match.
       let bmOnly = this.bmRTs.filter(({ bplace_id, bmainPhone }) => (!bplace_id || !this.qmRTsPlaceDict[bplace_id]) && (!bmainPhone || !this.qmRTsPhoneDict[bmainPhone]));
