@@ -11,43 +11,55 @@
         </select>
       </div>
       <div class="col-auto">
-        <select [(ngModel)]="filters.platform" class="custom-select" >
+        <select [(ngModel)]="filters.platform" class="custom-select">
           <option [value]="''">Platform?</option>
           <option *ngFor="let option of dropdowns('platform')" [value]="option">{{option}}</option>
         </select>
       </div>
       <div class="col-auto">
-        <select [(ngModel)]="filters.hasLogs" class="custom-select" >
+        <select [(ngModel)]="filters.hasLogs" class="custom-select">
           <option [value]="''">Has logs?</option>
           <option *ngFor="let option of dropdowns('has_logs')" [value]="option">{{option}}</option>
         </select>
       </div>
       <div class="col-auto">
-        <select [(ngModel)]="filters.currentTier" class="custom-select" >
+        <select [(ngModel)]="filters.currentTier" class="custom-select">
           <option [value]="''">Current Tier?</option>
           <option *ngFor="let option of dropdowns('current_tier')" [value]="option">{{option}}</option>
         </select>
       </div>
+      <!-- start with sort -->
       <div class="col-auto">
-        <input type="text" style="width: 240px" class="form-control" [(ngModel)]="filters.keyword" placeholder="Search by name or QM/BM ID">
+        <select [(ngModel)]="filters.OPMSort" class="custom-select">
+          <option [value]="''">OPM Sort By?</option>
+          <option *ngFor="let option of dropdowns('opm_sort')" [value]="option">{{option}}</option>
+        </select>
+      </div>
+      <!-- end with sort -->
+      <div class="col-auto">
+        <input type="text" style="width: 240px" class="form-control" [(ngModel)]="filters.keyword"
+          placeholder="Search by name or QM/BM ID">
       </div>
       <div class="col-auto">
         <button class="btn btn-primary" (click)="filter()">Search</button>
       </div>
+      <!-- start with pagnation -->
+      <div class="col-auto">
+        <input type="checkbox" class="mt-2" [(ngModel)]="pagination">
+        <label class="mr-3 ml-1 mt-2">
+          Pagination
+        </label>
+      </div>
+      <!-- end with pagnation -->
     </div>
 
-    <table class="table table-sm">
-      <thead>
-      <tr>
-        <th>Restaurant</th>
-        <th>Tier 1 Potential</th>
-        <th>Current Tier (OPM)</th>
-        <th>Logs</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr *ngFor="let item of list">
+    <q-table [rows]="list" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
+      [pageSize]="pagination ? 100 : 100000">
+      <tr *tableRowTemplate="let item;">
         <td>
+          {{list.indexOf(item) + 1}}
+        </td>
+        <td style="width: 10%;">
           <div>{{item.name}}</div>
           <div *ngIf="item.qm_id">
             QM ID: <a class="my-text-small btn-link" target="_blank" [routerLink]="'/restaurants/' + item.qm_id">
@@ -57,10 +69,21 @@
           <div *ngIf="item.bm_id">BM ID: {{item.bm_id}}</div>
         </td>
         <td>
+          <div *ngIf="item.qm_id">
+            {{ item.score | number : '1.0-0' }}
+          </div>
+        </td>
+        <td>
+          <div *ngIf="item.qm_id">
+            {{getTimezoneCity(item.timezone)}} ({{getTimeOffsetByTimezone(item.timezone)}})
+          </div>
+        </td>
+        <td>
           <div class="d-flex align-items-center mb-2" *ngIf="item.gmbPositive">
             <strong class="mr-1">GMB:</strong>
             <span class="gray-block">
-              <strong class="text-success mr-1">{{item.gmbPositive.score}}</strong> OPM ({{item.gmbPositive.orders}} over {{item.gmbPositive.days}} "GMB days")
+              <strong class="text-success mr-1">{{item.gmbPositive.score}}</strong> OPM ({{item.gmbPositive.orders}}
+              over {{item.gmbPositive.days}} "GMB days")
             </span>
           </div>
           <div class="d-flex align-items-start" *ngIf="item.histories.length > 0">
@@ -68,7 +91,8 @@
             <div class="histories">
               <div class="mb-1" *ngFor="let line of item.histories">
                 <span class="history-item gray-block mr-2 text-unwrap" *ngFor="let hist of line">
-                  <strong class="text-success mr-1">{{hist.avg | number: '1.0-1'}}</strong> OPM ({{hist.start}} ~ {{hist.end}})
+                  <strong class="text-success mr-1">{{hist.avg | number: '1.0-1'}}</strong> OPM ({{hist.start}} ~
+                  {{hist.end}})
                 </span>
               </div>
             </div>
@@ -99,8 +123,7 @@
           </ng-container>
         </td>
       </tr>
-      </tbody>
-    </table>
+    </q-table>
   </div>
 
   <q-modal #logEditingModal>

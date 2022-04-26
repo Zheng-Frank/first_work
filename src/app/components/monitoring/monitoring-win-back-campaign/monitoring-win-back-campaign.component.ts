@@ -4,7 +4,8 @@ import { Log } from '../../../classes/log';
 import { ApiService } from 'src/app/services/api.service';
 import { environment } from '../../../../environments/environment';
 import { Component, OnInit, ViewChild } from '@angular/core';
-import {Helper} from "../../../classes/helper";
+import { Helper } from "../../../classes/helper";
+import { TimezoneHelper } from '@qmenu/ui';
 
 enum Tier1PotentialTypeOptions {
   GMB_Based = 'GMB-based',
@@ -22,9 +23,18 @@ enum HasLogsOptions {
 }
 
 enum CurrentTierOptions {
+  Tier1 = 'Tier 1',
   Tier2 = 'Tier 2',
-  Tier3 = 'Tier 3'
+  Tier3 = 'Tier 3',
+  Non_Tier1 = 'Non-tier 1',
+  Inactive_Last_30d = 'Inactive last 30d'
 }
+
+enum OPMSortOptions {
+  GMB_Sort = 'GMB Sort',
+  Hist_Sort = 'Hist Sort'
+}
+
 
 const WIN_BACK_CAMPAIGN_LOG_TYPE = 'winback-campaign'
 
@@ -37,7 +47,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
   @ViewChild('logEditingModal') logEditingModal;
   restaurantsColumnDescriptors = [
     {
-      label: 'Number'
+      label: '#'
     },
     {
       label: "Restaurant",
@@ -45,12 +55,19 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       sort: (a, b) => (a || '') > (b || '') ? 1 : ((a || '') < (b || '') ? -1 : 0)
     },
     {
-      label: "Tier 1 Potential (orders across GMB duration)"
+      label: 'Score',
+      sort: (a, b) => (a.score || 0) - (b.score || 0)
     },
     {
-      label: 'Current Tier (orders/mo)',
-      paths: ['tier'],
-      sort: (a, b) => a - b
+      label: 'Timezone (EST +/-)',
+      paths: ['timezone'],
+      sort: (a, b) => Number(this.getTimeOffsetByTimezone(a)) - Number(this.getTimeOffsetByTimezone(b))
+    },
+    {
+      label: "Tier 1 Potential"
+    },
+    {
+      label: 'Current Tier (OPM)',
     },
     {
       label: "Logs",
@@ -61,16 +78,36 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     potentialType: '',
     platform: '',
     hasLogs: '',
-    currentTier: ''
+    currentTier: '',
+    OPMSort: ''
   };
   rows = [];
   list = [];
   loggingRT: any = {};
   logInEditing: Log = new Log({ type: WIN_BACK_CAMPAIGN_LOG_TYPE, time: new Date() });
+  now = new Date();
+  pagination = true;
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
     await this.populate();
+  }
+
+  // our salesperson only wants to know what is the time offset
+  // between EST and the location of restaurant
+  getTimeOffsetByTimezone(timezone) {
+    if (timezone) {
+      let localTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), timezone);
+      let ESTTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), 'America/New_York');
+      let offset = (ESTTime.valueOf() - localTime.valueOf()) / (3600 * 1000);
+      return offset > 0 ? "+" + offset.toFixed(0) : offset.toFixed(0);
+    } else {
+      return 'N/A';
+    }
+  }
+
+  getTimezoneCity(timezone) {
+    return (timezone || '').split('/')[1] || '';
   }
 
   getMonths() {
@@ -93,7 +130,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       const temp = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
         method: 'get', resource: 'unified_koreanbbqv2',
         query: { _id: { $exists: true } }, // any items
-        payload: {_id: 0, bm_id: 1, rt_name: 1, qm_id: 1, ...oc_fields},
+        payload: { _id: 0, bm_id: 1, rt_name: 1, qm_id: 1, ...oc_fields },
         skip, limit: size
       }).toPromise();
       data.push(...temp);
@@ -122,18 +159,24 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     let qmRTsDict = await this.getQmRTs(), last6Months = months.slice(months.length - 6);
     let rows = [];
     // first we merge data from unified and qm, filter RTs currently tier 2 or 3 but potentially tier 1
-    rts.forEach(({bm_id, qm_id, rt_name, ...rest}) => {
+    rts.forEach(({ bm_id, qm_id, rt_name, ...rest }) => {
       let ordersPerMonth = last6Months.reduce((a, c) => a + (rest[`OC${c}`] || 0), 0) / 6;
       let tier = Helper.getTier(ordersPerMonth);
       if (tier <= 1) {
-        return;
+        if (qm_id) {
+          if (qmRTsDict[qm_id] && !(qmRTsDict[qm_id].logs || []).some(log => log.type === WIN_BACK_CAMPAIGN_LOG_TYPE)) {
+            return;
+          }
+        } else {
+          return;
+        }
       }
-      let item: any = {name: rt_name, tier, ordersPerMonth, bm_id, qm_id, logs: []};
+      let item: any = { name: rt_name, tier, ordersPerMonth, bm_id, qm_id, logs: [] };
       let gmb_potential = false;
       if (qm_id) {
         let qm_rt = qmRTsDict[qm_id];
         if (qm_rt) {
-          let { logs, gmbPositiveScore } = qm_rt;
+          let { logs, gmbPositiveScore, score, timezone, activity = {} } = qm_rt;
           item.logs = logs || [];
           gmbPositiveScore = gmbPositiveScore || {};
           item.gmbPositive = {
@@ -142,6 +185,9 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
             days: Math.round(gmbPositiveScore.duration / (1000 * 3600 * 24))
           }
           gmb_potential = Helper.getTier(gmbPositiveScore.ordersPerMonth) <= 1;
+          item.score = score;
+          item.timezone = timezone;
+          item.activity = activity;
         }
       }
       // detect if rt has tier 1 perf in continuous 3 months in history
@@ -149,7 +195,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       months.forEach(m => {
         let value = rest[`OC${m}`] || 0;
         if (Helper.getTier(value) <= 1) {
-          slide.push({month: m, value});
+          slide.push({ month: m, value });
         } else {
           if (slide.length > 3) {
             slides.push(slide)
@@ -165,10 +211,11 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
         start.splice(4, 0, '-');
         end.splice(4, 0, '-');
         let avg = s.reduce((a, c) => a + c.value, 0) / s.length;
-        return {avg, start: start.join(''), end: end.join('')};
-      });
+        return { avg, start: start.join(''), end: end.join('') };
+      }).reverse();
 
       item.histories = this.pageHistories(flatten);
+      item.lastestHistAvg = (flatten[0] || {} as any).avg || 0;
       rows.push(item);
     });
 
@@ -182,8 +229,10 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       aggregate: [
         {
           $project: {
+            activity: "$computed.activity",
             timezone: "$googleAddress.timezone",
             gmbPositiveScore: "$computed.gmbPositiveScore",
+            score: 1,
             logs: {
               $filter: {
                 input: '$logs',
@@ -207,13 +256,15 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       platform: PlatformOptions,
       potential_type: Tier1PotentialTypeOptions,
       has_logs: HasLogsOptions,
-      current_tier: CurrentTierOptions
+      current_tier: CurrentTierOptions,
+      opm_sort: OPMSortOptions
     }[key])
   }
 
   filter() {
     let list = this.rows;
-    let { keyword, hasLogs, platform, potentialType, currentTier } = this.filters;
+
+    let { keyword, hasLogs, platform, potentialType, currentTier, OPMSort } = this.filters;
     switch (platform) {
       case PlatformOptions.Qmenu:
         list = list.filter(x => !!x.qm_id);
@@ -239,11 +290,20 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
         break;
     }
     switch (currentTier) {
+      case CurrentTierOptions.Tier1:
+        list = list.filter(x => x.tier <= 1);
+        break;
       case CurrentTierOptions.Tier2:
         list = list.filter(x => x.tier === 2);
         break;
       case CurrentTierOptions.Tier3:
         list = list.filter(x => x.tier === 3);
+        break;
+      case CurrentTierOptions.Non_Tier1:
+        list = list.filter(x => x.tier === 2 || x.tier === 3);
+        break;
+      case CurrentTierOptions.Inactive_Last_30d:
+        list = list.filter(x => (x.activity || {}).ordersInLast30Days === 0);
         break;
     }
 
@@ -252,6 +312,16 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     if (keyword && keyword.trim()) {
       list = list.filter(x => kwMatch(x.name) || kwMatch(x.bm_id) || kwMatch(x.qm_id))
     }
+
+    switch (OPMSort) {
+      case OPMSortOptions.GMB_Sort:
+        list.sort((a, b) => ((b.gmbPositive || {}).score || 0) - ((a.gmbPositive || {}).score || 0));
+        break;
+      case OPMSortOptions.Hist_Sort:
+        list.sort((a, b) => b.lastestHistAvg - a.lastestHistAvg);
+        break;
+    }
+
     this.list = list;
   }
 
@@ -259,8 +329,8 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     this.logInEditing = new Log({ type: WIN_BACK_CAMPAIGN_LOG_TYPE, time: new Date() });
     let [restaurant] = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {_id: {$oid: item.qm_id}},
-      projection: {logs: 1, name: 1, log: 1, logo: 1, phones: 1, channels: 1, googleAddress: 1},
+      query: { _id: { $oid: item.qm_id } },
+      projection: { logs: 1, name: 1, log: 1, logo: 1, phones: 1, channels: 1, googleAddress: 1 },
       limit: 1
     }).toPromise();
     this.loggingRT = restaurant;
@@ -272,7 +342,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     event.log.username = event.log.username ? event.log.username : this._global.user.username;
     const newRT = JSON.parse(JSON.stringify(this.loggingRT));
     newRT.logs.push(event.log);
-    this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{old: { _id: this.loggingRT._id }, new: newRT}])
+    this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{ old: { _id: this.loggingRT._id }, new: newRT }])
       .subscribe(result => {
         this._global.publishAlert(AlertType.Success, 'Log added successfully');
         event.formEvent.acknowledge(null);
