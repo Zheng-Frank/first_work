@@ -164,7 +164,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       let tier = Helper.getTier(ordersPerMonth);
       if (tier <= 1) {
         if (qm_id) {
-          if (qmRTsDict[qm_id] && !(qmRTsDict[qm_id].logs || []).some(log => log.type === WIN_BACK_CAMPAIGN_LOG_TYPE)) {
+          if (!qmRTsDict[qm_id] || !(qmRTsDict[qm_id].logs || []).some(log => log.type === WIN_BACK_CAMPAIGN_LOG_TYPE)) {
             return;
           }
         } else {
