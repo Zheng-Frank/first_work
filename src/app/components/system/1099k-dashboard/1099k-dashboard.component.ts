@@ -66,6 +66,22 @@ enum refuseFormOptionTypes {
   Not_Refused = 'Not Refused'
 }
 
+const download = (name, taxYear, content) => {
+  let blob = new Blob([content], { type: 'text/plain; charset=utf-8' });
+  let node = document.createElement('a');
+  node.href = URL.createObjectURL(blob);
+  let dt = new Date();
+  let y = dt.getFullYear();
+  let M = IRSHelper.pad(dt.getMonth() + 1, 2, true)
+  let d = IRSHelper.pad(dt.getDate(), 2, true)
+  let h = IRSHelper.pad(dt.getHours(), 2, true)
+  let m = IRSHelper.pad(dt.getMinutes(), 2, true)
+  let s = IRSHelper.pad(dt.getSeconds(), 2, true)
+  node.download = `${taxYear}-tax-year_${name}-created_${[y, M, d, h, m, s].join('_')}.txt`;
+  node.click();
+  node.remove();
+}
+
 @Component({
   selector: "app-1099k-dashboard",
   templateUrl: "./1099k-dashboard.component.html",
@@ -159,14 +175,14 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   }
 
   /*
-  Add a boolean "refuseForm" attribute to a 1099K form sub-object, 
-  and a "Refuse form" checkbox next to each 1099K generated which will be 
-  unchecked by default. If the "refuseForm" attribute for a given 1099K form 
+  Add a boolean "refuseForm" attribute to a 1099K form sub-object,
+  and a "Refuse form" checkbox next to each 1099K generated which will be
+  unchecked by default. If the "refuseForm" attribute for a given 1099K form
   sub-object is true, then it won't be included in the FIRE submission txt document.
   */
   async onChangeRefuseform(row, form) {
     let new1099kRecords = JSON.parse(JSON.stringify(row.form1099k));
-    // current editing form will be add refuseForm attribute 
+    // current editing form will be add refuseForm attribute
     new1099kRecords.forEach(record => {
       if (form.yearPeriodStart) {
         if (form.yearPeriodStart === record.yearPeriodStart && form.year === record.year) {
@@ -194,9 +210,9 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     this.rows = this.restaurants.map(rt => this.turnRtObjectIntoRow(rt));
     this.filterRows();
   }
-  
+
   // disable send button when the row has not emails
-  disableSendBtn(row){
+  disableSendBtn(row) {
     return (row.email || []).length === 0;
   }
 
@@ -396,33 +412,40 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
 
   downloadFIRE() {
     try {
-
-      const download = (content) => {
-        let blob = new Blob([content], { type: 'text/plain; charset=utf-8' });
-        let node = document.createElement('a');
-        node.href = URL.createObjectURL(blob);
-        let dt = new Date();
-        let y = dt.getFullYear();
-        let M = IRSHelper.pad(dt.getMonth() + 1, 2, true)
-        let d = IRSHelper.pad(dt.getDate(), 2, true)
-        let h = IRSHelper.pad(dt.getHours(), 2, true)
-        let m = IRSHelper.pad(dt.getMinutes(), 2, true)
-        let s = IRSHelper.pad(dt.getSeconds(), 2, true)
-        node.download = `${this.taxYear}-tax-year_Qmenu_FIRE_Submission-created_${[y, M, d, h, m, s].join('_')}.txt`;
-        node.click();
-        node.remove();
-      }
-
       const { rows, errors } = IRSHelper.generate(this.taxYear, this.rows);
       if (errors.length > 0) {
         if (confirm('Some restaurants are missing payee and/or TIN. Do you want to proceed with download anyway?')) {
-          download(rows.join('\n'))
+          download("Qmenu_FIRE_Submission", this.taxYear, rows.join('\n'))
         }
       } else {
-        download(rows.join('\n'));
+        download("Qmenu_FIRE_Submission", this.taxYear, rows.join('\n'));
       }
     } catch (e) {
       this._global.publishAlert(AlertType.Danger, e.message)
+    }
+  }
+
+  downloadTextTIN() {
+    const lines = [], errors = [];
+    const purify = str => str.replace(/\s+/g, ' ').trim();
+    this.filteredRows.forEach(({form1099k, rtTIN, payeeName, id}) => {
+      form1099k.filter(x => x.required && !x.refuseForm && x.year === Number(this.taxYear))
+        .forEach(form => {
+          let tin = form.periodTin || rtTIN,
+            payee = form.periodPayeeName || payeeName;
+          if (!tin || !payee) {
+            errors.push(id);
+            return;
+          }
+          lines.push(`3;${purify(tin.replace(/[-\s]/g, ''))};${purify(payee)};${id}`);
+        });
+    });
+    if (errors.length > 0) {
+      if (confirm('Some restaurants are missing payee and/or TIN. Do you want to proceed with download anyway?')) {
+        download("TIN_Matching", this.taxYear, lines.join('\n'))
+      }
+    } else {
+      download("TIN_Matching", this.taxYear, lines.join('\n'));
     }
   }
 

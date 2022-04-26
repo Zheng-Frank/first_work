@@ -55,6 +55,7 @@
       <option *ngFor="let option of refuseFormOptions"> {{option}} </option>
     </select>
     <!-- end with refuse form filter -->
+    <a *ngIf="taxYear &&  taxYear !== 'All'" class="btn btn-link" (click)="downloadTextTIN()">Download .txt for TIN Matching</a>
   </div>
   <hr>
   <div class="form-inline mx-5 pl-1">
@@ -177,10 +178,7 @@
                   {{getCustomizedNum(form, row.form1099k)}})</span> - No Form Required for this year
               </span>
             </ng-template>
-            <span>
-              <label for="">Refuse form</label>
-              <input type="checkbox" [(ngModel)]="form.refuseForm" (change)="onChangeRefuseform(row, form)">
-            </span>
+            <label class="d-inline-flex align-items-center">Refuse form <input class="ml-1" type="checkbox" [(ngModel)]="form.refuseForm" (change)="onChangeRefuseform(row, form)"></label>
           </div>
         </div>
       </div>
