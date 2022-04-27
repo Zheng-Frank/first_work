@@ -283,7 +283,6 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   isAdminOrCsrManager() {
-    return true;
     let roles = this._global.user.roles;
     return roles.includes('ADMIN') || roles.includes('CSR_MANAGER');
   }
@@ -494,7 +493,7 @@ export class QmBmSstDashboardComponent implements OnInit {
       return Months.indexOf(month_a) - Months.indexOf(month_b);
     });
 
-    ChurnHelper.prepare(this.unionRTs, rt_dict, bm_data, qm_data);
+    ChurnHelper.preprocess(this.unionRTs, rt_dict, bm_data, qm_data);
   }
 
   countByOrdersPerMonth(list) {
