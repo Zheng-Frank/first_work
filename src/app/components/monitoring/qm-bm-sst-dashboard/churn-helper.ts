@@ -216,18 +216,40 @@ const sort_quarter = (ka, kb) => {
 
 const sort_year = (ka, kb) => Number(ka) - Number(kb);
 
-const timestamp = (period: string) => {
+const timestamp_start = (period: string) => {
   let date: Date;
   if (/^\d{4}$/.test(period)) {
-    date = new Date(Number(period), 0);
+    date = new Date(Date.UTC(Number(period), 0));
   } else if (period.includes('Q')) {
     let [y, q] = period.split(' ');
     let m = 3 * (Number(q.substr(1)) - 1);
-    date = new Date(2000 + Number(y), m);
+    date = new Date(Date.UTC(2000 + Number(y), m));
   } else {
     let [y, m] = period.split(' ');
-    date = new Date(2000 + Number(y), MONTH_ABBR.indexOf(m));
+    date = new Date(Date.UTC(2000 + Number(y), MONTH_ABBR.indexOf(m)));
   }
+  return date.valueOf();
+}
+
+const timestamp_end = (period: string) => {
+  let date: Date;
+  if (/^\d{4}$/.test(period)) {
+    // set to next year
+    date = new Date(Date.UTC(Number(period) + 1, 0));
+  } else if (period.includes('Q')) {
+    let [y, q] = period.split(' ');
+    let m = 3 * (Number(q.substr(1)) - 1);
+    date = new Date(Date.UTC(2000 + Number(y), m));
+    // set to next quarter
+    date.setMonth(date.getMonth() + 3);
+  } else {
+    let [y, m] = period.split(' ');
+    date = new Date(Date.UTC(2000 + Number(y), MONTH_ABBR.indexOf(m)));
+    // set next month
+    date.setMonth(date.getMonth() + 1);
+  }
+  // set to end time of current period
+  date.setMilliseconds(date.getMilliseconds() - 1);
   return date.valueOf();
 }
 
@@ -251,6 +273,7 @@ export default class ChurnHelper {
   static monthly: ChurnCount = {};
 
   static unified_rts = [];
+  static unified_rts_dates = {};
   static union_rts_dict = {};
 
   static getList({platform, period_type, tier, definition}) {
@@ -405,7 +428,6 @@ export default class ChurnHelper {
         let tmp = accumulated[`${type}ly`][periods[type]] || base_in_out();
         tmp[platform][key].add(union_id);
         accumulated[`${type}ly`][periods[type]] = tmp;
-        console.log(date, periods, tmp, accumulated);
       });
     }
 
@@ -440,6 +462,11 @@ export default class ChurnHelper {
         }
         if (last_disabled_at !== -Infinity) {
           accumulate(inout, last_disabled_at, 'both', 'disabled', union_id);
+        }
+        this.unified_rts_dates[union_id] = {
+          qm: {createdAt, disabledAt},
+          bm: {createdAt: bcreatedAt, disabledAt: bdisabledAt},
+          both: {createdAt: first_created_at, disabledAt: last_disabled_at}
         }
       }
     });
@@ -487,18 +514,36 @@ export default class ChurnHelper {
   }
 
   static fill_empty_v2(cur, period, tiers) {
-    let time = timestamp(period);
-    this.unified_rts.forEach(({union_id, ...rest}) => {
+    let period_end = timestamp_end(period);
+    Object.entries(this.unified_rts_dates).forEach(([union_id, rest]) => {
       ['qm', 'bm', 'both'].forEach(plat => {
         let { createdAt, disabledAt } = rest[plat];
-        if (createdAt && new Date(createdAt).valueOf() <= time) {
 
-          let exist = ['inactive', 'canceled', 'created'].some(k => cur[plat][k].has(union_id)) || tiers.some(set => set.has(union_id));
-          if (!disabledAt || new Date(disabledAt).valueOf() >= time) {
-            if (!exist) {
-              tiers[3].add(union_id);
-            }
+        let log = union_id === '62505f78d6c68f44c5979f72' && ['22 Jan', '22 Feb', '22 Mar'].includes(period);
+        if (log) {
+          console.group(union_id + ' fill');
+          console.log(period, createdAt, new Date(period_end).toISOString(), disabledAt)
+        }
+
+        if (createdAt && new Date(createdAt).valueOf() <= period_end) {
+
+          let exist = tiers[plat].some(set => set.has(union_id));
+
+          if (log) {
+            console.log(exist)
           }
+          if (!exist) {
+            // add newly to tier_3 by default
+            tiers[plat][3].add(union_id);
+          }
+          if (disabledAt && new Date(disabledAt).valueOf() < period_end) {
+            // remove deleted
+            tiers[plat].forEach(set => set.delete(union_id));
+          }
+
+        }
+        if (log) {
+          console.groupEnd()
         }
       });
     });
@@ -525,11 +570,29 @@ export default class ChurnHelper {
       bm: [new Set(), new Set(), new Set(), new Set()],
       both: [new Set(), new Set(), new Set(), new Set()]
     };
+    let period_start = timestamp_start(period), period_end = timestamp_end(period);
     if (activity) {
       Object.entries(activity).forEach(([union_id, counts]) => {
         ['qm', 'bm', 'both'].forEach(plat => {
-          let tier = Helper.getTier(counts[plat]);
-          tiers[plat][tier].add(union_id);
+          if (this.unified_rts_dates[union_id]) {
+            let { createdAt, disabledAt } = this.unified_rts_dates[union_id][plat];
+            let uncreated = createdAt && new Date(createdAt).valueOf() > period_end;
+            let deleted = disabledAt && new Date(disabledAt).valueOf() <= period_start;
+            if (!uncreated && !deleted) {
+              let tier = Helper.getTier(counts[plat]);
+              tiers[plat][tier].add(union_id);
+            }
+
+            if (union_id === '62505f78d6c68f44c5979f72' && ['22 Jan', '22 Feb', '22 Mar'].includes(period)) {
+              console.group(union_id);
+              console.log(period, uncreated, createdAt, period_start, period_end, disabledAt)
+              console.groupEnd()
+            }
+
+          } else {
+            let tier = Helper.getTier(counts[plat]);
+            tiers[plat][tier].add(union_id);
+          }
         });
       });
     }
@@ -561,11 +624,15 @@ export default class ChurnHelper {
       let tmp = baseChurnCount(), tk = tier_key(tier);
       let highers = this.getHigherTiers(tier), lowers = this.getLowerTiers(tier);
       let cur_ends = tiers[tk];
-      tmp.created = created.size;
-      let cur_inactive = Array.from(inactive).filter(x => prev.inactive.has(x));
-      tmp.inactive = cur_inactive.length;
-      tmp.canceled = canceled.size;
+      let cur_created = Array.from(created).filter(x => cur_ends.has(x));
+      tmp.created = cur_created.length;
+
       let prev_ends = prev[tk];
+      let cur_inactive = Array.from(inactive).filter(x => prev_ends.has(x));
+      tmp.inactive = cur_inactive.length;
+
+      let cur_canceled = Array.from(canceled).filter(x => prev_ends.has(x));
+      tmp.canceled = cur_canceled.length;
       tmp.start = prev_ends.size;
       tmp.end = cur_ends.size;
 
@@ -601,17 +668,15 @@ export default class ChurnHelper {
       let lost = Array.from(prev_ends).filter(x => !cur_ends.has(x))
       let gained = Array.from(cur_ends).filter(x => !prev_ends.has(x))
 
-      if (period && (tmp.end - tmp.start !== (gain_tracked.size - lost_tracked.size))) {
-        console.group(period + ' tier ' + tier)
-
+      if (period && ((tmp.end - tmp.start) !== (gain_tracked.size - lost_tracked.size))) {
+        console.groupCollapsed(period + ' tier ' + tier)
+        console.log('gain...', gained.length, 'gain tracked...', gain_tracked.size, 'lost...', lost.length, 'lost tracked...', lost_tracked.size);
         console.log('dup lost tracked...', [...SetHelper.intersection(new Set(lostToLower), new Set(lostToHigher))],
-          [...SetHelper.intersection(new Set(lostToHigher), canceled)],
-          [...SetHelper.intersection(new Set(lostToLower), canceled)]);
+          [...SetHelper.intersection(new Set(lostToHigher), cur_canceled)],
+          [...SetHelper.intersection(new Set(lostToLower), cur_canceled)]);
         console.log('dup gain tracked...', [...SetHelper.intersection(new Set(gainByUp), new Set(gainByDown))],
-          [...SetHelper.intersection(new Set(gainByUp), created)],
-          [...SetHelper.intersection(new Set(gainByDown), created)]);
-        console.log('gained diff...', [...SetHelper.symmetricDifference(gain_tracked, new Set(gained))])
-        console.log('lost diff...', [...SetHelper.symmetricDifference(lost_tracked, new Set(lost))]);
+          [...SetHelper.intersection(new Set(gainByUp), cur_created)],
+          [...SetHelper.intersection(new Set(gainByDown), cur_created)]);
         console.log('gain untracked...', gained.filter(x => !gain_tracked.has(x)))
         console.log('lost untracked...', lost.filter(x => !lost_tracked.has(x)))
         console.log('gain_over tracked...', [...gain_tracked].filter(x => !gained.includes(x)))
@@ -1136,7 +1201,7 @@ export default class ChurnHelper {
 
   static fill_empty(accum, period) {
     let cur = accum[period] || defaultChurnSets();
-    let time = timestamp(period);
+    let time = timestamp_start(period);
     this.unified_rts.forEach(({union_id, ...rest}) => {
       ['qm', 'bm', 'both'].forEach(plat => {
         let { createdAt, disabledAt } = rest[plat];
