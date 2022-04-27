@@ -518,20 +518,8 @@ export default class ChurnHelper {
     Object.entries(this.unified_rts_dates).forEach(([union_id, rest]) => {
       ['qm', 'bm', 'both'].forEach(plat => {
         let { createdAt, disabledAt } = rest[plat];
-
-        let log = union_id === '62505f78d6c68f44c5979f72' && ['22 Jan', '22 Feb', '22 Mar'].includes(period);
-        if (log) {
-          console.group(union_id + ' fill');
-          console.log(period, createdAt, new Date(period_end).toISOString(), disabledAt)
-        }
-
         if (createdAt && new Date(createdAt).valueOf() <= period_end) {
-
           let exist = tiers[plat].some(set => set.has(union_id));
-
-          if (log) {
-            console.log(exist)
-          }
           if (!exist) {
             // add newly to tier_3 by default
             tiers[plat][3].add(union_id);
@@ -541,9 +529,6 @@ export default class ChurnHelper {
             tiers[plat].forEach(set => set.delete(union_id));
           }
 
-        }
-        if (log) {
-          console.groupEnd()
         }
       });
     });
@@ -582,13 +567,6 @@ export default class ChurnHelper {
               let tier = Helper.getTier(counts[plat]);
               tiers[plat][tier].add(union_id);
             }
-
-            if (union_id === '62505f78d6c68f44c5979f72' && ['22 Jan', '22 Feb', '22 Mar'].includes(period)) {
-              console.group(union_id);
-              console.log(period, uncreated, createdAt, period_start, period_end, disabledAt)
-              console.groupEnd()
-            }
-
           } else {
             let tier = Helper.getTier(counts[plat]);
             tiers[plat][tier].add(union_id);
@@ -662,8 +640,8 @@ export default class ChurnHelper {
       let lostToLower = Array.from(prev_ends).filter(x => lowers.some(lt => tiers[tier_key(lt)].has(x)));
       tmp.lostToLower = lostToLower.length;
 
-      let lost_tracked = new Set([...lostToLower, ...lostToHigher, ...canceled]);
-      let gain_tracked = new Set([...gainByUp, ...gainByDown, ...created]);
+      let lost_tracked = new Set([...lostToLower, ...lostToHigher, ...cur_canceled]);
+      let gain_tracked = new Set([...gainByUp, ...gainByDown, ...cur_created]);
 
       let lost = Array.from(prev_ends).filter(x => !cur_ends.has(x))
       let gained = Array.from(cur_ends).filter(x => !prev_ends.has(x))
@@ -671,6 +649,7 @@ export default class ChurnHelper {
       if (period && ((tmp.end - tmp.start) !== (gain_tracked.size - lost_tracked.size))) {
         console.groupCollapsed(period + ' tier ' + tier)
         console.log('gain...', gained.length, 'gain tracked...', gain_tracked.size, 'lost...', lost.length, 'lost tracked...', lost_tracked.size);
+
         console.log('dup lost tracked...', [...SetHelper.intersection(new Set(lostToLower), new Set(lostToHigher))],
           [...SetHelper.intersection(new Set(lostToHigher), cur_canceled)],
           [...SetHelper.intersection(new Set(lostToLower), cur_canceled)]);
@@ -717,248 +696,6 @@ export default class ChurnHelper {
         return Number(year_a) - Number(year_b);
       }
       return MONTH_ABBR.indexOf(month_a) - MONTH_ABBR.indexOf(month_b);
-    });
-  }
-
-  static prepare(union_rts, union_rt_dict, bm_data, qm_data) {
-    console.log('union rts...', union_rts);
-    Object.entries(union_rt_dict).forEach(([plat, dict]) => {
-      Object.entries(dict).forEach(([plat_id, union_id]) => {
-        if (!this.union_rts_dict[union_id]) {
-          this.union_rts_dict[union_id] = {};
-        }
-        this.union_rts_dict[union_id][plat] = plat_id;
-      })
-    });
-    console.log('union rts dict...', this.union_rts_dict);
-    const rts_monthly = {}, rts_quarterly = {}, rts_yearly = {};
-    const cur_mon = new Date().getMonth() + 1, cur_year = new Date().getFullYear();
-    const first_accumulate = (accumulated, key, count, union_id) => {
-      let tmp = accumulated[key] || {};
-      tmp[union_id] = {bm: count, both: count, qm: 0};
-      accumulated[key] = tmp;
-    };
-    const Years = new Set(), Quarters = new Set(), Months = new Set();
-    let earliest = new Date().valueOf();
-    bm_data.forEach(({bmid, month, count_orders}) => {
-      earliest = Math.min(earliest, new Date(month).valueOf())
-      let [y, m] = month.split('T')[0].split('-'), n_y = Number(y), n_m = Number(m);
-      let quarter = Math.ceil(n_m / 3), shortYear = y.substr(2);
-      let month_key = shortYear + ' ' + MONTH_ABBR[n_m - 1], quarter_key = shortYear + ' ' + 'Q' + quarter;
-      Years.add(y);
-      Quarters.add(quarter_key);
-      Months.add(month_key);
-      let union_id = union_rt_dict.bm[bmid];
-      if (union_id) {
-        first_accumulate(rts_monthly, month_key, count_orders, union_id);
-
-        let is_latest_month = n_y === cur_year && n_m === cur_mon - 1;
-        if (n_m % 3 === 0 || is_latest_month) {
-          first_accumulate(rts_quarterly, quarter_key, count_orders, union_id);
-        }
-        if (n_m === 12 || is_latest_month) {
-          first_accumulate(rts_yearly, y, count_orders, union_id);
-        }
-      }
-    });
-    const second_accumulate = (accumulated, key, count, union_id) => {
-      let tmp = accumulated[key] || {};
-      let tmp_rt = tmp[union_id] || {bm: 0, both: 0, qm: 0};
-      tmp_rt.qm = count;
-      tmp_rt.both += count;
-      tmp[union_id] = tmp_rt;
-      accumulated[key] = tmp;
-    };
-    qm_data.forEach(({qmid, month, count_orders}) => {
-      earliest = Math.min(earliest, new Date(month).valueOf())
-      let [y, m] = month.split('T')[0].split('-'), n_y = Number(y), n_m = Number(m);
-      let quarter = Math.ceil(n_m / 3), shortYear = y.substr(2);
-      let month_key = shortYear + ' ' + MONTH_ABBR[n_m - 1], quarter_key = shortYear + ' ' + 'Q' + quarter;
-      Years.add(y);
-      Quarters.add(quarter_key);
-      Months.add(month_key);
-      let union_id = union_rt_dict.qm[qmid];
-      if (union_id) {
-        second_accumulate(rts_monthly, month_key, count_orders, union_id);
-
-        let is_latest_month = n_y === cur_year && n_m === cur_mon - 1;
-        if (n_m % 3 === 0 || is_latest_month) {
-          second_accumulate(rts_quarterly, quarter_key, count_orders, union_id);
-        }
-        if (n_m === 12 || is_latest_month) {
-          second_accumulate(rts_yearly, y, count_orders, union_id);
-        }
-      }
-    });
-
-    const monthly_data = this.aggregate(rts_monthly, ([ka], [kb]) => sort_month(ka, kb));
-    const quarterly_data = this.aggregate(rts_quarterly, ([ka], [kb]) => sort_quarter(ka, kb));
-    const yearly_data = this.aggregate(rts_yearly, ([ka], [kb]) => sort_year(ka, kb));
-    this.created_disabled(union_rts, earliest, union_rt_dict, monthly_data, quarterly_data, yearly_data);
-    // complement duration data
-    this.complement(Years, Quarters, Months, earliest);
-    // calculate changes
-    this.stat(monthly_data, quarterly_data, yearly_data);
-  }
-
-  static created_disabled(union_rts, earliest, union_rt_dict, monthly_data, quarterly_data, yearly_data) {
-
-    const get_prev_month = month => {
-      let [y, mo] = month.split(' ');
-      y = Number(y);
-      let m = Number(MONTH_ABBR.indexOf(mo));
-      m--;
-      if (m < 0) {
-        y--;
-        m = 11
-      }
-      return `${y} ${MONTH_ABBR[m]}`;
-    }
-    const get_prev_quarter = quarter => {
-      let [y, q] = quarter.split(' ');
-      y = Number(y);
-      q = Number(q.substr(1));
-      q--;
-      if (q === 0) {
-        y--;
-        q = 4;
-      }
-      return `${y} Q${q}`;
-    }
-    const get_prev_year = year => `${Number(year) - 1}`;
-
-    const place_created = (union_id, create_dates) => {
-      create_dates.forEach(({platform, date}) => {
-        let { month, quarter, year } = getDurationKeys(getYM(date));
-        let cur_month = monthly_data[month] || defaultChurnSets();
-        let cur_quarter = quarterly_data[quarter] || defaultChurnSets();
-        let cur_year = yearly_data[year] || defaultChurnSets();
-
-        let prev_month = monthly_data[get_prev_month(month)] || defaultChurnSets(),
-          prev_quarter = quarterly_data[get_prev_quarter(quarter)] || defaultChurnSets(),
-          prev_year = yearly_data[get_prev_year(year)] || defaultChurnSets();
-
-        let month_found = false, quarter_found = false, year_found = false;
-        [0, 1, 2, 3].forEach(t => {
-          let tk = tier_key(t);
-
-          prev_month[platform][tk].end.delete(union_id);
-          if (cur_month[platform][tk].end.has(union_id)) {
-            month_found = true;
-            cur_month[platform][tk].created.add(union_id);
-            monthly_data[month] = cur_month;
-          }
-          prev_quarter[platform][tk].end.delete(union_id);
-          if (cur_quarter[platform][tk].end.has(union_id)) {
-            quarter_found = true;
-            cur_quarter[platform][tk].created.add(union_id);
-            quarterly_data[quarter] = cur_quarter;
-          }
-          prev_year[platform][tk].end.delete(union_id);
-          if (cur_year[platform][tk].end.has(union_id)) {
-            year_found = true;
-            cur_year[platform][tk].created.add(union_id);
-            yearly_data[year] = cur_year;
-          }
-        });
-        // really new RT, no orders in first period, we add it to tier 3
-        if (!month_found) {
-          cur_month[platform].tier_3.end.add(union_id);
-          cur_month[platform].tier_3.created.add(union_id);
-        }
-        if (!quarter_found) {
-          cur_quarter[platform].tier_3.end.add(union_id);
-          cur_quarter[platform].tier_3.created.add(union_id);
-        }
-        if (!year_found) {
-          cur_year[platform].tier_3.end.add(union_id);
-          cur_year[platform].tier_3.created.add(union_id);
-        }
-      })
-    }
-
-    const place_disabled = (union_id, disabled_dates) => {
-      disabled_dates.forEach(({platform, date}) => {
-        let { month, quarter, year } = getDurationKeys(getYM(date));
-        let cur_month = monthly_data[month] || defaultChurnSets();
-        let cur_quarter = quarterly_data[quarter] || defaultChurnSets();
-        let cur_year = yearly_data[year] || defaultChurnSets();
-
-        let prev_month = monthly_data[get_prev_month(month)] || defaultChurnSets(),
-          prev_quarter = quarterly_data[get_prev_quarter(quarter)] || defaultChurnSets(),
-          prev_year = yearly_data[get_prev_year(year)] || defaultChurnSets();
-
-        [0, 1, 2, 3].forEach(t => {
-          let tk = tier_key(t);
-
-          // canceled should count on start tier (prev month's end tier)
-          if (prev_month[platform][tk].end.has(union_id) || cur_month[platform][tk].end.has(union_id)) {
-            cur_month[platform][tk].canceled.add(union_id);
-          }
-          cur_month[platform][tk].end.delete(union_id)
-          monthly_data[month] = cur_month;
-
-          if (prev_quarter[platform][tk].end.has(union_id) || cur_quarter[platform][tk].end.has(union_id)) {
-            cur_quarter[platform][tk].canceled.add(union_id);
-          }
-          cur_quarter[platform][tk].end.delete(union_id);
-          quarterly_data[quarter] = cur_quarter;
-
-
-          if (prev_year[platform][tk].end.has(union_id) || cur_year[platform][tk].end.has(union_id)) {
-            cur_year[platform][tk].canceled.add(union_id);
-          }
-          cur_year[platform][tk].end.delete(union_id);
-          yearly_data[year] = cur_year;
-
-        })
-      })
-    }
-
-    // add created and disabled data;
-    union_rts.forEach(({_id, disabledAt, createdAt, bdisabledAt, bcreatedAt}) => {
-      let last_disabled_at = -Infinity, first_created_at = Infinity;
-      const created_dates = [], disabled_dates = [];
-      if (createdAt) {
-        // earliest = Math.min(earliest, new Date(createdAt).valueOf());
-        created_dates.push({platform: 'qm', date: createdAt});
-        first_created_at = new Date(createdAt).valueOf();
-      }
-      if (disabledAt) {
-        disabled_dates.push({platform: 'qm', date: disabledAt});
-        last_disabled_at = new Date(disabledAt).valueOf();
-      }
-      if (bcreatedAt) {
-        // earliest = Math.min(earliest, new Date(bcreatedAt).valueOf());
-        created_dates.push({platform: 'bm', date: bcreatedAt});
-        first_created_at = Math.min(first_created_at, new Date(bcreatedAt).valueOf());
-      }
-      if (bdisabledAt) {
-        disabled_dates.push({platform: 'bm', date: bdisabledAt});
-        last_disabled_at = Math.max(last_disabled_at, new Date(bdisabledAt).valueOf());
-      }
-      if (first_created_at !== Infinity) {
-        created_dates.push({platform: 'both', date: first_created_at});
-      } else {
-        first_created_at = undefined;
-      }
-      if (last_disabled_at !== -Infinity) {
-        disabled_dates.push({platform: 'both', date: last_disabled_at});
-      } else {
-        last_disabled_at = undefined;
-      }
-
-      let union_id = union_rt_dict.qm[_id];
-      if (union_id) {
-        this.unified_rts.push({
-          union_id,
-          qm: {createdAt, disabledAt},
-          bm: {createdAt: bcreatedAt, disabledAt: bdisabledAt},
-          both: {createdAt: first_created_at, disabledAt: last_disabled_at}
-        })
-        place_created(union_id, created_dates);
-        place_disabled(union_id, disabled_dates);
-      }
     });
   }
 
