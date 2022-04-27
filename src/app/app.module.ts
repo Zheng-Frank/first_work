@@ -280,6 +280,7 @@ import { MonitoringDeactivatedCustomersComponent } from './components/monitoring
 import { MonitoringRtsWithPaymentCollectComponent } from './components/monitoring/monitoring-rts-with-payment-collect/monitoring-rts-with-payment-collect.component';
 import { ChangeRtAliasComponent } from './components/utilities/change-rt-alias/change-rt-alias.component';
 import { MonitoringWinBackCampaignComponent } from './components/monitoring/monitoring-win-back-campaign/monitoring-win-back-campaign.component';
+import { RestaurantPhoneOrderingSettingsComponent } from './components/restaurants/restaurant-phone-ordering-settings/restaurant-phone-ordering-settings.component';
 
 
 
@@ -531,7 +532,8 @@ import { MonitoringWinBackCampaignComponent } from './components/monitoring/moni
     MonitoringDeactivatedCustomersComponent,
     MonitoringRtsWithPaymentCollectComponent,
     ChangeRtAliasComponent,
-    MonitoringWinBackCampaignComponent
+    MonitoringWinBackCampaignComponent,
+    RestaurantPhoneOrderingSettingsComponent
   ],
   imports: [
     BrowserModule,
