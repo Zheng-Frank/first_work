@@ -93,7 +93,7 @@ export class FraudDetectionComponent implements OnInit {
   async getRTs() {
     const restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {disabled: {$ne: true}},
+      query: {},
       projection: {
         'googleAddress.timezone': 1,
         'googleAddress.formatted_address': 1,
@@ -131,24 +131,27 @@ export class FraudDetectionComponent implements OnInit {
   }
 
   async getQueryCondition() {
-    let amountFactor = this.orderAmountFactors[this.orderAmountFactor];
-    let match = {...amountFactor};
-    if (this.billingDistanceToDeliveryFactor) {
-      match['ccAddress.distanceToStore'] = {$gt: 200};
-    }
-    if (this.multipleOrdersPerDayFactor) {
-      let customers = await this.getOrderedCustomersToday();
-      match['customerObj._id'] = {$in: customers};
-    }
-
-    if (!this.billingDistanceToDeliveryFactor && !this.multipleOrdersPerDayFactor) {
+    let match = {};
+    // default case
+    if (!this.billingDistanceToDeliveryFactor && !this.multipleOrdersPerDayFactor && this.orderAmountFactor === OrderAmountFactors.None) {
       let customers = await this.getOrderedCustomersToday();
       match = {
         ...match,
         $or: [
           {'ccAddress.distanceToStore': {$gt: 200}},
-          {'customerObj._id': {$in: customers}}
+          {'customerObj._id': {$in: customers}},
+          {'computed.total': {$gte: 120}}
         ]
+      }
+    } else {
+      let amountFactor = this.orderAmountFactors[this.orderAmountFactor];
+      match = {...amountFactor};
+      if (this.billingDistanceToDeliveryFactor) {
+        match['ccAddress.distanceToStore'] = {$gt: 200};
+      }
+      if (this.multipleOrdersPerDayFactor) {
+        let customers = await this.getOrderedCustomersToday();
+        match['customerObj._id'] = {$in: customers};
       }
     }
 
