@@ -149,7 +149,7 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     };
     document.addEventListener('copy', handleCopy);
     document.execCommand('copy');
-    this._global.publishAlert(AlertType.Success, `${rtIDs.length} has copyed to your clipboard ~`, 1000);
+    this._global.publishAlert(AlertType.Success, `${copyAllIDs ? this.rows.length : this.filteredRows.length} has copyed to your clipboard ~`, 1000);
   }
 
   openBulkActionModal() {
