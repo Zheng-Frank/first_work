@@ -149,7 +149,7 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     };
     document.addEventListener('copy', handleCopy);
     document.execCommand('copy');
-    this._global.publishAlert(AlertType.Success, 'the data has copyed to your clipboard ~', 1000);
+    this._global.publishAlert(AlertType.Success, `${rtIDs.length} has copyed to your clipboard ~`, 1000);
   }
 
   openBulkActionModal() {
@@ -388,7 +388,7 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     let [restaurant] = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
       query: { _id: { $oid: row._id } },
-      projection: { logs: 1 },
+      projection: { name: 1, logs: 1, logo: 1, phones: 1, channels: 1, googleAddress: 1 },
       limit: 1
     }).toPromise();
     this.loggingRT = restaurant;
@@ -404,7 +404,7 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
       .subscribe(result => {
         this._global.publishAlert(AlertType.Success, 'Log added successfully');
         event.formEvent.acknowledge(null);
-        let index = this.rows.findIndex(x => x.qm_id === this.loggingRT._id);
+        let index = this.rows.findIndex(x => x._id === this.loggingRT._id);
         this.rows[index].logs = newRT.logs.filter(x => x.type === PCI_COMPLIANCE_LOG_TYPE);
         this.filterRTs();
         this.logEditingModal.hide();
