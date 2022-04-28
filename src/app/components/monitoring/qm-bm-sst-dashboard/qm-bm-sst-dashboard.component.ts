@@ -238,7 +238,7 @@ export class QmBmSstDashboardComponent implements OnInit {
     platform: PlatformOptions.Both,
     period_type: KPIPeriodOptions.Yearly,
     tier: 1,
-    definition: ChurnDefinitionOptions.Disabled
+    definition: ChurnDefinitionOptions.NoOrdersLast30d
   };
   kpiFilters = {
     normal: {
@@ -1170,7 +1170,16 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   churnDownload() {
+    let list = this.getChurnList();
+    let { period_type, platform, tier, definition } = this.churnFilters;
+    let filename = [period_type, platform, 'Tier ' + tier, definition, 'churn.csv'].join('_');
+    let titles = ['', 'Start Count', 'Total Lost (UT/DT/C)', 'Total Gained (IT/N)', 'End Count', 'Net +/- (%)'].join(',');
+    let lines = [titles];
+    list.forEach(l => {
 
+    });
+
+    saveAs(new Blob([lines.join('\n')], { type: "application/octet-stream" }), filename);
   }
 }
 

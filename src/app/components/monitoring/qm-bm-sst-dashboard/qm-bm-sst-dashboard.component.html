@@ -388,12 +388,12 @@
         <table class="table table-bordered left table-sm">
           <thead>
           <tr>
-            <th class="text-transparent">Placeholder</th>
+            <th class="text-transparent"></th>
             <th>Start Count</th>
-            <th>Total Lost(UT/DT/C)</th>
-            <th>Total Gained(IT/N)</th>
+            <th>Total Lost (UT/DT/C)</th>
+            <th>Total Gained (IT/N)</th>
             <th>End Count</th>
-            <th>Net +/-(%)</th>
+            <th>Net +/- (%)</th>
           </tr>
           </thead>
           <tbody>
@@ -402,17 +402,19 @@
               <td>{{row.period}}</td>
               <td>{{row.start}}</td>
               <td>
-                <div>-{{row.lostToLower + row.lostToHigher + row.canceled}} (-{{row.lostToHigher}}/-{{row.lostToLower}}/-{{row.canceled}})</div>
+                <div>
+                  {{0 - (row.lostToLower + row.lostToHigher + row.canceled)}} ({{0 - row.lostToHigher}}/{{0 - row.lostToLower}}/{{0 - row.canceled}})
+                </div>
                 <div *ngFor="let item of row.lost">{{item.path}}: {{item.count}}</div>
               </td>
               <td>
-                <div>{{row.gainByUp + row.gainByDown + row.created}}({{row.gainByUp}}/{{row.gainByDown}}/{{row.created}})</div>
+                <div>{{row.gainByUp + row.gainByDown + row.created}} ({{row.gainByUp + row.gainByDown}}/{{row.created}})</div>
                 <div *ngFor="let item of row.gained">{{item.path}}: {{item.count}}</div>
               </td>
               <td>{{row.end}}</td>
               <td>
-                {{row.end - row.start}} ({{((row.end - row.start) / row.start) | percent: '1.0-2'}})
-                {{(row.gainByUp + row.gainByDown + row.created) - (row.lostToLower + row.lostToHigher + row.canceled)}}
+                <div>{{row.end - row.start}} ({{((row.end - row.start) / row.start) | percent: '1.0-2'}})</div>
+                <div>{{(row.gainByUp + row.gainByDown + row.created) - (row.lostToLower + row.lostToHigher + row.canceled)}}</div>
               </td>
             </tr>
           </ng-container>
@@ -421,17 +423,19 @@
               <td>{{row.period}}</td>
               <td>{{row.pureStart}}</td>
               <td>
-                <div>-{{row.pureLostToLower + row.pureLostToHigher + row.pureCanceled + row.deactivated}} (-{{row.pureLostToHigher}}/-{{row.pureLostToLower}}/-{{row.pureCanceled}}/-{{row.deactivated}})</div>
+                <div>
+                  {{0 - (row.pureLostToLower + row.pureLostToHigher + row.pureCanceled + row.deactivated)}} ({{0 - row.pureLostToHigher}}/{{0 - row.pureLostToLower}}/{{0 - (row.pureCanceled + row.deactivated)}})
+                </div>
                 <div *ngFor="let item of row.pureLosts">{{item.path}}: {{item.count}}</div>
               </td>
               <td>
-                <div>{{row.pureGainByUp + row.pureGainByDown + row.pureCreated + row.activated}}({{row.pureGainByUp}}/{{row.pureGainByDown}}/{{row.pureCreated}}/{{row.activated}})</div>
+                <div>{{row.pureGainByUp + row.pureGainByDown + row.pureCreated + row.activated}} ({{row.pureGainByUp + row.pureGainByDown}}/{{row.pureCreated + row.activated}})</div>
                 <div *ngFor="let item of row.pureGains">{{item.path}}: {{item.count}}</div>
               </td>
               <td>{{row.pureEnd}}</td>
               <td>
-                {{row.pureEnd - row.pureStart}} ({{((row.pureEnd - row.pureStart) / row.pureStart) | percent: '1.0-2'}})
-                {{(row.pureGainByUp + row.pureGainByDown + row.pureCreated + row.activated) - (row.pureLostToLower + row.pureLostToHigher + row.pureCanceled + row.deactivated)}}
+                <div>{{row.pureEnd - row.pureStart}} ({{((row.pureEnd - row.pureStart) / row.pureStart) | percent: '1.0-2'}})</div>
+                <div>{{(row.pureGainByUp + row.pureGainByDown + row.pureCreated + row.activated) - (row.pureLostToLower + row.pureLostToHigher + row.pureCanceled + row.deactivated)}}</div>
               </td>
             </tr>
           </ng-container>
