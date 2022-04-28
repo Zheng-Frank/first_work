@@ -4,6 +4,23 @@
   </h2>
   <div class="card-body">
     <div class="row">
+      <!-- start with bulk action -->
+      <div class="col-auto mb-3">
+        <button class="btn btn-link" (click)="openBulkActionModal()">Bulk Action</button>
+      </div>
+      <!-- end with bulk action -->
+      <!-- start with copy rts id -->
+      <div class="col-auto mb-3">
+        <button class="btn btn-link" (click)="copyRTIDs(!copyAllIDs)">Copy IDs filtered</button>
+      </div>
+      <!-- end with copy rts id -->
+      <!-- start with copy rts id -->
+      <div class="col-auto mb-3">
+        <button class="btn btn-link" (click)="copyRTIDs(copyAllIDs)">Copy IDs on page</button>
+      </div>
+      <!-- end with copy rts id -->
+    </div>
+    <div class="row">
       <div class="col-auto mb-3">
         <select [(ngModel)]="pmtCollectOption" class="form-control" (change)="filterRTs()">
           <option *ngFor="let option of pmtCollectOptions">{{option}}</option>
@@ -35,6 +52,13 @@
       <i class="fa fa-info-circle ml-1 mt-2" data-toggle="tooltip" data-placement="top"
         title='1 "Print CC Info" ON + "Show non-PCI Data" OFF: Show CC data except full CC number /// 2 "Print CC Info" ON + "Show non-PCI Data" ON: Show ALL CC information (including the whole CC number) /// 3 "Print CC Info" OFF + "Show non-PCI Data" OFF: Zero CC-related info shown'></i>
       <!-- end with explanation -->
+      <!-- start with has log filter -->
+      <div class="col-auto mb-3">
+        <select [(ngModel)]="logOption" class="form-control" (change)="filterRTs()">
+          <option *ngFor="let option of logOptions">{{option}}</option>
+        </select>
+      </div>
+      <!-- end with has log filter -->
       <!-- start with send broadcast -->
       <div class="col-auto mb-3">
         <select [(ngModel)]="sentBroadcastOption" class="form-control" (change)="filterRTs()">
@@ -50,16 +74,6 @@
         </select>
       </div>
       <!-- end with broadcast types -->
-      <!-- start with bulk action -->
-      <div class="col-auto mb-3">
-        <button class="btn btn-link" (click)="openBulkActionModal()">Bulk Action</button>
-      </div>
-      <!-- end with bulk action -->
-      <!-- start with copy rts id -->
-      <div class="col-auto mb-3">
-        <button class="btn btn-link" (click)="copyRTIDs()">Copy all RT IDs Shown</button>
-      </div>
-      <!-- end with copy rts id -->
       <div class="col-auto mb-3">
         <button class="btn btn-primary" (click)="populateRTsByPmtCollect()"><i class="fas fa-sync"></i> Reload</button>
       </div>
@@ -102,7 +116,7 @@
           </div>
 
           <!-- PCI Data Display Toggle -->
-          <div>
+          <div *ngIf="r.showPrintingCCInfo">
             <q-toggle [(ngModel)]="r.showNonPCIData" (change)="toggleEnabledForRow(r, 'hideNonPCIData')">
             </q-toggle>
             <span>Show non-PCI Data</span>
@@ -110,6 +124,27 @@
           <!-- Fei-e Printing Display -->
           <div>
             <b>Fei-e Printing: </b> {{displayFeieMessage(r)}}
+          </div>
+        </td>
+        <td style="width:40%;">
+          <table class="table table-sm">
+            <tr>
+              <th>User</th>
+              <th>Time</th>
+              <th>Problem</th>
+              <th>Response</th>
+            </tr>
+            <ng-container *ngFor="let log of (r.logs || [])">
+              <tr>
+                <td>{{log.username}}</td>
+                <td>{{log.time | adjustedDate : 'MMM d h:mm a' : r.googleAddress.timezone}}</td>
+                <td>{{log.problem}}</td>
+                <td>{{log.response}}</td>
+              </tr>
+            </ng-container>
+          </table>
+          <div>
+            <button class="btn btn-primary btn-sm" (click)="addLog(r)"><i class="fas fa-plus"></i>Add Log</button>
           </div>
         </td>
       </tr>
@@ -121,14 +156,9 @@
     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
       <span aria-hidden="true">×</span>
     </button>
-    <h4 class="text-center">Bulk Update</h4>
+    <h4 class="text-center">Bulk Action</h4>
     <hr>
     <div class="container">
-      <div class="row mb-3">
-        When you submit, this will update the "Print CC Info"
-        and "Show non-PCI Data" status for all the [XXX] restaurants
-        currently displayed on the page.
-      </div>
       <div class="row mb-3">
         <div class="col-12">
           <!-- Credit Card Display Toggle -->
@@ -145,6 +175,11 @@
           </div>
         </div>
       </div>
+      <div class="row mb-3">
+        When you submit, this will update the "Print CC Info"
+        and "Show non-PCI Data" status for all the {{filteredRows.length}} restaurants
+        currently displayed on the page.
+      </div>
     </div>
 
     <div class="d-flex justify-content-end p-4">
@@ -154,4 +189,11 @@
 
   </q-modal>
   <!-- end with bulk action modal -->
+
+  <!-- start with log modal -->
+  <q-modal #logEditingModal>
+    <app-log-editor [restaurant]="loggingRT" [restaurantList]="[]" [log]="logInEditing"
+      (success)="onSuccessAddLog($event)" (cancel)="onCancelAddLog()"></app-log-editor>
+  </q-modal>
+  <!-- end with log modal -->
 </div>

@@ -1,3 +1,4 @@
+import { Log } from 'src/app/classes/log';
 import { AlertType } from 'src/app/classes/alert-type';
 import { environment } from 'src/environments/environment';
 import { GlobalService } from './../../../services/global.service';
@@ -61,7 +62,16 @@ enum sentBroadcastTypes {
   Not_Sent = 'Not sent'
 }
 
+enum hasLogsTypes {
+  All = 'Has Log?',
+  NoLogs = 'No logs',
+  HasLogs = 'Has logs'
+}
+
 const sortAlphabetical = (a, b) => (a || '').localeCompare(b || '');
+
+
+const PCI_COMPLIANCE_LOG_TYPE = 'pci-compliance'
 
 @Component({
   selector: 'app-monitoring-rts-with-payment-collect',
@@ -70,13 +80,16 @@ const sortAlphabetical = (a, b) => (a || '').localeCompare(b || '');
 })
 export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   @ViewChild('bulkActionModal') bulkActionModal: ModalComponent;
+  @ViewChild('logEditingModal') logEditingModal;
+
   restaurants = [];
   restaurantsColumnDescriptors = [
     { label: '#' },
     { label: 'Restaurant', paths: ['name'], sort: sortAlphabetical },
-    { label: 'Score', paths: ['score'], sort: (a, b) => a - b  },
-    { label: 'Timezone (as Offset to EST)'},
+    { label: 'Score', paths: ['score'], sort: (a, b) => a - b },
+    { label: 'Timezone (as Offset to EST)' },
     { label: 'Payment' },
+    { label: 'Logs' }
   ];
 
   pmtCollectOptions = [pmtCollectTypes.All, pmtCollectTypes.Cash, pmtCollectTypes.Key_In, pmtCollectTypes.Rt_Stripe, pmtCollectTypes.qMenu_Collect, pmtCollectTypes.Swipe_In_Person];
@@ -91,6 +104,8 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   languageOption = languageTypes.All;
   sentBroadcastOptions = [sentBroadcastTypes.All, sentBroadcastTypes.Sent, sentBroadcastTypes.Not_Sent];
   sentBroadcastOption = sentBroadcastTypes.All;
+  logOptions = [hasLogsTypes.All, hasLogsTypes.HasLogs, hasLogsTypes.NoLogs];
+  logOption = hasLogsTypes.All;
 
   rows = [];
   filteredRows = [];
@@ -100,6 +115,9 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   bulkShowPrintingCCInfo = true;
   bulkShowNonPCIData = true;
   now = new Date();
+  loggingRT: any = {};
+  logInEditing: Log = new Log({ type: PCI_COMPLIANCE_LOG_TYPE, time: new Date() });
+  copyAllIDs = true;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -115,7 +133,12 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   }
 
   copyRTIDs() {
-    let rtIDs = this.filteredRows.map(row => row._id).join(', ');
+    let rtIDs;
+    if (this.copyAllIDs) {
+      rtIDs = this.rows.map(row => row._id).join(', ');
+    } else {
+      rtIDs = this.filteredRows.map(row => row._id).join(', ');
+    }
     let text = `${rtIDs}`;
     const handleCopy = (e: ClipboardEvent) => {
       // clipboardData maybe null
@@ -126,7 +149,7 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     };
     document.addEventListener('copy', handleCopy);
     document.execCommand('copy');
-    this._global.publishAlert(AlertType.Success, 'the data of order has copyed to your clipboard ~', 1000);
+    this._global.publishAlert(AlertType.Success, 'the data has copyed to your clipboard ~', 1000);
   }
 
   openBulkActionModal() {
@@ -137,18 +160,18 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
 
   // our salesperson only wants to know what is the time offset
   // between EST and the location of restaurant
-  getTimeOffsetByTimezone(timezone){
-    if(timezone){
+  getTimeOffsetByTimezone(timezone) {
+    if (timezone) {
       let localTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), timezone);
       let ESTTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), 'America/New_York');
-      let offset = (ESTTime.valueOf() - localTime.valueOf())/(3600*1000);
-      return offset > 0 ? "+"+offset.toFixed(0) : offset.toFixed(0);
-    }else{
+      let offset = (ESTTime.valueOf() - localTime.valueOf()) / (3600 * 1000);
+      return offset > 0 ? "+" + offset.toFixed(0) : offset.toFixed(0);
+    } else {
       return 'N/A';
     }
   }
 
-  getTimezoneCity(timezone){
+  getTimezoneCity(timezone) {
     return (timezone || '').split('/')[1] || '';
   }
 
@@ -166,7 +189,16 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
             preferredLanguage: 1,
             broadcasts: 1,
             score: 1,
-            'googleAddress.timezone': 1 
+            'googleAddress.timezone': 1,
+            logs: {
+              $filter: {
+                input: '$logs',
+                as: 'log',
+                cond: {
+                  $eq: ['$$log.type', PCI_COMPLIANCE_LOG_TYPE]
+                }
+              }
+            }
           }
         },
         {
@@ -259,6 +291,15 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
         this.filteredRows = this.filteredRows.filter(row => !(row.broadcasts || []).some(b => b._id === this.broadcast));
       }
     }
+
+    // filter by has logs 
+    if (this.logOption !== hasLogsTypes.All) {
+      if (this.logOption === hasLogsTypes.HasLogs) {
+        this.filteredRows = this.filteredRows.filter(row => (row.logs || []).some(log => log.type === PCI_COMPLIANCE_LOG_TYPE));
+      } else if (this.logOption === hasLogsTypes.NoLogs) {
+        this.filteredRows = this.filteredRows.filter(row => !(row.logs || []).some(log => log.type === PCI_COMPLIANCE_LOG_TYPE));
+      }
+    }
   }
 
   async toggleEnabledForRow(rt, property) {
@@ -340,4 +381,45 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     }
     return 'Not enabled'
   }
+
+
+  async addLog(row) {
+    this.logInEditing = new Log({ type: PCI_COMPLIANCE_LOG_TYPE, time: new Date() });
+    let [restaurant] = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: { _id: { $oid: row._id } },
+      projection: { logs: 1 },
+      limit: 1
+    }).toPromise();
+    this.loggingRT = restaurant;
+    this.logEditingModal.show();
+  }
+
+  onSuccessAddLog(event) {
+    event.log.time = event.log.time ? event.log.time : new Date();
+    event.log.username = event.log.username ? event.log.username : this._global.user.username;
+    const newRT = JSON.parse(JSON.stringify(this.loggingRT));
+    newRT.logs.push(event.log);
+    this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{ old: { _id: this.loggingRT._id }, new: newRT }])
+      .subscribe(result => {
+        this._global.publishAlert(AlertType.Success, 'Log added successfully');
+        event.formEvent.acknowledge(null);
+        let index = this.rows.findIndex(x => x.qm_id === this.loggingRT._id);
+        this.rows[index].logs = newRT.logs.filter(x => x.type === PCI_COMPLIANCE_LOG_TYPE);
+        this.filterRTs();
+        this.logEditingModal.hide();
+        this.loggingRT = {};
+      },
+        error => {
+          this._global.publishAlert(AlertType.Danger, 'Error while adding log');
+          event.formEvent.acknowledge('Error while adding log');
+        }
+      );
+  }
+
+  onCancelAddLog() {
+    this.logEditingModal.hide();
+    this.loggingRT = {};
+  }
+
 }
