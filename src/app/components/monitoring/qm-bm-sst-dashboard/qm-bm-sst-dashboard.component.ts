@@ -1175,8 +1175,23 @@ export class QmBmSstDashboardComponent implements OnInit {
     let filename = [period_type, platform, 'Tier ' + tier, definition, 'churn.csv'].join('_');
     let titles = ['', 'Start Count', 'Total Lost (UT/DT/C)', 'Total Gained (IT/N)', 'End Count', 'Net +/- (%)'].join(',');
     let lines = [titles];
-    list.forEach(l => {
 
+    const percent = num => Math.round(num * 10000) / 100 + '%'
+
+    list.forEach(row => {
+      if (definition === ChurnDefinitionOptions.NoOrdersLast30d) {
+        let total_lost = `${0 - (row.pureLostToLower + row.pureLostToHigher + row.pureCanceled + row.deactivated)} (${0 - row.pureLostToHigher}/${0 - row.pureLostToLower}/${0 - (row.pureCanceled + row.deactivated)})`;
+        let total_gained = `${row.pureGainByUp + row.pureGainByDown + row.pureCreated + row.activated} (${row.pureGainByUp + row.pureGainByDown}/${row.pureCreated + row.activated})`;
+        let net = `${row.pureEnd - row.pureStart} (${percent((row.pureEnd - row.pureStart) / row.pureStart)})`
+        let line = [row.period, row.pureStart, total_lost, total_gained, row.pureEnd, net].join(',')
+        lines.push(line);
+      } else if (definition === ChurnDefinitionOptions.Disabled) {
+        let total_lost = `${0 - (row.lostToLower + row.lostToHigher + row.canceled)} (${0 - row.lostToHigher}/${0 - row.lostToLower}/${0 - row.canceled})`;
+        let total_gained = `${row.gainByUp + row.gainByDown + row.created} (${row.gainByUp + row.gainByDown}/${row.created})`;
+        let net = `${row.end - row.start} (${percent((row.end - row.start) / row.start)})`
+        let line = [row.period, row.start, total_lost, total_gained, row.end, net].join(',')
+        lines.push(line);
+      }
     });
 
     saveAs(new Blob([lines.join('\n')], { type: "application/octet-stream" }), filename);
