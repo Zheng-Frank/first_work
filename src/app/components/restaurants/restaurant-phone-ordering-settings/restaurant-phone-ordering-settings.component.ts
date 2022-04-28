@@ -32,8 +32,8 @@ export class RestaurantPhoneOrderingSettingsComponent implements OnInit {
   }
 
   private async fillChannels() {
-    // get channels from channels
-    const channels = (this.restaurant.channels || []).map(c => ({ type: c.type, value: c.value }));
+    // get channels from channels and also standardize type by uppercasing (used by downstream coding)
+    const channels = (this.restaurant.channels || []).map(c => ({ type: c.type.toUpperCase(), value: c.value }));
 
     // fill channels from printClients
     const printClients = await this.retrievePrintClients();
