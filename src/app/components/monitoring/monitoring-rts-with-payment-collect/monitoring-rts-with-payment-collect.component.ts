@@ -132,9 +132,9 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     return sentBroadcastTypes;
   }
 
-  copyRTIDs() {
+  copyRTIDs(copyAllIDs) {
     let rtIDs;
-    if (this.copyAllIDs) {
+    if (copyAllIDs) {
       rtIDs = this.rows.map(row => row._id).join(', ');
     } else {
       rtIDs = this.filteredRows.map(row => row._id).join(', ');
