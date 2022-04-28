@@ -653,12 +653,13 @@ export class QmBmSstDashboardComponent implements OnInit {
         months.push(`${cursor.getFullYear()}${Helper.padNumber(cursor.getMonth() + 1)}`);
         i++;
       }
+      console.log('rts without created at...', this.qmRTs.filter(x => !x.createdAt).map(x => x._id));
       this.qmRTs.forEach(rt => {
-        if (rt._id === '5e4dff062ec19e92fd076de3') {
-          console.log(rt)
-        }
         if (rt.place_id) {
           this.qmRTsPlaceDict[rt.place_id] = rt;
+        }
+        if (!rt.createdAt) {
+          rt.createdAt = Helper.getMongoDate(rt._id).toISOString()
         }
         let key = rt.place_id + rt.cid;
         // active: has order in last 30 days
@@ -704,7 +705,7 @@ export class QmBmSstDashboardComponent implements OnInit {
           }
         });
         let place_id = item.GooglePlaceID;
-        let { TierDec2021, TierNov2021, TierOct2021 } = item;
+        let { LastMonthOC, Last2ndMonthOC, Last3rdMonthOC, CuisineNameList } = item;
         let pricing = [
           "OrderFixedFeePerOrder", "CreditCardFixedFeePerOrder", "OrderMonthlyFee", "CreditCardFeePercentage",
           "AmexFeePercentage", "FaxUnitPrice", "PhoneUnitPrice", "OrderCommissionPercentage", "OrderCommissionMaximum",
@@ -721,11 +722,10 @@ export class QmBmSstDashboardComponent implements OnInit {
           bhasGmb: item.IsBmGmbControl,
           bchannels: channels,
           bmainPhone: item.Phone1,
-          createdAt: item.createdAt,
-          btier: Math.floor((TierDec2021 + TierNov2021 + TierOct2021) / 3),
+          btier: Helper.getTier((LastMonthOC + Last2ndMonthOC + Last3rdMonthOC) / 3),
           bpricing: pricing,
           bgoogleReviews: 0, // extra data use default value
-          bcuisines: [],
+          bcuisines: (CuisineNameList || '').split(',').filter(x => !!x),
           bcompetitorsCount: 0,
           bcouponsCount: 0,
           bactivities: {},
