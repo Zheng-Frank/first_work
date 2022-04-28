@@ -332,7 +332,7 @@ export default class ChurnHelper {
           // collect inactive data (RT's with 0 orders in this month)
           accumulate_inactive(inactive.monthly, month, 'bm', union_id);
         }
-        let is_latest_month = n_y === cur_year && n_m === cur_mon - 1;
+        let is_latest_month = n_y === cur_year && n_m === cur_mon;
         if (n_m % 3 === 0 || is_latest_month) {
           first_accumulate(activities.quarterly, quarter, count_orders, union_id);
           if (!count_orders) {
