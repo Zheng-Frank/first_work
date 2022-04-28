@@ -66,6 +66,8 @@ interface BaseChurnCount {
   pureLostToHigher: number,
   pureGainByDown: number, // high tier to cur tier (exclude inactive ones)
   pureGainByUp: number,
+  pureCanceled: number,
+  pureCreated: number,
   lost: any[],
   gained: any[],
   pureLosts: any[],
@@ -599,22 +601,29 @@ export default class ChurnHelper {
       let cur_ends = tiers[tk];
       let cur_created = Array.from(created).filter(x => cur_ends.has(x));
       tmp.created = cur_created.length;
+      let pure_cur_created = cur_created.filter(x => !inactive.has(x));
+      tmp.pureCreated = pure_cur_created.length;
 
       let prev_ends = prev[tk];
+      // since tier_3 includes inactive data, we need to deduplicate these rts
       let cur_inactivated = Array.from(inactive).filter(x => prev_ends.has(x) && !prev.inactive.has(x));
       tmp.deactivated = cur_inactivated.length;
-      let cur_activated = Array.from(cur_ends).filter(x => prev.inactive.has(x) && !prev_ends.has(x));
+
+      let cur_canceled = Array.from(canceled).filter(x => prev_ends.has(x));
+      tmp.canceled = cur_canceled.length;
+      let pure_cur_canceled = cur_canceled.filter(x => !prev.inactive.has(x));
+      tmp.pureCanceled = pure_cur_canceled.length;
+      tmp.start = prev_ends.size;
+      tmp.end = cur_ends.size;
+      let pure_cur_ends = Array.from(cur_ends).filter(x => !inactive.has(x));
+      tmp.pureEnd = pure_cur_ends.length;
+      let cur_activated = Array.from(pure_cur_ends).filter(x => prev.inactive.has(x));
       tmp.activated = cur_activated.length;
 
       if (period === '22 Mar' && tier === 3) {
         console.log(cur_inactivated, cur_activated, {...cur}, {...prev});
       }
 
-      let cur_canceled = Array.from(canceled).filter(x => prev_ends.has(x));
-      tmp.canceled = cur_canceled.length;
-      tmp.start = prev_ends.size;
-      tmp.end = cur_ends.size;
-      tmp.pureEnd = Array.from(cur_ends).filter(x => !inactive.has(x)).length;
       tmp.pureStart = Array.from(prev_ends).filter(x => !prev.inactive.has(x)).length;
 
       let losts = {}, gains = {}, pure_losts = {}, pure_gains = {};
@@ -684,25 +693,25 @@ export default class ChurnHelper {
         console.groupEnd();
       }
 
-      let pure_lost_tracked = new Set([...pureLostToLower, ...pureLostToHigher, ...cur_canceled, ...cur_inactivated]);
-      let pure_gain_tracked = new Set([...pureGainByUp, ...pureGainByDown, ...cur_created, ...cur_activated]);
+      let pure_lost_tracked = new Set([...pureLostToLower, ...pureLostToHigher, ...pure_cur_canceled, ...cur_inactivated]);
+      let pure_gain_tracked = new Set([...pureGainByUp, ...pureGainByDown, ...pure_cur_created, ...cur_activated]);
 
-      if (period && ((tmp.end - tmp.start) !== (pure_gain_tracked.size - pure_lost_tracked.size))) {
+      if (period && ((tmp.pureEnd - tmp.pureStart) !== (pure_gain_tracked.size - pure_lost_tracked.size))) {
         console.groupCollapsed('pure ' + period + ' tier ' + tier)
         console.log('gain...', gained.length, 'gain tracked...', pure_gain_tracked.size, 'lost...', lost.length, 'lost tracked...', pure_lost_tracked.size);
 
         console.log('dup lost tracked...',
           [...SetHelper.intersection(new Set(pureLostToHigher), new Set(pureLostToLower))],
-          [...SetHelper.intersection(new Set(pureLostToHigher), cur_canceled)],
-          [...SetHelper.intersection(new Set(pureLostToLower), cur_canceled)],
+          [...SetHelper.intersection(new Set(pureLostToHigher), pure_cur_canceled)],
+          [...SetHelper.intersection(new Set(pureLostToLower), pure_cur_canceled)],
           [...SetHelper.intersection(new Set(pureLostToLower), cur_inactivated)],
           [...SetHelper.intersection(new Set(pureLostToHigher), cur_inactivated)],
-          [...SetHelper.intersection(new Set(cur_canceled), cur_inactivated)]
+          [...SetHelper.intersection(new Set(pure_cur_canceled), cur_inactivated)]
         );
         console.log('dup gain tracked...',
           [...SetHelper.intersection(new Set(pureGainByDown), new Set(pureGainByUp))],
-          [...SetHelper.intersection(new Set(pureGainByDown), cur_created)],
-          [...SetHelper.intersection(new Set(pureGainByUp), cur_created)]
+          [...SetHelper.intersection(new Set(pureGainByDown), pure_cur_created)],
+          [...SetHelper.intersection(new Set(pureGainByUp), pure_cur_created)]
         );
         console.log('gain untracked...', gained.filter(x => !pure_gain_tracked.has(x)))
         console.log('lost untracked...', lost.filter(x => !pure_lost_tracked.has(x)))
