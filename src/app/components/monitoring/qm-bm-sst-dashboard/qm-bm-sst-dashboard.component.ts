@@ -1161,6 +1161,10 @@ export class QmBmSstDashboardComponent implements OnInit {
     this.filter();
   }
 
+  get churnDefinitions() {
+    return ChurnDefinitionOptions;
+  }
+
   getChurnList() {
     return ChurnHelper.getList(this.churnFilters);
   }

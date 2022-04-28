@@ -397,20 +397,44 @@
           </tr>
           </thead>
           <tbody>
-          <tr *ngFor="let row of getChurnList()">
-            <td>{{row.period}}</td>
-            <td>{{row.start}}</td>
-            <td>
-              <div>-{{row.lostToLower + row.lostToHigher + row.canceled}} (-{{row.lostToHigher}}/-{{row.lostToLower}}/-{{row.canceled}}){{row.inactive}}</div>
-              <div *ngFor="let item of row.lost">{{item.path}}: {{item.count}}</div>
-            </td>
-            <td>
-              <div>{{row.gainByUp + row.gainByDown + row.created}}({{row.gainByUp}}/{{row.gainByDown}}/{{row.created}})</div>
-              <div *ngFor="let item of row.gained">{{item.path}}: {{item.count}}</div>
-            </td>
-            <td>{{row.end}}</td>
-            <td>{{row.end - row.start}} ({{((row.end - row.start) / row.start) | percent: '1.0-2'}})</td>
-          </tr>
+          <ng-container *ngIf="churnFilters.definition === churnDefinitions.Disabled">
+            <tr *ngFor="let row of getChurnList()">
+              <td>{{row.period}}</td>
+              <td>{{row.start}}</td>
+              <td>
+                <div>-{{row.lostToLower + row.lostToHigher + row.canceled}} (-{{row.lostToHigher}}/-{{row.lostToLower}}/-{{row.canceled}})</div>
+                <div *ngFor="let item of row.lost">{{item.path}}: {{item.count}}</div>
+              </td>
+              <td>
+                <div>{{row.gainByUp + row.gainByDown + row.created}}({{row.gainByUp}}/{{row.gainByDown}}/{{row.created}})</div>
+                <div *ngFor="let item of row.gained">{{item.path}}: {{item.count}}</div>
+              </td>
+              <td>{{row.end}}</td>
+              <td>
+                {{row.end - row.start}} ({{((row.end - row.start) / row.start) | percent: '1.0-2'}})
+                {{(row.gainByUp + row.gainByDown + row.created) - (row.lostToLower + row.lostToHigher + row.canceled)}}
+              </td>
+            </tr>
+          </ng-container>
+          <ng-container *ngIf="churnFilters.definition === churnDefinitions.NoOrdersLast30d">
+            <tr *ngFor="let row of getChurnList()">
+              <td>{{row.period}}</td>
+              <td>{{row.start}}</td>
+              <td>
+                <div>-{{row.pureLostToLower + row.pureLostToHigher + row.canceled + row.deactivated}} (-{{row.pureLostToHigher}}/-{{row.pureLostToLower}}/-{{row.canceled}}/-{{row.deactivated}})</div>
+                <div *ngFor="let item of row.pureLosts">{{item.path}}: {{item.count}}</div>
+              </td>
+              <td>
+                <div>{{row.pureGainByUp + row.pureGainByDown + row.created + row.activated}}({{row.pureGainByUp}}/{{row.pureGainByDown}}/{{row.created}}/{{row.activated}})</div>
+                <div *ngFor="let item of row.pureGains">{{item.path}}: {{item.count}}</div>
+              </td>
+              <td>{{row.end}}</td>
+              <td>
+                {{row.end - row.start}} ({{((row.end - row.start) / row.start) | percent: '1.0-2'}})
+                {{(row.pureGainByUp + row.pureGainByDown + row.created + row.activated) - (row.pureLostToLower + row.pureLostToHigher + row.canceled + row.deactivated)}}
+              </td>
+            </tr>
+          </ng-container>
           </tbody>
         </table>
       </ng-container>
