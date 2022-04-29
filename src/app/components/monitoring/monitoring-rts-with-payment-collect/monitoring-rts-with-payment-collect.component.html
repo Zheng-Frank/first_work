@@ -186,7 +186,7 @@
       </div>
       <div class="row mb-3">
         When you submit, this will update the "Print CC Info"
-        and "Show non-PCI Data" status for all the {{filteredRows.length}} restaurants
+        and "Show non-PCI Data" status for all the {{this.pagination ?  this.paged().length : this.filteredRows.length}} restaurants
         currently displayed on the page.
       </div>
     </div>

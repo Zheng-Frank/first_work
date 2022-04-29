@@ -328,7 +328,6 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
         this.filteredRows = this.filteredRows.filter(row => !(row.logs || []).some(log => log.type === PCI_COMPLIANCE_LOG_TYPE));
       }
     }
-    this.paginate(0);
   }
 
   paginate(index) {
