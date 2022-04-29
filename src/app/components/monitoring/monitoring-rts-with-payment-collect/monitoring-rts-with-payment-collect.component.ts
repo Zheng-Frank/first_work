@@ -4,7 +4,7 @@ import { environment } from 'src/environments/environment';
 import { GlobalService } from './../../../services/global.service';
 import { ApiService } from './../../../services/api.service';
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { ModalComponent, TableComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { RouterLinkWithHref } from '@angular/router';
 import { TimezoneHelper } from '@qmenu/ui';
 declare var $: any;
@@ -80,6 +80,8 @@ const PCI_COMPLIANCE_LOG_TYPE = 'pci-compliance'
 })
 export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   @ViewChild('bulkActionModal') bulkActionModal: ModalComponent;
+  @ViewChild('qTable') qTable: TableComponent;
+  
   @ViewChild('logEditingModal') logEditingModal;
 
   restaurants = [];
@@ -135,9 +137,10 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   copyRTIDs(copyAllIDs) {
     let rtIDs;
     if (copyAllIDs) {
-      rtIDs = this.rows.map(row => row._id).join(', ');
-    } else {
       rtIDs = this.filteredRows.map(row => row._id).join(', ');
+    } else {
+      // rtIDs = this.filteredRows.map(row => row._id).join(', ');
+      let rtsOnPage = this.filteredRows.slice((this.qTable.myPager1.currentPageNumber + 1) * 100, );
     }
     let text = `${rtIDs}`;
     const handleCopy = (e: ClipboardEvent) => {
@@ -332,18 +335,18 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
         new: { _id: row._id }
       }
       oldNewPatchData.new['hidePrintingCCInfo'] = !this.bulkShowPrintingCCInfo;
-      oldNewPatchData.new['hideNonPCIData'] = !this.bulkShowNonPCIData;
-      // update filter row
       row['hidePrintingCCInfo'] = !this.bulkShowPrintingCCInfo;
-      row['hideNonPCIData'] = !this.bulkShowNonPCIData;
       row['showPrintingCCInfo'] = this.bulkShowPrintingCCInfo;
-      row['showNonPCIData'] = this.bulkShowNonPCIData;
-      // update origin row
       let index = this.rows.findIndex(r => r._id === row._id);
       this.rows[index]['hidePrintingCCInfo'] = !this.bulkShowPrintingCCInfo;
-      this.rows[index]['hideNonPCIData'] = !this.bulkShowNonPCIData;
       this.rows[index]['showPrintingCCInfo'] = this.bulkShowPrintingCCInfo;
-      this.rows[index]['showNonPCIData'] = this.bulkShowNonPCIData;
+      if (this.bulkShowPrintingCCInfo) {
+        oldNewPatchData.new['hideNonPCIData'] = !this.bulkShowNonPCIData;
+        row['hideNonPCIData'] = !this.bulkShowNonPCIData;
+        row['showNonPCIData'] = this.bulkShowNonPCIData;
+        this.rows[index]['hideNonPCIData'] = !this.bulkShowNonPCIData;
+        this.rows[index]['showNonPCIData'] = this.bulkShowNonPCIData;
+      }
       oldNewPairs.push(oldNewPatchData);
     });
 

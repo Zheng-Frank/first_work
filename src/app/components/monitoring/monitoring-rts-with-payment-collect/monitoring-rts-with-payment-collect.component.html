@@ -87,7 +87,7 @@
       <!-- end with pagnation -->
     </div>
 
-    <q-table [rows]="filteredRows" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
+    <q-table #qTable [rows]="filteredRows" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
       [pageSize]="pagination ? 100 : 100000">
       <tr *tableRowTemplate="let r">
         <td>{{filteredRows.indexOf(r) + 1}}</td>
@@ -168,7 +168,7 @@
           </div>
 
           <!-- PCI Data Display Toggle -->
-          <div>
+          <div *ngIf="!bulkShowPrintingCCInfo">
             <q-toggle [(ngModel)]="bulkShowNonPCIData">
             </q-toggle>
             <span>Show non-PCI Data</span>
