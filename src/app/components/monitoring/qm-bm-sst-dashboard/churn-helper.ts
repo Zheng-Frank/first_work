@@ -280,6 +280,8 @@ export default class ChurnHelper {
   static unified_rts_dates = {};
   static union_rts_dict = {};
 
+  static qm_rts_activity = {};
+
   static getList({platform, period_type, tier}) {
     let data = {
       [KPIPeriodOptions.Yearly]: this.yearly,
@@ -324,26 +326,34 @@ export default class ChurnHelper {
       accumulated[period] = tmp;
     };
 
-    bm_data.forEach(({bmid, month: month_date, count_orders}) => {
+    let latest_complete_month_counts = {}
+    bm_data.sort((a, b) => new Date(a.month).valueOf() - new Date(b.month).valueOf()).forEach(({bmid, month: month_date, count_orders}) => {
       earliest = Math.min(earliest, new Date(month_date).valueOf())
       let {month, quarter, year, year_number: n_y, month_number: n_m} = utc_yqm_keys(month_date)
-      let union_id = union_rt_dict.bm[bmid];
+      let union_id = union_rt_dict.bm[bmid], count = count_orders;
+      let is_latest_month = n_y === cur_year && n_m === cur_mon;
       if (union_id) {
-        first_accumulate(activities.monthly, month, count_orders, union_id);
-        if (!count_orders) {
+        // for current month, we use previous month's data since we do not have the ordersInLast30d data for BM
+        if (is_latest_month) {
+          count = latest_complete_month_counts[bmid] || 0;
+        } else {
+          latest_complete_month_counts[bmid] = count;
+        }
+        first_accumulate(activities.monthly, month, count, union_id);
+        if (!count) {
           // collect inactive data (RT's with 0 orders in this month)
           accumulate_inactive(inactive.monthly, month, 'bm', union_id);
         }
-        let is_latest_month = n_y === cur_year && n_m === cur_mon;
+
         if (n_m % 3 === 0 || is_latest_month) {
-          first_accumulate(activities.quarterly, quarter, count_orders, union_id);
-          if (!count_orders) {
+          first_accumulate(activities.quarterly, quarter, count, union_id);
+          if (!count) {
             accumulate_inactive(inactive.quarterly, quarter, 'bm', union_id);
           }
         }
         if (n_m === 12 || is_latest_month) {
-          first_accumulate(activities.yearly, year, count_orders, union_id);
-          if (!count_orders) {
+          first_accumulate(activities.yearly, year, count, union_id);
+          if (!count) {
             accumulate_inactive(inactive.yearly, year, 'bm', union_id);
           }
         }
@@ -362,18 +372,23 @@ export default class ChurnHelper {
       earliest = Math.min(earliest, new Date(month_date).valueOf())
       let {month, quarter, year, year_number: n_y, month_number: n_m} = utc_yqm_keys(month_date)
       let union_id = union_rt_dict.qm[qmid];
+      let is_latest_month = n_y === cur_year && n_m === cur_mon;
       if (union_id) {
-        let both_m_count = second_accumulate(activities.monthly, month, count_orders, union_id);
-        if (!count_orders) {
+        let count = count_orders;
+        // for current(latest, actually uncompleted) month, we use ordersInLast30d
+        if (is_latest_month) {
+          count = this.qm_rts_activity[qmid] || 0;
+        }
+        let both_m_count = second_accumulate(activities.monthly, month, count, union_id);
+        if (!count) {
           accumulate_inactive(inactive.monthly, month, 'qm', union_id);
         }
         if (!both_m_count) {
           accumulate_inactive(inactive.monthly, month, 'both', union_id);
         }
 
-        let is_latest_month = n_y === cur_year && n_m === cur_mon - 1;
         if (n_m % 3 === 0 || is_latest_month) {
-          let both_q_count = second_accumulate(activities.quarterly, quarter, count_orders, union_id);
+          let both_q_count = second_accumulate(activities.quarterly, quarter, count, union_id);
           if (!count_orders) {
             accumulate_inactive(inactive.quarterly, quarter, 'qm', union_id);
           }
@@ -382,7 +397,7 @@ export default class ChurnHelper {
           }
         }
         if (n_m === 12 || is_latest_month) {
-          let both_y_count = second_accumulate(activities.yearly, year, count_orders, union_id);
+          let both_y_count = second_accumulate(activities.yearly, year, count, union_id);
           if (!count_orders) {
             accumulate_inactive(inactive.yearly, year, 'qm', union_id);
           }
@@ -482,6 +497,11 @@ export default class ChurnHelper {
         this.union_rts_dict[union_id][plat] = plat_id;
       })
     });
+    union_rts.forEach(({_id, activity}) => {
+      if (_id) {
+        this.qm_rts_activity[_id] = activity || 0;
+      }
+    });
     // 1. collect activity data periodic
     let activities = this.accumulate_periodic(union_rt_dict, bm_data, qm_data);
 
@@ -578,14 +598,14 @@ export default class ChurnHelper {
       tiers[plat].forEach((set, tier) => {
         cur[plat][tier_key(tier)] = SetHelper.difference(tiers[plat][tier], cur[plat].canceled)
       });
-      this[field][period][plat] = this.calculate_v2(cur[plat], prev[plat], plat);
+      this[field][period][plat] = this.calculate_v2(cur[plat], prev[plat], plat, period);
     });
     return cur;
   }
 
 
 
-  static calculate_v2(cur, prev, plat) {
+  static calculate_v2(cur, prev, plat, period) {
     let plat_period_churn = {} as PlatformPeriodChurnCount;
     let { created, inactive, canceled, ...tiers } = cur;
 
@@ -664,7 +684,7 @@ export default class ChurnHelper {
       let gained = Array.from(cur_ends).filter(x => !prev_ends.has(x))
 
       if (plat === 'qm' && ((tmp.end - tmp.start) !== (gain_tracked.size - lost_tracked.size))) {
-        console.groupCollapsed(plat + ' tier ' + tier)
+        console.groupCollapsed(period + ' ' + plat + ' tier ' + tier)
         console.log('gain...', gained.length, 'gain tracked...', gain_tracked.size, 'lost...', lost.length, 'lost tracked...', lost_tracked.size);
 
         console.log('dup lost tracked...',

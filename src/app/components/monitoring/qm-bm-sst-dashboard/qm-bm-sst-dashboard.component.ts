@@ -494,6 +494,7 @@ export class QmBmSstDashboardComponent implements OnInit {
       return Months.indexOf(month_a) - Months.indexOf(month_b);
     });
 
+    console.log('qm_bm_rt_dict', rt_dict);
     ChurnHelper.preprocess(this.unionRTs, rt_dict, bm_data, qm_data);
   }
 
@@ -612,18 +613,6 @@ export class QmBmSstDashboardComponent implements OnInit {
           }
         ],
       }, 5000));
-      // populate cuisines
-      this.qmRTs.forEach((rt) => {
-        if (rt.cuisines) {
-          rt.cuisines.forEach(c => {
-            if (c && this.cuisines.indexOf(c) === -1) {
-              this.cuisines.push(c);
-            }
-          });
-        }
-      });
-
-      this.cuisines.sort((a, b) => a.localeCompare(b));
 
       const gmbBiz = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbBiz',
@@ -645,7 +634,7 @@ export class QmBmSstDashboardComponent implements OnInit {
         query: {},
         projection: { 'locations.cid': 1, 'locations.status': 1, 'locations.role': 1 }
       }, 500);
-
+      let allCuisines = new Set();
       let date = new Date();
       date.setDate(date.getDate() - 30);
       let months = [], cursor = new Date(), i = 0;
@@ -656,6 +645,13 @@ export class QmBmSstDashboardComponent implements OnInit {
       }
       console.log('rts without created at...', this.qmRTs.filter(x => !x.createdAt).map(x => x._id));
       this.qmRTs.forEach(rt => {
+        if (rt.cuisines) {
+          rt.cuisines.forEach(c => {
+            if (c) {
+              allCuisines.add(c)
+            }
+          });
+        }
         if (rt.place_id) {
           this.qmRTsPlaceDict[rt.place_id] = rt;
         }
@@ -712,6 +708,7 @@ export class QmBmSstDashboardComponent implements OnInit {
           "AmexFeePercentage", "FaxUnitPrice", "PhoneUnitPrice", "OrderCommissionPercentage", "OrderCommissionMaximum",
           "ReservationCommissionAmount", "ReservationCommissionMaximum"
         ].filter(k => !!item[k]).map(k => `${k}: ${item[k]}`).join(', ')
+        let cuisines = (CuisineNameList || '').split(',').filter(x => !!x);
         let data = {
           _bid: item.BusinessEntityID,
           bplace_id: item.GooglePlaceID,
@@ -726,13 +723,15 @@ export class QmBmSstDashboardComponent implements OnInit {
           btier: Helper.getTier((LastMonthOC + Last2ndMonthOC + Last3rdMonthOC) / 3),
           bpricing: pricing,
           bgoogleReviews: 0, // extra data use default value
-          bcuisines: (CuisineNameList || '').split(',').filter(x => !!x),
+          bcuisines: cuisines,
           bcompetitorsCount: 0,
           bcouponsCount: 0,
           bactivities: {},
           bactivity: 0,
           bordersPerMonth: 0
         }
+
+        cuisines.forEach(c => allCuisines.add(c));
 
         if (place_id) {
           this.bmRTsPlaceDict[place_id] = data;
@@ -753,6 +752,7 @@ export class QmBmSstDashboardComponent implements OnInit {
         return item;
       });
       console.log('gmb conflict...', this.unionRTs.filter(x => x.hasGmb && x.bhasGmb).map(({ _id, _bid }) => ({ _id, _bid })));
+      this.cuisines = Array.from(allCuisines).sort((a, b) => a.localeCompare(b));
       this.filter();
     } catch (error) {
       console.error(error);
@@ -1168,7 +1168,9 @@ export class QmBmSstDashboardComponent implements OnInit {
     let data = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
       method: 'get',
       resource: 'unified_bmq_dailyorders',
-      query: {o_date: {$gte: {$date: date}}},
+      aggregate: [
+        { $match: {o_date: {$gte: {$date: date}}} }
+      ],
       payload: { _id: 0, bm_id: 1, qm_id: 1, platform: 1, o_date: 1, ordercount: 1 },
       limit: 10000000
     }).toPromise();

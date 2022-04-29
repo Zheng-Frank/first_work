@@ -578,8 +578,8 @@
                 domain: <a *ngIf="row.website" [href]="row.website">{{row.website}}</a>
               </div>
               <ng-container *ngIf="row._bid && !row.bhide">
-                <div>BM: Tier {{row.btier}}, ID: {{row._bid}}, <ng-container *ngIf="row.createdAt">created:
-                    {{row.createdAt | dateTz: "YYYY-MM-DD": "America/New_York"}}</ng-container>, domain: <a
+                <div>BM: Tier {{row.btier}}, ID: {{row._bid}}, <ng-container *ngIf="row.bcreatedAt">created:
+                    {{row.bcreatedAt | dateTz: "yyyy-MM-dd": "America/New_York"}}</ng-container>, domain: <a
                     [href]="row.bwebsite">{{row.bwebsite}}</a></div>
                 <div *ngIf="showModels.pricing.model">BM Pricing: {{row.bpricing}}</div>
               </ng-container>
