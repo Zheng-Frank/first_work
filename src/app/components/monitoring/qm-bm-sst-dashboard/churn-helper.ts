@@ -16,10 +16,6 @@ interface PlatformPeriodChurnSets {
   tier_0: BaseChurnSets, tier_1: BaseChurnSets, tier_2: BaseChurnSets, tier_3: BaseChurnSets
 }
 
-interface PeriodChurnSets {
-  bm: PlatformPeriodChurnSets, qm: PlatformPeriodChurnSets, both: PlatformPeriodChurnSets
-}
-
 
 interface BaseIdSets {
   canceled: Set<string>, created: Set<string>, inactive: Set<string>,
@@ -168,25 +164,8 @@ const getYM = (date) => {
   return `${y}${Helper.padNumber(m)}`;
 }
 
-const baseChurnSets = (): BaseChurnSets => {
-  let obj = {} as BaseChurnSets;
-  ["start", "end", "canceled", "created", "inactive"].forEach(key => {
-    obj[key] = new Set();
-  })
-  return obj;
-}
 const tier_key = t => `tier_${t}` as keyof PlatformPeriodChurnSets
 
-const defaultChurnSets = (): PeriodChurnSets => {
-  let obj = {} as PeriodChurnSets;
-  PLATFORMS.forEach(plat => {
-    obj[plat] = {} as PlatformPeriodChurnSets;
-    [0, 1, 2, 3].forEach(tier => {
-      obj[plat][tier_key(tier)] = baseChurnSets();
-    })
-  });
-  return obj;
-}
 
 const baseChurnCount = (): BaseChurnCount => {
   let obj = {} as BaseChurnCount;
@@ -528,7 +507,7 @@ export default class ChurnHelper {
     });
   }
 
-  static fill_empty_v2(cur, period, tiers, activity) {
+  static fill_empty(cur, period, tiers, activity) {
     let period_end = timestamp_end(period);
     Object.entries(this.unified_rts_dates).forEach(([union_id, rest]) => {
       PLATFORMS.forEach(plat => {
@@ -539,7 +518,7 @@ export default class ChurnHelper {
             // add newly to tier_3 by default
             tiers[plat][3].add(union_id);
           }
-          if (disabledAt && new Date(disabledAt).valueOf() < period_end) {
+          if (disabledAt && new Date(disabledAt).valueOf() <= period_end) {
             // remove deleted
             tiers[plat].forEach(set => set.delete(union_id));
           } else {
@@ -578,7 +557,7 @@ export default class ChurnHelper {
             if (this.unified_rts_dates[union_id]) {
               let { createdAt, disabledAt } = this.unified_rts_dates[union_id][plat];
               let uncreated = createdAt && new Date(createdAt).valueOf() > period_end;
-              let deleted = disabledAt && new Date(disabledAt).valueOf() <= period_start;
+              let deleted = disabledAt && new Date(disabledAt).valueOf() < period_start;
               if (!uncreated && !deleted) {
                 let tier = Helper.getTier(counts[plat]);
                 tiers[plat][tier].add(union_id);
@@ -592,21 +571,19 @@ export default class ChurnHelper {
       });
     }
     // fill all empty parts
-    this.fill_empty_v2(cur, period, tiers, activity);
+    this.fill_empty(cur, period, tiers, activity);
 
     // calculate count and changes
     PLATFORMS.forEach((plat) => {
       tiers[plat].forEach((set, tier) => {
         cur[plat][tier_key(tier)] = SetHelper.difference(tiers[plat][tier], cur[plat].canceled)
       });
-      this[field][period][plat] = this.calculate_v2(cur[plat], prev[plat]);
+      this[field][period][plat] = this.calculate(cur[plat], prev[plat]);
     });
     return cur;
   }
 
-
-
-  static calculate_v2(cur, prev) {
+  static calculate(cur, prev) {
     let plat_period_churn = {} as PlatformPeriodChurnCount;
     let { created, inactive, canceled, ...tiers } = cur;
 
@@ -683,8 +660,6 @@ export default class ChurnHelper {
     return plat_period_churn;
   }
 
-
-
   static generate_periods() {
     const years = new Set(), quarters = new Set(), months = new Set();
     let cursor = new Date(this.earliest_time), now = new Date();
@@ -712,127 +687,6 @@ export default class ChurnHelper {
         return Number(year_a) - Number(year_b);
       }
       return MONTH_ABBR.indexOf(month_a) - MONTH_ABBR.indexOf(month_b);
-    });
-  }
-
-  static process(accum, uuid, platform, period, count, disabled, created) {
-    let tier = Helper.getTier(count);
-    if (!accum[period]) {
-      accum[period] = defaultChurnSets();
-    }
-    let temp = accum[period][platform];
-    let tier_data = temp[`tier_${tier}`] as BaseChurnSets;
-    tier_data.end.add(uuid);
-    if (disabled) {
-      tier_data.canceled.add(uuid);
-    }
-    if (created) {
-      tier_data.created.add(uuid);
-    }
-    if (!count) {
-      tier_data.inactive.add(uuid);
-    }
-    accum[period][platform][`tier_${tier}`] = tier_data;
-  }
-
-  // @deprecated
-  // version for activities data
-  static init(union_rts) {
-    // monthly: {"Jan 2020": {qm: [100, 1000, 2000, 3000], bm: [100, 1000, 2000, 3000], both: [150, 1500, 3000, 5000]}, ...}
-    // quarterly: {"2020 Q1": {qm: [100, 1000, 2000, 3000], bm: [100, 1000, 2000, 3000], both: [150, 1500, 3000, 5000]}, ...}
-    // yearly: {"2020": {qm: [100, 1000, 2000, 3000], bm: [100, 1000, 2000, 3000], both: [150, 1500, 3000, 5000]}, ...}
-
-    const Years = new Set(), Quarters = new Set(), Months = new Set();
-
-    let cur_mon = getYM(new Date()), cur_yqm = getDurationKeys(cur_mon);
-    Years.add(cur_yqm.year);
-    Quarters.add(cur_yqm.quarter);
-    Months.add(cur_yqm.month);
-    const monthly_data = {}, quarterly_data = {}, yearly_data = {};
-    let earliest = new Date().valueOf();
-    union_rts.forEach(({_id, activity, activities, disabledAt, createdAt, _bid, bactivity, bactivities, bdisabledAt, bcreatedAt}) => {
-      activity = activity || 0;
-      bactivity = bactivity || 0;
-      activities = activities || {};
-      bactivities = bactivities || {};
-      let uuid = [_id, _bid].filter(x => !!x).join('-');
-      earliest = Math.min(earliest, new Date(createdAt).valueOf(), new Date(bcreatedAt || 0).valueOf());
-      let disabledMon = getYM(disabledAt), createdMon = getYM(createdAt);
-      let bdisabledMon = getYM(bdisabledAt), bcreatedMon = getYM(bcreatedAt);
-
-      let bothOrders = {}, latest = { qm: 0, bm: 0 };
-      let qm_sorted = Object.entries(activities as {[key: string]: number}).sort((a, b) => Number(a[0]) - Number(b[0]));
-      qm_sorted.forEach(([mon, count], index) => {
-        let { year, quarter, month } = getDurationKeys(mon);
-        Years.add(year);
-        Quarters.add(quarter);
-        Months.add(month);
-        this.process(monthly_data, uuid, 'qm', month, count, disabledMon === mon, createdMon === mon);
-        bothOrders[month] = count;
-        let mon_num = Number(mon.substr(4));
-        if (mon_num % 3 === 0) {
-          this.process(quarterly_data, uuid, 'qm', quarter, count, disabledMon === mon, createdMon === mon)
-        }
-        if (mon_num === 12) {
-          this.process(yearly_data, uuid, 'qm', year, count, disabledMon === mon, createdMon === mon)
-        }
-        if (index === qm_sorted.length - 1) {
-          let tmp_date = new Date();
-          tmp_date.setMonth(tmp_date.getMonth() - 1);
-          if (getYM(tmp_date) === mon) {
-            latest.qm = count;
-          }
-        }
-      });
-      let bm_sorted = Object.entries(bactivities as {[key: string]: number}).sort((a, b) => Number(a[0]) - Number(b[0]));
-      bm_sorted.forEach(([mon, count], index) => {
-        let { year, quarter, month } = getDurationKeys(mon);
-        Years.add(year);
-        Quarters.add(quarter);
-        Months.add(month);
-        let mon_num = Number(mon.substr(4));
-        this.process(monthly_data, uuid, 'bm', month, count, bdisabledMon === mon, bcreatedMon === mon);
-
-        let total = (bothOrders[month] || 0) + count;
-        // created and canceled data for both will be handled later
-        this.process(monthly_data, uuid, 'both', month, total, false, false);
-        if (mon_num % 3 === 0) {
-          this.process(quarterly_data, uuid, 'bm', quarter, count, bdisabledMon === mon, bcreatedMon === mon)
-          this.process(quarterly_data, uuid, 'both', quarter, total, false, false)
-        }
-
-        if (mon_num === 12) {
-          this.process(yearly_data, uuid, 'bm', year, count, disabledMon === mon, createdMon === mon)
-          this.process(yearly_data, uuid, 'both', year, total, false, false)
-        }
-
-
-        if (index === bm_sorted.length - 1) {
-          let tmp_date = new Date();
-          tmp_date.setMonth(tmp_date.getMonth() - 1);
-          if (getYM(tmp_date) === mon) {
-            latest.bm = count;
-          }
-        }
-
-        if (index === 0) {
-          earliest = Math.min(earliest, new Date(Number(year), mon_num).valueOf())
-        }
-      });
-
-      // for current month, use ordersInLast30d
-      this.process(monthly_data, uuid, 'qm', cur_yqm.month, activity, disabledMon === cur_mon, createdMon === cur_mon);
-      this.process(monthly_data, uuid, 'bm', cur_yqm.month, bactivity, bdisabledMon === cur_mon, bcreatedMon === cur_mon);
-      this.process(monthly_data, uuid, 'both', cur_yqm.month, activity + bactivity, false, false);
-
-      // for current quarter and year, use ordersInLast30d if current not across month, latest completed month if across month
-      if (Number(cur_mon.substr(4)) === 1) {
-        latest.qm = activity;
-        latest.bm = bactivity;
-      }
-      this.process(quarterly_data, uuid, 'qm', cur_yqm.quarter, latest.qm, disabledMon === cur_mon, createdMon === cur_mon);
-      this.process(quarterly_data, uuid, 'bm', cur_yqm.quarter, latest.bm, bdisabledMon === cur_mon, bcreatedMon === cur_mon);
-      this.process(quarterly_data, uuid, 'both', cur_yqm.quarter, latest.qm + latest.bm, false, false);
     });
   }
 
