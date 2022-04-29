@@ -836,13 +836,9 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       this.apiRequesting = true;
       const query = { _id: { $oid: this.id } };
       this.managers = await this.getManagerAndUsers();
-      let bmRTs = [];
+      let bmRT;
       // --- BeyondMenu restaurants
-      try {
-        bmRTs = await this._api.post(environment.gmbNgrok + 'get-bm-restaurant').toPromise();
-      } catch (error) {
-        console.log('bm rt query error');
-      }
+
       this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'restaurant',
         query: query,
@@ -880,9 +876,11 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           this.getDelinquentDates();
           this.computeGMBStatus();
           // judge the status of this restaurant in beyond menu platform
-          let bmRT = bmRTs.filter(bm => bm.name === rt.name);  
-          console.log(bmRT);
-          this.enabledInBM = bmRT ? true : false;
+          this._api.get(`${environment.bmQueryRTAccuratelyApi}&GooglePlaceID=${(this.restaurant.googleListing || {}).place_id}&AuthKey=49da4e63-491a-4b6b-8b30-d879068e4094`).subscribe(result => {
+            bmRT = result;
+            console.log(bmRT);
+            this.enabledInBM = (bmRT || {}).isActive === 1 ? true : false;
+          });
         },
         error => {
           this.apiRequesting = false;

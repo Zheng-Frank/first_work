@@ -281,6 +281,7 @@ import { MonitoringRtsWithPaymentCollectComponent } from './components/monitorin
 import { ChangeRtAliasComponent } from './components/utilities/change-rt-alias/change-rt-alias.component';
 import { MonitoringWinBackCampaignComponent } from './components/monitoring/monitoring-win-back-campaign/monitoring-win-back-campaign.component';
 import { RestaurantPhoneOrderingSettingsComponent } from './components/restaurants/restaurant-phone-ordering-settings/restaurant-phone-ordering-settings.component';
+import { RestaurantBmInfoComponent } from './components/restaurants/restaurant-bm-info/restaurant-bm-info.component';
 
 
 
@@ -533,7 +534,8 @@ import { RestaurantPhoneOrderingSettingsComponent } from './components/restauran
     MonitoringRtsWithPaymentCollectComponent,
     ChangeRtAliasComponent,
     MonitoringWinBackCampaignComponent,
-    RestaurantPhoneOrderingSettingsComponent
+    RestaurantPhoneOrderingSettingsComponent,
+    RestaurantBmInfoComponent
   ],
   imports: [
     BrowserModule,

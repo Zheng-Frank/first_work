@@ -1,0 +1,8 @@
+<div *ngIf="bmRT;else elseBlock">
+  {{ bmRT | json }}
+</div>
+<ng-template #elseBlock>
+  <div class="text-danger">
+    No match found
+  </div>
+</ng-template>
