@@ -263,6 +263,8 @@ const utc_yqm_keys = (date) => {
   return {month, quarter, year: y, year_number: n_y, month_number: n_m}
 }
 
+const tier_move = (from, to) => [from ? `Tier ${from}` : 'VIP', ' -> ', to ? `Tier ${to}` : 'VIP'].join('')
+
 export default class ChurnHelper {
 
   static earliest_time = new Date().valueOf();
@@ -576,14 +578,14 @@ export default class ChurnHelper {
       tiers[plat].forEach((set, tier) => {
         cur[plat][tier_key(tier)] = SetHelper.difference(tiers[plat][tier], cur[plat].canceled)
       });
-      this[field][period][plat] = this.calculate_v2(cur[plat], prev[plat]);
+      this[field][period][plat] = this.calculate_v2(cur[plat], prev[plat], plat);
     });
     return cur;
   }
 
 
 
-  static calculate_v2(cur, prev) {
+  static calculate_v2(cur, prev, plat) {
     let plat_period_churn = {} as PlatformPeriodChurnCount;
     let { created, inactive, canceled, ...tiers } = cur;
 
@@ -617,16 +619,16 @@ export default class ChurnHelper {
 
       let losts = {}, gains = {}, pure_losts = {}, pure_gains = {};
       highers.forEach(h => {
-        losts[`Tier ${tier} -> Tier ${h}`] = Array.from(prev_ends).filter(x => tiers[tier_key(h)].has(x)).length;
-        pure_losts[`Tier ${tier} -> Tier ${h}`] = Array.from(prev_ends).filter(x => !prev.inactive.has(x) && tiers[tier_key(h)].has(x)).length;
-        gains[`Tier ${h} -> Tier ${tier}`] = Array.from(cur_ends).filter(x => prev[tier_key(h)].has(x)).length;
-        pure_gains[`Tier ${h} -> Tier ${tier}`] = Array.from(cur_ends).filter(x => !inactive.has(x) && prev[tier_key(h)].has(x)).length;
+        losts[tier_move(tier, h)] = Array.from(prev_ends).filter(x => tiers[tier_key(h)].has(x)).length;
+        pure_losts[tier_move(tier, h)] = Array.from(prev_ends).filter(x => !prev.inactive.has(x) && tiers[tier_key(h)].has(x)).length;
+        gains[tier_move(h, tier)] = Array.from(cur_ends).filter(x => prev[tier_key(h)].has(x)).length;
+        pure_gains[tier_move(h, tier)] = Array.from(cur_ends).filter(x => !inactive.has(x) && prev[tier_key(h)].has(x)).length;
       });
       lowers.forEach(l => {
-        losts[`Tier ${tier} -> Tier ${l}`] = Array.from(prev_ends).filter(x => tiers[tier_key(l)].has(x)).length;
-        pure_losts[`Tier ${tier} -> Tier ${l}`] = Array.from(prev_ends).filter(x => !inactive.has(x) && tiers[tier_key(l)].has(x)).length;
-        gains[`Tier ${l} -> Tier ${tier}`] = Array.from(cur_ends).filter(x => prev[tier_key(l)].has(x)).length;
-        pure_gains[`Tier ${l} -> Tier ${tier}`] = Array.from(cur_ends).filter(x => !prev.inactive.has(x) && prev[tier_key(l)].has(x)).length;
+        losts[tier_move(tier, l)] = Array.from(prev_ends).filter(x => tiers[tier_key(l)].has(x)).length;
+        pure_losts[tier_move(tier, l)] = Array.from(prev_ends).filter(x => !inactive.has(x) && tiers[tier_key(l)].has(x)).length;
+        gains[tier_move(l, tier)] = Array.from(cur_ends).filter(x => prev[tier_key(l)].has(x)).length;
+        pure_gains[tier_move(l, tier)] = Array.from(cur_ends).filter(x => !prev.inactive.has(x) && prev[tier_key(l)].has(x)).length;
       });
 
       tmp.lost = Object.entries(losts).map(([path, count]) => ({path, count}));
@@ -654,6 +656,34 @@ export default class ChurnHelper {
       tmp.lostToLower = lostToLower.length;
       let pureLostToLower = lostToLower.filter(x => !inactive.has(x));
       tmp.pureLostToLower = pureLostToLower.length;
+
+      let lost_tracked = new Set([...lostToLower, ...lostToHigher, ...cur_canceled]);
+      let gain_tracked = new Set([...gainByUp, ...gainByDown, ...cur_created]);
+
+      let lost = Array.from(prev_ends).filter(x => !cur_ends.has(x))
+      let gained = Array.from(cur_ends).filter(x => !prev_ends.has(x))
+
+      if (plat === 'qm' && ((tmp.end - tmp.start) !== (gain_tracked.size - lost_tracked.size))) {
+        console.groupCollapsed(plat + ' tier ' + tier)
+        console.log('gain...', gained.length, 'gain tracked...', gain_tracked.size, 'lost...', lost.length, 'lost tracked...', lost_tracked.size);
+
+        console.log('dup lost tracked...',
+          [...SetHelper.intersection(new Set(lostToLower), new Set(lostToHigher))],
+          [...SetHelper.intersection(new Set(lostToHigher), cur_canceled)],
+          [...SetHelper.intersection(new Set(lostToLower), cur_canceled)]
+        );
+        console.log('dup gain tracked...',
+          [...SetHelper.intersection(new Set(gainByUp), new Set(gainByDown))],
+          [...SetHelper.intersection(new Set(gainByUp), cur_created)],
+          [...SetHelper.intersection(new Set(gainByDown), cur_created)]
+        );
+        console.log('gain untracked...', gained.filter(x => !gain_tracked.has(x)))
+        console.log('lost untracked...', lost.filter(x => !lost_tracked.has(x)))
+        console.log('gain_over tracked...', [...gain_tracked].filter(x => !gained.includes(x)))
+        console.log('lost_over tracked...', [...lost_tracked].filter(x => !lost.includes(x)))
+        console.groupEnd();
+      }
+
       plat_period_churn[tk] = tmp;
     });
     return plat_period_churn;

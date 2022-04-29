@@ -238,6 +238,7 @@ export class QmBmSstDashboardComponent implements OnInit {
     platform: PlatformOptions.Both,
     period_type: KPIPeriodOptions.Yearly,
     tier: 1,
+    show_movement: false,
     definition: ChurnDefinitionOptions.NoOrdersLast30d
   };
   kpiFilters = {
@@ -1159,6 +1160,21 @@ export class QmBmSstDashboardComponent implements OnInit {
     }
 
     this.filter();
+  }
+
+  async getLast30dOrders() {
+    let date = new Date();
+    date.setDate(date.getDate() - 30);
+    let data = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
+      method: 'get',
+      resource: 'unified_bmq_dailyorders',
+      query: {o_date: {$gte: {$date: date}}},
+      payload: { _id: 0, bm_id: 1, qm_id: 1, platform: 1, o_date: 1, ordercount: 1 },
+      limit: 10000000
+    }).toPromise();
+
+    console.log(data);
+
   }
 
   get churnDefinitions() {

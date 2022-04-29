@@ -373,13 +373,18 @@
           </div>
           <div class="col-auto">
             <select class="form-control custom-select" [(ngModel)]="churnFilters.tier">
-              <option *ngFor="let tier of [0, 1,2,3]" [ngValue]="tier" >Tier {{tier}}</option>
+              <option *ngFor="let tier of [0,1,2,3]" [ngValue]="tier" >{{tier ? 'Tier ' + tier : 'VIP'}}</option>
             </select>
           </div>
           <div class="col-auto">
             <select class="form-control custom-select" [(ngModel)]="churnFilters.definition">
               <option *ngFor="let opt of dropdowns('churn_definition')" [ngValue]="opt">{{opt}}</option>
             </select>
+          </div>
+          <div class="col-auto">
+            <label class="form-control-plaintext">
+              <input class="mr-1" type="checkbox" [(ngModel)]="churnFilters.show_movement" /> Show exact tier movement
+            </label>
           </div>
           <div class="col-auto">
             <a class="btn btn-link" (click)="churnDownload()">Download CSV</a>
@@ -405,16 +410,19 @@
                 <div>
                   {{0 - (row.lostToLower + row.lostToHigher + row.canceled)}} ({{0 - row.lostToHigher}}/{{0 - row.lostToLower}}/{{0 - row.canceled}})
                 </div>
-                <div *ngFor="let item of row.lost">{{item.path}}: {{item.count}}</div>
+                <div class="tier-move" *ngIf="churnFilters.show_movement">
+                  <div *ngFor="let item of row.lost">{{item.path}}: {{item.count}}</div>
+                </div>
               </td>
               <td>
                 <div>{{row.gainByUp + row.gainByDown + row.created}} ({{row.gainByUp + row.gainByDown}}/{{row.created}})</div>
-                <div *ngFor="let item of row.gained">{{item.path}}: {{item.count}}</div>
+                <div class="tier-move" *ngIf="churnFilters.show_movement">
+                  <div *ngFor="let item of row.gained">{{item.path}}: {{item.count}}</div>
+                </div>
               </td>
               <td>{{row.end}}</td>
               <td>
-                <div>{{row.end - row.start}} ({{((row.end - row.start) / row.start) | percent: '1.0-2'}})</div>
-                <div>{{(row.gainByUp + row.gainByDown + row.created) - (row.lostToLower + row.lostToHigher + row.canceled)}}</div>
+                {{row.end - row.start}} ({{((row.end - row.start) / row.start) | percent: '1.0-2'}})
               </td>
             </tr>
           </ng-container>
@@ -426,16 +434,19 @@
                 <div>
                   {{0 - (row.pureLostToLower + row.pureLostToHigher + row.pureCanceled + row.deactivated)}} ({{0 - row.pureLostToHigher}}/{{0 - row.pureLostToLower}}/{{0 - (row.pureCanceled + row.deactivated)}})
                 </div>
-                <div *ngFor="let item of row.pureLosts">{{item.path}}: {{item.count}}</div>
+                <div class="tier-move" *ngIf="churnFilters.show_movement">
+                  <div *ngFor="let item of row.pureLosts">{{item.path}}: {{item.count}}</div>
+                </div>
               </td>
               <td>
                 <div>{{row.pureGainByUp + row.pureGainByDown + row.pureCreated + row.activated}} ({{row.pureGainByUp + row.pureGainByDown}}/{{row.pureCreated + row.activated}})</div>
-                <div *ngFor="let item of row.pureGains">{{item.path}}: {{item.count}}</div>
+                <div class="tier-move" *ngIf="churnFilters.show_movement">
+                  <div *ngFor="let item of row.pureGains">{{item.path}}: {{item.count}}</div>
+                </div>
               </td>
               <td>{{row.pureEnd}}</td>
               <td>
-                <div>{{row.pureEnd - row.pureStart}} ({{((row.pureEnd - row.pureStart) / row.pureStart) | percent: '1.0-2'}})</div>
-                <div>{{(row.pureGainByUp + row.pureGainByDown + row.pureCreated + row.activated) - (row.pureLostToLower + row.pureLostToHigher + row.pureCanceled + row.deactivated)}}</div>
+                {{row.pureEnd - row.pureStart}} ({{((row.pureEnd - row.pureStart) / row.pureStart) | percent: '1.0-2'}})
               </td>
             </tr>
           </ng-container>
