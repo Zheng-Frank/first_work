@@ -332,8 +332,10 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   }
 
   paginate(index) {
-    this.pageIndex = index;
-    this.myPager1.currentPageNumber = index;
+    if (this.pagination) {
+      this.pageIndex = index;
+      this.myPager1.currentPageNumber = index;
+    }
   }
 
   async toggleEnabledForRow(rt, property) {
@@ -360,7 +362,7 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   // bulk toggle update
   async bulkToggleEnabled() {
     let oldNewPairs = [];
-    let list = this.pagination ? this.filteredRows : this.paged();
+    let list = this.pagination ?  this.paged() : this.filteredRows;
 
     list.forEach(row => {
       let oldNewPatchData = {
@@ -384,7 +386,7 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     });
 
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', oldNewPairs).subscribe(results => {
-      this._global.publishAlert(AlertType.Success, `Bulk updated!`);
+      this._global.publishAlert(AlertType.Success, `Bulk updated ${list.length} rows!`);
     },
       error => {
         this._global.publishAlert(AlertType.Danger, error);
