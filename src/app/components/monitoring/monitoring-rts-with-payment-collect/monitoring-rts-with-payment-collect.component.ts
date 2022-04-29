@@ -4,7 +4,7 @@ import { environment } from 'src/environments/environment';
 import { GlobalService } from './../../../services/global.service';
 import { ApiService } from './../../../services/api.service';
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { ModalComponent, TableComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { ModalComponent, PagerComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { RouterLinkWithHref } from '@angular/router';
 import { TimezoneHelper } from '@qmenu/ui';
 declare var $: any;
@@ -79,8 +79,8 @@ const PCI_COMPLIANCE_LOG_TYPE = 'pci-compliance'
   styleUrls: ['./monitoring-rts-with-payment-collect.component.css']
 })
 export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
+  @ViewChild('myPager1') myPager1: PagerComponent;
   @ViewChild('bulkActionModal') bulkActionModal: ModalComponent;
-  @ViewChild('qTable') qTable: TableComponent;
   
   @ViewChild('logEditingModal') logEditingModal;
 
@@ -93,6 +93,8 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     { label: 'Payment' },
     { label: 'Logs' }
   ];
+  sortedOneDirector = 1;
+  lastSortColumn = null;
 
   pmtCollectOptions = [pmtCollectTypes.All, pmtCollectTypes.Cash, pmtCollectTypes.Key_In, pmtCollectTypes.Rt_Stripe, pmtCollectTypes.qMenu_Collect, pmtCollectTypes.Swipe_In_Person];
   pmtCollectOption = pmtCollectTypes.All;
@@ -120,6 +122,8 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   loggingRT: any = {};
   logInEditing: Log = new Log({ type: PCI_COMPLIANCE_LOG_TYPE, time: new Date() });
   copyAllIDs = true;
+  pageIndex = 0;
+  pageSize = 100;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -128,6 +132,24 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     await this.populateRTsByPmtCollect();
     await this.populatePrintClients();
     this.filterRTs();
+  }
+
+  sort(ds) {
+    this.sortedOneDirector = -this.sortedOneDirector;
+    if (ds.sort) {
+      this.rows.sort((row1, row2) => this.sortedOneDirector * ds.sort(this.getData(row1, ds), this.getData(row2, ds)));
+      this.lastSortColumn = ds;
+    }
+  }
+
+  getData(row, ds) {
+    let data = row;
+    (ds.paths || []).map(path => { if (data !== null && typeof data === 'object') { data = data[path]; } });
+    return data;
+  }
+
+  paged() {
+    return this.filteredRows.slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize);
   }
 
   get sentBroadcastTypes() {
@@ -139,8 +161,11 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     if (copyAllIDs) {
       rtIDs = this.filteredRows.map(row => row._id).join(', ');
     } else {
-      // rtIDs = this.filteredRows.map(row => row._id).join(', ');
-      let rtsOnPage = this.filteredRows.slice((this.qTable.myPager1.currentPageNumber + 1) * 100, );
+      if (this.pagination) {
+        rtIDs = this.paged().map(row => row._id).join(', ');
+      } else {
+        rtIDs = this.filteredRows.map(row => row._id).join(', ');
+      }
     }
     let text = `${rtIDs}`;
     const handleCopy = (e: ClipboardEvent) => {
@@ -152,7 +177,7 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     };
     document.addEventListener('copy', handleCopy);
     document.execCommand('copy');
-    this._global.publishAlert(AlertType.Success, `${copyAllIDs ? this.rows.length : this.filteredRows.length} has copyed to your clipboard ~`, 1000);
+    this._global.publishAlert(AlertType.Success, `${copyAllIDs ? this.filteredRows.length : this.pagination ? this.paged().length : this.filteredRows.length} has copyed to your clipboard ~`, 1000);
   }
 
   openBulkActionModal() {
@@ -303,6 +328,12 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
         this.filteredRows = this.filteredRows.filter(row => !(row.logs || []).some(log => log.type === PCI_COMPLIANCE_LOG_TYPE));
       }
     }
+    this.paginate(0);
+  }
+
+  paginate(index) {
+    this.pageIndex = index;
+    this.myPager1.currentPageNumber = index;
   }
 
   async toggleEnabledForRow(rt, property) {

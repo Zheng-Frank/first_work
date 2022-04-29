@@ -11,12 +11,12 @@
       <!-- end with bulk action -->
       <!-- start with copy rts id -->
       <div class="col-auto mb-3">
-        <button class="btn btn-link" (click)="copyRTIDs(!copyAllIDs)">Copy IDs filtered</button>
+        <button class="btn btn-link" (click)="copyRTIDs(copyAllIDs)">Copy IDs filtered</button>
       </div>
       <!-- end with copy rts id -->
       <!-- start with copy rts id -->
       <div class="col-auto mb-3">
-        <button class="btn btn-link" (click)="copyRTIDs(copyAllIDs)">Copy IDs on page</button>
+        <button class="btn btn-link" (click)="copyRTIDs(!copyAllIDs)">Copy IDs on page</button>
       </div>
       <!-- end with copy rts id -->
     </div>
@@ -87,68 +87,77 @@
       <!-- end with pagnation -->
     </div>
 
-    <q-table #qTable [rows]="filteredRows" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
-      [pageSize]="pagination ? 100 : 100000">
-      <tr *tableRowTemplate="let r">
-        <td>{{filteredRows.indexOf(r) + 1}}</td>
-        <td>
-          <div>
-            <a class="mr-2" target="_blank" routerLink="/restaurants/{{r['_id']}}">{{r.name}}</a>
-          </div>
-          <div>{{r._id}}</div>
-        </td>
-        <td>
-          {{ r.score | number : '1.0-0' }}
-        </td>
-        <td>
-          {{getTimezoneCity(r.googleAddress?.timezone)}} ({{getTimeOffsetByTimezone(r.googleAddress?.timezone)}})
-        </td>
-        <td>
-          <div *ngFor="let service of (r.serviceSettings || [])">
-            {{service.name}}: {{(service.paymentMethods || []).join(', ') || 'N/A'}}
-          </div>
+    <table class="table">
+      <thead>
+        <th *ngFor="let ds of restaurantsColumnDescriptors" (click)="sort(ds)"
+        class="{{ds.sort ? 'sortable' : ''}}">
+        {{ds.label}}{{ds.sort ? ds === lastSortColumn ? sortedOneDirector === 1 ? '🡅' : '🡇' : ' ⥮' : ''}}
+        </th>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of (pagination ? paged() : filteredRows);let i = index">
+          <td>{{i + 1}}</td>
+          <td>
+            <div>
+              <a class="mr-2" target="_blank" routerLink="/restaurants/{{r['_id']}}">{{r.name}}</a>
+            </div>
+            <div>{{r._id}}</div>
+          </td>
+          <td>
+            {{ r.score | number : '1.0-0' }}
+          </td>
+          <td>
+            {{getTimezoneCity(r.googleAddress?.timezone)}} ({{getTimeOffsetByTimezone(r.googleAddress?.timezone)}})
+          </td>
+          <td>
+            <div *ngFor="let service of (r.serviceSettings || [])">
+              {{service.name}}: {{(service.paymentMethods || []).join(', ') || 'N/A'}}
+            </div>
 
-          <!-- Credit Card Display Toggle -->
-          <div>
-            <q-toggle [(ngModel)]="r.showPrintingCCInfo" (change)="toggleEnabledForRow(r, 'hidePrintingCCInfo')">
-            </q-toggle>
-            <span>Print CC Info</span>
-          </div>
+            <!-- Credit Card Display Toggle -->
+            <div>
+              <q-toggle [(ngModel)]="r.showPrintingCCInfo" (change)="toggleEnabledForRow(r, 'hidePrintingCCInfo')">
+              </q-toggle>
+              <span>Print CC Info</span>
+            </div>
 
-          <!-- PCI Data Display Toggle -->
-          <div *ngIf="r.showPrintingCCInfo">
-            <q-toggle [(ngModel)]="r.showNonPCIData" (change)="toggleEnabledForRow(r, 'hideNonPCIData')">
-            </q-toggle>
-            <span>Show non-PCI Data</span>
-          </div>
-          <!-- Fei-e Printing Display -->
-          <div>
-            <b>Fei-e Printing: </b> {{displayFeieMessage(r)}}
-          </div>
-        </td>
-        <td style="width:40%;">
-          <table class="table table-sm">
-            <tr>
-              <th>User</th>
-              <th>Time</th>
-              <th>Problem</th>
-              <th>Response</th>
-            </tr>
-            <ng-container *ngFor="let log of (r.logs || [])">
+            <!-- PCI Data Display Toggle -->
+            <div *ngIf="r.showPrintingCCInfo">
+              <q-toggle [(ngModel)]="r.showNonPCIData" (change)="toggleEnabledForRow(r, 'hideNonPCIData')">
+              </q-toggle>
+              <span>Show non-PCI Data</span>
+            </div>
+            <!-- Fei-e Printing Display -->
+            <div>
+              <b>Fei-e Printing: </b> {{displayFeieMessage(r)}}
+            </div>
+          </td>
+          <td style="width:40%;">
+            <table class="table table-sm">
               <tr>
-                <td>{{log.username}}</td>
-                <td>{{log.time | adjustedDate : 'MMM d h:mm a' : r.googleAddress.timezone}}</td>
-                <td>{{log.problem}}</td>
-                <td>{{log.response}}</td>
+                <th>User</th>
+                <th>Time</th>
+                <th>Problem</th>
+                <th>Response</th>
               </tr>
-            </ng-container>
-          </table>
-          <div>
-            <button class="btn btn-primary btn-sm" (click)="addLog(r)"><i class="fas fa-plus"></i>Add Log</button>
-          </div>
-        </td>
-      </tr>
-    </q-table>
+              <ng-container *ngFor="let log of (r.logs || [])">
+                <tr>
+                  <td>{{log.username}}</td>
+                  <td>{{log.time | adjustedDate : 'MMM d h:mm a' : r.googleAddress.timezone}}</td>
+                  <td>{{log.problem}}</td>
+                  <td>{{log.response}}</td>
+                </tr>
+              </ng-container>
+            </table>
+            <div>
+              <button class="btn btn-primary btn-sm" (click)="addLog(r)"><i class="fas fa-plus"></i>Add Log</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <q-pager #myPager1 [numberOfRows]="filteredRows.length" *ngIf="pagination" [pageSize]="100" (pageChange)="paginate($event)">
+    </q-pager>
   </div>
 
   <!-- start with bulk action modal -->
