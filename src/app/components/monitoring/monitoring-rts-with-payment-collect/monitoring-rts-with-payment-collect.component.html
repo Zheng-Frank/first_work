@@ -177,7 +177,7 @@
           </div>
 
           <!-- PCI Data Display Toggle -->
-          <div *ngIf="!bulkShowPrintingCCInfo">
+          <div *ngIf="bulkShowPrintingCCInfo">
             <q-toggle [(ngModel)]="bulkShowNonPCIData">
             </q-toggle>
             <span>Show non-PCI Data</span>

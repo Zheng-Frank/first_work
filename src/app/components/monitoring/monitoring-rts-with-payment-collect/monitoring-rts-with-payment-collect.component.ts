@@ -360,7 +360,9 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   // bulk toggle update
   async bulkToggleEnabled() {
     let oldNewPairs = [];
-    this.filteredRows.forEach(row => {
+    let list = this.pagination ? this.filteredRows : this.paged();
+
+    list.forEach(row => {
       let oldNewPatchData = {
         old: { _id: row._id },
         new: { _id: row._id }
