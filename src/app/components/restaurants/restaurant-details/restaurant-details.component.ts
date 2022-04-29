@@ -66,7 +66,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     webSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER', 'GMB'],
     restaurantManagedWebSettings: ['ADMIN', 'GMB_SPECIALIST', 'MENU_EDITOR'],
     restaurantChains: ['ADMIN', 'CSR', 'CSR_MANAGER'],
-    orderNotifications: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER']
+    orderNotifications: ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER'],
+    phoneOrdering: ['ADMIN', 'CSR', 'CSR_MANAGER'],
   };
 
   projections = {
@@ -124,6 +125,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     people: 1,
     pickupMinimum: 1,
     pickupTimeEstimate: 1,
+    phoneOrderingSettings: 1,
     preferredLanguage: 1,
     printCopies: 1,
     printerKey: 1,
@@ -672,7 +674,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
             if (error.indexOf(key) !== -1 && this.isMissingError(error) && missing.indexOf(this.warningMap[key]) === -1) {
               missing.push(this.warningMap[key]);
             }
-            if(r.name === 'web' && key === 'qmenuWebsite' && this.isMissingError(error) && missing.indexOf(this.warningMap[key]) === -1){
+            if (r.name === 'web' && key === 'qmenuWebsite' && this.isMissingError(error) && missing.indexOf(this.warningMap[key]) === -1) {
               missing.push(this.warningMap[key]);
             }
           });

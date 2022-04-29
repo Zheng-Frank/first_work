@@ -35,7 +35,8 @@
       <ul class="nav nav-tabs card-header-tabs">
         <li class="nav-item" *ngFor="let tab of tabs">
           <a *ngIf="tab === 'Settings' || tab === 'GMB' || tab === 'Logs' "
-            class="nav-link d-flex align-items-center {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)" style="cursor: pointer;">
+            class="nav-link d-flex align-items-center {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
+            style="cursor: pointer;">
             {{tab}}
             <ng-container *ngIf="tab === 'Logs'">({{restaurant?.logs?.length || 0}})</ng-container>
             <ng-container *ngIf="tab === 'GMB'">
@@ -49,7 +50,8 @@
     </div>
     <div class="card-body">
       <div *ngIf="activeTab === 'Settings'">
-        <app-restaurant-profile [restaurant]="restaurant" [users]="knownUsers" [editable]="false"></app-restaurant-profile>
+        <app-restaurant-profile [restaurant]="restaurant" [users]="knownUsers" [editable]="false">
+        </app-restaurant-profile>
       </div>
       <div *ngIf="activeTab === 'GMB'">
         <app-restaurant-gmb [restaurant]="restaurant" [displayFull]="false"></app-restaurant-gmb>
@@ -85,12 +87,13 @@
   </div>
   <!-- end with show warning data -->
   <q-modal #sendMsgModal (close)="sendMessageComponent.cleanup()" (open)="sendMessageComponent.init()" [size]="'lg'">
-    <button type="button" class="close"  (click)="sendMsgModal.hide()">
+    <button type="button" class="close" (click)="sendMsgModal.hide()">
       <span>×</span>
     </button>
     <h4 class="text-center">Send Message</h4>
     <hr>
-    <app-send-message #sendMessageComponent (success)="sendMsgModal.hide()" [allowCustomTemplate]="true" [channels]="channels" [templates]="messageTemplates"></app-send-message>
+    <app-send-message #sendMessageComponent (success)="sendMsgModal.hide()" [allowCustomTemplate]="true"
+      [channels]="channels" [templates]="messageTemplates"></app-send-message>
   </q-modal>
 
   <div class="card">
@@ -163,7 +166,8 @@
           <app-restaurant-service-settings [restaurant]="restaurant"></app-restaurant-service-settings>
         </div>
         <div class="col-xl-6" *ngIf="isSectionVisible('orderNotifications')">
-          <app-order-notifications (updateRestaurant)="updateRestaurant($event)" [restaurant]="restaurant"></app-order-notifications>
+          <app-order-notifications (updateRestaurant)="updateRestaurant($event)" [restaurant]="restaurant">
+          </app-order-notifications>
         </div>
         <div class="col-xl-6" *ngIf="isSectionVisible('qrSettings')">
           <app-restaurant-qr-settings [restaurant]="restaurant"></app-restaurant-qr-settings>
@@ -173,6 +177,9 @@
         </div>
         <div class="col-xl-6" *ngIf="isSectionVisible('deliverySettings')">
           <app-restaurant-delivery-settings [restaurant]="restaurant"></app-restaurant-delivery-settings>
+        </div>
+        <div class="col-xl-6" *ngIf="isSectionVisible('phoneOrdering')">
+          <app-restaurant-phone-ordering-settings [restaurant]="restaurant"></app-restaurant-phone-ordering-settings>
         </div>
         <div class="col-xl-6" *ngIf="isSectionVisible('promotions')">
           <app-restaurant-promotions [restaurant]="restaurant"></app-restaurant-promotions>
@@ -187,7 +194,8 @@
         </div> -->
 
         <div class="col-xl-6" *ngIf="isSectionVisible('contacts')">
-          <app-restaurant-contacts (updateRestaurant)="updateRestaurant($event)" [restaurant]="restaurant"></app-restaurant-contacts>
+          <app-restaurant-contacts (updateRestaurant)="updateRestaurant($event)" [restaurant]="restaurant">
+          </app-restaurant-contacts>
         </div>
 
         <div class="col-xl-6" *ngIf="isSectionVisible('paymentMeans') || isMarketerAndCreatedLessThan14Days()">
@@ -225,7 +233,8 @@
       </div>
 
       <div *ngIf="activeTab === 'Others'">
-        <app-restaurant-others [restaurant]="restaurant" [users]="knownUsers" [managers]="managers"></app-restaurant-others>
+        <app-restaurant-others [restaurant]="restaurant" [users]="knownUsers" [managers]="managers">
+        </app-restaurant-others>
       </div>
 
     </div>

@@ -106,7 +106,7 @@ export class MonitoringScriptComponent implements OnInit {
         "uowsHistory.uows.error": 1,
       },
       sort: { name: 1 }
-    }, 20);
+    }, 5);
     this.apiLoading = false;
 
     let fixedThings = false;

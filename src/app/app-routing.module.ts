@@ -1,3 +1,4 @@
+import { ChangeRtAliasComponent } from './components/utilities/change-rt-alias/change-rt-alias.component';
 import { MonitoringWinBackCampaignComponent } from './components/monitoring/monitoring-win-back-campaign/monitoring-win-back-campaign.component';
 import { MonitoringRtsWithPaymentCollectComponent } from './components/monitoring/monitoring-rts-with-payment-collect/monitoring-rts-with-payment-collect.component';
 import { MonitoringDeactivatedCustomersComponent } from './components/monitoring/monitoring-deactivated-customers/monitoring-deactivated-customers.component';
@@ -206,6 +207,7 @@ const routes: Routes = [
   { path: 'deactivated-customers', component: MonitoringDeactivatedCustomersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'rts-with-payment-collect', component: MonitoringRtsWithPaymentCollectComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'win-back-campaign', component: MonitoringWinBackCampaignComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
+  { path: 'change-rt-alias', component: ChangeRtAliasComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR_MANAGER'] } },
 
   { path: '**', redirectTo: '/home' }
 ];

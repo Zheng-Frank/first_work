@@ -29,7 +29,7 @@ const TFields: Field[] = [
   {name: "PriorYearIndicator", index: 2, length: 1, blank: true},
   // no dash, Qmenu TIN
   {name: "TransmitterTIN", index: 3, length: 9},
-  // TCC (once we receive this from IRS) ...NOTE: in this case, no spaces between this TCC and EIN before it
+  // TCC NOTE: in this case, no spaces between this TCC and EIN before it
   {name: "TransmitterControlCode", index: 4, length: 5},
   {name: "Blank", index: 5, length: 7, blank: true},
   {name: "TestFileIndicator", index: 6, length: 1, blank: true},
@@ -298,7 +298,7 @@ class Renderer {
       type: 'T',
       PaymentYear: year,
       TransmitterTIN: '814208444',
-      TransmitterControlCode : "WFIRS",
+      TransmitterControlCode : "30DR0",
       TestFileIndicator : "",
       ForeignEntityIndicator : '', // leave empty
       TransmitterName : "Guanghua Sui",

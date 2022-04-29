@@ -45,7 +45,7 @@
 
   <!-- Full Display Mode -->
   <q-table *ngIf="fullDisplayMode && fullDisplayModeAndShowAll" [rows]="allInstanceList"
-    [tableColumnDescriptors]="fullDisplayInstanceColumnDescriptors" [compact]="true" [pageSize]="100000000">
+    [tableColumnDescriptors]="fullDisplayInstanceColumnDescriptors" [compact]="true" [pageSize]="100">
     <tr *tableRowTemplate="let instance">
       <td>
         {{instance.createdAt | date: 'short'}}
@@ -76,6 +76,9 @@
     <tr *tableRowTemplate="let instance">
       <td>
         {{instance.createdAt | date: 'short'}}
+      </td>
+      <td>
+        {{groupedInstances[routine._id].indexOf(instance) + 1}}
       </td>
       <td>
         {{instance.assignee}}

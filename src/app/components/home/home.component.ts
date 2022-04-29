@@ -178,7 +178,6 @@ export class HomeComponent implements OnInit {
       "gmb-campaign": ['ADMIN'],
       "bulk-messaging": ['ADMIN'],
       "courier-availability": ['ADMIN', 'CSR', 'CSR_MANAGER', 'MARKETER'],
-      "change-rt-alias": ['ADMIN', 'CSR_MANAGER'],
       "send-fax": ["ADMIN", 'CSR', 'CSR_MANAGER', 'MARKETER', 'MARKETER_INTERNAL'],
       "send-text-message": ['ADMIN', 'CSR', 'CSR_MANAGER', 'MENU_EDITOR', 'MARKETER'],
       "broadcasting": ['ADMIN', 'CSR', 'CSR_MANAGER'],

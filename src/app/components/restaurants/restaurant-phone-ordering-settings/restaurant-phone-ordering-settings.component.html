@@ -1,0 +1,51 @@
+<div class="card mb-2">
+  <h3 class="card-title text-center pt-4 pb-2">
+    <i class="fas fa-phone"></i>&nbsp;Phone Ordering
+  </h3>
+  <ul class="list-group list-group-flush">
+
+    <li class="list-group-item text-center">
+      Hardware/software settings go here
+    </li>
+    <li class="list-group-item">
+      <h5 class="text-center">Callback Channels</h5>
+      <table class="table table-borderless table-sm">
+        <!-- <thead *ngIf="restaurant.phoneOrderingSettings?.notificationChannels?.length > 0">
+          <tr>
+            <th scope="col">Type</th>
+            <th scope="col">Value</th>
+            <th scope="col"></th>
+          </tr>
+        </thead> -->
+        <tbody class="my-text-small">
+          <tr *ngFor="let n of restaurant.phoneOrderingSettings?.notificationChannels || []">
+            <td>
+              {{n.type}}
+            </td>
+            <td>
+              {{n.value}}
+            </td>
+            <td>
+              <button class="btn btn-link p-0" (click)="removeNotificationChannel(n)">Delete</button>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="3">
+              <button class="btn btn-link px-0" (click)="toggleNotificationChannels()">{{addingChannels ? '- Hide
+                Channels'
+                : '+ Add Callback Channels'}}</button>
+              <table class="table table-borderless table-sm" *ngIf="addingChannels">
+                <tr *ngFor="let channel of channels">
+                  <td>{{channel.type}}</td>
+                  <td>{{channel.value}}</td>
+                  <td class="text-nowrap"><button class="btn btn-link px-0" (click)="addChannel(channel)">+ Add</button>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </li>
+  </ul>
+</div>
