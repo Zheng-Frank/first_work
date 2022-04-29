@@ -21,5 +21,5 @@ export const environment = {
   shortUrlBase: "https://2vevc851r7.execute-api.us-east-1.amazonaws.com/dev/",
   customerPWAUrl: "https://qa.qmenu.us/#/",
   biApiUrl: "https://7o8zst97y6.execute-api.us-east-1.amazonaws.com/dev/",
-  bmQueryRTAccuratelyApi: 'https://admin1.beyondmenu.com/StoreFront/AppStarter.aspx?action=bmq.restaurantsummary'
+  bmQueryRTAccuratelyApi: 'https://admin2.beyondmenu.com/StoreFront/AppStarter.aspx?action=bmq.restaurantsummary'
 };
