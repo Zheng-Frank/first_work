@@ -48,6 +48,7 @@ export class LogEditorComponent implements OnInit, OnChanges {
     {value: 'payment-delivery-setup', label: 'Payment (Delivery order)'},
     {value: 'request-complaint', label: 'Request/complaint'},
     {value: 'winback-campaign', label: 'Tier 1 Winback'},
+    {value: 'pci-compliance', label: 'PCI Compliance'},
   ];
   myRestaurantPicker;
   assigneeList;

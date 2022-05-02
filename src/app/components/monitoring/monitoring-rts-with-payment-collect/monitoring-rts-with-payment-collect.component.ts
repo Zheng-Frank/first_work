@@ -1,9 +1,10 @@
+import { Log } from 'src/app/classes/log';
 import { AlertType } from 'src/app/classes/alert-type';
 import { environment } from 'src/environments/environment';
 import { GlobalService } from './../../../services/global.service';
 import { ApiService } from './../../../services/api.service';
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
+import { ModalComponent, PagerComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { RouterLinkWithHref } from '@angular/router';
 import { TimezoneHelper } from '@qmenu/ui';
 declare var $: any;
@@ -61,7 +62,16 @@ enum sentBroadcastTypes {
   Not_Sent = 'Not sent'
 }
 
+enum hasLogsTypes {
+  All = 'Has Log?',
+  NoLogs = 'No logs',
+  HasLogs = 'Has logs'
+}
+
 const sortAlphabetical = (a, b) => (a || '').localeCompare(b || '');
+
+
+const PCI_COMPLIANCE_LOG_TYPE = 'pci-compliance'
 
 @Component({
   selector: 'app-monitoring-rts-with-payment-collect',
@@ -69,15 +79,22 @@ const sortAlphabetical = (a, b) => (a || '').localeCompare(b || '');
   styleUrls: ['./monitoring-rts-with-payment-collect.component.css']
 })
 export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
+  @ViewChild('myPager1') myPager1: PagerComponent;
   @ViewChild('bulkActionModal') bulkActionModal: ModalComponent;
+  
+  @ViewChild('logEditingModal') logEditingModal;
+
   restaurants = [];
   restaurantsColumnDescriptors = [
     { label: '#' },
     { label: 'Restaurant', paths: ['name'], sort: sortAlphabetical },
-    { label: 'Score', paths: ['score'], sort: (a, b) => a - b  },
-    { label: 'Timezone (as Offset to EST)'},
+    { label: 'Score', paths: ['score'], sort: (a, b) => a - b },
+    { label: 'Timezone (as Offset to EST)' },
     { label: 'Payment' },
+    { label: 'Logs' }
   ];
+  sortedOneDirector = 1;
+  lastSortColumn = null;
 
   pmtCollectOptions = [pmtCollectTypes.All, pmtCollectTypes.Cash, pmtCollectTypes.Key_In, pmtCollectTypes.Rt_Stripe, pmtCollectTypes.qMenu_Collect, pmtCollectTypes.Swipe_In_Person];
   pmtCollectOption = pmtCollectTypes.All;
@@ -91,6 +108,8 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   languageOption = languageTypes.All;
   sentBroadcastOptions = [sentBroadcastTypes.All, sentBroadcastTypes.Sent, sentBroadcastTypes.Not_Sent];
   sentBroadcastOption = sentBroadcastTypes.All;
+  logOptions = [hasLogsTypes.All, hasLogsTypes.HasLogs, hasLogsTypes.NoLogs];
+  logOption = hasLogsTypes.All;
 
   rows = [];
   filteredRows = [];
@@ -100,6 +119,11 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   bulkShowPrintingCCInfo = true;
   bulkShowNonPCIData = true;
   now = new Date();
+  loggingRT: any = {};
+  logInEditing: Log = new Log({ type: PCI_COMPLIANCE_LOG_TYPE, time: new Date() });
+  copyAllIDs = true;
+  pageIndex = 0;
+  pageSize = 100;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -110,12 +134,39 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     this.filterRTs();
   }
 
+  sort(ds) {
+    this.sortedOneDirector = -this.sortedOneDirector;
+    if (ds.sort) {
+      this.rows.sort((row1, row2) => this.sortedOneDirector * ds.sort(this.getData(row1, ds), this.getData(row2, ds)));
+      this.lastSortColumn = ds;
+    }
+  }
+
+  getData(row, ds) {
+    let data = row;
+    (ds.paths || []).map(path => { if (data !== null && typeof data === 'object') { data = data[path]; } });
+    return data;
+  }
+
+  paged() {
+    return this.filteredRows.slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize);
+  }
+
   get sentBroadcastTypes() {
     return sentBroadcastTypes;
   }
 
-  copyRTIDs() {
-    let rtIDs = this.filteredRows.map(row => row._id).join(', ');
+  copyRTIDs(copyAllIDs) {
+    let rtIDs;
+    if (copyAllIDs) {
+      rtIDs = this.filteredRows.map(row => row._id).join(', ');
+    } else {
+      if (this.pagination) {
+        rtIDs = this.paged().map(row => row._id).join(', ');
+      } else {
+        rtIDs = this.filteredRows.map(row => row._id).join(', ');
+      }
+    }
     let text = `${rtIDs}`;
     const handleCopy = (e: ClipboardEvent) => {
       // clipboardData maybe null
@@ -126,7 +177,7 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     };
     document.addEventListener('copy', handleCopy);
     document.execCommand('copy');
-    this._global.publishAlert(AlertType.Success, 'the data of order has copyed to your clipboard ~', 1000);
+    this._global.publishAlert(AlertType.Success, `${copyAllIDs ? this.filteredRows.length : this.pagination ? this.paged().length : this.filteredRows.length} has copyed to your clipboard ~`, 1000);
   }
 
   openBulkActionModal() {
@@ -137,18 +188,18 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
 
   // our salesperson only wants to know what is the time offset
   // between EST and the location of restaurant
-  getTimeOffsetByTimezone(timezone){
-    if(timezone){
+  getTimeOffsetByTimezone(timezone) {
+    if (timezone) {
       let localTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), timezone);
       let ESTTime = TimezoneHelper.getTimezoneDateFromBrowserDate(new Date(this.now), 'America/New_York');
-      let offset = (ESTTime.valueOf() - localTime.valueOf())/(3600*1000);
-      return offset > 0 ? "+"+offset.toFixed(0) : offset.toFixed(0);
-    }else{
+      let offset = (ESTTime.valueOf() - localTime.valueOf()) / (3600 * 1000);
+      return offset > 0 ? "+" + offset.toFixed(0) : offset.toFixed(0);
+    } else {
       return 'N/A';
     }
   }
 
-  getTimezoneCity(timezone){
+  getTimezoneCity(timezone) {
     return (timezone || '').split('/')[1] || '';
   }
 
@@ -166,7 +217,16 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
             preferredLanguage: 1,
             broadcasts: 1,
             score: 1,
-            'googleAddress.timezone': 1 
+            'googleAddress.timezone': 1,
+            logs: {
+              $filter: {
+                input: '$logs',
+                as: 'log',
+                cond: {
+                  $eq: ['$$log.type', PCI_COMPLIANCE_LOG_TYPE]
+                }
+              }
+            }
           }
         },
         {
@@ -259,6 +319,22 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
         this.filteredRows = this.filteredRows.filter(row => !(row.broadcasts || []).some(b => b._id === this.broadcast));
       }
     }
+
+    // filter by has logs 
+    if (this.logOption !== hasLogsTypes.All) {
+      if (this.logOption === hasLogsTypes.HasLogs) {
+        this.filteredRows = this.filteredRows.filter(row => (row.logs || []).some(log => log.type === PCI_COMPLIANCE_LOG_TYPE));
+      } else if (this.logOption === hasLogsTypes.NoLogs) {
+        this.filteredRows = this.filteredRows.filter(row => !(row.logs || []).some(log => log.type === PCI_COMPLIANCE_LOG_TYPE));
+      }
+    }
+  }
+
+  paginate(index) {
+    if (this.pagination) {
+      this.pageIndex = index;
+      this.myPager1.currentPageNumber = index;
+    }
   }
 
   async toggleEnabledForRow(rt, property) {
@@ -285,29 +361,31 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   // bulk toggle update
   async bulkToggleEnabled() {
     let oldNewPairs = [];
-    this.filteredRows.forEach(row => {
+    let list = this.pagination ?  this.paged() : this.filteredRows;
+
+    list.forEach(row => {
       let oldNewPatchData = {
         old: { _id: row._id },
         new: { _id: row._id }
       }
       oldNewPatchData.new['hidePrintingCCInfo'] = !this.bulkShowPrintingCCInfo;
-      oldNewPatchData.new['hideNonPCIData'] = !this.bulkShowNonPCIData;
-      // update filter row
       row['hidePrintingCCInfo'] = !this.bulkShowPrintingCCInfo;
-      row['hideNonPCIData'] = !this.bulkShowNonPCIData;
       row['showPrintingCCInfo'] = this.bulkShowPrintingCCInfo;
-      row['showNonPCIData'] = this.bulkShowNonPCIData;
-      // update origin row
       let index = this.rows.findIndex(r => r._id === row._id);
       this.rows[index]['hidePrintingCCInfo'] = !this.bulkShowPrintingCCInfo;
-      this.rows[index]['hideNonPCIData'] = !this.bulkShowNonPCIData;
       this.rows[index]['showPrintingCCInfo'] = this.bulkShowPrintingCCInfo;
-      this.rows[index]['showNonPCIData'] = this.bulkShowNonPCIData;
+      if (this.bulkShowPrintingCCInfo) {
+        oldNewPatchData.new['hideNonPCIData'] = !this.bulkShowNonPCIData;
+        row['hideNonPCIData'] = !this.bulkShowNonPCIData;
+        row['showNonPCIData'] = this.bulkShowNonPCIData;
+        this.rows[index]['hideNonPCIData'] = !this.bulkShowNonPCIData;
+        this.rows[index]['showNonPCIData'] = this.bulkShowNonPCIData;
+      }
       oldNewPairs.push(oldNewPatchData);
     });
 
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', oldNewPairs).subscribe(results => {
-      this._global.publishAlert(AlertType.Success, `Bulk updated!`);
+      this._global.publishAlert(AlertType.Success, `Bulk updated ${list.length} rows!`);
     },
       error => {
         this._global.publishAlert(AlertType.Danger, error);
@@ -340,4 +418,45 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     }
     return 'Not enabled'
   }
+
+
+  async addLog(row) {
+    this.logInEditing = new Log({ type: PCI_COMPLIANCE_LOG_TYPE, time: new Date() });
+    let [restaurant] = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: { _id: { $oid: row._id } },
+      projection: { name: 1, logs: 1, logo: 1, phones: 1, channels: 1, googleAddress: 1 },
+      limit: 1
+    }).toPromise();
+    this.loggingRT = restaurant;
+    this.logEditingModal.show();
+  }
+
+  onSuccessAddLog(event) {
+    event.log.time = event.log.time ? event.log.time : new Date();
+    event.log.username = event.log.username ? event.log.username : this._global.user.username;
+    const newRT = JSON.parse(JSON.stringify(this.loggingRT));
+    newRT.logs.push(event.log);
+    this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{ old: { _id: this.loggingRT._id }, new: newRT }])
+      .subscribe(result => {
+        this._global.publishAlert(AlertType.Success, 'Log added successfully');
+        event.formEvent.acknowledge(null);
+        let index = this.rows.findIndex(x => x._id === this.loggingRT._id);
+        this.rows[index].logs = newRT.logs.filter(x => x.type === PCI_COMPLIANCE_LOG_TYPE);
+        this.filterRTs();
+        this.logEditingModal.hide();
+        this.loggingRT = {};
+      },
+        error => {
+          this._global.publishAlert(AlertType.Danger, 'Error while adding log');
+          event.formEvent.acknowledge('Error while adding log');
+        }
+      );
+  }
+
+  onCancelAddLog() {
+    this.logEditingModal.hide();
+    this.loggingRT = {};
+  }
+
 }
