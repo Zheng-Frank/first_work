@@ -344,16 +344,16 @@ class Renderer {
     return renderRow(AFields, data)
   }
 
-  static bckfRow(year, list) {
+  static bckfRow(year, list, includeAll = false) {
     let sequence = 3, states = {}, rows = [], errors = [];
     let sum = {type: 'C', GrossAmount: 0, CardNotPresentTransactions: 0, NumberOfPayees: 0};
     list.forEach(item => {
-      item.form1099k.filter(x => x.required && !x.refuseForm && x.year === Number(year))
+      item.form1099k.filter(x => x.required && (!x.refuseForm || includeAll) && x.year === Number(year))
         .forEach(form => {
           // verify data
           let tin = form.periodTin || item.rtTIN,
             payeeName = form.periodPayeeName || item.payeeName;
-          if (!tin || !payeeName) {
+          if ((!tin || !payeeName) && !includeAll) {
             // skip rts in-completed
             errors.push(item.id)
             return;
@@ -362,7 +362,7 @@ class Renderer {
             type: 'B', PaymentYear: year,
             PayeeNameControl: '', // leave empty
             PayeeTINType: {EIN: '1', SSN: '2'}[form.periodTinType || item.rtTinType] || '1', // default to EIN
-            PayeeTIN: tin.replace(/[-\s]/g, ''),
+            PayeeTIN: (tin || '').replace(/[-\s]/g, ''),
             PayerAccountNumber: item.id.substr(4), // use last 20 chars in _id
             PayeeName: payeeName, // use first 40 chars in case of too long name
             GrossAmount: round(form.total),
@@ -412,8 +412,8 @@ class Renderer {
 
 }
 
-const generate = (year, list) => {
-  let { rows, totalPayees, errors } = Renderer.bckfRow(year, list);
+const generate = (year, list, includeAll) => {
+  let { rows, totalPayees, errors } = Renderer.bckfRow(year, list, includeAll);
   rows.unshift(Renderer.aRow(year))
   rows.unshift(Renderer.tRow(year, totalPayees))
   return { rows, errors};
