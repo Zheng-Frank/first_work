@@ -135,7 +135,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   bulkOperationYear = '';
 
   searchFilter;
-
+  includeAllRequired = false;
   system: any;
   now: Date = new Date();
   timer;
@@ -412,7 +412,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
 
   downloadFIRE() {
     try {
-      const { rows, errors } = IRSHelper.generate(this.taxYear, this.rows);
+      const { rows, errors } = IRSHelper.generate(this.taxYear, this.rows, this.includeAllRequired);
       if (errors.length > 0) {
         if (confirm('Some restaurants are missing payee and/or TIN. Do you want to proceed with download anyway?')) {
           download("Qmenu_FIRE_Submission", this.taxYear, rows.join('\n'))
