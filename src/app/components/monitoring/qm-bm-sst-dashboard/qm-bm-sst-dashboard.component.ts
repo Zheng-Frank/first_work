@@ -708,7 +708,7 @@ export class QmBmSstDashboardComponent implements OnInit {
           "AmexFeePercentage", "FaxUnitPrice", "PhoneUnitPrice", "OrderCommissionPercentage", "OrderCommissionMaximum",
           "ReservationCommissionAmount", "ReservationCommissionMaximum"
         ].filter(k => !!item[k]).map(k => `${k}: ${item[k]}`).join(', ')
-        let cuisines = (CuisineNameList || '').split(',').filter(x => !!x);
+        let cuisines = (CuisineNameList || '').split(',').map(x => x.replace(/[,&]/g, '')).filter(x => !!x);
         let data = {
           _bid: item.BusinessEntityID,
           bplace_id: item.GooglePlaceID,
