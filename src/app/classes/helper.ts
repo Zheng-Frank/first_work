@@ -10,6 +10,10 @@ export class Helper {
 
     static FULL_DATETIME_LOCALE_OPTS = FULL_LOCALE_OPTS;
 
+    static getMongoDate(mongoId) {
+      return new Date(parseInt(mongoId.substring(0, 8), 16) * 1000);
+    }
+
     // compute tier of a rt by orderPerMonth or other input param
     static getTier(ordersPerMonth = 0) {
         if (ordersPerMonth > 125) { // VIP
@@ -22,8 +26,8 @@ export class Helper {
             return 2;
           }
           return 3;
-    } 
-    
+    }
+
     // try to wait until a given resource is ready (useful when upload an image but not knowing when the image is ready)
     static async waitUtilImageExists(url: string, timeout = 10000) {
         const timeoutT = new Date(new Date().valueOf() + timeout);

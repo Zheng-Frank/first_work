@@ -5,10 +5,11 @@ import { PagerComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { Helper } from '../../../classes/helper';
 import { saveAs } from "file-saver/FileSaver";
 import {GlobalService} from "../../../services/global.service";
+import ChurnHelper from "./churn-helper";
 
 declare var $: any;
 
-enum PlatformOptions {
+export enum PlatformOptions {
   BmOnly = 'BM Only',
   QmOnly = 'QM Only',
   Both = 'Both'
@@ -89,7 +90,7 @@ enum SalesWorthinessOptions {
   NotWorthy = 'NOT Sales-worthy'
 }
 
-enum KPIPeriodOptions {
+export enum KPIPeriodOptions {
   Yearly = 'Yearly',
   Quarterly = 'Quarterly',
   Monthly = 'Monthly'
@@ -235,18 +236,19 @@ export class QmBmSstDashboardComponent implements OnInit {
   showChurn = false;
   churnFilters = {
     platform: PlatformOptions.Both,
-    period: KPIPeriodOptions.Yearly,
+    period_type: KPIPeriodOptions.Yearly,
     tier: 1,
+    show_movement: false,
     definition: ChurnDefinitionOptions.NoOrdersLast30d
   };
   kpiFilters = {
     normal: {
       platform: PlatformOptions.Both,
-      period: KPIPeriodOptions.Yearly
+      period_type: KPIPeriodOptions.Yearly
     },
     over: {
       platform: PlatformOptions.Both,
-      period: KPIPeriodOptions.Yearly
+      period_type: KPIPeriodOptions.Yearly
     }
   };
   kpi = {};
@@ -288,36 +290,36 @@ export class QmBmSstDashboardComponent implements OnInit {
 
   kpiNormalDownload() {
     let [gmvs, ocs, ars, aovs] = this.getKpiNormalList();
-    let { period } = this.kpiFilters.normal;
-    let headers = Object.keys(this.kpi[period]);
+    let { period_type } = this.kpiFilters.normal;
+    let headers = Object.keys(this.kpi[period_type]);
     let lines = [['', ...headers].join(',')];
     lines.push(['GMV $', ...gmvs].join(','));
     lines.push(['Order count', ...ocs].join(','));
     lines.push(['Active RT count', ...ars].join(','));
     lines.push(['AOV $', ...aovs].join(','));
-    let filename = period + '_kpi_stats_part_1.csv';
+    let filename = period_type + '_kpi_stats_part_1.csv';
     saveAs(new Blob([lines.join('\n')], { type: "application/octet-stream" }), filename);
   }
 
   kpiOverDownload() {
     let [gmvs, ocs, ars, aovs] = this.getKpiOverList();
-    let { period } = this.kpiFilters.over;
-    let headers = Object.keys(this.kpi[period]);
+    let { period_type } = this.kpiFilters.over;
+    let headers = Object.keys(this.kpi[period_type]);
     let lines = [['', ...headers].join(',')];
     let label = this.getKpiLabel();
     lines.push(['GMV ' + label, ...gmvs.map(x => Helper.roundDecimal(x * 100) + '%')].join(','));
     lines.push(['Order count ' + label, ...ocs.map(x => Helper.roundDecimal(x * 100) + '%')].join(','));
     lines.push(['Active RT count ' + label, ...ars.map(x => Helper.roundDecimal(x * 100) + '%')].join(','));
     lines.push(['AOV ' + label, ...aovs.map(x => Helper.roundDecimal(x * 100) + '%')].join(','));
-    let filename = period + '_kpi_stats_part_2.csv';
+    let filename = period_type + '_kpi_stats_part_2.csv';
     saveAs(new Blob([lines.join('\n')], { type: "application/octet-stream" }), filename);
   }
 
   getKpiNormalList() {
-    let { period, platform } = this.kpiFilters.normal;
+    let { period_type, platform } = this.kpiFilters.normal;
     let gmvs = [], ocs = [], aovs = [], ars = [];
-    this.kpiHeaders[period].forEach(key => {
-      let { gmv, oc, ar } = this.kpi[period][key];
+    this.kpiHeaders[period_type].forEach(key => {
+      let { gmv, oc, ar } = this.kpi[period_type][key];
       let tmpGmv = this.getKpiDataByPlatform(gmv, platform);
       let tmpOc = this.getKpiDataByPlatform(oc, platform);
       let tmpAr = this.getKpiDataByPlatform(ar, platform);
@@ -338,22 +340,22 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   getKpiLabel() {
-    return { [KPIPeriodOptions.Yearly]: 'YoY', [KPIPeriodOptions.Quarterly]: 'QoQ', [KPIPeriodOptions.Monthly]: 'MoM' }[this.kpiFilters.over.period];
+    return { [KPIPeriodOptions.Yearly]: 'YoY', [KPIPeriodOptions.Quarterly]: 'QoQ', [KPIPeriodOptions.Monthly]: 'MoM' }[this.kpiFilters.over.period_type];
   }
 
   getKpiOverList() {
-    let { period, platform } = this.kpiFilters.over;
+    let { period_type, platform } = this.kpiFilters.over;
     let gmvs = [], ocs = [], aovs = [], ars = [];
-    let headers = this.kpiHeaders[period];
+    let headers = this.kpiHeaders[period_type];
     for (let i = 0; i < headers.length; i++) {
       let cur = headers[i], prev = headers[i - 1];
-      let { gmv, oc, ar } = this.kpi[period][cur];
+      let { gmv, oc, ar } = this.kpi[period_type][cur];
       let curGmv = this.getKpiDataByPlatform(gmv, platform);
       let curOc = this.getKpiDataByPlatform(oc, platform);
       let curAov = curGmv / curOc;
       let curAr = this.getKpiDataByPlatform(ar, platform);
       if (prev) {
-        let prevTmp = this.kpi[period][prev];
+        let prevTmp = this.kpi[period_type][prev];
         let prevGmv = this.getKpiDataByPlatform(prevTmp.gmv, platform);
         let prevOc = this.getKpiDataByPlatform(prevTmp.oc, platform);
         let prevAr = this.getKpiDataByPlatform(prevTmp.ar, platform);
@@ -373,7 +375,7 @@ export class QmBmSstDashboardComponent implements OnInit {
   }
 
   getKPIHeaders(type) {
-    return this.kpiHeaders[this.kpiFilters[type].period]
+    return this.kpiHeaders[this.kpiFilters[type].period_type]
   }
 
   async getByBatch(resource, size = 60000) {
@@ -404,6 +406,7 @@ export class QmBmSstDashboardComponent implements OnInit {
       limit: 10000000
     }).toPromise();
 
+    console.log('unified...', unified);
     const bm_data = await this.getByBatch('bm-monthly-summary');
 
     const qm_data = await this.getByBatch('qm-monthly-summary', 50000);
@@ -490,6 +493,9 @@ export class QmBmSstDashboardComponent implements OnInit {
       }
       return Months.indexOf(month_a) - Months.indexOf(month_b);
     });
+
+    console.log('qm_bm_rt_dict', rt_dict);
+    ChurnHelper.preprocess(this.unionRTs, rt_dict, bm_data, qm_data);
   }
 
   countByOrdersPerMonth(list) {
@@ -607,18 +613,6 @@ export class QmBmSstDashboardComponent implements OnInit {
           }
         ],
       }, 5000));
-      // populate cuisines
-      this.qmRTs.forEach((rt) => {
-        if (rt.cuisines) {
-          rt.cuisines.forEach(c => {
-            if (c && this.cuisines.indexOf(c) === -1) {
-              this.cuisines.push(c);
-            }
-          });
-        }
-      });
-
-      this.cuisines.sort((a, b) => a.localeCompare(b));
 
       const gmbBiz = await this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'gmbBiz',
@@ -640,7 +634,7 @@ export class QmBmSstDashboardComponent implements OnInit {
         query: {},
         projection: { 'locations.cid': 1, 'locations.status': 1, 'locations.role': 1 }
       }, 500);
-
+      let allCuisines = new Set();
       let date = new Date();
       date.setDate(date.getDate() - 30);
       let months = [], cursor = new Date(), i = 0;
@@ -649,9 +643,20 @@ export class QmBmSstDashboardComponent implements OnInit {
         months.push(`${cursor.getFullYear()}${Helper.padNumber(cursor.getMonth() + 1)}`);
         i++;
       }
+      console.log('rts without created at...', this.qmRTs.filter(x => !x.createdAt).map(x => x._id));
       this.qmRTs.forEach(rt => {
+        if (rt.cuisines) {
+          rt.cuisines.forEach(c => {
+            if (c) {
+              allCuisines.add(c)
+            }
+          });
+        }
         if (rt.place_id) {
           this.qmRTsPlaceDict[rt.place_id] = rt;
+        }
+        if (!rt.createdAt) {
+          rt.createdAt = Helper.getMongoDate(rt._id).toISOString()
         }
         let key = rt.place_id + rt.cid;
         // active: has order in last 30 days
@@ -676,8 +681,14 @@ export class QmBmSstDashboardComponent implements OnInit {
           }
         }
       });
+      console.log('qm...', this.qmRTs);
       // --- BeyondMenu restaurants
-      let bmRTs = await this._api.post(environment.gmbNgrok + 'get-bm-restaurant').toPromise();
+      let bmRTs = [];
+      try {
+        bmRTs = await this._api.post(environment.gmbNgrok + 'get-bm-restaurant').toPromise();
+      } catch (e) {
+        console.error(e);
+      }
       this.bmRTsPlaceDict = {};
       this.bmRTs = bmRTs.map(item => {
         // --- phone and cellphone
@@ -691,12 +702,13 @@ export class QmBmSstDashboardComponent implements OnInit {
           }
         });
         let place_id = item.GooglePlaceID;
-        let { TierDec2021, TierNov2021, TierOct2021 } = item;
+        let { LastMonthOC, Last2ndMonthOC, Last3rdMonthOC, CuisineNameList } = item;
         let pricing = [
           "OrderFixedFeePerOrder", "CreditCardFixedFeePerOrder", "OrderMonthlyFee", "CreditCardFeePercentage",
           "AmexFeePercentage", "FaxUnitPrice", "PhoneUnitPrice", "OrderCommissionPercentage", "OrderCommissionMaximum",
           "ReservationCommissionAmount", "ReservationCommissionMaximum"
         ].filter(k => !!item[k]).map(k => `${k}: ${item[k]}`).join(', ')
+        let cuisines = (CuisineNameList || '').split(',').map(x => x.replace(/[,&]/g, '')).filter(x => !!x);
         let data = {
           _bid: item.BusinessEntityID,
           bplace_id: item.GooglePlaceID,
@@ -708,17 +720,18 @@ export class QmBmSstDashboardComponent implements OnInit {
           bhasGmb: item.IsBmGmbControl,
           bchannels: channels,
           bmainPhone: item.Phone1,
-          createdAt: item.createdAt,
-          btier: Math.floor((TierDec2021 + TierNov2021 + TierOct2021) / 3),
+          btier: Helper.getTier((LastMonthOC + Last2ndMonthOC + Last3rdMonthOC) / 3),
           bpricing: pricing,
           bgoogleReviews: 0, // extra data use default value
-          bcuisines: [],
+          bcuisines: cuisines,
           bcompetitorsCount: 0,
           bcouponsCount: 0,
           bactivities: {},
           bactivity: 0,
           bordersPerMonth: 0
         }
+
+        cuisines.forEach(c => allCuisines.add(c));
 
         if (place_id) {
           this.bmRTsPlaceDict[place_id] = data;
@@ -728,7 +741,7 @@ export class QmBmSstDashboardComponent implements OnInit {
         }
         return data;
       });
-      console.log(bmRTs);
+      console.log('bm...', bmRTs);
       // 1. Match by google place_id (already the case)
       // 2. followed by main phone number to the extent the first type of matching didn't produce a match.
       let bmOnly = this.bmRTs.filter(({ bplace_id, bmainPhone }) => (!bplace_id || !this.qmRTsPlaceDict[bplace_id]) && (!bmainPhone || !this.qmRTsPhoneDict[bmainPhone]));
@@ -739,6 +752,7 @@ export class QmBmSstDashboardComponent implements OnInit {
         return item;
       });
       console.log('gmb conflict...', this.unionRTs.filter(x => x.hasGmb && x.bhasGmb).map(({ _id, _bid }) => ({ _id, _bid })));
+      this.cuisines = Array.from(allCuisines).sort((a, b) => a.localeCompare(b));
       this.filter();
     } catch (error) {
       console.error(error);
@@ -1148,12 +1162,57 @@ export class QmBmSstDashboardComponent implements OnInit {
     this.filter();
   }
 
-  getChurnList() {
+  async getLast30dOrders() {
+    let date = new Date();
+    date.setDate(date.getDate() - 30);
+    let data = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
+      method: 'get',
+      resource: 'unified_bmq_dailyorders',
+      aggregate: [
+        { $match: {o_date: {$gte: {$date: date}}} }
+      ],
+      payload: { _id: 0, bm_id: 1, qm_id: 1, platform: 1, o_date: 1, ordercount: 1 },
+      limit: 10000000
+    }).toPromise();
+
+    console.log(data);
 
   }
 
-  churnDownload() {
+  get churnDefinitions() {
+    return ChurnDefinitionOptions;
+  }
 
+  getChurnList() {
+    return ChurnHelper.getList(this.churnFilters);
+  }
+
+  churnDownload() {
+    let list = this.getChurnList();
+    let { period_type, platform, tier, definition } = this.churnFilters;
+    let filename = [period_type, platform, 'Tier ' + tier, definition, 'churn.csv'].join('_');
+    let titles = ['', 'Start Count', 'Total Lost (UT/DT/C)', 'Total Gained (IT/N)', 'End Count', 'Net +/- (%)'].join(',');
+    let lines = [titles];
+
+    const percent = num => Math.round(num * 10000) / 100 + '%'
+
+    list.forEach(row => {
+      if (definition === ChurnDefinitionOptions.NoOrdersLast30d) {
+        let total_lost = `${0 - (row.pureLostToLower + row.pureLostToHigher + row.pureCanceled + row.deactivated)} (${0 - row.pureLostToHigher}/${0 - row.pureLostToLower}/${0 - (row.pureCanceled + row.deactivated)})`;
+        let total_gained = `${row.pureGainByUp + row.pureGainByDown + row.pureCreated + row.activated} (${row.pureGainByUp + row.pureGainByDown}/${row.pureCreated + row.activated})`;
+        let net = `${row.pureEnd - row.pureStart} (${percent((row.pureEnd - row.pureStart) / row.pureStart)})`
+        let line = [row.period, row.pureStart, total_lost, total_gained, row.pureEnd, net].join(',')
+        lines.push(line);
+      } else if (definition === ChurnDefinitionOptions.Disabled) {
+        let total_lost = `${0 - (row.lostToLower + row.lostToHigher + row.canceled)} (${0 - row.lostToHigher}/${0 - row.lostToLower}/${0 - row.canceled})`;
+        let total_gained = `${row.gainByUp + row.gainByDown + row.created} (${row.gainByUp + row.gainByDown}/${row.created})`;
+        let net = `${row.end - row.start} (${percent((row.end - row.start) / row.start)})`
+        let line = [row.period, row.start, total_lost, total_gained, row.end, net].join(',')
+        lines.push(line);
+      }
+    });
+
+    saveAs(new Blob([lines.join('\n')], { type: "application/octet-stream" }), filename);
   }
 }
 
