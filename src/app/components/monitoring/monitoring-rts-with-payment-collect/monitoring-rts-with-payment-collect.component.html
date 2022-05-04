@@ -75,6 +75,18 @@
       </div>
       <!-- end with broadcast types -->
       <div class="col-auto mb-3">
+        <select [(ngModel)]="hasPayee" class="form-control" (change)="filterRTs()">
+          <option [ngValue]="''">Has payee?</option>
+          <option *ngFor="let x of payeeOptions" [ngValue]="x">{{x}}</option>
+        </select>
+      </div>
+      <div class="col-auto mb-3">
+        <select [(ngModel)]="hasTIN" class="form-control" (change)="filterRTs()">
+          <option [ngValue]="''">Has TIN?</option>
+          <option *ngFor="let x of tinOptions" [ngValue]="x">{{x}}</option>
+        </select>
+      </div>
+      <div class="col-auto mb-3">
         <button class="btn btn-primary" (click)="populateRTsByPmtCollect()"><i class="fas fa-sync"></i> Reload</button>
       </div>
       <!-- start with pagnation -->
@@ -102,6 +114,18 @@
               <a class="mr-2" target="_blank" routerLink="/restaurants/{{r['_id']}}">{{r.name}}</a>
             </div>
             <div>{{r._id}}</div>
+            <div>
+              <b>TIN: </b>
+              <b class="text-danger" *ngIf="!r.tin">Attribute Missing</b>
+              <q-edit-label [value]="r.tin" (edit)="onEdit($event, r._id, 'tin')">
+              </q-edit-label>
+            </div>
+            <div>
+              <b>Payee: </b>
+              <b class="text-danger" *ngIf="!r.payeeName">Attribute Missing</b>
+              <q-edit-label [value]="r.payeeName" (edit)="onEdit($event, r._id, 'payeeName')">
+              </q-edit-label>
+            </div>
           </td>
           <td>
             {{ r.score | number : '1.0-0' }}
