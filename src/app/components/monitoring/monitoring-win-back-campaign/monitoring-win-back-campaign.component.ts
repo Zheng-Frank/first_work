@@ -35,6 +35,11 @@ enum OPMSortOptions {
   Hist_Sort = 'Hist Sort'
 }
 
+enum gmbOwnerOptions {
+  Qmenu = 'Qmenu',
+  BeyondMenu = 'Bmenu',
+  Neither = 'Neither B nor Q'
+}
 
 const WIN_BACK_CAMPAIGN_LOG_TYPE = 'winback-campaign'
 
@@ -79,7 +84,8 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     platform: '',
     hasLogs: '',
     currentTier: '',
-    OPMSort: ''
+    OPMSort: '',
+    gmbOwner: ''
   };
   rows = [];
   list = [];
@@ -167,8 +173,8 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       let ordersPerMonth = last6Months.reduce((a, c) => a + (rest[`OC${c}`] || 0), 0) / 6;
       let tier = Helper.getTier(ordersPerMonth);
       if (tier <= 1) {
-        if(qm_id) {
-          if((qmRTsDict[qm_id] && !(qmRTsDict[qm_id].logs || []).some(log => log.type === WIN_BACK_CAMPAIGN_LOG_TYPE))){
+        if (qm_id) {
+          if ((qmRTsDict[qm_id] && !(qmRTsDict[qm_id].logs || []).some(log => log.type === WIN_BACK_CAMPAIGN_LOG_TYPE))) {
             return;
           }
         } else {
@@ -177,10 +183,13 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       }
       let item: any = { name: rt_name, tier, ordersPerMonth, bm_id, qm_id, logs: [] };
       let gmb_potential = false;
+      if (bm_id) {
+        item.googleSearchText = "https://www.google.com/search?q=" + encodeURIComponent(item.name);
+      }
       if (qm_id) {
         let qm_rt = qmRTsDict[qm_id];
         if (qm_rt) {
-          let { logs, gmbPositiveScore, score, timezone, activity = {} } = qm_rt;
+          let { logs, gmbPositiveScore, score, timezone, activity = {}, address = '', gmbOwner } = qm_rt;
           item.logs = logs || [];
           gmbPositiveScore = gmbPositiveScore || {};
           item.gmbPositive = {
@@ -192,6 +201,9 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
           item.score = score;
           item.timezone = timezone;
           item.activity = activity;
+          item.address = address;
+          item.gmbOwner = gmbOwner;
+          item.googleSearchText = "https://www.google.com/search?q=" + encodeURIComponent(item.name + " " + address);
         }
       }
       // detect if rt has tier 1 perf in continuous 3 months in history
@@ -222,8 +234,8 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       item.lastestHistAvg = (flatten[0] || {} as any).avg || 0;
       rows.push(item);
     });
-
-    this.rows = rows;
+    console.log(JSON.stringify(rows.map(row => row.name)));
+    this.rows = rows.filter(row => !/(-\s*\(?old\)?)|(\s*\(old\))/.test((row.name || '').toLowerCase().trim()));
     this.filter();
   }
 
@@ -235,6 +247,8 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
           $project: {
             activity: "$computed.activity",
             timezone: "$googleAddress.timezone",
+            address: "$googleAddress.formatted_address",
+            gmbOwner: "$googleListing.gmbOwner",
             gmbPositiveScore: "$computed.gmbPositiveScore",
             score: 1,
             logs: {
@@ -250,7 +264,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
         }
       ],
     }).toPromise();
-    
+
     const dict = {};
     rts.forEach(rt => dict[rt._id] = rt);
     return dict;
@@ -262,14 +276,15 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       potential_type: Tier1PotentialTypeOptions,
       has_logs: HasLogsOptions,
       current_tier: CurrentTierOptions,
-      opm_sort: OPMSortOptions
+      opm_sort: OPMSortOptions,
+      gmb_owner: gmbOwnerOptions
     }[key])
   }
 
   filter() {
     let list = this.rows;
 
-    let { keyword, hasLogs, platform, potentialType, currentTier, OPMSort } = this.filters;
+    let { keyword, hasLogs, platform, potentialType, currentTier, OPMSort, gmbOwner } = this.filters;
     switch (platform) {
       case PlatformOptions.Qmenu:
         list = list.filter(x => !!x.qm_id);
@@ -278,6 +293,19 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
         list = list.filter(x => !!x.bm_id);
         break;
     }
+
+    switch (gmbOwner) {
+      case gmbOwnerOptions.Qmenu:
+        list = list.filter(x => x.gmbOwner === 'qmenu');
+        break;
+      case gmbOwnerOptions.BeyondMenu:
+        list = list.filter(x => x.gmbOwner === 'beyondmenu');
+        break;
+      case gmbOwnerOptions.Neither:
+        list = list.filter(x => x.gmbOwner !== 'qmenu' || x.gmbOwner !== 'beyondmenu');
+        break;
+    }
+
     switch (potentialType) {
       case Tier1PotentialTypeOptions.GMB_Based:
         list = list.filter(x => x.gmbPositive && x.gmbPositive.score > 40);
@@ -318,6 +346,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       list = list.filter(x => kwMatch(x.name) || kwMatch(x.bm_id) || kwMatch(x.qm_id))
     }
 
+
     switch (OPMSort) {
       case OPMSortOptions.GMB_Sort:
         list.sort((a, b) => ((b.gmbPositive || {}).score || 0) - ((a.gmbPositive || {}).score || 0));
@@ -328,7 +357,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     }
 
     this.list = list;
-    
+
   }
 
   async addLog(item) {

@@ -16,6 +16,14 @@
           <option *ngFor="let option of dropdowns('platform')" [value]="option">{{option}}</option>
         </select>
       </div>
+      <!-- start with gmb owner filter -->
+      <div class="col-auto">
+        <select [(ngModel)]="filters.gmbOwner" class="custom-select">
+          <option [value]="''">GMB owner?</option>
+          <option *ngFor="let option of dropdowns('gmb_owner')" [value]="option">{{option}}</option>
+        </select>
+      </div>
+      <!-- end with gmb owner filter -->
       <div class="col-auto">
         <select [(ngModel)]="filters.hasLogs" class="custom-select">
           <option [value]="''">Has logs?</option>
@@ -61,12 +69,22 @@
         </td>
         <td style="width: 10%;">
           <div>{{item.name}}</div>
+          <div class="small">
+            <ng-container *ngIf="item.qm_id">
+              {{item.address}}
+            </ng-container>
+            (<a class="google_link" href="{{item.googleSearchText}}" target="_blank">Google<i
+                class="fas fa-external-link-alt"></i></a>)
+          </div>
           <div *ngIf="item.qm_id">
             QM ID: <a class="my-text-small btn-link" target="_blank" [routerLink]="'/restaurants/' + item.qm_id">
               {{item.qm_id}}
             </a>
           </div>
           <div *ngIf="item.bm_id">BM ID: {{item.bm_id}}</div>
+          <div *ngIf="item.qm_id" class="small">
+            GMB Owner: {{ item.gmbOwner || 'unknown' }}
+          </div>
         </td>
         <td>
           <div *ngIf="item.qm_id">
