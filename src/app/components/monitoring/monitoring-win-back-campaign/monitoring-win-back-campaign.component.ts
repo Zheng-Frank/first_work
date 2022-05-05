@@ -38,7 +38,8 @@ enum OPMSortOptions {
 enum gmbOwnerOptions {
   Qmenu = 'Qmenu',
   BeyondMenu = 'Bmenu',
-  Neither = 'Neither B nor Q'
+  Neither = 'Neither B nor Q',
+  Either = 'Either B or Q'
 }
 
 const WIN_BACK_CAMPAIGN_LOG_TYPE = 'winback-campaign'
@@ -92,7 +93,9 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
   loggingRT: any = {};
   logInEditing: Log = new Log({ type: WIN_BACK_CAMPAIGN_LOG_TYPE, time: new Date() });
   now = new Date();
+
   pagination = true;
+
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
@@ -158,11 +161,55 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     return res;
   }
 
+  async getBMRTs() {
+    let bmRTs = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
+      method: 'get',
+      resource: 'bm-sst-restaurants',
+      query: {_id: { $exists: true }},
+      payload: { _id: 0, BusinessEntityID: 1, Address: 1, City: 1, State: 1, ZipCode: 1, IsBmGmbControl: 1 },
+      limit: 10000000
+    }).toPromise();
+    bmRTs = bmRTs.map(item=>({
+      _bid: item.BusinessEntityID,
+      baddress: `${item.Address}, ${item.City || ''}, ${item.State || ''} ${item.ZipCode || ''}`.trim(),
+      bwebsite: item.CustomerDomainName,
+      bhasGmb: item.IsBmGmbControl
+    }));
+    let bmRTsDict = {};
+    bmRTs.forEach(item => {
+      bmRTsDict[item._bid] = item
+    });
+    return bmRTsDict;
+  }
+
   async populate() {
     let months = this.getMonths();
     let rts = await this.getUnifiedData(months);
 
     let qmRTsDict = await this.getQmRTs(), last6Months = months.slice(months.length - 6);
+    let bmRTsDict = await this.getBMRTs();
+
+    const gmbBiz = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbBiz',
+      projection: { cid: 1, gmbOwner: 1, qmenuId: 1, place_id: 1, gmbWebsite: 1 },
+      limit: 1000000000
+    }).toPromise();
+    let gmbWebsiteOwnerDict = {}, gmbWebsiteDict = {};
+    gmbBiz.forEach(({ cid, place_id, qmenuId, gmbOwner, gmbWebsite }) => {
+      let key = place_id + cid;
+      gmbWebsiteOwnerDict[key] = gmbOwner;
+      if (qmenuId) {
+        gmbWebsiteOwnerDict[qmenuId + cid] = gmbOwner;
+      }
+      gmbWebsiteDict[key] = gmbWebsite;
+    });
+
+    const accounts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'gmbAccount',
+      query: {},
+      projection: { 'locations.cid': 1, 'locations.status': 1, 'locations.role': 1 }
+    }, 500);
+
     let rows = [];
     // first we merge data from unified and qm, filter RTs currently tier 2 or 3 but potentially tier 1
     rts.forEach(({ bm_id, qm_id, rt_name, ...rest }) => {
@@ -184,12 +231,17 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       let item: any = { name: rt_name, tier, ordersPerMonth, bm_id, qm_id, logs: [] };
       let gmb_potential = false;
       if (bm_id) {
-        item.googleSearchText = "https://www.google.com/search?q=" + encodeURIComponent(item.name);
+        let bmRT = bmRTsDict[bm_id];
+        if (bmRT) {
+          item.address = bmRT.baddress;
+          item.bhasGmb = bmRT.bhasGmb;
+          item.googleSearchText = "https://www.google.com/search?q=" + encodeURIComponent(item.name + " " + item.address);
+        }
       }
       if (qm_id) {
         let qm_rt = qmRTsDict[qm_id];
         if (qm_rt) {
-          let { logs, gmbPositiveScore, score, timezone, activity = {}, address = '', gmbOwner } = qm_rt;
+          let { _id, logs, gmbPositiveScore, score, timezone, activity = {}, address = '', place_id, cid } = qm_rt;
           item.logs = logs || [];
           gmbPositiveScore = gmbPositiveScore || {};
           item.gmbPositive = {
@@ -202,7 +254,8 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
           item.timezone = timezone;
           item.activity = activity;
           item.address = address;
-          item.gmbOwner = gmbOwner;
+          let key = place_id + cid;
+          item.qhasGmb = (gmbWebsiteOwnerDict[key] || gmbWebsiteOwnerDict[_id + cid]) && accounts.some(acc => (acc.locations || []).some(loc => loc.cid === cid && loc.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].includes(loc.role)));
           item.googleSearchText = "https://www.google.com/search?q=" + encodeURIComponent(item.name + " " + address);
         }
       }
@@ -234,13 +287,12 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       item.lastestHistAvg = (flatten[0] || {} as any).avg || 0;
       rows.push(item);
     });
-    console.log(JSON.stringify(rows.map(row => row.name)));
     this.rows = rows.filter(row => !/(-\s*\(?old\)?)|(\s*\(old\))/.test((row.name || '').toLowerCase().trim()));
     this.filter();
   }
 
   async getQmRTs() {
-    const rts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: "restaurant",
       aggregate: [
         {
@@ -248,7 +300,8 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
             activity: "$computed.activity",
             timezone: "$googleAddress.timezone",
             address: "$googleAddress.formatted_address",
-            gmbOwner: "$googleListing.gmbOwner",
+            place_id: "$googleListing.place_id",
+            cid: '$googleListing.cid',
             gmbPositiveScore: "$computed.gmbPositiveScore",
             score: 1,
             logs: {
@@ -263,7 +316,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
           }
         }
       ],
-    }).toPromise();
+    }, 5000);
 
     const dict = {};
     rts.forEach(rt => dict[rt._id] = rt);
@@ -296,13 +349,16 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
 
     switch (gmbOwner) {
       case gmbOwnerOptions.Qmenu:
-        list = list.filter(x => x.gmbOwner === 'qmenu');
+        list = list.filter(x => x.qhasGmb);
         break;
       case gmbOwnerOptions.BeyondMenu:
-        list = list.filter(x => x.gmbOwner === 'beyondmenu');
+        list = list.filter(x => x.bhasGmb);
         break;
       case gmbOwnerOptions.Neither:
-        list = list.filter(x => x.gmbOwner !== 'qmenu' || x.gmbOwner !== 'beyondmenu');
+        list = list.filter(x => !x.qhasGmb && !x.bhasGmb);
+        break;
+      case gmbOwnerOptions.Either:
+        list = list.filter(x => x.qhasGmb || x.bhasGmb);
         break;
     }
 
