@@ -1,0 +1,23 @@
+<div *ngIf="bmRT;else elseBlock">
+  <table class="table table-sm" style="width: 40%;">
+    <thead>
+      <th>Field</th>
+      <th>Value</th>
+    </thead>
+    <tbody>
+      <tr *ngFor="let data of bmRT | keyvalue">
+        <td>
+          {{data.key}}
+        </td>
+        <td>
+          {{data.value}}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<ng-template #elseBlock>
+  <div class="text-danger">
+    No match found
+  </div>
+</ng-template>

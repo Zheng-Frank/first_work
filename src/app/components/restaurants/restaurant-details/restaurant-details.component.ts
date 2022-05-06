@@ -216,6 +216,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   hasGMBWebsite = false;
   hasGMBOwner = false;
   managers = [];
+  enabledInBM = false;
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
     const tabVisibilityRolesMap = {
@@ -831,12 +832,14 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   }
 
   async loadDetails() {
+    
     this.readonly = true;
 
     if (this.id) {
       this.apiRequesting = true;
       const query = { _id: { $oid: this.id } };
       this.managers = await this.getManagerAndUsers();
+
       this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'restaurant',
         query: query,
@@ -871,6 +874,22 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           if (this.tabs.includes('Invoices')) {
             this.getInvoicesCountOfRT();
           }
+          // judge the status of this restaurant in beyond menu platform
+          this._api.post(environment.biApiUrl + "smart-restaurant/api", {
+            method: 'get',
+            resource: 'bm-sst-restaurants',
+            query: { GooglePlaceID: (this.restaurant.googleListing || {}).place_id },
+            payload: {
+              GooglePlaceID: 1,
+              Active: 1,
+            },
+            limit: 1
+          }).subscribe(result => {
+            let [bmRT] = result;
+            this.enabledInBM = (bmRT || {}).Active === true ? true : false;
+          }, err => {
+
+          });
           if (!this.readonly) {
             this.getDelinquentDates();
           }

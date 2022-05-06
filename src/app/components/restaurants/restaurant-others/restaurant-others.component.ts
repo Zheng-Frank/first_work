@@ -32,7 +32,8 @@ export class RestaurantOthersComponent implements OnInit {
        "Poster": ['ADMIN', 'CSR', 'CSR_MANAGER', 'MARKETER'],
        'Messages': ['ADMIN', 'CSR', 'CSR_MANAGER'],
        'Menu Images': ['ADMIN', 'CSR', 'CSR_MANAGER'],
-       'Other Attachments': ['ADMIN', 'CSR', 'CSR_MANAGER']
+       'Other Attachments': ['ADMIN', 'CSR', 'CSR_MANAGER'],
+       'BM Info': ['ADMIN', 'CSR', 'CSR_MANAGER', 'SST_USER']
      }
 
      let agent = Helper.getSalesAgent(this.restaurant.rateSchedules, this.users);
