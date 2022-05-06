@@ -108,3 +108,9 @@ img.pm-green {
 .bg-lime {
   background-color: lime;
 }
+
+.tier-move {
+  font-size: small;
+  color: #555555;
+  padding: 5px;
+}

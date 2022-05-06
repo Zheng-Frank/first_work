@@ -61,14 +61,14 @@
           <option *ngFor="let opt of dropdowns('place_id')" [ngValue]="opt">{{opt}}</option>
         </select>
       </div>
-  
+
       <div class="col-auto mb-3" *ngIf="showModels.matchFilters.model">
         <select class="form-control custom-select" [(ngModel)]="filters.sameName" (change)="filter()">
           <option [ngValue]="''">RT Name?</option>
           <option *ngFor="let opt of dropdowns('name')" [ngValue]="opt">{{opt}}</option>
         </select>
       </div>
-     
+
       <div class="col-auto mb-3" *ngIf="showModels.gmbRelated.model">
         <select class="form-control custom-select" [(ngModel)]="filters.gmbStatus" (change)="filter()">
           <option [ngValue]="''">GMB Status?</option>
@@ -251,7 +251,7 @@
             </select>
           </div>
           <div class="col-auto">
-            <select class="form-control custom-select" [(ngModel)]="kpiFilters.normal.period">
+            <select class="form-control custom-select" [(ngModel)]="kpiFilters.normal.period_type">
               <option *ngFor="let opt of dropdowns('kpi_period')" [ngValue]="opt">{{opt}}</option>
             </select>
           </div>
@@ -306,7 +306,7 @@
             </select>
           </div>
           <div class="col-auto">
-            <select class="form-control custom-select" [(ngModel)]="kpiFilters.over.period">
+            <select class="form-control custom-select" [(ngModel)]="kpiFilters.over.period_type">
               <option *ngFor="let opt of dropdowns('kpi_period')" [ngValue]="opt">{{opt}}</option>
             </select>
           </div>
@@ -353,6 +353,106 @@
         </div>
       </ng-container>
 
+    </div>
+
+    <div>
+      <div>
+        <a class="btn btn-link" (click)="showChurn = !showChurn">{{showChurn ? 'Hide': 'Show'}} Churn <i class="fa fa-angle-{{showChurn ? 'up': 'down'}}"></i></a>
+      </div>
+      <ng-container *ngIf="showChurn">
+        <div class="row mt-2 mb-2">
+          <div class="col-auto">
+            <select class="form-control custom-select" [(ngModel)]="churnFilters.platform">
+              <option *ngFor="let opt of dropdowns('platform')" [ngValue]="opt">{{opt}}</option>
+            </select>
+          </div>
+          <div class="col-auto">
+            <select class="form-control custom-select" [(ngModel)]="churnFilters.period_type">
+              <option *ngFor="let opt of dropdowns('kpi_period')" [ngValue]="opt">{{opt}}</option>
+            </select>
+          </div>
+          <div class="col-auto">
+            <select class="form-control custom-select" [(ngModel)]="churnFilters.tier">
+              <option *ngFor="let tier of [0,1,2,3]" [ngValue]="tier" >{{tier ? 'Tier ' + tier : 'VIP'}}</option>
+            </select>
+          </div>
+          <div class="col-auto">
+            <select class="form-control custom-select" [(ngModel)]="churnFilters.definition">
+              <option *ngFor="let opt of dropdowns('churn_definition')" [ngValue]="opt">{{opt}}</option>
+            </select>
+          </div>
+          <div class="col-auto">
+            <label class="form-control-plaintext">
+              <input class="mr-1" type="checkbox" [(ngModel)]="churnFilters.show_movement" /> Show exact tier movement
+            </label>
+          </div>
+          <div class="col-auto">
+            <a class="btn btn-link" (click)="churnDownload()">Download CSV</a>
+          </div>
+        </div>
+        <table class="table table-bordered left table-sm">
+          <thead>
+          <tr>
+            <th class="text-transparent"></th>
+            <th>Start Count</th>
+            <th>Total Lost (UT/DT/C)</th>
+            <th>Total Gained (IT/N)</th>
+            <th>End Count</th>
+            <th>Net +/- (%)</th>
+          </tr>
+          </thead>
+          <tbody>
+          <ng-container *ngIf="churnFilters.definition === churnDefinitions.Disabled">
+            <tr *ngFor="let row of getChurnList()">
+              <td>{{row.period}}</td>
+              <td>{{row.start}}</td>
+              <td>
+                <div>
+                  {{0 - (row.lostToLower + row.lostToHigher + row.canceled)}} ({{0 - row.lostToHigher}}/{{0 - row.lostToLower}}/{{0 - row.canceled}})
+                </div>
+                <div class="tier-move" *ngIf="churnFilters.show_movement">
+                  <div *ngFor="let item of row.lost">{{item.path}}: {{item.count}}</div>
+                </div>
+              </td>
+              <td>
+                <div>{{row.gainByUp + row.gainByDown + row.created}} ({{row.gainByUp + row.gainByDown}}/{{row.created}})</div>
+                <div class="tier-move" *ngIf="churnFilters.show_movement">
+                  <div *ngFor="let item of row.gained">{{item.path}}: {{item.count}}</div>
+                </div>
+              </td>
+              <td>{{row.end}}</td>
+              <td>
+                {{row.end - row.start}} ({{((row.end - row.start) / row.start) | percent: '1.0-2'}})
+              </td>
+            </tr>
+          </ng-container>
+          <ng-container *ngIf="churnFilters.definition === churnDefinitions.NoOrdersLast30d">
+            <tr *ngFor="let row of getChurnList()">
+              <td>{{row.period}}</td>
+              <td>{{row.pureStart}}</td>
+              <td>
+                <div>
+                  {{0 - (row.pureLostToLower + row.pureLostToHigher + row.pureCanceled + row.deactivated)}} ({{0 - row.pureLostToHigher}}/{{0 - row.pureLostToLower}}/{{0 - (row.pureCanceled + row.deactivated)}})
+                </div>
+                <div class="tier-move" *ngIf="churnFilters.show_movement">
+                  <div *ngFor="let item of row.pureLosts">{{item.path}}: {{item.count}}</div>
+                </div>
+              </td>
+              <td>
+                <div>{{row.pureGainByUp + row.pureGainByDown + row.pureCreated + row.activated}} ({{row.pureGainByUp + row.pureGainByDown}}/{{row.pureCreated + row.activated}})</div>
+                <div class="tier-move" *ngIf="churnFilters.show_movement">
+                  <div *ngFor="let item of row.pureGains">{{item.path}}: {{item.count}}</div>
+                </div>
+              </td>
+              <td>{{row.pureEnd}}</td>
+              <td>
+                {{row.pureEnd - row.pureStart}} ({{((row.pureEnd - row.pureStart) / row.pureStart) | percent: '1.0-2'}})
+              </td>
+            </tr>
+          </ng-container>
+          </tbody>
+        </table>
+      </ng-container>
     </div>
   </ng-container>
 
@@ -478,8 +578,8 @@
                 domain: <a *ngIf="row.website" [href]="row.website">{{row.website}}</a>
               </div>
               <ng-container *ngIf="row._bid && !row.bhide">
-                <div>BM: Tier {{row.btier}}, ID: {{row._bid}}, <ng-container *ngIf="row.createdAt">created:
-                    {{row.createdAt | dateTz: "YYYY-MM-DD": "America/New_York"}}</ng-container>, domain: <a
+                <div>BM: Tier {{row.btier}}, ID: {{row._bid}}, <ng-container *ngIf="row.bcreatedAt">created:
+                    {{row.bcreatedAt | dateTz: "yyyy-MM-dd": "America/New_York"}}</ng-container>, domain: <a
                     [href]="row.bwebsite">{{row.bwebsite}}</a></div>
                 <div *ngIf="showModels.pricing.model">BM Pricing: {{row.bpricing}}</div>
               </ng-container>
