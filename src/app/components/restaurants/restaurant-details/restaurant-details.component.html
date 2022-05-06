@@ -68,8 +68,10 @@
   <div class="p-t-1 pt-1 p-b-1 pb-1 row">
     <div class="col-3">
       <button (click)="sendMsgModal.show()" class="btn btn-secondary fa fa-comments"> Send Message</button>
-      <img class="bm-logo" *ngIf="enabledInBM" src="../../../../assets/images/beyondmenu.png"/>
-      <img class="bm-logo" *ngIf="!enabledInBM" src="../../../../assets/images/beyondmenu-gray.png" />
+      <ng-container *ngIf="this.bmRT">
+        <img class="bm-logo" *ngIf="enabledInBM" src="../../../../assets/images/beyondmenu.png"/>
+        <img class="bm-logo" *ngIf="!enabledInBM" src="../../../../assets/images/beyondmenu-gray.png" />
+      </ng-container>
     </div>
     <div class="col-9 text-right">
       <select [(ngModel)]="languageType" class="language-select mr-3 col-2" style="min-width:180px;max-width:180px;"

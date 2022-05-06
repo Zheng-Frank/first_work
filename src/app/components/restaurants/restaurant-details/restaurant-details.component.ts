@@ -217,6 +217,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   hasGMBOwner = false;
   managers = [];
   enabledInBM = false;
+  bmRT;
 
   constructor(private _route: ActivatedRoute, private _router: Router, private _api: ApiService, private _global: GlobalService) {
     const tabVisibilityRolesMap = {
@@ -884,8 +885,8 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
             },
             limit: 1
           }).subscribe(result => {
-            let [bmRT] = result;
-            this.enabledInBM = (bmRT || {}).Active === true ? true : false;
+            [this.bmRT] = result;
+            this.enabledInBM = (this.bmRT || {}).Active === true ? true : false;
           }, err => {
 
           });
