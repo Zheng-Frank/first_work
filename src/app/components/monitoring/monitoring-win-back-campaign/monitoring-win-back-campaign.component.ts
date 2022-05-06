@@ -93,6 +93,9 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
   loggingRT: any = {};
   logInEditing: Log = new Log({ type: WIN_BACK_CAMPAIGN_LOG_TYPE, time: new Date() });
   now = new Date();
+  logVisibilities = {
+    hidden: {}, expanded: {}
+  }
 
   pagination = true;
 
@@ -169,7 +172,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       payload: { _id: 0, BusinessEntityID: 1, Address: 1, City: 1, State: 1, ZipCode: 1, IsBmGmbControl: 1 },
       limit: 10000000
     }).toPromise();
-    bmRTs = bmRTs.map(item=>({
+    bmRTs = bmRTs.map(item => ({
       _bid: item.BusinessEntityID,
       baddress: `${item.Address}, ${item.City || ''}, ${item.State || ''} ${item.ZipCode || ''}`.trim(),
       bwebsite: item.CustomerDomainName,
@@ -228,7 +231,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
           return;
         }
       }
-      let item: any = { name: rt_name, tier, ordersPerMonth, bm_id, qm_id, logs: [] };
+      let item: any = { name: rt_name, tier, ordersPerMonth, bm_id, qm_id, logs: [], win_back_logs: [] };
       let gmb_potential = false;
       if (bm_id) {
         let bmRT = bmRTsDict[bm_id];
@@ -241,8 +244,9 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       if (qm_id) {
         let qm_rt = qmRTsDict[qm_id];
         if (qm_rt) {
-          let { _id, logs, gmbPositiveScore, score, timezone, activity = {}, address = '', place_id, cid } = qm_rt;
-          item.logs = logs || [];
+          let { _id, logs, winBackLogs, gmbPositiveScore, score, timezone, activity = {}, address = '', place_id, cid } = qm_rt;
+          item.logs = (logs || []).reverse();
+          item.winBackLogs = (winBackLogs || []).reverse()
           gmbPositiveScore = gmbPositiveScore || {};
           item.gmbPositive = {
             score: gmbPositiveScore.ordersPerMonth || 0,
@@ -305,7 +309,8 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
             cid: '$googleListing.cid',
             gmbPositiveScore: "$computed.gmbPositiveScore",
             score: 1,
-            logs: {
+            logs: {$slice: ["$logs", -4]},
+            winBackLogs: {
               $filter: {
                 input: '$logs',
                 as: 'log',
@@ -317,7 +322,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
           }
         }
       ],
-    }, 5000);
+    }, 2000);
 
     const dict = {};
     rts.forEach(rt => dict[rt._id] = rt);
@@ -439,7 +444,9 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
         this._global.publishAlert(AlertType.Success, 'Log added successfully');
         event.formEvent.acknowledge(null);
         let index = this.rows.findIndex(x => x.qm_id === this.loggingRT._id);
-        this.rows[index].logs = newRT.logs.filter(x => x.type === WIN_BACK_CAMPAIGN_LOG_TYPE);
+        this.rows[index].logs = newRT.logs.reverse();
+        this.rows[index].winBackLogs = newRT.logs.filter(x => x.type === WIN_BACK_CAMPAIGN_LOG_TYPE);
+        this.rows[index].logsLoaded = true;
         this.logEditingModal.hide();
         this.loggingRT = {};
       },
@@ -453,6 +460,23 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
   onCancelAddLog() {
     this.logEditingModal.hide();
     this.loggingRT = {};
+  }
+
+  async moreLogs(item) {
+    if (item.logsLoaded) {
+      this.logVisibilities.expanded[item.qm_id] = true;
+      return;
+    }
+    let [restaurant] = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      query: { _id: { $oid: item.qm_id } },
+      projection: { logs: 1 },
+      limit: 1
+    }).toPromise();
+    let index = this.rows.findIndex(x => x.qm_id === item.qm_id);
+    this.rows[index].logs = restaurant.logs.reverse();
+    this.rows[index].logsLoaded = true;
+    this.logVisibilities.expanded[item.qm_id] = true;
   }
 
 }
