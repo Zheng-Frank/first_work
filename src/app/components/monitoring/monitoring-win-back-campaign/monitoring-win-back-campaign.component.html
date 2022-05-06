@@ -80,6 +80,16 @@
             </a>
           </div>
           <div *ngIf="item.bm_id">BM ID: {{item.bm_id}}</div>
+          <div class="d-inline-flex align-items-center">
+            <i class="fab fa-google mr-2"></i>
+            <span class="logo qm-icon" *ngIf="item.qhasGmb" [ngClass]="{'mr-2': item.bhasGmb}"></span>
+            <span class="logo bm-icon" *ngIf="item.bhasGmb"></span>
+            <span class="text-danger" *ngIf="!item.qhasGmb && !item.bhasGmb">&#10008;</span>
+            <i class="fas fa-globe mr-2 ml-3"></i>
+            <span class="logo qm-icon" *ngIf="item.qhasGMBWebsite" [ngClass]="{'mr-2': item.bhasGMBWebsite}"></span>
+            <span class="logo bm-icon" *ngIf="item.bhasGMBWebsite"></span>
+            <span class="text-danger" *ngIf="!item.qhasGMBWebsite && !item.bhasGMBWebsite">&#10008;</span>
+          </div>
         </td>
         <td>
           <div *ngIf="item.qm_id">

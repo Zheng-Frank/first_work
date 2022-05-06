@@ -256,6 +256,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
           item.address = address;
           let key = place_id + cid;
           item.qhasGmb = (gmbWebsiteOwnerDict[key] || gmbWebsiteOwnerDict[_id + cid]) && accounts.some(acc => (acc.locations || []).some(loc => loc.cid === cid && loc.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].includes(loc.role)));
+          item.qhasGMBWebsite = gmbWebsiteOwnerDict[key] === 'qmenu' || gmbWebsiteOwnerDict[_id + cid] === 'qmenu';
           item.googleSearchText = "https://www.google.com/search?q=" + encodeURIComponent(item.name + " " + address);
         }
       }

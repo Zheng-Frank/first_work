@@ -18,3 +18,30 @@
   white-space: nowrap;
   word-break: keep-all;
 }
+
+.logo {
+  position: relative;
+  display: inline-block;
+  width: 25px;
+  height: 25px;
+}
+
+.qm-icon {
+  background: url("/assets/images/qmenu-light.png");
+  background-size: contain;
+}
+
+.bm-icon {
+  background: url("/assets/images/beyondmenu.png");
+  background-size: contain;
+}
+
+.logo i {
+  font-size: 12px;
+  position: absolute;
+  right: -6px;
+  top: -6px;
+  color: #257900;
+}
+
+
