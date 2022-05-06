@@ -836,8 +836,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       this.apiRequesting = true;
       const query = { _id: { $oid: this.id } };
       this.managers = await this.getManagerAndUsers();
-      let bmRT;
-      // --- BeyondMenu restaurants
 
       this._api.get(environment.qmenuApiUrl + 'generic', {
         resource: 'restaurant',
@@ -876,10 +874,20 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           this.getDelinquentDates();
           this.computeGMBStatus();
           // judge the status of this restaurant in beyond menu platform
-          this._api.get(`${environment.bmQueryRTAccuratelyApi}&GooglePlaceID=${(this.restaurant.googleListing || {}).place_id}&AuthKey=49da4e63-491a-4b6b-8b30-d879068e4094`).subscribe(result => {
-            bmRT = result;
-            console.log(bmRT);
-            this.enabledInBM = (bmRT || {}).isActive === 1 ? true : false;
+          this._api.post(environment.biApiUrl + "smart-restaurant/api", {
+            method: 'get',
+            resource: 'bm-sst-restaurants',
+            query: { GooglePlaceID: (this.restaurant.googleListing || {}).place_id },
+            payload: {
+              GooglePlaceID: 1,
+              Active: 1,
+            },
+            limit: 1
+          }).subscribe(result => {
+            let [bmRT] = result;
+            this.enabledInBM = (bmRT || {}).Active === true ? true : false;
+          }, err => {
+
           });
         },
         error => {

@@ -1,5 +1,7 @@
 <div *ngIf="bmRT;else elseBlock">
+<pre>
   {{ bmRT | json }}
+</pre>
 </div>
 <ng-template #elseBlock>
   <div class="text-danger">
