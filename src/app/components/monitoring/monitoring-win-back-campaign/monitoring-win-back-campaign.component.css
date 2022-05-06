@@ -18,3 +18,11 @@
   white-space: nowrap;
   word-break: keep-all;
 }
+
+.table-log {
+  width: 20rem;
+}
+
+.table-log-edit {
+  width: 24rem;
+}

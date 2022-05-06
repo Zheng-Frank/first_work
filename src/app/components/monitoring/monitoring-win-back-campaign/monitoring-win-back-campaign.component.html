@@ -3,56 +3,56 @@
     <h1 class="text-center">Win-back Campaign ({{list.length || 0}})</h1>
   </h2>
   <div class="card-body">
-    <div class="row mb-3">
-      <div class="col-auto">
+    <div class="row">
+      <div class="col-auto mb-3">
         <select [(ngModel)]="filters.potentialType" class="custom-select">
           <option [value]="''">Tier 1 Potential Types?</option>
           <option *ngFor="let option of dropdowns('potential_type')" [value]="option">{{option}}</option>
         </select>
       </div>
-      <div class="col-auto">
+      <div class="col-auto mb-3">
         <select [(ngModel)]="filters.platform" class="custom-select">
           <option [value]="''">Platform?</option>
           <option *ngFor="let option of dropdowns('platform')" [value]="option">{{option}}</option>
         </select>
       </div>
       <!-- start with gmb owner filter -->
-      <div class="col-auto">
+      <div class="col-auto mb-3">
         <select [(ngModel)]="filters.gmbOwner" class="custom-select">
           <option [value]="''">GMB owner?</option>
           <option *ngFor="let option of dropdowns('gmb_owner')" [value]="option">{{option}}</option>
         </select>
       </div>
       <!-- end with gmb owner filter -->
-      <div class="col-auto">
+      <div class="col-auto mb-3">
         <select [(ngModel)]="filters.hasLogs" class="custom-select">
           <option [value]="''">Has logs?</option>
           <option *ngFor="let option of dropdowns('has_logs')" [value]="option">{{option}}</option>
         </select>
       </div>
-      <div class="col-auto">
+      <div class="col-auto mb-3">
         <select [(ngModel)]="filters.currentTier" class="custom-select">
           <option [value]="''">Current Tier?</option>
           <option *ngFor="let option of dropdowns('current_tier')" [value]="option">{{option}}</option>
         </select>
       </div>
       <!-- start with sort -->
-      <div class="col-auto">
+      <div class="col-auto mb-3">
         <select [(ngModel)]="filters.OPMSort" class="custom-select">
           <option [value]="''">OPM Sort By?</option>
           <option *ngFor="let option of dropdowns('opm_sort')" [value]="option">{{option}}</option>
         </select>
       </div>
       <!-- end with sort -->
-      <div class="col-auto">
+      <div class="col-auto mb-3">
         <input type="text" style="width: 240px" class="form-control" [(ngModel)]="filters.keyword"
           placeholder="Search by name or QM/BM ID">
       </div>
-      <div class="col-auto">
+      <div class="col-auto mb-3">
         <button class="btn btn-primary" (click)="filter()">Search</button>
       </div>
       <!-- start with pagnation -->
-      <div class="col-auto">
+      <div class="col-auto mb-3">
         <input type="checkbox" class="mt-2" [(ngModel)]="pagination">
         <label class="mr-3 ml-1 mt-2">
           Pagination
@@ -80,6 +80,55 @@
             </a>
           </div>
           <div *ngIf="item.bm_id">BM ID: {{item.bm_id}}</div>
+          <ng-container *ngIf="item.logs.length > 0">
+
+            <ng-container *ngIf="!logVisibilities.hidden[item.qm_id]">
+              <div class="mt-2">
+                <a class="btn-link" (click)="logVisibilities.hidden[item.qm_id] = true" >Hide Log<i class="fa fa-chevron-up ml-2"></i></a>
+              </div>
+              <table class="table table-sm table-log small">
+                <tr>
+                  <th>User</th>
+                  <th>Time</th>
+                  <th>Problem</th>
+                  <th>Response</th>
+                </tr>
+                <ng-container *ngIf="logVisibilities.expanded[item.qm_id]">
+                  <ng-container *ngFor="let log of item.logs">
+                    <tr>
+                      <td>{{log.username}}</td>
+                      <td>{{log.time | adjustedDate : 'MMM d h:mm a' : item.timezone}}</td>
+                      <td>{{log.problem}}</td>
+                      <td>{{log.response}}</td>
+                    </tr>
+                  </ng-container>
+                  <tr *ngIf="item.logs.length > 3">
+                    <td colspan="4">
+                      <a class="btn-link" (click)="logVisibilities.expanded[item.qm_id] = false">Less...</a>
+                    </td>
+                  </tr>
+                </ng-container>
+                <ng-container *ngIf="!logVisibilities.expanded[item.qm_id] && item.logs.length > 3">
+                  <ng-container *ngFor="let log of item.logs.slice(0, 3)">
+                    <tr>
+                      <td>{{log.username}}</td>
+                      <td>{{log.time | adjustedDate : 'MMM d h:mm a' : item.timezone}}</td>
+                      <td>{{log.problem}}</td>
+                      <td>{{log.response}}</td>
+                    </tr>
+                  </ng-container>
+                  <tr>
+                    <td colspan="4">
+                      <a class="btn-link" (click)="moreLogs(item)">More...</a>
+                    </td>
+                  </tr>
+                </ng-container>
+              </table>
+            </ng-container>
+            <div *ngIf="logVisibilities.hidden[item.qm_id]">
+              <a class="btn-link" (click)="logVisibilities.hidden[item.qm_id] = false">Show Log<i class="fa fa-chevron-down ml-2"></i></a>
+            </div>
+          </ng-container>
         </td>
         <td>
           <div *ngIf="item.qm_id">
@@ -114,14 +163,14 @@
         <td>{{item.tier}}({{item.ordersPerMonth | number: '1.0-1'}})</td>
         <td>
           <ng-container *ngIf="item.qm_id">
-            <table class="table table-sm">
+            <table class="table table-sm table-log-edit">
               <tr>
                 <th>User</th>
                 <th>Time</th>
                 <th>Problem</th>
                 <th>Response</th>
               </tr>
-              <ng-container *ngFor="let log of item.logs">
+              <ng-container *ngFor="let log of item.winBackLogs">
                 <tr>
                   <td>{{log.username}}</td>
                   <td>{{log.time | adjustedDate : 'MMM d h:mm a' : item.timezone}}</td>
