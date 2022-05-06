@@ -235,6 +235,9 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     };
 
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
+    if (!this.tabs.includes('Settings')) {
+      this.activeTab = this.tabs[0] || ''
+    }
     console.log(this._global.user.roles, this.tabs)
 
     this._route.params.subscribe(
@@ -868,8 +871,12 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           if (this.tabs.includes('Invoices')) {
             this.getInvoicesCountOfRT();
           }
-          this.getDelinquentDates();
-          this.computeGMBStatus()
+          if (!this.readonly) {
+            this.getDelinquentDates();
+          }
+          if (this.tabs.includes('GMB')) {
+            this.computeGMBStatus()
+          }
         },
         error => {
           this.apiRequesting = false;
