@@ -43,3 +43,16 @@
   top: -6px;
   color: #257900;
 }
+
+.table-container {
+  width: 100%;
+}
+
+.table-container ::ng-deep table thead tr th {
+  white-space: nowrap!important;
+}
+
+
+.text-unwrap {
+  white-space: nowrap;
+}

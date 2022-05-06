@@ -65,7 +65,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       sort: (a, b) => (a.score || 0) - (b.score || 0)
     },
     {
-      label: 'Timezone (EST +/-)',
+      label: 'TZ',
       paths: ['timezone'],
       sort: (a, b) => Number(this.getTimeOffsetByTimezone(a)) - Number(this.getTimeOffsetByTimezone(b))
     },
@@ -73,7 +73,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       label: "Tier 1 Potential"
     },
     {
-      label: 'Current Tier (OPM)',
+      label: 'Tier (OPM)',
     },
     {
       label: "Logs",

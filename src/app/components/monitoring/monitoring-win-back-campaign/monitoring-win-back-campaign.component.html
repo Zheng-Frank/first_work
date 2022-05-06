@@ -64,141 +64,152 @@
       <!-- end with pagnation -->
     </div>
 
-    <q-table [rows]="list" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
+    <div class="table-container">
+      <q-table [rows]="list" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
       [pageSize]="pagination ? 100 : 100000">
-      <tr *tableRowTemplate="let item;">
-        <td>
-          {{list.indexOf(item) + 1}}
-        </td>
-        <td style="width: 10%;">
-          <div>{{item.name}}</div>
-          <div class="small">
-            {{item.address}}
-            (<a class="google_link" href="{{item.googleSearchText}}" target="_blank">Google<i
-                class="fas fa-external-link-alt"></i></a>)
-          </div>
-          <div *ngIf="item.qm_id">
-            QM ID: <a class="my-text-small btn-link" target="_blank" [routerLink]="'/restaurants/' + item.qm_id">
-              {{item.qm_id}}
-            </a>
-          </div>
-          <div *ngIf="item.bm_id">BM ID: {{item.bm_id}}</div>
-          <div class="d-inline-flex align-items-center">
-            <i class="fab fa-google mr-2"></i>
-            <span class="logo qm-icon" *ngIf="item.qhasGmb" [ngClass]="{'mr-2': item.bhasGmb}"></span>
-            <span class="logo bm-icon" *ngIf="item.bhasGmb"></span>
-            <span class="text-danger" *ngIf="!item.qhasGmb && !item.bhasGmb">&#10008;</span>
-            <i class="fas fa-globe mr-2 ml-3"></i>
-            <span class="logo qm-icon" *ngIf="item.qhasGMBWebsite" [ngClass]="{'mr-2': item.bhasGMBWebsite}"></span>
-            <span class="logo bm-icon" *ngIf="item.bhasGMBWebsite"></span>
-            <span class="text-danger" *ngIf="!item.qhasGMBWebsite && !item.bhasGMBWebsite">&#10008;</span>
-          </div>
-          <ng-container *ngIf="item.logs.length > 0">
+      <ng-container *tableRowTemplate="let item;">
+        <tr>
+          <td>
+            {{list.indexOf(item) + 1}}
+          </td>
+          <td style="width: 10%;">
+            <div>{{item.name}}</div>
+            <div class="small">
+              {{item.address}}
+              (<a class="google_link" href="{{item.googleSearchText}}" target="_blank">Google<i
+                  class="fas fa-external-link-alt"></i></a>)
+            </div>
+            <div *ngIf="item.qm_id">
+              <a class="my-text-small btn-link" target="_blank" [routerLink]="'/restaurants/' + item.qm_id">
+                {{item.qm_id}}
+              </a>
+            </div>
+            <div *ngIf="item.bm_id">BM ID: {{item.bm_id}}</div>
+            <div class="d-inline-flex align-items-center">
+              <i class="fab fa-google mr-2"></i>
+              <span class="logo qm-icon" *ngIf="item.qhasGmb" [ngClass]="{'mr-2': item.bhasGmb}"></span>
+              <span class="logo bm-icon" *ngIf="item.bhasGmb"></span>
+              <span class="text-danger" *ngIf="!item.qhasGmb && !item.bhasGmb">&#10008;</span>
+              <i class="fas fa-globe mr-2 ml-3"></i>
+              <span class="logo qm-icon" *ngIf="item.qhasGMBWebsite" [ngClass]="{'mr-2': item.bhasGMBWebsite}"></span>
+              <span class="logo bm-icon" *ngIf="item.bhasGMBWebsite"></span>
+              <span class="text-danger" *ngIf="!item.qhasGMBWebsite && !item.bhasGMBWebsite">&#10008;</span>
+            </div>
+            <ng-container *ngIf="item.logs.length > 0">
 
-            <ng-container *ngIf="!logVisibilities.hidden[item.qm_id]">
-              <div class="mt-2">
-                <a class="btn-link" (click)="logVisibilities.hidden[item.qm_id] = true" >Hide Log<i class="fa fa-chevron-up ml-2"></i></a>
+              <ng-container *ngIf="!logVisibilities.hidden[item.qm_id]">
+                <div class="mt-2">
+                  <a class="btn-link" (click)="logVisibilities.hidden[item.qm_id] = true" >Hide Log<i class="fa fa-chevron-up ml-2"></i></a>
+                </div>
+              </ng-container>
+              <div *ngIf="logVisibilities.hidden[item.qm_id]">
+                <a class="btn-link" (click)="logVisibilities.hidden[item.qm_id] = false">Show Log<i class="fa fa-chevron-down ml-2"></i></a>
               </div>
-              <table class="table table-sm table-log small">
+            </ng-container>
+          </td>
+          <td>
+            <div *ngIf="item.qm_id">
+              {{ item.score | number : '1.0-0' }}
+            </div>
+          </td>
+          <td>
+            <div class="text-unwrap" *ngIf="item.qm_id">
+              {{getTimezoneCity(item.timezone)}} ({{getTimeOffsetByTimezone(item.timezone)}})
+            </div>
+          </td>
+          <td style="width: 15%;">
+            <div class="d-flex align-items-center mb-2" *ngIf="item.gmbPositive">
+              <strong class="mr-1">GMB:</strong>
+              <span class="gray-block">
+                <strong class="text-success mr-1">{{item.gmbPositive.score}}</strong> OPM ({{item.gmbPositive.orders}}
+                over {{item.gmbPositive.days}} "GMB days")
+              </span>
+            </div>
+            <div class="d-flex align-items-start" *ngIf="item.histories.length > 0">
+              <strong class="mr-1">Hist.:</strong>
+              <div class="histories">
+                <div class="mb-1" *ngFor="let line of item.histories">
+                  <span class="history-item gray-block mr-2 text-unwrap" *ngFor="let hist of line">
+                    <strong class="text-success mr-1">{{hist.avg | number: '1.0-1'}}</strong> OPM ({{hist.start}} ~
+                    {{hist.end}})
+                  </span>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td>{{item.tier}} ({{item.ordersPerMonth | number: '1.0-1'}})</td>
+          <td style="width: 40%;">
+            <ng-container *ngIf="item.qm_id">
+              <table class="table table-sm table-log-edit">
                 <tr>
                   <th>User</th>
                   <th>Time</th>
                   <th>Problem</th>
                   <th>Response</th>
                 </tr>
-                <ng-container *ngIf="logVisibilities.expanded[item.qm_id]">
-                  <ng-container *ngFor="let log of item.logs">
-                    <tr>
-                      <td>{{log.username}}</td>
-                      <td>{{log.time | adjustedDate : 'MMM d h:mm a' : item.timezone}}</td>
-                      <td>{{log.problem}}</td>
-                      <td>{{log.response}}</td>
-                    </tr>
-                  </ng-container>
-                  <tr *ngIf="item.logs.length > 3">
-                    <td colspan="4">
-                      <a class="btn-link" (click)="logVisibilities.expanded[item.qm_id] = false">Less...</a>
-                    </td>
-                  </tr>
-                </ng-container>
-                <ng-container *ngIf="!logVisibilities.expanded[item.qm_id] && item.logs.length > 3">
-                  <ng-container *ngFor="let log of item.logs.slice(0, 3)">
-                    <tr>
-                      <td>{{log.username}}</td>
-                      <td>{{log.time | adjustedDate : 'MMM d h:mm a' : item.timezone}}</td>
-                      <td>{{log.problem}}</td>
-                      <td>{{log.response}}</td>
-                    </tr>
-                  </ng-container>
+                <ng-container *ngFor="let log of item.winBackLogs">
                   <tr>
-                    <td colspan="4">
-                      <a class="btn-link" (click)="moreLogs(item)">More...</a>
-                    </td>
+                    <td>{{log.username}}</td>
+                    <td>{{log.time | adjustedDate : 'MMM d h:mm a' : item.timezone}}</td>
+                    <td>{{log.problem}}</td>
+                    <td>{{log.response}}</td>
                   </tr>
                 </ng-container>
               </table>
-            </ng-container>
-            <div *ngIf="logVisibilities.hidden[item.qm_id]">
-              <a class="btn-link" (click)="logVisibilities.hidden[item.qm_id] = false">Show Log<i class="fa fa-chevron-down ml-2"></i></a>
-            </div>
-          </ng-container>
-        </td>
-        <td>
-          <div *ngIf="item.qm_id">
-            {{ item.score | number : '1.0-0' }}
-          </div>
-        </td>
-        <td>
-          <div *ngIf="item.qm_id">
-            {{getTimezoneCity(item.timezone)}} ({{getTimeOffsetByTimezone(item.timezone)}})
-          </div>
-        </td>
-        <td style="width: 15%;">
-          <div class="d-flex align-items-center mb-2" *ngIf="item.gmbPositive">
-            <strong class="mr-1">GMB:</strong>
-            <span class="gray-block">
-              <strong class="text-success mr-1">{{item.gmbPositive.score}}</strong> OPM ({{item.gmbPositive.orders}}
-              over {{item.gmbPositive.days}} "GMB days")
-            </span>
-          </div>
-          <div class="d-flex align-items-start" *ngIf="item.histories.length > 0">
-            <strong class="mr-1">Hist.:</strong>
-            <div class="histories">
-              <div class="mb-1" *ngFor="let line of item.histories">
-                <span class="history-item gray-block mr-2 text-unwrap" *ngFor="let hist of line">
-                  <strong class="text-success mr-1">{{hist.avg | number: '1.0-1'}}</strong> OPM ({{hist.start}} ~
-                  {{hist.end}})
-                </span>
+              <div>
+                <button class="btn btn-primary btn-sm" (click)="addLog(item)"><i class="fas fa-plus"></i>Add Log</button>
               </div>
-            </div>
-          </div>
-        </td>
-        <td>{{item.tier}}({{item.ordersPerMonth | number: '1.0-1'}})</td>
-        <td style="width: 40%;">
-          <ng-container *ngIf="item.qm_id">
-            <table class="table table-sm table-log-edit">
-              <tr>
+            </ng-container>
+          </td>
+        </tr>
+        <tr *ngIf="!logVisibilities.hidden[item.qm_id] && item.logs.length > 0">
+          <td></td>
+          <td colspan="6">
+            <table class="table table-sm table-log small">
+              <tr class="table-secondary">
                 <th>User</th>
                 <th>Time</th>
                 <th>Problem</th>
                 <th>Response</th>
               </tr>
-              <ng-container *ngFor="let log of item.winBackLogs">
+              <ng-container *ngIf="logVisibilities.expanded[item.qm_id]">
+                <ng-container *ngFor="let log of item.logs">
+                  <tr>
+                    <td>{{log.username}}</td>
+                    <td>{{log.time | adjustedDate : 'MMM d h:mm a' : item.timezone}}</td>
+                    <td>{{log.problem}}</td>
+                    <td>{{log.response}}</td>
+                  </tr>
+                </ng-container>
+                <tr *ngIf="item.logs.length > 3">
+                  <td colspan="4">
+                    <a class="btn-link" (click)="logVisibilities.expanded[item.qm_id] = false">Less...</a>
+                  </td>
+                </tr>
+              </ng-container>
+              <ng-container *ngIf="!logVisibilities.expanded[item.qm_id] && item.logs.length > 3">
+                <ng-container *ngFor="let log of item.logs.slice(0, 3)">
+                  <tr>
+                    <td>{{log.username}}</td>
+                    <td>{{log.time | adjustedDate : 'MMM d h:mm a' : item.timezone}}</td>
+                    <td>{{log.problem}}</td>
+                    <td>{{log.response}}</td>
+                  </tr>
+                </ng-container>
                 <tr>
-                  <td>{{log.username}}</td>
-                  <td>{{log.time | adjustedDate : 'MMM d h:mm a' : item.timezone}}</td>
-                  <td>{{log.problem}}</td>
-                  <td>{{log.response}}</td>
+                  <td colspan="4">
+                    <a class="btn-link" (click)="moreLogs(item)">More...</a>
+                  </td>
                 </tr>
               </ng-container>
             </table>
-            <div>
-              <button class="btn btn-primary btn-sm" (click)="addLog(item)"><i class="fas fa-plus"></i>Add Log</button>
-            </div>
-          </ng-container>
-        </td>
-      </tr>
+          </td>
+        </tr>
+      </ng-container>
+
     </q-table>
+    </div>
+
   </div>
 
   <q-modal #logEditingModal>

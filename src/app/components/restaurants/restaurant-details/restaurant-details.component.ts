@@ -226,12 +226,12 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       "Coupons": ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
       "Orders": ['ADMIN', 'CSR', 'CSR_MANAGER', 'MARKETER'],
       "Invoices": ['ADMIN', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER'],
-      "Logs": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER'],
+      "Logs": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER', 'MARKETER_EXTERNAL', 'MARKETER_INTERNAL', 'MARKETER_MANAGER'],
       "IVR": ['ADMIN', 'CSR', 'CSR_MANAGER'],
       "Tasks": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER', 'GMB'],
       "Diagnostics": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER', 'GMB'],
       "Setup": ['ADMIN', 'CSR', 'CSR_MANAGER', 'MARKETER'],
-      "Others": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER'] // make a superset and reorder authority in restaurant other page.
+      "Others": ['ADMIN', 'MENU_EDITOR', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER', 'SST_USER'] // make a superset and reorder authority in restaurant other page.
     };
 
     this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0));
