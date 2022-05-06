@@ -34,7 +34,7 @@
     <div class="card-header">
       <ul class="nav nav-tabs card-header-tabs">
         <li class="nav-item" *ngFor="let tab of tabs">
-          <a *ngIf="tab === 'Settings' || tab === 'GMB' || tab === 'Logs' "
+          <a *ngIf="tab === 'Settings' || tab === 'GMB' || tab === 'Logs'  || tab === 'Others'"
             class="nav-link d-flex align-items-center {{activeTab === tab? 'active' : ''}}" (click)="setActiveTab(tab)"
             style="cursor: pointer;">
             {{tab}}
@@ -58,6 +58,10 @@
       </div>
       <div *ngIf="activeTab === 'Logs'">
         <app-restaurant-logs [restaurant]="restaurant" (reload)="reload($event)"></app-restaurant-logs>
+      </div>
+      <div *ngIf="activeTab === 'Others'">
+        <app-restaurant-others [restaurant]="restaurant" [users]="knownUsers" [managers]="managers">
+        </app-restaurant-others>
       </div>
     </div>
   </div>

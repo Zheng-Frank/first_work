@@ -68,6 +68,16 @@ enum hasLogsTypes {
   HasLogs = 'Has logs'
 }
 
+enum HasPayeeTypes {
+  No = 'No payee',
+  Yes = 'Has payee'
+}
+
+enum HasTINTypes {
+  No = 'No TIN',
+  Yes = 'Has TIN'
+}
+
 const sortAlphabetical = (a, b) => (a || '').localeCompare(b || '');
 
 
@@ -81,7 +91,7 @@ const PCI_COMPLIANCE_LOG_TYPE = 'pci-compliance'
 export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   @ViewChild('myPager1') myPager1: PagerComponent;
   @ViewChild('bulkActionModal') bulkActionModal: ModalComponent;
-  
+
   @ViewChild('logEditingModal') logEditingModal;
 
   restaurants = [];
@@ -110,6 +120,10 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   sentBroadcastOption = sentBroadcastTypes.All;
   logOptions = [hasLogsTypes.All, hasLogsTypes.HasLogs, hasLogsTypes.NoLogs];
   logOption = hasLogsTypes.All;
+  payeeOptions = [HasPayeeTypes.Yes, HasPayeeTypes.No];
+  tinOptions = [HasTINTypes.Yes, HasTINTypes.No]
+  hasPayee = '';
+  hasTIN = '';
 
   rows = [];
   filteredRows = [];
@@ -155,6 +169,7 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   get sentBroadcastTypes() {
     return sentBroadcastTypes;
   }
+
 
   copyRTIDs(copyAllIDs) {
     let rtIDs;
@@ -217,6 +232,8 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
             preferredLanguage: 1,
             broadcasts: 1,
             score: 1,
+            tin: 1,
+            payeeName: 1,
             'googleAddress.timezone': 1,
             logs: {
               $filter: {
@@ -320,12 +337,28 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
       }
     }
 
-    // filter by has logs 
+    // filter by has logs
     if (this.logOption !== hasLogsTypes.All) {
       if (this.logOption === hasLogsTypes.HasLogs) {
         this.filteredRows = this.filteredRows.filter(row => (row.logs || []).some(log => log.type === PCI_COMPLIANCE_LOG_TYPE));
       } else if (this.logOption === hasLogsTypes.NoLogs) {
         this.filteredRows = this.filteredRows.filter(row => !(row.logs || []).some(log => log.type === PCI_COMPLIANCE_LOG_TYPE));
+      }
+    }
+
+    if (this.hasPayee) {
+      if (this.hasPayee === HasPayeeTypes.Yes) {
+        this.filteredRows = this.filteredRows.filter(x => !!x.payeeName);
+      } else if (this.hasPayee === HasPayeeTypes.No)  {
+        this.filteredRows = this.filteredRows.filter(x => !x.payeeName);
+      }
+    }
+
+    if (this.hasTIN) {
+      if (this.hasTIN === HasTINTypes.Yes) {
+        this.filteredRows = this.filteredRows.filter(x => !!x.tin);
+      } else if (this.hasTIN === HasTINTypes.No)  {
+        this.filteredRows = this.filteredRows.filter(x => !x.tin);
       }
     }
   }
@@ -459,4 +492,18 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     this.loggingRT = {};
   }
 
+  async onEdit(event, _id, field) {
+    let newObj = { _id, [field]: event.newValue };
+
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+      {old: { _id }, new: newObj}
+    ]).toPromise();
+    // Maintain data consistency
+    this.rows.forEach(rt => {
+      if (rt._id === _id) {
+        rt[field] = event.newValue;
+      }
+    });
+    this.filterRTs();
+  }
 }

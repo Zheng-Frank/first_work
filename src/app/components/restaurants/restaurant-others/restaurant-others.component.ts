@@ -43,7 +43,11 @@ export class RestaurantOthersComponent implements OnInit {
        tabVisibilityRolesMap['1099K'].push(username);
      }
      this.tabs = Object.keys(tabVisibilityRolesMap).filter(k => tabVisibilityRolesMap[k].some(r => this._global.user.roles.indexOf(r) >= 0 || this._global.user.username === r));
-    this.activeTab = "Stats";
+     if (this.tabs.includes('Stats')) {
+      this.activeTab = "Stats";
+     } else {
+       this.activeTab = this.tabs[0] || ''
+     }
   }
   setActiveTab(tab) {
     this.activeTab = tab;

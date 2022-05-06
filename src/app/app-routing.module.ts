@@ -121,7 +121,7 @@ const routes: Routes = [
   { path: 'restaurants', component: RestaurantDashboardComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'ACCOUNTANT', 'MARKETER'] } },
   { path: 'restaurant-map', component: RestaurantMapComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'ACCOUNTANT', 'MARKETER'] } },
   { path: 'restaurants/diagnostics', component: MonitoringRestaurantsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'ACCOUNTANT', 'CSR', 'CSR_MANAGER'] } },
-  { path: 'restaurants/:id', component: RestaurantDetailsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'ACCOUNTANT', 'MARKETER'] } },
+  { path: 'restaurants/:id', component: RestaurantDetailsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'ACCOUNTANT', 'SST_USER', 'MARKETER', 'MARKETER_EXTERNAL', 'MARKETER_INTERNAL', 'MARKETER_MANAGER'] } },
   { path: 'restaurants/:id/orders', component: RestaurantOrdersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'restaurants/:id/menus', component: MenusComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER'] } },
   { path: 'restaurants/:id/menu-options', component: MenuOptionsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER'] } },
@@ -206,7 +206,7 @@ const routes: Routes = [
   { path: 'sms-problems', component: MornitoringSmsComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR_MANAGER'] } },
   { path: 'deactivated-customers', component: MonitoringDeactivatedCustomersComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
   { path: 'rts-with-payment-collect', component: MonitoringRtsWithPaymentCollectComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
-  { path: 'win-back-campaign', component: MonitoringWinBackCampaignComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER'] } },
+  { path: 'win-back-campaign', component: MonitoringWinBackCampaignComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR', 'CSR_MANAGER', 'SST_USER', 'MARKETER', 'MARKETER_EXTERNAL', 'MARKETER_INTERNAL', 'MARKETER_MANAGER'] } },
   { path: 'change-rt-alias', component: ChangeRtAliasComponent, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'CSR_MANAGER'] } },
 
   { path: '**', redirectTo: '/home' }
