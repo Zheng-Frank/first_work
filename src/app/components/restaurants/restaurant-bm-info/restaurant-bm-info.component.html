@@ -1,6 +1,21 @@
 <div *ngIf="bmRT;else elseBlock">
 <pre>
-  {{ bmRT | json }}
+  <table class="table table-sm">
+    <thead>
+      <th>Field</th>
+      <th>Value</th>
+    </thead>
+    <tbody>
+      <tr *ngFor="let data of bmRT | keyvalue">
+        <td>
+          {{data.key}}
+        </td>
+        <td>
+          {{data.value}}
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </pre>
 </div>
 <ng-template #elseBlock>
