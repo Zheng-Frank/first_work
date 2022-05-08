@@ -39,7 +39,8 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   supportedGateways = [];
   gatewayInEditing: any = {};
   ccProcessorSelected = '';
-
+  showPrintingCCInfo = true;
+  showNonPCIData = true;
   constructor(private _api: ApiService, private _global: GlobalService, private _prunedPacth: PrunedPatchService) {
   }
 
@@ -62,7 +63,28 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   ngOnInit() {
     this.ccProcessorSelected = this.getCcProcessor();
     this.gatewayInEditing = JSON.parse(JSON.stringify(this.restaurant && this.restaurant['ccHandler'] || {}));
+    this.showPrintingCCInfo = !this.restaurant.hidePrintingCCInfo;
+    this.showNonPCIData = !this.restaurant.hideNonPCIData;
     this.populate();
+  }
+
+  // control two switch button of service settings
+  async toggleEnabledProperty(property) {
+    this.restaurant[property] = !this.restaurant[property];
+    const oldNewPatchData = {
+      old: { _id: this.restaurant._id },
+      new: { _id: this.restaurant._id }
+    };
+    oldNewPatchData.new[property] = this.restaurant[property];
+
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+      oldNewPatchData
+    ]).subscribe(results => {
+      this._global.publishAlert(AlertType.Success, `${this.restaurant.name} updated!`);
+    },
+      error => {
+        this._global.publishAlert(AlertType.Danger, error);
+      });
   }
 
   ngOnChanges() {

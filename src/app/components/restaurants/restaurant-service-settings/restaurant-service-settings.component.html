@@ -200,9 +200,28 @@
           <button class="btn btn-primary" (click)="update()" style="min-width: 6rem">OK</button>
         </div>
       </div>
+
+      <div *ngIf="!editing">
+        <!-- Credit Card Display Toggle -->
+        <div>
+          <q-toggle [(ngModel)]="showPrintingCCInfo" (change)="toggleEnabledProperty('hidePrintingCCInfo')">
+          </q-toggle>
+          <span>Print CC Info</span>
+        </div>
+
+        <!-- PCI Data Display Toggle -->
+        <div *ngIf="showPrintingCCInfo">
+          <q-toggle [(ngModel)]="showNonPCIData" (change)="toggleEnabledProperty('hideNonPCIData')">
+          </q-toggle>
+          <span>Show non-PCI Data</span>
+        </div>
+        <!-- Fei-e Printing Display -->
+      </div>
+
       <div class="text-right" *ngIf="!editing">
         <button (click)="toggleEditing()" class="btn btn-primary" role="button">Edit</button>
       </div>
     </li>
   </ul>
+
 </div>
