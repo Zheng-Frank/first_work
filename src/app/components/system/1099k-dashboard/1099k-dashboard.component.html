@@ -112,7 +112,7 @@
               {{i+1}}
             </td>
             <td>
-              <div>{{ i === refuseFormRows.length - 1 ? getReformRowName(row) : 'Total' }}</div>
+              <div>{{ i !== refuseFormRows.length - 1 ? getReformRowName(row) : 'Total' }}</div>
               <div>
                 <a class="my-text-small btn-link" target="_blank" [routerLink]="'/restaurants/' + row.id">
                   {{ getReformRowId(row) }}
