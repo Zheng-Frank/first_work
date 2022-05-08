@@ -160,6 +160,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   isCustomize1099k = false;
   customizeTinTypes = [enumTinTypes.EIN, enumTinTypes.SSN];
   markSentFlag = false; // if it is true, the email won't actually be sent, it'll simply mark the status as "Sent" for that restaurant for that tax year.
+  refuseFormRows = [];
   constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer, private _http: HttpClient) { }
 
   async ngOnInit() {
@@ -172,6 +173,47 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     }, this.refreshDataInterval);
     await this.get1099KData();
     this.filterRows();
+  }
+
+  calcPunishedMoney() {
+    this.refuseFormRows = [];
+    let refuseFormRows = this.rows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && form.refuseForm));
+    let punishedMoney = 0;
+    let totalTransactions = 0;
+    refuseFormRows.forEach((row) => {
+      let colArr = [];
+      // record name
+      colArr.push(`${row.id}_____${row.name}`);
+      let formDivideds = (row.form1099k || []).filter(form => form.year === +this.taxYear && form.yearPeriodStart);
+
+      if (formDivideds.length > 0) {
+        let formDividedTotal = 0;
+        formDivideds.forEach(formDivided => {
+          formDividedTotal = this.round(formDividedTotal + (formDivided.total || 0));
+        });
+        totalTransactions = this.round(totalTransactions + formDividedTotal);
+        let rowPunishedMoney = this.round(formDividedTotal * 0.24);
+        punishedMoney = this.round(punishedMoney + rowPunishedMoney);
+        // record total transaction and punished money of this rt 
+        colArr.push(formDividedTotal, rowPunishedMoney);
+      } else {
+        let formTotal = ((row.form1099k || []).find(form => form.year === +this.taxYear) || {}).total || 0;
+        totalTransactions = this.round(totalTransactions + formTotal);
+        let rowPunishedMoney = this.round(formTotal * 0.24);
+        punishedMoney = this.round(punishedMoney + rowPunishedMoney);
+        colArr.push(formTotal, rowPunishedMoney);
+      }
+      this.refuseFormRows.push(colArr);
+    });
+    this.refuseFormRows.push(Array.from(['', totalTransactions, punishedMoney]));
+  }
+
+  getReformRowName(row) {
+    return (row[0] || '').split('_____')[0] || '';
+  }
+
+  getReformRowId(row) {
+    return (row[0] || '').split('_____')[1] || '';
   }
 
   /*
@@ -197,7 +239,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
       {
         old: { _id: row.id },
-        new: { _id: row.id, form1099k: new1099kRecords}
+        new: { _id: row.id, form1099k: new1099kRecords }
       }
     ]).toPromise();
     // update origin data
@@ -428,7 +470,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   downloadTextTIN() {
     const lines = [], errors = [];
     const purify = str => str.replace(/\s+/g, ' ').trim();
-    this.filteredRows.forEach(({form1099k, rtTIN, payeeName, id}) => {
+    this.filteredRows.forEach(({ form1099k, rtTIN, payeeName, id }) => {
       form1099k.filter(x => x.year === Number(this.taxYear))
         .forEach(form => {
           let tin = form.periodTin || rtTIN,
@@ -463,6 +505,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
       this.fromDate = '';
       this.calcRTFilter = '';
       this.transactionText = '';
+      this.refuseFormRows = [];
     } else {
       this.tooltip();
     }
