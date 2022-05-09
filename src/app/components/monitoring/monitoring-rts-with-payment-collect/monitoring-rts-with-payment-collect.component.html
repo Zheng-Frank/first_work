@@ -87,6 +87,10 @@
         </select>
       </div>
       <div class="col-auto mb-3">
+        <input type="text" style="width: 240px" class="form-control" [qDebounce]="500" (debounce)="debounce($event)" [(ngModel)]="searchFilter" 
+          placeholder="Search by name or RT ID">
+      </div>
+      <div class="col-auto mb-3">
         <button class="btn btn-primary" (click)="populateRTsByPmtCollect()"><i class="fas fa-sync"></i> Reload</button>
       </div>
       <!-- start with pagnation -->
@@ -101,9 +105,8 @@
 
     <table class="table">
       <thead>
-        <th *ngFor="let ds of restaurantsColumnDescriptors" (click)="sort(ds)"
-        class="{{ds.sort ? 'sortable' : ''}}">
-        {{ds.label}}{{ds.sort ? ds === lastSortColumn ? sortedOneDirector === 1 ? '🡅' : '🡇' : ' ⥮' : ''}}
+        <th *ngFor="let ds of restaurantsColumnDescriptors" (click)="sort(ds)" class="{{ds.sort ? 'sortable' : ''}}">
+          {{ds.label}}{{ds.sort ? ds === lastSortColumn ? sortedOneDirector === 1 ? '🡅' : '🡇' : ' ⥮' : ''}}
         </th>
       </thead>
       <tbody>
@@ -180,7 +183,8 @@
         </tr>
       </tbody>
     </table>
-    <q-pager #myPager1 [numberOfRows]="filteredRows.length" *ngIf="pagination" [pageSize]="100" (pageChange)="paginate($event)">
+    <q-pager #myPager1 [numberOfRows]="filteredRows.length" *ngIf="pagination" [pageSize]="100"
+      (pageChange)="paginate($event)">
     </q-pager>
   </div>
 
@@ -210,7 +214,8 @@
       </div>
       <div class="row mb-3">
         When you submit, this will update the "Print CC Info"
-        and "Show non-PCI Data" status for all the {{this.pagination ?  this.paged().length : this.filteredRows.length}} restaurants
+        and "Show non-PCI Data" status for all the {{this.pagination ?  this.paged().length : this.filteredRows.length}}
+        restaurants
         currently displayed on the page.
       </div>
     </div>

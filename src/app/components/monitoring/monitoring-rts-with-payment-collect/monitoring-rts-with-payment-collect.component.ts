@@ -138,6 +138,7 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
   copyAllIDs = true;
   pageIndex = 0;
   pageSize = 100;
+  searchFilter = '';
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
@@ -145,6 +146,10 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
     $("[data-toggle='tooltip']").tooltip();
     await this.populateRTsByPmtCollect();
     await this.populatePrintClients();
+    this.filterRTs();
+  }
+
+  debounce(value) {
     this.filterRTs();
   }
 
@@ -272,6 +277,7 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
       row.showPrintingCCInfo = !row.hidePrintingCCInfo;
       row.showNonPCIData = !row.hideNonPCIData;
     });
+    this.filterRTs();
   }
 
   filterRTs() {
@@ -360,6 +366,16 @@ export class MonitoringRtsWithPaymentCollectComponent implements OnInit {
       } else if (this.hasTIN === HasTINTypes.No)  {
         this.filteredRows = this.filteredRows.filter(x => !x.tin);
       }
+    }
+
+    // search will match RT name, RT id
+    if (this.searchFilter && this.searchFilter.trim().length > 0) {
+      this.filteredRows = this.filteredRows.filter(x => {
+        let lowerCaseSearchFilter = this.searchFilter.toLowerCase();
+        const nameMatch = (x.name || "").toLowerCase().includes(lowerCaseSearchFilter);
+        const idMatch = (x._id|| "").toLowerCase().includes(lowerCaseSearchFilter);
+        return nameMatch || idMatch;
+      });
     }
   }
 
