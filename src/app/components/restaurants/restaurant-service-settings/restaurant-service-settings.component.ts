@@ -45,7 +45,8 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   }
 
   getExcludedPaymentString() {
-    return [this.restaurant.requireZipcode ? 'Zip code is required' : '', this.restaurant.requireBillingAddress ? 'Billing address is required' : '', this.restaurant.excludeAmex ? 'No American Express' : '', this.restaurant.excludeDiscover ? 'No Discover' : ''].filter(s => s).join(', ');
+    return [this.restaurant.requireZipcode ? 'Zip code is required' : '', this.restaurant.requireBillingAddress ? 'Billing address is required' : '', this.restaurant.excludeAmex ? 'No American Express' : '', this.restaurant.excludeDiscover ? 'No Discover' : ''
+    , !this.restaurant.hidePrintingCCInfo ? 'Print CC Info is on' : '', !this.restaurant.hidePrintingCCInfo && !this.restaurant.hideNonPCIData ? 'Show non-PCI Data is on' : ''].filter(s => s).join(', ');
   }
 
   getServies() {
@@ -63,28 +64,7 @@ export class RestaurantServiceSettingsComponent implements OnInit {
   ngOnInit() {
     this.ccProcessorSelected = this.getCcProcessor();
     this.gatewayInEditing = JSON.parse(JSON.stringify(this.restaurant && this.restaurant['ccHandler'] || {}));
-    this.showPrintingCCInfo = !this.restaurant.hidePrintingCCInfo;
-    this.showNonPCIData = !this.restaurant.hideNonPCIData;
     this.populate();
-  }
-
-  // control two switch button of service settings
-  async toggleEnabledProperty(property) {
-    this.restaurant[property] = !this.restaurant[property];
-    const oldNewPatchData = {
-      old: { _id: this.restaurant._id },
-      new: { _id: this.restaurant._id }
-    };
-    oldNewPatchData.new[property] = this.restaurant[property];
-
-    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
-      oldNewPatchData
-    ]).subscribe(results => {
-      this._global.publishAlert(AlertType.Success, `${this.restaurant.name} updated!`);
-    },
-      error => {
-        this._global.publishAlert(AlertType.Danger, error);
-      });
   }
 
   ngOnChanges() {
@@ -161,6 +141,8 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     this.requireBillingAddress = this.restaurant.requireBillingAddress;
     this.stripePublishableKey = this.restaurant.stripePublishableKey;
     this.stripeSecretKey = this.restaurant.stripeSecretKey;
+    this.showPrintingCCInfo = !this.restaurant.hidePrintingCCInfo;
+    this.showNonPCIData = !this.restaurant.hideNonPCIData;
 
     this.serviceSettingsInEditing = JSON.parse(JSON.stringify(this.restaurant.serviceSettings || []));
     // make sure it has all service types
@@ -206,6 +188,8 @@ export class RestaurantServiceSettingsComponent implements OnInit {
     newR.requireBillingAddress = this.requireBillingAddress;
     newR.stripePublishableKey = (this.stripePublishableKey || '').trim();
     newR.stripeSecretKey = (this.stripeSecretKey || '').trim();
+    newR.hidePrintingCCInfo = !this.showPrintingCCInfo;
+    newR.hideNonPCIData = !this.showNonPCIData;
 
     if (JSON.stringify(oldR) === JSON.stringify(newR)) {
       this._global.publishAlert(AlertType.Success, 'Already up to date');
@@ -236,6 +220,8 @@ export class RestaurantServiceSettingsComponent implements OnInit {
           this.restaurant.requireBillingAddress = this.requireBillingAddress;
           this.restaurant.stripePublishableKey = this.stripePublishableKey;
           this.restaurant.stripeSecretKey = this.stripeSecretKey;
+          this.restaurant.hidePrintingCCInfo = !this.showPrintingCCInfo;
+          this.restaurant.hideNonPCIData = !this.showNonPCIData;
 
           this.editing = false;
           this.serviceSettingsInEditing = [];
@@ -247,6 +233,14 @@ export class RestaurantServiceSettingsComponent implements OnInit {
       );
 
   }
+
+  togglePrintCCInfo() {
+    this.showPrintingCCInfo = !this.showPrintingCCInfo;
+  }
+
+  toggleNonPCIData() {
+    this.showNonPCIData = !this.showNonPCIData;
+  }  
 
   toggleDiscover() {
     this.excludeDiscover = !this.excludeDiscover;
