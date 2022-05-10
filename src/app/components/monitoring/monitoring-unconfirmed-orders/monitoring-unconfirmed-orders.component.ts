@@ -12,24 +12,12 @@ import { } from '@qmenu/ui'
 })
 export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
-
-  //unconfirmed_orders_count:number;
-
-  // Rows that are displayed 
-  rows = []; // {rfestaurant, orders}
-
-
-  // Rows that only contain qMenu Collect payments 
-  qmenuRows = []
-
-
-  //  All rows 
-
-  allRows = []
-  currentCriteria = 'All'
-
-
-  descending = true
+  rows = [];
+  // Rows that only contain qMenu Collect payments
+  qmenuRows = [];
+  allRows = [];
+  descending = true;
+  showOnlyQmenuCollected = false;
 
 
 

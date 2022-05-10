@@ -1,34 +1,28 @@
 <div class="card">
   <h2 class="card-title m-3">
-    <!-- <a [routerLink]="['/home']"><i class="fa fa-arrow-left"> Back </i></a>  -->
     <h1 class="text-center">Unconfirmed Orders ({{ rows.length }})</h1>
   </h2>
 
   <div class="card-body">
-    <span class='col-sm-6' class="dropdown">
-      <b>Filter By: &nbsp; </b>
-      <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
-        aria-haspopup="true" aria-expanded="false">
-        {{ currentCriteria }} &nbsp;
-      </button>
+    <div class="row">
+      <div class="col-auto">
+        <label class="form-control-plaintext">
+          <input class="mr-2" type="checkbox" [(ngModel)]="showOnlyQmenuCollected" />
+          Show Only qMenu Collect
+        </label>
+      </div>
+    </div>
 
-      &nbsp; &nbsp;
-      <span class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-        <a class="dropdown-item" [ngClass]="{ active: currentCriteria === 'All' }"
-          (click)="renderRestaurants('All')">All</a>
-        <a class="dropdown-item" [ngClass]="{ active: currentCriteria === 'Progress' }"
-          (click)="renderRestaurants('QMENU COLLECT')">QMENU COLLECT</a>
-      </span>
-    </span>
-    <br />
-    <br />
     <table class="table">
       <tr>
         <th>Restaurant</th>
+        <th>Timezone (EST+/-)</th>
         <th>Phones</th>
         <th>Order</th>
-        <th>Amount <i class="fas" [ngClass]="{ 'fa-arrow-up': !!descending,  'fa-arrow-down': !descending}"
-            (click)='handleArrow()'> </i></th>
+        <th>
+          Amount
+          <i class="fas" [ngClass]="{ 'fa-arrow-up': !!descending,  'fa-arrow-down': !descending}" (click)='handleArrow()'> </i>
+        </th>
         <th>Time (delay)</th>
         <th>Payment</th>
       </tr>
@@ -62,36 +56,19 @@
             <hr />
           </div>
         </td>
-        <!-- <td>
-          <div *ngFor="let order of row.orders">
-            <small class="text-warning"
-              >{{
-                order.order.timeToDeliver
-                  ? (order.order.timeToDeliver | ago: now)
-                  : ""
-              }}
-              <hr />
-            </small>
-          </div>
-        </td> -->
         <td>
           <div *ngFor="let order of row.orders">
             <div [ngClass]="{ 'text-danger': getTimes(order, row).overdue}"
               *ngFor="let times of getTimes(order, row).texts">
               {{ times }}
             </div>
-
             <hr />
           </div>
         </td>
         <td>
           <div *ngFor="let order of row.orders">
-            {{ order.payment.method }} &nbsp;
-            {{
-            order.payment.paymentType.toLowerCase() === "cash"
-            ? null
-            : order.payment.paymentType
-            }}
+            {{ order.payment.method }}
+            {{ order.payment.paymentType.toLowerCase() === "cash" ? null : order.payment.paymentType }}
             <hr />
           </div>
         </td>
