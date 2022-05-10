@@ -25,6 +25,12 @@ enum VIPRanges {
 }
 
 const m2n = month => Number(month.replace('-', ''));
+const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const month_format = (month) => {
+  let chars = month.replace('-', '');
+  let y = chars.substr(2, 2), m = chars.substr(4);
+  return MONTH_ABBR[Number(m) - 1] + ' ' + y;
+}
 
 @Component({
   selector: 'app-monitoring-vip-restaurants',
@@ -395,7 +401,6 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
           }
         ]
     }).toPromise();
-    console.log(data)
     let temp = {};
     data.forEach(({month, rts}) => {
       let tmp = temp[month] || [];
@@ -428,10 +433,10 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
     if (this.rtChart) {
       this.rtChart.destroy();
     }
-    let labels = data.map(x => x.month);
+    let labels = data.map(x => month_format(x.month));
     let datasets = [
       {
-        label: 'VIP RTs count',
+        label: 'VIP RT count',
         data: data.map(({rts}) => rts.length),
         borderColor: "#26C9C9",
         backgroundColor: "#26C9C9", fill: false
@@ -448,6 +453,13 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
             }
           }]
         },
+        legend: {
+          display: false,
+        },
+        title: {
+          display: true,
+          text: 'VIP RT count trend'
+        },
         tooltips: { mode: 'index', intersect: false },
       },
       type: 'line',
@@ -458,8 +470,8 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
   ocChartRender() {
 
     let months = [], data = {}, rtCount = Object.keys(this.vipDict).length;
-    this.restaurants.forEach(({activities}) => {
-      if (activities) {
+    this.restaurants.forEach(({_id, activities}) => {
+      if (this.vipDict[_id] && activities) {
         Object.entries(activities).forEach(([m, oc]) => {
           if (!months.includes(m)) {
             months.push(m)
@@ -476,8 +488,8 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
     months.sort((a, b) => m2n(a) - m2n(b));
     let datasets = [
       {
-        label: 'Avg order count per RT',
-        data: months.map((month) => Math.round(data[month] / this.restaurants.length)),
+        label: 'Avg. order count per RT',
+        data: months.map((month) => Math.round(data[month] / rtCount)),
         borderColor: "#26C9C9",
         backgroundColor: "#26C9C9", fill: false
       }
@@ -493,10 +505,17 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
             }
           }]
         },
+        legend: {
+          display: false,
+        },
+        title: {
+          display: true,
+          text: 'Avg. order count per RT trend'
+        },
         tooltips: { mode: 'index', intersect: false },
       },
       type: 'line',
-      data: { labels: months, datasets }
+      data: { labels: months.map(month_format), datasets }
     });
   }
 
