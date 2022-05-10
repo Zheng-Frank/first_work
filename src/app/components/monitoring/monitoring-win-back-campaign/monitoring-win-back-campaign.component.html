@@ -36,6 +36,22 @@
           <option *ngFor="let option of dropdowns('current_tier')" [value]="option">{{option}}</option>
         </select>
       </div>
+      <!-- start with churned from tier1 -->
+      <div class="col-auto mb-3">
+        <select [(ngModel)]="filters.churnedTier1" class="custom-select">
+          <option [value]="''">Churned From Tier 1?</option>
+          <option *ngFor="let option of dropdowns('churned_tier1')" [value]="option">{{option}}</option>
+        </select>
+      </div>
+      <!-- end with churned from tier1 -->
+      <!-- start with gmb closed -->
+      <div class="col-auto mb-3">
+        <select [(ngModel)]="filters.gmbClosed" class="custom-select">
+          <option [value]="''">Permanently Closed?</option>
+          <option *ngFor="let option of dropdowns('gmb_closed')" [value]="option">{{option}}</option>
+        </select>
+      </div>
+      <!-- end with gmb closed -->
       <!-- start with sort -->
       <div class="col-auto mb-3">
         <select [(ngModel)]="filters.OPMSort" class="custom-select">

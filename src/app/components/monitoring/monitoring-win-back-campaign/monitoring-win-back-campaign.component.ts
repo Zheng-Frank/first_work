@@ -42,6 +42,16 @@ enum gmbOwnerOptions {
   Either = 'Either B or Q'
 }
 
+enum gmbClosedOptions {
+  Closed = 'Closed',
+  Not_Closed = 'Not_Closed'
+}
+
+enum churnedTier1Options {
+  // Last_Week = 'Last Week',
+  Last_Month = 'Last Month'
+}
+
 const WIN_BACK_CAMPAIGN_LOG_TYPE = 'winback-campaign'
 
 @Component({
@@ -86,7 +96,9 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     hasLogs: '',
     currentTier: '',
     OPMSort: '',
-    gmbOwner: ''
+    gmbOwner: '',
+    gmbClosed: '',
+    churnedTier1: ''
   };
   rows = [];
   list = [];
@@ -233,6 +245,13 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       }
       let item: any = { name: rt_name, tier, ordersPerMonth, bm_id, qm_id, logs: [], win_back_logs: [] };
       let gmb_potential = false;
+      // Have filter to show RTs that recently churned from tier 1 in the last week or month
+      // needs to temp property lastMonthChurnedFormTier1 to do it
+      // last month
+      let date = new Date();
+      date.setMonth(date.getMonth() - 1);
+      item.lastMonthChurnedFromTier1 = Helper.getTier(rest[`OC${date.getFullYear()}${Helper.padNumber(date.getMonth() + 1)}`]) > 1;
+      
       if (bm_id) {
         let bmRT = bmRTsDict[bm_id];
         if (bmRT) {
@@ -244,7 +263,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       if (qm_id) {
         let qm_rt = qmRTsDict[qm_id];
         if (qm_rt) {
-          let { _id, logs, winBackLogs, gmbPositiveScore, score, timezone, activity = {}, address = '', place_id, cid } = qm_rt;
+          let { _id, logs, winBackLogs, gmbPositiveScore, score, timezone, activity = {}, address = '', place_id, cid, gmbClosed } = qm_rt;
           item.logs = (logs || []).reverse();
           item.winBackLogs = (winBackLogs || []).reverse()
           gmbPositiveScore = gmbPositiveScore || {};
@@ -261,7 +280,10 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
           let key = place_id + cid;
           item.qhasGmb = (gmbWebsiteOwnerDict[key] || gmbWebsiteOwnerDict[_id + cid]) && accounts.some(acc => (acc.locations || []).some(loc => loc.cid === cid && loc.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].includes(loc.role)));
           item.qhasGMBWebsite = gmbWebsiteOwnerDict[key] === 'qmenu' || gmbWebsiteOwnerDict[_id + cid] === 'qmenu';
+          item.gmbClosed = gmbClosed;
           item.googleSearchText = "https://www.google.com/search?q=" + encodeURIComponent(item.name + " " + address);
+          // When loading the page, all the logs should be collapsed by default
+          this.logVisibilities.hidden[item.qm_id] = true;
         }
       }
       // detect if rt has tier 1 perf in continuous 3 months in history
@@ -290,6 +312,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
 
       item.histories = this.pageHistories(flatten);
       item.lastestHistAvg = (flatten[0] || {} as any).avg || 0;
+
       rows.push(item);
     });
     this.rows = rows.filter(row => !/(-\s*\(?old\)?)|(\s*\(old\))/.test((row.name || '').toLowerCase().trim()));
@@ -308,6 +331,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
             place_id: "$googleListing.place_id",
             cid: '$googleListing.cid',
             gmbPositiveScore: "$computed.gmbPositiveScore",
+            gmbClosed: "$googleListing.closed",
             score: 1,
             logs: {$slice: ["$logs", -4]},
             winBackLogs: {
@@ -336,14 +360,16 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       has_logs: HasLogsOptions,
       current_tier: CurrentTierOptions,
       opm_sort: OPMSortOptions,
-      gmb_owner: gmbOwnerOptions
+      gmb_owner: gmbOwnerOptions,
+      gmb_closed: gmbClosedOptions,
+      churned_tier1: churnedTier1Options
     }[key])
   }
 
   filter() {
     let list = this.rows;
 
-    let { keyword, hasLogs, platform, potentialType, currentTier, OPMSort, gmbOwner } = this.filters;
+    let { keyword, hasLogs, platform, potentialType, currentTier, OPMSort, gmbOwner, gmbClosed, churnedTier1 } = this.filters;
     switch (platform) {
       case PlatformOptions.Qmenu:
         list = list.filter(x => !!x.qm_id);
@@ -378,10 +404,10 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     }
     switch (hasLogs) {
       case HasLogsOptions.HasLogs:
-        list = list.filter(x => x.logs.length > 0);
+        list = list.filter(x => (x.logs || []).some(log => log.type === WIN_BACK_CAMPAIGN_LOG_TYPE));
         break;
       case HasLogsOptions.NoLogs:
-        list = list.filter(x => x.logs.length === 0);
+        list = list.filter(x => !(x.logs || []).some(log => log.type === WIN_BACK_CAMPAIGN_LOG_TYPE));
         break;
     }
     switch (currentTier) {
@@ -400,6 +426,23 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       case CurrentTierOptions.Inactive_Last_30d:
         list = list.filter(x => (x.activity || {}).ordersInLast30Days === 0);
         break;
+    }
+
+    switch (gmbClosed) {
+      case gmbClosedOptions.Closed:
+        list = list.filter(x => x.gmbClosed);
+        break;
+      case gmbClosedOptions.Not_Closed:
+        list = list.filter(x => !x.gmbClosed);
+        break;
+    }
+
+    switch (churnedTier1) {
+      case churnedTier1Options.Last_Month:
+        list = list.filter(x => x.lastMonthChurnedFromTier1);
+        break;
+      // case churnedTier1Options.Last_Week:
+      //   break;
     }
 
     const kwMatch = str => str && str.toString().toLowerCase().includes(keyword.toLowerCase());
