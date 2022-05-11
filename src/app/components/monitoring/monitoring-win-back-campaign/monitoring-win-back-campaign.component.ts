@@ -5,7 +5,7 @@ import { ApiService } from 'src/app/services/api.service';
 import { environment } from '../../../../environments/environment';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Helper } from "../../../classes/helper";
-import { TimezoneHelper } from '@qmenu/ui';
+import { TimezoneHelper, ChargeBasis } from '@qmenu/ui';
 
 enum Tier1PotentialTypeOptions {
   GMB_Based = 'GMB-based',
@@ -40,6 +40,16 @@ enum gmbOwnerOptions {
   BeyondMenu = 'Bmenu',
   Neither = 'Neither B nor Q',
   Either = 'Either B or Q'
+}
+
+enum gmbClosedOptions {
+  Closed = 'Closed',
+  Not_Closed = 'Not_Closed'
+}
+
+enum churnedTier1Options {
+  // Last_Week = 'Last Week',
+  Last_Month = 'Last Month'
 }
 
 const WIN_BACK_CAMPAIGN_LOG_TYPE = 'winback-campaign'
@@ -86,23 +96,49 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     hasLogs: '',
     currentTier: '',
     OPMSort: '',
-    gmbOwner: ''
+    gmbOwner: '',
+    gmbClosed: '',
+    churnedTier1: ''
   };
   rows = [];
   list = [];
   loggingRT: any = {};
   logInEditing: Log = new Log({ type: WIN_BACK_CAMPAIGN_LOG_TYPE, time: new Date() });
   now = new Date();
+  chargeBasisMap = {
+    [ChargeBasis.Monthly]: 'monthly',
+    [ChargeBasis.OrderSubtotal]: 'order subtotal',
+    [ChargeBasis.OrderPreTotal]: 'order pre-total',
+    [ChargeBasis.OrderTotal]: 'order total',
+    [ChargeBasis.Commission]: 'commission',
+  };
+  
   logVisibilities = {
     hidden: {}, expanded: {}
   }
+  rateVisibilities = {
+    hidden: {}, expanded: {}
+  }
+  feeVisibilities = {
+    hidden: {}, expanded: {}
+  }
+  users;
 
   pagination = true;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
+    this.users = await this._global.getCachedUserList();
     await this.populate();
+  }
+
+  showIsMainBizPhone({type, notifications}) {
+    return type === 'Phone' && (notifications || []).includes('Business');
+  }
+
+  userIsDisabled(user) {
+    return !this.users.some(u => u.username === user && !u.disabled);
   }
 
   // our salesperson only wants to know what is the time offset
@@ -164,20 +200,77 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     return res;
   }
 
-  async getBMRTs() {
-    let bmRTs = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
-      method: 'get',
-      resource: 'bm-sst-restaurants',
-      query: {_id: { $exists: true }},
-      payload: { _id: 0, BusinessEntityID: 1, Address: 1, City: 1, State: 1, ZipCode: 1, IsBmGmbControl: 1 },
-      limit: 10000000
-    }).toPromise();
-    bmRTs = bmRTs.map(item => ({
-      _bid: item.BusinessEntityID,
-      baddress: `${item.Address}, ${item.City || ''}, ${item.State || ''} ${item.ZipCode || ''}`.trim(),
-      bwebsite: item.CustomerDomainName,
-      bhasGmb: item.IsBmGmbControl
-    }));
+  async getByBatch(resource, size = 60000) {
+    let data = [], skip = 0;
+    while (true) {
+      const temp = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
+        method: 'get', resource,
+        query: { _id: { $exists: true } }, // any items
+        payload: { _id: 0, count_orders: 1, sum_total: 1, month: 1, bmid: 1, qmid: 1 },
+        skip, limit: size
+      }).toPromise();
+      data.push(...temp);
+      if (temp.length === size) {
+        skip += size;
+      } else {
+        break;
+      }
+    }
+    return data;
+  }
+
+  async getBMRTsByBatch() {
+    let bmRTs = [], skip = 0, size = 10000;
+    while (true) {
+      const temp = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
+        method: 'get',
+        resource: 'bm-sst-restaurants',
+        query: { _id: { $exists: true } },
+        payload: {
+          BusinessEntityID: 1,
+          Address: 1,
+          City: 1,
+          State: 1,
+          ZipCode: 1,
+          IsBmGmbControl: 1,
+          Phone1: 1,
+          Phone2: 1,
+          Phone3: 1,
+          Phone4: 1,
+          CellPhone1: 1,
+          CellPhone2: 1,
+          CellPhone3: 1,
+          CellPhone4: 1,
+        },
+        skip, limit: size
+      }).toPromise();
+      bmRTs.push(...temp);
+      if (temp.length === size) {
+        skip += size;
+      } else {
+        break;
+      }
+    }
+    bmRTs = bmRTs.map(item => {
+      // --- phone and cellphone
+      const channels = [];
+      [1, 2, 3, 4].map(num => {
+        if (!channels.some(ch => ch.value === item[`Phone${num}`])) {
+          channels.push({ type: 'Phone', value: item[`Phone${num}`] });
+        }
+        if (!channels.some(ch => ch.value === item[`CellPhone${num}`])) {
+          channels.push({ type: 'Phone', value: item[`CellPhone${num}`] });
+        }
+      });
+
+      return {
+        _bid: item.BusinessEntityID,
+        baddress: `${item.Address}, ${item.City || ''}, ${item.State || ''} ${item.ZipCode || ''}`.trim(),
+        bwebsite: item.CustomerDomainName,
+        bhasGmb: item.IsBmGmbControl,
+        bchannels: channels
+      }
+    });
     let bmRTsDict = {};
     bmRTs.forEach(item => {
       bmRTsDict[item._bid] = item
@@ -190,7 +283,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     let rts = await this.getUnifiedData(months);
 
     let qmRTsDict = await this.getQmRTs(), last6Months = months.slice(months.length - 6);
-    let bmRTsDict = await this.getBMRTs();
+    let bmRTsDict = await this.getBMRTsByBatch();
 
     const gmbBiz = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
@@ -220,6 +313,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       if (qm_id && !qmRTsDict[qm_id]) {
         return;
       }
+      
       let ordersPerMonth = last6Months.reduce((a, c) => a + (rest[`OC${c}`] || 0), 0) / 6;
       let tier = Helper.getTier(ordersPerMonth);
       if (tier <= 1) {
@@ -231,20 +325,35 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
           return;
         }
       }
-      let item: any = { name: rt_name, tier, ordersPerMonth, bm_id, qm_id, logs: [], win_back_logs: [] };
+      
+      let item: any = { name: rt_name, tier, ordersPerMonth, bm_id, qm_id, logs: [], win_back_logs: [], rateSchedules: [], feeSchedules: [] };
       let gmb_potential = false;
+      // Have filter to show RTs that recently churned from tier 1 in the last week or month
+      // needs to temp property lastMonthChurnedFormTier1 to do it
+      // last month
+      let date = new Date();
+      date.setMonth(date.getMonth() - 1);
+      item.lastMonthChurnedFromTier1 = Helper.getTier(rest[`OC${date.getFullYear()}${Helper.padNumber(date.getMonth() + 1)}`]) > 1;
+
       if (bm_id) {
         let bmRT = bmRTsDict[bm_id];
         if (bmRT) {
           item.address = bmRT.baddress;
           item.bhasGmb = bmRT.bhasGmb;
+          if(!qmRTsDict[qm_id]) {
+            item.channels = bmRT.bchannels;
+          } else {
+            item.bchannels = bmRT.bchannels;
+          }
           item.googleSearchText = "https://www.google.com/search?q=" + encodeURIComponent(item.name + " " + item.address);
         }
       }
       if (qm_id) {
         let qm_rt = qmRTsDict[qm_id];
         if (qm_rt) {
-          let { _id, logs, winBackLogs, gmbPositiveScore, score, timezone, activity = {}, address = '', place_id, cid } = qm_rt;
+          let { _id, logs, winBackLogs, gmbPositiveScore, score, timezone, activity = {},
+           address = '', place_id, cid, gmbClosed, channels = [],
+          rateSchedules, feeSchedules } = qm_rt;
           item.logs = (logs || []).reverse();
           item.winBackLogs = (winBackLogs || []).reverse()
           gmbPositiveScore = gmbPositiveScore || {};
@@ -258,10 +367,35 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
           item.timezone = timezone;
           item.activity = activity;
           item.address = address;
+          item.rateSchedules = rateSchedules || [];
+          item.feeSchedules = feeSchedules || [];
+
+          let uniqueChannels = [];
+          // merge duplicate channels
+          if (bmRTsDict[bm_id]) {
+            [...item.bchannels, ...(channels || [])].forEach(ch => {
+              if (!uniqueChannels.some(uniqueChannel => uniqueChannel.value === ch.value)) {
+                uniqueChannels.push(ch);
+              }
+            });
+            let mainBizChannels = uniqueChannels.filter(({type, notifications}) => this.showIsMainBizPhone({type, notifications}));
+            let otherChannels = uniqueChannels.filter(ch => !mainBizChannels.some(mainBizChannel => mainBizChannel.value === ch.value));
+            item.channels = [...mainBizChannels, ...otherChannels];
+          } else {
+            item.channels = channels || [];
+            let mainBizChannels = item.channels.filter(({type, notifications}) => this.showIsMainBizPhone({type, notifications}));
+            let otherChannels = item.channels.filter(ch => !mainBizChannels.some(mainBizChannel => mainBizChannel.value === ch.value));
+            item.channels = [...mainBizChannels, ...otherChannels];
+          }
           let key = place_id + cid;
           item.qhasGmb = (gmbWebsiteOwnerDict[key] || gmbWebsiteOwnerDict[_id + cid]) && accounts.some(acc => (acc.locations || []).some(loc => loc.cid === cid && loc.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].includes(loc.role)));
           item.qhasGMBWebsite = gmbWebsiteOwnerDict[key] === 'qmenu' || gmbWebsiteOwnerDict[_id + cid] === 'qmenu';
+          item.gmbClosed = gmbClosed;
           item.googleSearchText = "https://www.google.com/search?q=" + encodeURIComponent(item.name + " " + address);
+          // When loading the page, all the logs should be collapsed by default, the same as rate/fee
+          this.logVisibilities.hidden[item.qm_id] = true;
+          this.rateVisibilities.hidden[item.qm_id] = true;
+          this.feeVisibilities.hidden[item.qm_id] = true;
         }
       }
       // detect if rt has tier 1 perf in continuous 3 months in history
@@ -277,9 +411,11 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
           slide = [];
         }
       })
-      if (!gmb_potential && !slides.length) {
+      
+      if (!gmb_potential && !slides.length && !item.logs.some(log => log.type === WIN_BACK_CAMPAIGN_LOG_TYPE)) {
         return;
       }
+      
       let flatten = slides.map(s => {
         let start = s[0].month.split(''), end = s[s.length - 1].month.split('');
         start.splice(4, 0, '-');
@@ -290,6 +426,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
 
       item.histories = this.pageHistories(flatten);
       item.lastestHistAvg = (flatten[0] || {} as any).avg || 0;
+
       rows.push(item);
     });
     this.rows = rows.filter(row => !/(-\s*\(?old\)?)|(\s*\(old\))/.test((row.name || '').toLowerCase().trim()));
@@ -302,14 +439,40 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       aggregate: [
         {
           $project: {
+            channels: {
+              $filter: {
+                input: '$channels',
+                as: 'channel',
+                cond: {
+                  $or: [
+                    {
+                      $eq: ['$$channel.type', 'SMS']
+                    }, {
+                      $eq: ['$$channel.type', 'Phone']
+                    }
+                  ]
+                }
+              }
+            },
+            feeSchedules: {
+              $filter: {
+                input: '$feeSchedules',
+                as: 'feeSchedule',
+                cond: {
+                  $ne: ['$$feeSchedule.payer', 'QMENU']
+                }
+              }
+            },
+            rateSchedules: 1,
             activity: "$computed.activity",
             timezone: "$googleAddress.timezone",
             address: "$googleAddress.formatted_address",
             place_id: "$googleListing.place_id",
             cid: '$googleListing.cid',
             gmbPositiveScore: "$computed.gmbPositiveScore",
+            gmbClosed: "$googleListing.closed",
             score: 1,
-            logs: {$slice: ["$logs", -4]},
+            logs: { $slice: ["$logs", -4] },
             winBackLogs: {
               $filter: {
                 input: '$logs',
@@ -336,14 +499,16 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       has_logs: HasLogsOptions,
       current_tier: CurrentTierOptions,
       opm_sort: OPMSortOptions,
-      gmb_owner: gmbOwnerOptions
+      gmb_owner: gmbOwnerOptions,
+      gmb_closed: gmbClosedOptions,
+      churned_tier1: churnedTier1Options
     }[key])
   }
 
   filter() {
     let list = this.rows;
 
-    let { keyword, hasLogs, platform, potentialType, currentTier, OPMSort, gmbOwner } = this.filters;
+    let { keyword, hasLogs, platform, potentialType, currentTier, OPMSort, gmbOwner, gmbClosed, churnedTier1 } = this.filters;
     switch (platform) {
       case PlatformOptions.Qmenu:
         list = list.filter(x => !!x.qm_id);
@@ -378,10 +543,10 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     }
     switch (hasLogs) {
       case HasLogsOptions.HasLogs:
-        list = list.filter(x => x.logs.length > 0);
+        list = list.filter(x => (x.logs || []).some(log => log.type === WIN_BACK_CAMPAIGN_LOG_TYPE));
         break;
       case HasLogsOptions.NoLogs:
-        list = list.filter(x => x.logs.length === 0);
+        list = list.filter(x => !(x.logs || []).some(log => log.type === WIN_BACK_CAMPAIGN_LOG_TYPE));
         break;
     }
     switch (currentTier) {
@@ -400,6 +565,23 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       case CurrentTierOptions.Inactive_Last_30d:
         list = list.filter(x => (x.activity || {}).ordersInLast30Days === 0);
         break;
+    }
+
+    switch (gmbClosed) {
+      case gmbClosedOptions.Closed:
+        list = list.filter(x => x.gmbClosed);
+        break;
+      case gmbClosedOptions.Not_Closed:
+        list = list.filter(x => !x.gmbClosed);
+        break;
+    }
+
+    switch (churnedTier1) {
+      case churnedTier1Options.Last_Month:
+        list = list.filter(x => x.lastMonthChurnedFromTier1);
+        break;
+      // case churnedTier1Options.Last_Week:
+      //   break;
     }
 
     const kwMatch = str => str && str.toString().toLowerCase().includes(keyword.toLowerCase());
