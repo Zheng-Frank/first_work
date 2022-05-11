@@ -883,6 +883,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
             payload: {
               GooglePlaceID: 1,
               Active: 1,
+              BusinessEntityID: 1
             },
             limit: 1
           }).subscribe(result => {
