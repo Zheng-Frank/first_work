@@ -82,151 +82,259 @@
 
     <div class="table-container">
       <q-table [rows]="list" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
-      [pageSize]="pagination ? 100 : 100000">
-      <ng-container *tableRowTemplate="let item;">
-        <tr>
-          <td>
-            {{list.indexOf(item) + 1}}
-          </td>
-          <td style="width: 10%;">
-            <div>{{item.name}}</div>
-            <div class="small">
-              {{item.address}}
-              (<a class="google_link" href="{{item.googleSearchText}}" target="_blank">Google<i
-                  class="fas fa-external-link-alt"></i></a>)
-            </div>
-            <div class="small history-item gray-block mr-2 text-unwrap">
-              {{ item.channels }}
-            </div>
-            <div *ngIf="item.qm_id">
-              <a class="my-text-small btn-link" target="_blank" [routerLink]="'/restaurants/' + item.qm_id">
-                {{item.qm_id}}
-              </a>
-            </div>
-            <div *ngIf="item.bm_id">BM ID: {{item.bm_id}}</div>
-            <div class="d-inline-flex align-items-center">
-              <i class="fab fa-google mr-2"></i>
-              <span class="logo qm-icon" *ngIf="item.qhasGmb" [ngClass]="{'mr-2': item.bhasGmb}"></span>
-              <span class="logo bm-icon" *ngIf="item.bhasGmb"></span>
-              <span class="text-danger" *ngIf="!item.qhasGmb && !item.bhasGmb">&#10008;</span>
-              <i class="fas fa-globe mr-2 ml-3"></i>
-              <span class="logo qm-icon" *ngIf="item.qhasGMBWebsite" [ngClass]="{'mr-2': item.bhasGMBWebsite}"></span>
-              <span class="logo bm-icon" *ngIf="item.bhasGMBWebsite"></span>
-              <span class="text-danger" *ngIf="!item.qhasGMBWebsite && !item.bhasGMBWebsite">&#10008;</span>
-            </div>
-            <ng-container *ngIf="item.logs.length > 0">
-
-              <ng-container *ngIf="!logVisibilities.hidden[item.qm_id]">
-                <div class="mt-2">
-                  <a class="btn-link" (click)="logVisibilities.hidden[item.qm_id] = true" >Hide Logs<i class="fa fa-chevron-up ml-2"></i></a>
+        [pageSize]="pagination ? 100 : 100000">
+        <ng-container *tableRowTemplate="let item;">
+          <tr>
+            <td>
+              {{list.indexOf(item) + 1}}
+            </td>
+            <td style="width: 10%;">
+              <div>{{item.name}}</div>
+              <div class="small">
+                {{item.address}}
+                (<a class="google_link" href="{{item.googleSearchText}}" target="_blank">Google<i
+                    class="fas fa-external-link-alt"></i></a>)
+              </div>
+              <div class="small gray-block" *ngIf="item.channels.length > 0">
+                <ng-container *ngFor="let channel of item.channels; let i = index;">
+                  <span class="{{showIsMainBizPhone(channel) ? 'text-danger': ''}}">
+                    {{channel.value}}<ng-container *ngIf="i !== item.channels.length-1">, </ng-container>
+                  </span>
+                </ng-container>
+              </div>
+              <div *ngIf="item.qm_id">
+                <a class="my-text-small btn-link" target="_blank" [routerLink]="'/restaurants/' + item.qm_id">
+                  {{item.qm_id}}
+                </a>
+              </div>
+              <div *ngIf="item.bm_id">BM ID: {{item.bm_id}}</div>
+              <div class="d-inline-flex align-items-center">
+                <i class="fab fa-google mr-2"></i>
+                <span class="logo qm-icon" *ngIf="item.qhasGmb" [ngClass]="{'mr-2': item.bhasGmb}"></span>
+                <span class="logo bm-icon" *ngIf="item.bhasGmb"></span>
+                <span class="text-danger" *ngIf="!item.qhasGmb && !item.bhasGmb">&#10008;</span>
+                <i class="fas fa-globe mr-2 ml-3"></i>
+                <span class="logo qm-icon" *ngIf="item.qhasGMBWebsite" [ngClass]="{'mr-2': item.bhasGMBWebsite}"></span>
+                <span class="logo bm-icon" *ngIf="item.bhasGMBWebsite"></span>
+                <span class="text-danger" *ngIf="!item.qhasGMBWebsite && !item.bhasGMBWebsite">&#10008;</span>
+              </div>
+              <ng-container *ngIf="item.logs.length > 0">
+                <ng-container *ngIf="!logVisibilities.hidden[item.qm_id]">
+                  <div class="mt-2">
+                    <a class="btn-link" (click)="logVisibilities.hidden[item.qm_id] = true">Hide Logs<i
+                        class="fa fa-chevron-up ml-2"></i></a>
+                  </div>
+                </ng-container>
+                <div *ngIf="logVisibilities.hidden[item.qm_id]">
+                  <a class="btn-link" (click)="logVisibilities.hidden[item.qm_id] = false">Show Logs<i
+                      class="fa fa-chevron-down ml-2"></i></a>
                 </div>
               </ng-container>
-              <div *ngIf="logVisibilities.hidden[item.qm_id]">
-                <a class="btn-link" (click)="logVisibilities.hidden[item.qm_id] = false">Show Logs<i class="fa fa-chevron-down ml-2"></i></a>
+              <!-- start with hide/show rate/feeSchedules -->
+              <ng-container *ngIf="item.rateSchedules.length > 0 && item.feeSchedules.length === 0">
+                <ng-container *ngIf="!rateVisibilities.hidden[item.qm_id]">
+                  <div class="mt-2">
+                    <a class="btn-link" (click)="rateVisibilities.hidden[item.qm_id] = true">Hide Rate Schedules<i
+                        class="fa fa-chevron-up ml-2"></i></a>
+                  </div>
+                </ng-container>
+                <div *ngIf="rateVisibilities.hidden[item.qm_id]">
+                  <a class="btn-link" (click)="rateVisibilities.hidden[item.qm_id] = false">Show Rate Schedules<i
+                      class="fa fa-chevron-down ml-2"></i></a>
+                </div>
+              </ng-container>
+
+              <ng-container *ngIf="item.feeSchedules.length > 0">
+                <ng-container *ngIf="!feeVisibilities.hidden[item.qm_id]">
+                  <div class="mt-2">
+                    <a class="btn-link" (click)="feeVisibilities.hidden[item.qm_id] = true">Hide Fee Schedules<i
+                        class="fa fa-chevron-up ml-2"></i></a>
+                  </div>
+                </ng-container>
+                <div *ngIf="feeVisibilities.hidden[item.qm_id]">
+                  <a class="btn-link" (click)="feeVisibilities.hidden[item.qm_id] = false">Show Fee Schedules<i
+                      class="fa fa-chevron-down ml-2"></i></a>
+                </div>
+              </ng-container>
+
+              <!-- end with hide/show rate/feeSchedules -->
+
+            </td>
+            <td>
+              <div *ngIf="item.qm_id">
+                {{ item.score | number : '1.0-0' }}
               </div>
-            </ng-container>
-          </td>
-          <td>
-            <div *ngIf="item.qm_id">
-              {{ item.score | number : '1.0-0' }}
-            </div>
-          </td>
-          <td>
-            <div class="text-unwrap" *ngIf="item.qm_id">
-              {{getTimezoneCity(item.timezone)}} ({{getTimeOffsetByTimezone(item.timezone)}})
-            </div>
-          </td>
-          <td style="width: 15%;">
-            <div class="d-flex align-items-center mb-2" *ngIf="item.gmbPositive">
-              <strong class="mr-1">GMB:</strong>
-              <span class="gray-block">
-                <strong class="text-success mr-1">{{item.gmbPositive.score}}</strong> OPM ({{item.gmbPositive.orders}}
-                over {{item.gmbPositive.days}} "GMB days")
-              </span>
-            </div>
-            <div class="d-flex align-items-start" *ngIf="item.histories.length > 0">
-              <strong class="mr-1">Hist.:</strong>
-              <div class="histories">
-                <div class="mb-1" *ngFor="let line of item.histories">
-                  <span class="history-item gray-block mr-2 text-unwrap" *ngFor="let hist of line">
-                    <strong class="text-success mr-1">{{hist.avg | number: '1.0-1'}}</strong> OPM ({{hist.start}} ~
-                    {{hist.end}})
-                  </span>
+            </td>
+            <td>
+              <div class="text-unwrap" *ngIf="item.qm_id">
+                {{getTimezoneCity(item.timezone)}} ({{getTimeOffsetByTimezone(item.timezone)}})
+              </div>
+            </td>
+            <td style="width: 15%;">
+              <div class="d-flex align-items-center mb-2" *ngIf="item.gmbPositive">
+                <strong class="mr-1">GMB:</strong>
+                <span class="gray-block">
+                  <strong class="text-success mr-1">{{item.gmbPositive.score}}</strong> OPM ({{item.gmbPositive.orders}}
+                  over {{item.gmbPositive.days}} "GMB days")
+                </span>
+              </div>
+              <div class="d-flex align-items-start" *ngIf="item.histories.length > 0">
+                <strong class="mr-1">Hist.:</strong>
+                <div class="histories">
+                  <div class="mb-1" *ngFor="let line of item.histories">
+                    <span class="history-item gray-block mr-2 text-unwrap" *ngFor="let hist of line">
+                      <strong class="text-success mr-1">{{hist.avg | number: '1.0-1'}}</strong> OPM ({{hist.start}} ~
+                      {{hist.end}})
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </td>
-          <td>{{item.tier}} ({{item.ordersPerMonth | number: '1.0-1'}})</td>
-          <td style="width: 40%;">
-            <ng-container *ngIf="item.qm_id">
-              <table class="table table-sm table-log-edit">
-                <tr>
+            </td>
+            <td>{{item.tier}} ({{item.ordersPerMonth | number: '1.0-1'}})</td>
+            <td style="width: 40%;">
+              <ng-container *ngIf="item.qm_id">
+                <table class="table table-sm table-log-edit">
+                  <tr>
+                    <th>User</th>
+                    <th>Time</th>
+                    <th>Problem</th>
+                    <th>Response</th>
+                  </tr>
+                  <ng-container *ngFor="let log of item.winBackLogs">
+                    <tr>
+                      <td>{{log.username}}</td>
+                      <td>{{log.time | adjustedDate : 'MMM d h:mm a' : item.timezone}}</td>
+                      <td>{{log.problem}}</td>
+                      <td>{{log.response}}</td>
+                    </tr>
+                  </ng-container>
+                </table>
+                <div>
+                  <button class="btn btn-primary btn-sm" (click)="addLog(item)"><i class="fas fa-plus"></i>Add
+                    Log</button>
+                </div>
+              </ng-container>
+            </td>
+          </tr>
+          <!-- start with logs tr -->
+          <tr *ngIf="!logVisibilities.hidden[item.qm_id] && item.logs.length > 0">
+            <td></td>
+            <td colspan="6">
+              <table class="table table-sm table-log small">
+                <tr class="table-secondary">
                   <th>User</th>
                   <th>Time</th>
                   <th>Problem</th>
                   <th>Response</th>
                 </tr>
-                <ng-container *ngFor="let log of item.winBackLogs">
+                <ng-container *ngIf="logVisibilities.expanded[item.qm_id]">
+                  <ng-container *ngFor="let log of item.logs">
+                    <tr>
+                      <td>{{log.username}}</td>
+                      <td>{{log.time | adjustedDate : 'MMM d h:mm a' : item.timezone}}</td>
+                      <td>{{log.problem}}</td>
+                      <td>{{log.response}}</td>
+                    </tr>
+                  </ng-container>
+                  <tr *ngIf="item.logs.length > 3">
+                    <td colspan="4">
+                      <a class="btn-link" (click)="logVisibilities.expanded[item.qm_id] = false">Less...</a>
+                    </td>
+                  </tr>
+                </ng-container>
+                <ng-container *ngIf="!logVisibilities.expanded[item.qm_id] && item.logs.length > 3">
+                  <ng-container *ngFor="let log of item.logs.slice(0, 3)">
+                    <tr>
+                      <td>{{log.username}}</td>
+                      <td>{{log.time | adjustedDate : 'MMM d h:mm a' : item.timezone}}</td>
+                      <td>{{log.problem}}</td>
+                      <td>{{log.response}}</td>
+                    </tr>
+                  </ng-container>
                   <tr>
-                    <td>{{log.username}}</td>
-                    <td>{{log.time | adjustedDate : 'MMM d h:mm a' : item.timezone}}</td>
-                    <td>{{log.problem}}</td>
-                    <td>{{log.response}}</td>
+                    <td colspan="4">
+                      <a class="btn-link" (click)="moreLogs(item)">More...</a>
+                    </td>
                   </tr>
                 </ng-container>
               </table>
-              <div>
-                <button class="btn btn-primary btn-sm" (click)="addLog(item)"><i class="fas fa-plus"></i>Add Log</button>
-              </div>
-            </ng-container>
-          </td>
-        </tr>
-        <tr *ngIf="!logVisibilities.hidden[item.qm_id] && item.logs.length > 0">
-          <td></td>
-          <td colspan="6">
-            <table class="table table-sm table-log small">
-              <tr class="table-secondary">
-                <th>User</th>
-                <th>Time</th>
-                <th>Problem</th>
-                <th>Response</th>
-              </tr>
-              <ng-container *ngIf="logVisibilities.expanded[item.qm_id]">
-                <ng-container *ngFor="let log of item.logs">
-                  <tr>
-                    <td>{{log.username}}</td>
-                    <td>{{log.time | adjustedDate : 'MMM d h:mm a' : item.timezone}}</td>
-                    <td>{{log.problem}}</td>
-                    <td>{{log.response}}</td>
-                  </tr>
-                </ng-container>
-                <tr *ngIf="item.logs.length > 3">
-                  <td colspan="4">
-                    <a class="btn-link" (click)="logVisibilities.expanded[item.qm_id] = false">Less...</a>
+            </td>
+          </tr>
+          <!-- end with logs tr -->
+          <!-- start with rate schedules tr -->
+          <tr
+            *ngIf="!rateVisibilities.hidden[item.qm_id] && item.rateSchedules.length > 0 && item.feeSchedules.length === 0">
+            <td></td>
+            <td colspan="6">
+              <table class="table table-sm table-log small">
+                <tr class="table-secondary">
+                  <th>Date</th>
+                  <th>Order Type</th>
+                  <th>Rate</th>
+                  <th>Fixed</th>
+                  <th>Agent</th>
+                </tr>
+                <tr *ngFor="let rs of item.rateSchedules">
+                  <td>{{rs.date | date:'shortDate'}}</td>
+                  <td>{{rs.orderType || 'ALL'}}</td>
+                  <td>{{rs.rate | percentage}}</td>
+                  <td>{{rs.fixed | currency:'USD':'symbol'}}</td>
+                  <td>{{rs.agent}} <span *ngIf="userIsDisabled(rs.agent)" class="text-danger">*DISABLED*</span>
                   </td>
                 </tr>
-              </ng-container>
-              <ng-container *ngIf="!logVisibilities.expanded[item.qm_id] && item.logs.length > 3">
-                <ng-container *ngFor="let log of item.logs.slice(0, 3)">
-                  <tr>
-                    <td>{{log.username}}</td>
-                    <td>{{log.time | adjustedDate : 'MMM d h:mm a' : item.timezone}}</td>
-                    <td>{{log.problem}}</td>
-                    <td>{{log.response}}</td>
-                  </tr>
-                </ng-container>
-                <tr>
-                  <td colspan="4">
-                    <a class="btn-link" (click)="moreLogs(item)">More...</a>
-                  </td>
+              </table>
+            </td>
+          </tr>
+          <!-- end with rate schedules tr -->
+          <!-- start with fee schedules tr -->
+          <tr *ngIf="!feeVisibilities.hidden[item.qm_id] && item.feeSchedules.length > 0">
+            <td></td>
+            <td colspan="6">
+              <table class="table table-sm table-log small">
+                <tr class="table-secondary">
+                  <th>Payer → Payee</th>
+                  <th>Assessment</th>
+                  <th>Conditions</th>
                 </tr>
-              </ng-container>
-            </table>
-          </td>
-        </tr>
-      </ng-container>
+                <tr *ngFor="let feeSchedule of item.feeSchedules">
+                  <td class="text-lowercase text-nowrap my-text-b">{{feeSchedule.payer}} → {{feeSchedule.payee}}
+                    <div class="my-text-small">
+                      {{ feeSchedule.fromTime | adjustedDate: 'shortDate' : item.timezone }} → <span
+                        *ngIf="feeSchedule.toTime">{{ feeSchedule.toTime | adjustedDate: 'shortDate' : item.timezone }}</span>
+                    </div>
+                  </td>
+                  <td class="text-nowrap">
+                    <div class="my-text-b">
+                      <span *ngIf="feeSchedule.rate">{{feeSchedule.rate | percentage }}</span>
+                      <span *ngIf="feeSchedule.rate && feeSchedule.amount"> + </span>
+                      <span *ngIf="feeSchedule.amount">{{feeSchedule.amount |currency:'USD':'symbol'}}</span>
+                      <span *ngIf="!feeSchedule.rate && !feeSchedule.amount">0</span>
 
-    </q-table>
+                    </div>
+                    <div *ngIf="feeSchedule.name">{{feeSchedule.name}}</div>
+                    <div class="my-text-small text-muted">
+                      {{chargeBasisMap[feeSchedule.chargeBasis]}}
+                    </div>
+                  </td>
+
+                  <td>
+                    <div *ngIf="feeSchedule.orderTypes && feeSchedule.orderTypes.length > 0" class="text-lowercase">
+                      {{feeSchedule.orderTypes.join(', ')}}
+                    </div>
+
+                    <div *ngIf="feeSchedule.orderPaymentMethods && feeSchedule.orderPaymentMethods.length > 0"
+                      class="text-lowercase">
+                      {{feeSchedule.orderPaymentMethods.join(', ')}}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- end with fee schedules tr -->
+        </ng-container>
+
+      </q-table>
     </div>
 
   </div>

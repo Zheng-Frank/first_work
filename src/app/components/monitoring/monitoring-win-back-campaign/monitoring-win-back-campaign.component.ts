@@ -5,7 +5,7 @@ import { ApiService } from 'src/app/services/api.service';
 import { environment } from '../../../../environments/environment';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Helper } from "../../../classes/helper";
-import { TimezoneHelper } from '@qmenu/ui';
+import { TimezoneHelper, ChargeBasis } from '@qmenu/ui';
 
 enum Tier1PotentialTypeOptions {
   GMB_Based = 'GMB-based',
@@ -105,16 +105,40 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
   loggingRT: any = {};
   logInEditing: Log = new Log({ type: WIN_BACK_CAMPAIGN_LOG_TYPE, time: new Date() });
   now = new Date();
+  chargeBasisMap = {
+    [ChargeBasis.Monthly]: 'monthly',
+    [ChargeBasis.OrderSubtotal]: 'order subtotal',
+    [ChargeBasis.OrderPreTotal]: 'order pre-total',
+    [ChargeBasis.OrderTotal]: 'order total',
+    [ChargeBasis.Commission]: 'commission',
+  };
+  
   logVisibilities = {
     hidden: {}, expanded: {}
   }
+  rateVisibilities = {
+    hidden: {}, expanded: {}
+  }
+  feeVisibilities = {
+    hidden: {}, expanded: {}
+  }
+  users;
 
   pagination = true;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
+    this.users = await this._global.getCachedUserList();
     await this.populate();
+  }
+
+  showIsMainBizPhone({type, notifications}) {
+    return type === 'Phone' && (notifications || []).includes('Business');
+  }
+
+  userIsDisabled(user) {
+    return !this.users.some(u => u.username === user && !u.disabled);
   }
 
   // our salesperson only wants to know what is the time offset
@@ -176,47 +200,75 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     return res;
   }
 
-  async getBMRTs() {
-    let bmRTs = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
-      method: 'get',
-      resource: 'bm-sst-restaurants',
-      query: {_id: { $exists: true }},
-      payload: { 
-        BusinessEntityID: 1, 
-        Address: 1, 
-        City: 1, 
-        State: 1, 
-        ZipCode: 1, 
-        IsBmGmbControl: 1,
-        Phone1: 1,
-        Phone2: 1,
-        Phone3: 1,
-        Phone4: 1,
-        CellPhone1: 1,
-        CellPhone2: 1,
-        CellPhone3: 1,
-        CellPhone4: 1,
-       },
-      limit: 10000000
-    }).toPromise();
+  async getByBatch(resource, size = 60000) {
+    let data = [], skip = 0;
+    while (true) {
+      const temp = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
+        method: 'get', resource,
+        query: { _id: { $exists: true } }, // any items
+        payload: { _id: 0, count_orders: 1, sum_total: 1, month: 1, bmid: 1, qmid: 1 },
+        skip, limit: size
+      }).toPromise();
+      data.push(...temp);
+      if (temp.length === size) {
+        skip += size;
+      } else {
+        break;
+      }
+    }
+    return data;
+  }
+
+  async getBMRTsByBatch() {
+    let bmRTs = [], skip = 0, size = 10000;
+    while (true) {
+      const temp = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
+        method: 'get',
+        resource: 'bm-sst-restaurants',
+        query: { _id: { $exists: true } },
+        payload: {
+          BusinessEntityID: 1,
+          Address: 1,
+          City: 1,
+          State: 1,
+          ZipCode: 1,
+          IsBmGmbControl: 1,
+          Phone1: 1,
+          Phone2: 1,
+          Phone3: 1,
+          Phone4: 1,
+          CellPhone1: 1,
+          CellPhone2: 1,
+          CellPhone3: 1,
+          CellPhone4: 1,
+        },
+        skip, limit: size
+      }).toPromise();
+      bmRTs.push(...temp);
+      if (temp.length === size) {
+        skip += size;
+      } else {
+        break;
+      }
+    }
     bmRTs = bmRTs.map(item => {
-       // --- phone and cellphone
-       const channels = [];
-       [1, 2, 3, 4].map(num => {
-         if (item[`Phone${num}`]) {
-           channels.push({ type: 'Phone', value: item[`Phone${num}`] });
-         }
-         if (item[`CellPhone${num}`]) {
-           channels.push({ type: 'Phone', value: item[`CellPhone${num}`] });
-         }
-       });
-      
+      // --- phone and cellphone
+      const channels = [];
+      [1, 2, 3, 4].map(num => {
+        if (item[`Phone${num}`]) {
+          channels.push({ type: 'Phone', value: item[`Phone${num}`] });
+        }
+        if (item[`CellPhone${num}`]) {
+          channels.push({ type: 'Phone', value: item[`CellPhone${num}`] });
+        }
+      });
+
       return {
         _bid: item.BusinessEntityID,
         baddress: `${item.Address}, ${item.City || ''}, ${item.State || ''} ${item.ZipCode || ''}`.trim(),
         bwebsite: item.CustomerDomainName,
         bhasGmb: item.IsBmGmbControl,
-        bchannels: channels.map(ch => ch.value)
+        bchannels: channels
       }
     });
     let bmRTsDict = {};
@@ -231,7 +283,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     let rts = await this.getUnifiedData(months);
 
     let qmRTsDict = await this.getQmRTs(), last6Months = months.slice(months.length - 6);
-    let bmRTsDict = await this.getBMRTs();
+    let bmRTsDict = await this.getBMRTsByBatch();
 
     const gmbBiz = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'gmbBiz',
@@ -261,6 +313,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       if (qm_id && !qmRTsDict[qm_id]) {
         return;
       }
+      
       let ordersPerMonth = last6Months.reduce((a, c) => a + (rest[`OC${c}`] || 0), 0) / 6;
       let tier = Helper.getTier(ordersPerMonth);
       if (tier <= 1) {
@@ -272,7 +325,8 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
           return;
         }
       }
-      let item: any = { name: rt_name, tier, ordersPerMonth, bm_id, qm_id, logs: [], win_back_logs: [] };
+      
+      let item: any = { name: rt_name, tier, ordersPerMonth, bm_id, qm_id, logs: [], win_back_logs: [], rateSchedules: [], feeSchedules: [] };
       let gmb_potential = false;
       // Have filter to show RTs that recently churned from tier 1 in the last week or month
       // needs to temp property lastMonthChurnedFormTier1 to do it
@@ -280,20 +334,26 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       let date = new Date();
       date.setMonth(date.getMonth() - 1);
       item.lastMonthChurnedFromTier1 = Helper.getTier(rest[`OC${date.getFullYear()}${Helper.padNumber(date.getMonth() + 1)}`]) > 1;
-      
+
       if (bm_id) {
         let bmRT = bmRTsDict[bm_id];
         if (bmRT) {
           item.address = bmRT.baddress;
           item.bhasGmb = bmRT.bhasGmb;
-          item.bchannels = bmRT.bchannels;
+          if(!qmRTsDict[qm_id]) {
+            item.channels = bmRT.bchannels;
+          } else {
+            item.bchannels = bmRT.bchannels;
+          }
           item.googleSearchText = "https://www.google.com/search?q=" + encodeURIComponent(item.name + " " + item.address);
         }
       }
       if (qm_id) {
         let qm_rt = qmRTsDict[qm_id];
         if (qm_rt) {
-          let { _id, logs, winBackLogs, gmbPositiveScore, score, timezone, activity = {}, address = '', place_id, cid, gmbClosed, channels = [] } = qm_rt;
+          let { _id, logs, winBackLogs, gmbPositiveScore, score, timezone, activity = {},
+           address = '', place_id, cid, gmbClosed, channels = [],
+          rateSchedules, feeSchedules } = qm_rt;
           item.logs = (logs || []).reverse();
           item.winBackLogs = (winBackLogs || []).reverse()
           gmbPositiveScore = gmbPositiveScore || {};
@@ -307,25 +367,35 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
           item.timezone = timezone;
           item.activity = activity;
           item.address = address;
+          item.rateSchedules = rateSchedules || [];
+          item.feeSchedules = feeSchedules || [];
+
           let uniqueChannels = [];
           // merge duplicate channels
-          if(bmRTsDict[bm_id]) {
-            [...item.bchannels, ...channels.map(ch => ch.value)].forEach(ch => {
-              if(uniqueChannels.indexOf(ch)) {
+          if (bmRTsDict[bm_id]) {
+            [...item.bchannels, ...(channels || [])].forEach(ch => {
+              if (uniqueChannels.indexOf(ch) === -1) {
                 uniqueChannels.push(ch);
               }
             });
-            item.channels = uniqueChannels.join(', ');
+            let mainBizChannels = uniqueChannels.filter(({type, notifications}) => this.showIsMainBizPhone({type, notifications}));
+            let otherChannels = uniqueChannels.filter(ch => mainBizChannels.indexOf(ch) === -1);
+            item.channels = [...mainBizChannels, ...otherChannels];
           } else {
-            item.channels = channels.map(ch => ch.value).join(', ');
+            item.channels = channels || [];
+            let mainBizChannels = item.channels.filter(({type, notifications}) => this.showIsMainBizPhone({type, notifications}));
+            let otherChannels = item.channels.filter(ch => mainBizChannels.indexOf(ch) === -1);
+            item.channels = [...mainBizChannels, ...otherChannels];
           }
           let key = place_id + cid;
           item.qhasGmb = (gmbWebsiteOwnerDict[key] || gmbWebsiteOwnerDict[_id + cid]) && accounts.some(acc => (acc.locations || []).some(loc => loc.cid === cid && loc.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].includes(loc.role)));
           item.qhasGMBWebsite = gmbWebsiteOwnerDict[key] === 'qmenu' || gmbWebsiteOwnerDict[_id + cid] === 'qmenu';
           item.gmbClosed = gmbClosed;
           item.googleSearchText = "https://www.google.com/search?q=" + encodeURIComponent(item.name + " " + address);
-          // When loading the page, all the logs should be collapsed by default
+          // When loading the page, all the logs should be collapsed by default, the same as rate/fee
           this.logVisibilities.hidden[item.qm_id] = true;
+          this.rateVisibilities.hidden[item.qm_id] = true;
+          this.feeVisibilities.hidden[item.qm_id] = true;
         }
       }
       // detect if rt has tier 1 perf in continuous 3 months in history
@@ -341,9 +411,11 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
           slide = [];
         }
       })
-      if (!gmb_potential && !slides.length) {
+      
+      if (!gmb_potential && !slides.length && !item.logs.some(log => log.type === WIN_BACK_CAMPAIGN_LOG_TYPE)) {
         return;
       }
+      
       let flatten = slides.map(s => {
         let start = s[0].month.split(''), end = s[s.length - 1].month.split('');
         start.splice(4, 0, '-');
@@ -375,13 +447,23 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
                   $or: [
                     {
                       $eq: ['$$channel.type', 'SMS']
-                    },{
+                    }, {
                       $eq: ['$$channel.type', 'Phone']
                     }
                   ]
                 }
               }
             },
+            feeSchedules: {
+              $filter: {
+                input: '$feeSchedules',
+                as: 'feeSchedule',
+                cond: {
+                  $ne: ['$$feeSchedule.payer', 'QMENU']
+                }
+              }
+            },
+            rateSchedules: 1,
             activity: "$computed.activity",
             timezone: "$googleAddress.timezone",
             address: "$googleAddress.formatted_address",
@@ -390,7 +472,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
             gmbPositiveScore: "$computed.gmbPositiveScore",
             gmbClosed: "$googleListing.closed",
             score: 1,
-            logs: {$slice: ["$logs", -4]},
+            logs: { $slice: ["$logs", -4] },
             winBackLogs: {
               $filter: {
                 input: '$logs',
