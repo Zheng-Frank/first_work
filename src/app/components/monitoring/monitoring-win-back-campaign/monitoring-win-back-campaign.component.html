@@ -95,6 +95,9 @@
               (<a class="google_link" href="{{item.googleSearchText}}" target="_blank">Google<i
                   class="fas fa-external-link-alt"></i></a>)
             </div>
+            <div class="small history-item gray-block mr-2 text-unwrap">
+              {{ item.channels }}
+            </div>
             <div *ngIf="item.qm_id">
               <a class="my-text-small btn-link" target="_blank" [routerLink]="'/restaurants/' + item.qm_id">
                 {{item.qm_id}}

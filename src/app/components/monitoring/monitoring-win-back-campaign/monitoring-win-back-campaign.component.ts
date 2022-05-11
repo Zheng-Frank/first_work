@@ -181,15 +181,44 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       method: 'get',
       resource: 'bm-sst-restaurants',
       query: {_id: { $exists: true }},
-      payload: { _id: 0, BusinessEntityID: 1, Address: 1, City: 1, State: 1, ZipCode: 1, IsBmGmbControl: 1 },
+      payload: { 
+        BusinessEntityID: 1, 
+        Address: 1, 
+        City: 1, 
+        State: 1, 
+        ZipCode: 1, 
+        IsBmGmbControl: 1,
+        Phone1: 1,
+        Phone2: 1,
+        Phone3: 1,
+        Phone4: 1,
+        CellPhone1: 1,
+        CellPhone2: 1,
+        CellPhone3: 1,
+        CellPhone4: 1,
+       },
       limit: 10000000
     }).toPromise();
-    bmRTs = bmRTs.map(item => ({
-      _bid: item.BusinessEntityID,
-      baddress: `${item.Address}, ${item.City || ''}, ${item.State || ''} ${item.ZipCode || ''}`.trim(),
-      bwebsite: item.CustomerDomainName,
-      bhasGmb: item.IsBmGmbControl
-    }));
+    bmRTs = bmRTs.map(item => {
+       // --- phone and cellphone
+       const channels = [];
+       [1, 2, 3, 4].map(num => {
+         if (item[`Phone${num}`]) {
+           channels.push({ type: 'Phone', value: item[`Phone${num}`] });
+         }
+         if (item[`CellPhone${num}`]) {
+           channels.push({ type: 'Phone', value: item[`CellPhone${num}`] });
+         }
+       });
+      
+      return {
+        _bid: item.BusinessEntityID,
+        baddress: `${item.Address}, ${item.City || ''}, ${item.State || ''} ${item.ZipCode || ''}`.trim(),
+        bwebsite: item.CustomerDomainName,
+        bhasGmb: item.IsBmGmbControl,
+        bchannels: channels.map(ch => ch.value)
+      }
+    });
     let bmRTsDict = {};
     bmRTs.forEach(item => {
       bmRTsDict[item._bid] = item
@@ -257,13 +286,14 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
         if (bmRT) {
           item.address = bmRT.baddress;
           item.bhasGmb = bmRT.bhasGmb;
+          item.bchannels = bmRT.bchannels;
           item.googleSearchText = "https://www.google.com/search?q=" + encodeURIComponent(item.name + " " + item.address);
         }
       }
       if (qm_id) {
         let qm_rt = qmRTsDict[qm_id];
         if (qm_rt) {
-          let { _id, logs, winBackLogs, gmbPositiveScore, score, timezone, activity = {}, address = '', place_id, cid, gmbClosed } = qm_rt;
+          let { _id, logs, winBackLogs, gmbPositiveScore, score, timezone, activity = {}, address = '', place_id, cid, gmbClosed, channels = [] } = qm_rt;
           item.logs = (logs || []).reverse();
           item.winBackLogs = (winBackLogs || []).reverse()
           gmbPositiveScore = gmbPositiveScore || {};
@@ -277,6 +307,18 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
           item.timezone = timezone;
           item.activity = activity;
           item.address = address;
+          let uniqueChannels = [];
+          // merge duplicate channels
+          if(bmRTsDict[bm_id]) {
+            [...item.bchannels, ...channels.map(ch => ch.value)].forEach(ch => {
+              if(uniqueChannels.indexOf(ch)) {
+                uniqueChannels.push(ch);
+              }
+            });
+            item.channels = uniqueChannels.join(', ');
+          } else {
+            item.channels = channels.map(ch => ch.value).join(', ');
+          }
           let key = place_id + cid;
           item.qhasGmb = (gmbWebsiteOwnerDict[key] || gmbWebsiteOwnerDict[_id + cid]) && accounts.some(acc => (acc.locations || []).some(loc => loc.cid === cid && loc.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].includes(loc.role)));
           item.qhasGMBWebsite = gmbWebsiteOwnerDict[key] === 'qmenu' || gmbWebsiteOwnerDict[_id + cid] === 'qmenu';
@@ -325,6 +367,21 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       aggregate: [
         {
           $project: {
+            channels: {
+              $filter: {
+                input: '$channels',
+                as: 'channel',
+                cond: {
+                  $or: [
+                    {
+                      $eq: ['$$channel.type', 'SMS']
+                    },{
+                      $eq: ['$$channel.type', 'Phone']
+                    }
+                  ]
+                }
+              }
+            },
             activity: "$computed.activity",
             timezone: "$googleAddress.timezone",
             address: "$googleAddress.formatted_address",
