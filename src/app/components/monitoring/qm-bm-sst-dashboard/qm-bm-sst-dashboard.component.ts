@@ -477,7 +477,7 @@ export class QmBmSstDashboardComponent implements OnInit {
     this.kpi = dict;
     console.log('RT IDs do not exists in unified collection...', Array.from(non_union_ids));
     this.kpiHeaders[KPIPeriodOptions.Yearly] = Array.from(years).sort((a, b) => Number(a) - Number(b));
-    this.kpiHeaders[KPIPeriodOptions.Quarterly] = Array.from(quarters).sort((a, b) => {
+    this.kpiHeaders[KPIPeriodOptions.Quarterly] = Array.from(quarters).sort((a: string, b: string) => {
       let [year_a, quarter_a] = a.split(' '),
         [year_b, quarter_b] = b.split(' ');
       if (year_a !== year_b) {
@@ -485,7 +485,7 @@ export class QmBmSstDashboardComponent implements OnInit {
       }
       return Number(quarter_a.substr(1)) - Number(quarter_b.substr(1));
     });
-    this.kpiHeaders[KPIPeriodOptions.Monthly] = Array.from(months).sort((a, b) => {
+    this.kpiHeaders[KPIPeriodOptions.Monthly] = Array.from(months).sort((a: string, b: string) => {
       let [year_a, month_a] = a.split(' '),
         [year_b, month_b] = b.split(' ');
       if (year_a !== year_b) {
@@ -542,6 +542,36 @@ export class QmBmSstDashboardComponent implements OnInit {
       competitors: competitorsOptions,
       churn_definition: ChurnDefinitionOptions
     }[key])
+  }
+
+  async getBMRTs() {
+    let data = [], skip = 0, size = 6000;
+    while (true) {
+      const temp = await this._api.post(environment.biApiUrl + "smart-restaurant/api", {
+        method: 'get', resource: 'bm-sst-restaurants',
+        query: { _id: { $exists: true } }, // any items
+        payload: {
+          _id: 0, GooglePlaceID: 1, BusinessEntityID: 1, BusinessName: 1,
+          Address: 1, City: 1, State: 1, ZipCode: 1,
+          Phone1: 1, Phone2: 1, Phone3: 1, Phone4: 1,
+          CellPhone1: 1, CellPhone2: 1, CellPhone3: 1, CellPhone4: 1,
+          OrderFixedFeePerOrder: 1, CreditCardFixedFeePerOrder: 1,
+          OrderMonthlyFee: 1, CreditCardFeePercentage: 1, AmexFeePercentage: 1,
+          FaxUnitPrice: 1, PhoneUnitPrice: 1, OrderCommissionPercentage: 1,
+          OrderCommissionMaximum: 1, ReservationCommissionAmount: 1, ReservationCommissionMaximum: 1,
+          LastMonthOC: 1, Last2ndMonthOC: 1, Last3rdMonthOC: 1, CuisineNameList: 1,
+          Active: 1, CustomerDomainName: 1, IsBmGmbControl: 1,
+         },
+        skip, limit: size
+      }).toPromise();
+      data.push(...temp);
+      if (temp.length === size) {
+        skip += size;
+      } else {
+        break;
+      }
+    }
+    return data;
   }
 
   async preload() {
@@ -683,12 +713,7 @@ export class QmBmSstDashboardComponent implements OnInit {
       });
       console.log('qm...', this.qmRTs);
       // --- BeyondMenu restaurants
-      let bmRTs = [];
-      try {
-        bmRTs = await this._api.post(environment.gmbNgrok + 'get-bm-restaurant').toPromise();
-      } catch (e) {
-        console.error(e);
-      }
+      let bmRTs = await this.getBMRTs();
       this.bmRTsPlaceDict = {};
       this.bmRTs = bmRTs.map(item => {
         // --- phone and cellphone
@@ -752,7 +777,7 @@ export class QmBmSstDashboardComponent implements OnInit {
         return item;
       });
       console.log('gmb conflict...', this.unionRTs.filter(x => x.hasGmb && x.bhasGmb).map(({ _id, _bid }) => ({ _id, _bid })));
-      this.cuisines = Array.from(allCuisines).sort((a, b) => a.localeCompare(b));
+      this.cuisines = Array.from(allCuisines).sort((a: string, b: string) => a.localeCompare(b));
       this.filter();
     } catch (error) {
       console.error(error);
