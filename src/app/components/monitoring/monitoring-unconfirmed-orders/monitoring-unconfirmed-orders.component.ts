@@ -2,8 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
-import { Order } from '@qmenu/ui'
-import { } from '@qmenu/ui'
+import { Hour, Order, TimezoneHelper } from '@qmenu/ui'
 
 @Component({
   selector: 'app-monitoring-unconfirmed-orders',
@@ -12,15 +11,14 @@ import { } from '@qmenu/ui'
 })
 export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
+  rtDict = {};
   rows = [];
   // Rows that only contain qMenu Collect payments
   qmenuRows = [];
   allRows = [];
+  now = new Date();
   descending = true;
   showOnlyQmenuCollected = false;
-
-
-
 
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
@@ -36,23 +34,9 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
   }
 
-  now = new Date();
-
-  log(item) {
-    console.log(item)
-  }
-
-
-
-
   async ngOnInit() {
-
-
-
-
-
-    this.refreshOrders();
-    // setInterval(() => { this.refreshOrders(); }, 180000);
+    await this.getRTs();
+    await this.query();
     setInterval(() => { this.now = new Date(); }, 60000);
   }
 
@@ -84,7 +68,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
 
   renderRestaurants(type) {
-    this.currentCriteria = type
+    // this.currentCriteria = type
     if (type === 'All') {
       this.rows = this.allRows
 
@@ -98,286 +82,163 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
     // console.log("NEW ROWS ", this.rows)
   }
 
-  async refreshOrders() {
-
-
-    const minutesAgo = new Date();
-    minutesAgo.setMinutes(minutesAgo.getMinutes() - 10);
-    console.log("MINUTES AGO", minutesAgo)
-    // we DON'T need an accurate cut of day. Let's just pull the latest 3000
-    const ordersWithSatuses = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'order',
-      query: {
-        // { _id: { $oid: '6053d1d56265d60008926948' } }
-        createdAt: {
-          // TODO: less than 15 minutes ago (arbritrary number)
-          // TODO: replace slice with Mongo 4.4 version?
-          // TODO:
-          $lt: {
-            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * .25)))
-          },
-          $gt: {
-            $date: (new Date(new Date().getTime() - (60 * 60 * 1000 * 4)))
-          },
-        }
-      },
-      projection: {
-        _id: 1,
-        orderNumber: 1,
-        "restaurantObj.name": 1,
-        "restaurantObj._id": 1,
-        "orderItems": 1,
-        type: 1,
-        "paymentObj.method": 1,
-        "paymentObj.paymentType": 1,
-        timeToDeliver: 1,
-        timeToDeliverEstimate: 1,
-        statuses: { $slice: -1 },
-        createdAt: 1,
-      },
-      sort: {
-        createdAt: -1
-      },
-    }, 500)
-
-    console.log("WHAT IS THE WHOLE RESPONSE ? ", ordersWithSatuses)
-
-    // let scheduledOrders = 0
-    // let nonscheduledOrders = 0
-    // ordersWithSatuses.forEach(order => {
-    //   if (order.timeToDeliver) {
-    //     scheduledOrders += 1
-    //   } else {
-    //     nonscheduledOrders += 1
-    //   }
-    // })
-
-    // console.log("SCHEDULED ORDERS ", scheduledOrders)
-    // console.log("NON SCHEDULED ORDERS ", nonscheduledOrders)
-
-
-
-    let uniqueIds = [... new Set(ordersWithSatuses.map(o => o.timeToDeliver ? o.restaurantObj._id : null).map(id => ({ $oid: id })).filter(id => id.$oid != undefined || id.$oid != null)
-    )].slice(0, 70)
-    console.log("UNIQUE IDS ", uniqueIds)
-
-
-
-    let restaurantPickupTimes = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+  async getRTs() {
+    let rts = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: { _id: { $in: uniqueIds } },
+      query: {},
       projection: {
-        _id: 1,
-        pickupTimeEstimate: 1,
-        deliveryTimeEstimate: 1,
-      },
-      sort: {
-        createdAt: -1
-      },
-    }, 50)
-
-
-    console.log("ALL RESTAURANT PICKUP DELIVERY TIMES ", restaurantPickupTimes)
-    // console.log(uniqueIds)
-    // ordersWithSatuses.forEach(order => {
-    //   console.log('This is the order total!!!', new Order(order).getTotal())
-    // })
-    // console.log("THESE ARE THE ORDER WITH STATUSES ", ordersWithSatuses)
-
-    // TODO
-    // TODO: Find order cost. Look at order portal and produce cost
-    let unconfirmedOrdersNonScheduled = ordersWithSatuses.filter(o => o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED' && !o.timeToDeliver);
-    //this.unconfirmed_orders_count=unconfirmedOrders.length;
-
-    // These are the unconfirmed orders for non scheduled
-    console.log("THESE ARE THE UNCONFIRMED ORDERS NON SCHEDULED ORDERS ", unconfirmedOrdersNonScheduled)
-
-
-    // For scheduled orders, these are the unconfirmed orders
-
-    const unconfirmedScheduledOrders = ordersWithSatuses.filter(o => {
-      let statusCondition = o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED' && o.timeToDeliver;
-
-
-      if (!statusCondition) {
-        return false
-      }
-      if (o.type.toLowerCase() === 'pickup') {
-
-        let pickupTime;
-        restaurantPickupTimes.forEach(res => {
-          if (res._id === o.restaurantObj._id) {
-            // console.log("MATCHING ID PICK ", res.pickupTimeEstimate, o.restaurantObj)
-            if (res.pickupTimeEstimate < 10 || res.pickupTimeEstimate > 35) {
-              pickupTime = 15
-            } else {
-              pickupTime = res.pickupTimeEstimate
-
-            }
-          }
-        })
-
-        // console.log("PICK UP TIMES ", pickupTime)
-
-        pickupTime = pickupTime ? pickupTime : 15
-
-
-        let latePickupTime = new Date(new Date(o.timeToDeliverEstimate).getTime() - (pickupTime * 60 * 1000)).getTime()
-
-        console.log("LATE PICK UP TIME ", latePickupTime)
-        return this.now.getTime() > latePickupTime
-
-      } else if (o.type.toLowerCase() === 'delivery') {
-
-        let deliveryTime
-        restaurantPickupTimes.forEach(res => {
-          if (res._id === o.restaurantObj._id) {
-            // console.log("MATCHING ID DELIVERY ID ", res.deliveryTimeEstimate)
-
-            if (res.deliveryTimeEstimate < 15 || res.deliveryTimeEstimate >= 75) {
-              deliveryTime = 45
-            } else {
-              deliveryTime = res.deliveryTimeEstimate
-
-            }
-          }
-        })
-
-        // console.log("DELIVERY TIMES ", deliveryTime)
-        deliveryTime = deliveryTime ? deliveryTime : 45
-
-        let lateDeliveryTime = new Date(new Date(o.timeToDeliverEstimate).getTime() - (deliveryTime * 60 * 1000)).getTime()
-
-        return this.now.getTime() > lateDeliveryTime
-
-      }
-
-    })
-
-    console.log("UNCONFIRMED SCHEDULED ORDERS ", unconfirmedScheduledOrders)
-
-    let unconfirmedOrders = [...unconfirmedOrdersNonScheduled, ...unconfirmedScheduledOrders]
-
-    // let unconfirmedOrders = [...unconfirmedOrdersNonScheduled]
-
-
-    // const scheduledOrders = ordersWithSatuses.filter(o => new Date(o.createdAt).valueOf() < minutesAgo.valueOf() && o.statuses && o.statuses.length > 0 && o.statuses[o.statuses.length - 1].status === 'SUBMITTED');
-
-
-    // unconfirmedOrders = [...unconfirmedOrders, ...unconfirmedScheduledOrders]
-
-
-
-
-    // TODO
-    // group by restaurants
-    const rtIdDict = unconfirmedOrders.reduce((dict, order) => (
-      dict[order.restaurantObj._id] = dict[order.restaurantObj._id] || { restaurant: order.restaurantObj, orders: [] },
-      dict[order.restaurantObj._id].orders.push({ order, total: new Order(order).getTotal(), payment: order.paymentObj }),
-      dict
-    ), {});
-
-
-    console.log("RT ID DICT ", rtIdDict)
-
-
-
-    let batchSize = 50;
-    let restaurants = [];
-    let ids: any = [...Object.keys(rtIdDict).map(id => ({ $oid: id }))];
-
-
-    console.log("THESE ARE THE IDS ", ids)
-
-    // Make API calls for corresponding restaurants to get phone number & closing + open time
-
-
-    let allRestaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: { _id: { $in: ids } },
-      projection: {
+        name: 1,
         channels: 1,
         preferredLanguage: 1,
+        'menus.hours': 1,
+        closedHours: 1,
+        'googleAddress.timezone': 1,
+        SkipOrderConfirmation: 1,
         pickupTimeEstimate: 1,
         deliveryTimeEstimate: 1,
-        _id: 1,
-        "googleAddress.timezone": 1,
-      },
-      sort: {
-        createdAt: -1
       }
-    }, 100);
-
-
-    console.log("ALL RESTAUARANTS ", allRestaurants)
-
-
-
-
-    ids = ids.map(obj => obj.$oid)
-
-
-
-
-    let batchedIds = Array(Math.ceil(ids.length / batchSize)).fill(0).map((i, index) => ids.slice(index * batchSize, (index + 1) * batchSize));
-
-    batchedIds = [...Object.keys(rtIdDict).map(id => ({ $oid: id }))];
-
-
-
-
-    // let result = await this._api.get(environment.qmenuApiUrl + 'generic', {
-    //   resource: 'restaurant',
-    //   query: { _id: { $in: ['5a0afb83de3ec81200489164', '5a202e4fcb7edf14001930e3', '5bbb2ed8a79d1c1400caa019'] } },
-    //   projection: {
-    //     'googleAddress.formatted_address': 1,
-    //     skipOrderConfirmation: 1
-    //   },
-    //   sort: {
-    //     createdAt: -1
-    //   }
-    // }).toPromise();
-
-    // console.log("RESULTING ID ", result)
-
-
-    console.log("BATCHED IDS ", batchedIds)
-
-    let result = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      query: { _id: { $in: batchedIds } },
-      projection: {
-        skipOrderConfirmation: 1
-      },
-      limit: 10000
     }).toPromise();
 
-    restaurants.push(...result);
+    rts.forEach(rt => {
+      rt.menus.forEach(m => {
+        m.hours = m.hours.map(h => new Hour(h))
+      })
+      this.rtDict[rt._id] = rt;
+    });
+  }
 
-    console.log("SKIP ORDER ", restaurants)
+  async query() {
+    const start = new Date(), end = new Date();
+    start.setHours(start.getHours() - 4);
+    end.setMinutes(end.getMinutes() - 10);
+    const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'order',
+      aggregate: [
+        {
+          $match: {
+            $or: [
+              {createdAt: {$lt: {$date: end},$gt: {$date: start}}},
+              {timeToDeliver: {$gt: {$date: start}}},
+            ]
+          }
+        },
+        {
+          $project: {
+            orderNumber: 1,
+            restaurant: 1,
+            orderItems: 1,
+            type: 1,
+            "paymentObj.method": 1,
+            "paymentObj.paymentType": 1,
+            timeToDeliver: 1,
+            timeToDeliverEstimate: 1,
+            status: {
+              $last: {
+                  $map: {
+                      input: "$statuses",
+                      as: "st",
+                      in: "$$st.status"
+                  }
+              }
+            },
+            createdAt: 1,
+          }
+        },
+        {
+          $match: {status: "SUBMITTED"}
+        },
+        {
+          $sort: {createdAt: -1}
+        }
+      ],
+      limit: 100000
+    }).toPromise()
+
+    console.log('orders...', orders);
+
+    this.rows = [];
+
+    orders.forEach(order => {
+      let rt = this.rtDict[order.restaurant];
+      if (!rt) return;
+      // skip orders with RT skip confirmation
+      if (rt.SkipOrderConfirmation) {
+        return;
+      }
+      // 1. non-scheduled
+      if (!order.timeToDeliver) {
+        this.rows.push(order);
+        return;
+      }
+      let { googleAddress: {timezone}, menus, pickupTimeEstimate, deliveryTimeEstimate } = rt;
+
+      // 2. scheduled
+      order.timeToDeliver = new Date(order.timeToDeliver);
+      let prepareMinutes = pickupTimeEstimate || 15;
+      if (order.type === 'DELIVERY') {
+        prepareMinutes == deliveryTimeEstimate || 45;
+      }
+      let shouldConfirmTime = new Date(order.timeToDeliver);
+      shouldConfirmTime.setMinutes(shouldConfirmTime.getMinutes() - prepareMinutes);
+      // check if time in RT's open hours
+      let inOpenTime = menus.some(m => (m.hours || []).some(hour => hour.isOpenAtTime(shouldConfirmTime, timezone)))
+
+      let closedHours = (rt.closedHours || []).filter(hour => !(hour.toTime && shouldConfirmTime.valueOf() > hour.toTime));
+
+      inOpenTime = inOpenTime && !closedHours.some(hour => {
+        let tzTime = TimezoneHelper.getTimezoneDateFromBrowserDate(shouldConfirmTime, timezone);
+        return tzTime >= hour.fromTime && tzTime <= hour.toTime;
+      });
+
+      if (inOpenTime) {
+        this.rows.push(order);
+        return;
+      }
+
+      // check if RT is open and over time to confirm now.
+      // eg. Pickup order scheduled for 12:10PM. RT open time is 12:00PM.
+      // RT’s estimated time to prepare pickup orders is 15 minutes.
+      // Instead of 11:55AM as the order confirmation deadline (which is before RT even opens),
+      // we go with the second option of RT open time+5 mins = 12:05PM.
+
+      let most_close_open_time, min_gap = Number.MAX_SAFE_INTEGER;
+      let today = shouldConfirmTime.getDay();
+      rt.menus.forEach(m => {
+        (m.hours || []).forEach(h => {
+
+          const timePart = h.fromTime.toLocaleString('en-US', {timeZone: timezone, hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit'});
+          const weekday = h.fromTime.toLocaleString('en-US', {timeZone: timezone, weekday: 'long'}); // Sunday, ....
+          let openTime;
+          switch(h.ocurrence) {
+            case "YEARLY":
+              openTime = Hour.projectTimeToYearlyTarget(h.fromTime, shouldConfirmTime.getFullYear(), timezone);
+              break;
+            case "MONTHLY":
+              openTime = Hour.projectTimeToMonthlyTarget(h.fromTime, shouldConfirmTime.getFullYear(), shouldConfirmTime.getMonth(), timezone);
+              break;
+            case "ONE-TIME":
+              openTime = new Date(h.fromTime);
+              break;
+            case "WEEKLY":
+            default:
+              if (weekday !== today) {
+                return;
+              }
+              openTime = Hour.projectTimeToWeeklyTarget(h.fromTime, h.fromTime, timezone);
+              break;
+          }
+          let diff = openTime.valueOf() - shouldConfirmTime.valueOf();
+          if (diff < min_gap) {
+            most_close_open_time = openTime;
+            min_gap = diff;
+          }
+        })
+      });
 
 
 
-    restaurants.map(rt => (rtIdDict[rt._id].restaurant.address = (rt.googleAddress || {}).formatted_address, rtIdDict[rt._id].restaurant.skipOrderConfirmation = rt.skipOrderConfirmation));
+    });
 
-
-    // allRestaurants.forEach(res => (rtIdDict[res._id].channels = res.channels, rtIdDict[res._id].timezone = res.googleAddress.timezone))
-
-
-    allRestaurants.forEach(res => {
-      rtIdDict[res._id].channels = res.channels
-      rtIdDict[res._id].timezone = res.googleAddress.timezone
-      rtIdDict[res._id].pickupTimeEstimate = res.pickupTimeEstimate
-      rtIdDict[res._id].deliveryTimeEstimate = res.deliveryTimeEstimate
-
-    })
-
-    console.log("RT ID DICT ", rtIdDict)
-
-
-    this.rows = Object.values(rtIdDict).filter(item => !item['restaurant'].skipOrderConfirmation);
-
-    this.allRows = this.rows
 
     let totalSumRows = this.allRows.map(row => {
       let orders = row.orders
