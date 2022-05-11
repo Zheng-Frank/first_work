@@ -112,6 +112,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     hideOrderStatus: 1,
     hideTipInput: 1,
     hidePrintingCCInfo: 1,
+    hideNonPCIData: 1,
     images: 1,
     logo: 1,
     logs: 1,
