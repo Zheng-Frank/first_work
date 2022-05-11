@@ -98,14 +98,14 @@
       (对于2021和以前，如果餐馆具有少于200个事务或少于20000美元的事务，则它们不需要当前选择的周期的1099 K表。在2022年及以后，如果餐馆的交易额少于600美元，则在当前选定的期间内，他们不需要1099K表格。)"></i>
     </div>
     <button class="btn btn-primary ml-2" (click)="calcPunishedMoney()"><i class="fa fa-calculator"></i>
-      Calculate Punished money</button>
+      Calculate Potential Fine</button>
     <ng-container *ngIf="this.refuseFormRows.length > 0">
       <table class="table table-sm mt-2">
         <thead>
           <th>Number</th>
           <th>Restaurant</th>
           <th>Total</th>
-          <th>Punised Money (24% of Total)</th>
+          <th>Potential Fine (24% of Total)</th>
         </thead>
         <tbody>
           <tr *ngFor="let row of refuseFormRows; let i = index;">
