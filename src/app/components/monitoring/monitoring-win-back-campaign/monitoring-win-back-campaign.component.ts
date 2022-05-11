@@ -374,17 +374,17 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
           // merge duplicate channels
           if (bmRTsDict[bm_id]) {
             [...item.bchannels, ...(channels || [])].forEach(ch => {
-              if (uniqueChannels.indexOf(ch) === -1) {
+              if (!uniqueChannels.some(uniqueChannel => uniqueChannel.value === ch.value)) {
                 uniqueChannels.push(ch);
               }
             });
             let mainBizChannels = uniqueChannels.filter(({type, notifications}) => this.showIsMainBizPhone({type, notifications}));
-            let otherChannels = uniqueChannels.filter(ch => mainBizChannels.indexOf(ch) === -1);
+            let otherChannels = uniqueChannels.filter(ch => !mainBizChannels.some(mainBizChannel => mainBizChannel.value === ch.value));
             item.channels = [...mainBizChannels, ...otherChannels];
           } else {
             item.channels = channels || [];
             let mainBizChannels = item.channels.filter(({type, notifications}) => this.showIsMainBizPhone({type, notifications}));
-            let otherChannels = item.channels.filter(ch => mainBizChannels.indexOf(ch) === -1);
+            let otherChannels = item.channels.filter(ch => !mainBizChannels.some(mainBizChannel => mainBizChannel.value === ch.value));
             item.channels = [...mainBizChannels, ...otherChannels];
           }
           let key = place_id + cid;
