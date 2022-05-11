@@ -72,8 +72,10 @@
   <div class="p-t-1 pt-1 p-b-1 pb-1 row">
     <div class="col-3">
       <button (click)="sendMsgModal.show()" class="btn btn-secondary fa fa-comments"> Send Message</button>
-      <ng-container *ngIf="this.bmRT">
-        <img class="bm-logo" *ngIf="enabledInBM" src="../../../../assets/images/beyondmenu.png"/>
+      <ng-container *ngIf="bmRT">
+        <a href="https://www.beyondmenu.com/admin/{{bmRT.BusinessEntityID}}/Order.aspx" target="_blank">
+          <img class="bm-logo" *ngIf="enabledInBM" src="../../../../assets/images/beyondmenu.png"/>
+        </a>
         <img class="bm-logo" *ngIf="!enabledInBM" src="../../../../assets/images/beyondmenu-gray.png" />
       </ng-container>
     </div>
