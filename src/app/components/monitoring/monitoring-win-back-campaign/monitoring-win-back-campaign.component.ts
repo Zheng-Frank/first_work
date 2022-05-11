@@ -255,10 +255,10 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       // --- phone and cellphone
       const channels = [];
       [1, 2, 3, 4].map(num => {
-        if (item[`Phone${num}`]) {
+        if (!channels.some(ch => ch.value === item[`Phone${num}`])) {
           channels.push({ type: 'Phone', value: item[`Phone${num}`] });
         }
-        if (item[`CellPhone${num}`]) {
+        if (!channels.some(ch => ch.value === item[`CellPhone${num}`])) {
           channels.push({ type: 'Phone', value: item[`CellPhone${num}`] });
         }
       });
