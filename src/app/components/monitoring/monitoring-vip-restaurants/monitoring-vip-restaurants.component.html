@@ -37,6 +37,48 @@
     </div>
     <!-- end with filter control -->
 
+    <div class="row">
+      <a class="btn btn-link" (click)="showStats = !showStats" >Show Stats <i class="fa fa-angle-{{showStats ? 'up': 'down'}}"></i></a>
+    </div>
+    <div [ngClass]="{'hide': !showStats}">
+      <div class="mb-3">
+        <canvas width="1000" height="240" #chartOC ></canvas>
+      </div>
+      <div class="mb-3">
+        <canvas width="1000" height="240" #chartRT ></canvas>
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <a class="btn btn-link" (click)="showChurn = !showChurn">Show VIP Churn <i class="fa fa-angle-{{showChurn ? 'up': 'down'}}"></i></a>
+    </div>
+    <div class="mb-3" *ngIf="showChurn">
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th class="text-transparent"></th>
+            <th>Start Count</th>
+            <th>Total Lost</th>
+            <th>Total Gained</th>
+            <th>End Count</th>
+            <th>Net +/- (%)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of churnList">
+            <td>{{item.month}}</td>
+            <td>{{item.start}}</td>
+            <td>{{item.lost}}</td>
+            <td>{{item.gained}}</td>
+            <td>{{item.end}}</td>
+            <td>{{item.end - item.start}} ({{((item.end - item.start) / item.start) | percent: '1.0-2'}})</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <hr />
+
     <q-table [rows]="filterVipRTs" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
       [pageSize]="100000">
       <tr *tableRowTemplate="let r;">

@@ -4,7 +4,8 @@ import { Log } from 'src/app/classes/log';
 import { environment } from './../../../../environments/environment';
 import { GlobalService } from 'src/app/services/global.service';
 import { ApiService } from 'src/app/services/api.service';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Chart } from 'chart.js';
 
 enum ViewTypes {
   All = 'All',
@@ -23,6 +24,14 @@ enum VIPRanges {
   Overall = 'VIP Overall'
 }
 
+const m2n = month => Number(month.replace('-', ''));
+const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const month_format = (month) => {
+  let chars = month.replace('-', '');
+  let y = chars.substr(2, 2), m = chars.substr(4);
+  return MONTH_ABBR[Number(m) - 1] + ' ' + y;
+}
+
 @Component({
   selector: 'app-monitoring-vip-restaurants',
   templateUrl: './monitoring-vip-restaurants.component.html',
@@ -31,10 +40,13 @@ enum VIPRanges {
 export class MonitoringVipRestaurantsComponent implements OnInit {
 
   @ViewChild('logEditingModal') logEditingModal;
+  @ViewChild('chartOC') chartOC: ElementRef;
+  @ViewChild('chartRT') chartRT: ElementRef;
   vipRTs = [];
   filterVipRTs = [];
   now = new Date();
-
+  vipDict = {};
+  restaurants = [];
   restaurantsColumnDescriptors = [
     {
       label: 'Number'
@@ -83,11 +95,18 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
   rule = RuleTypes.Six_Months;
   vipRanges = [VIPRanges.Last3Months, VIPRanges.Overall];
   vipRange = '';
+  ocChart = null;
+  rtChart = null;
+  showStats = false;
+  showChurn = false;
+  churnList = [];
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
+    await this.getRTs();
     await this.loadVIPRestaurants();
+    await this.getVipData();
   }
 
   get viewTypes() {
@@ -182,6 +201,34 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
     return (timezone || '').split('/')[1] || '';
   }
 
+  async getRTs() {
+    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      aggregate: [
+        { $match: { disabled: { $ne: true } } },
+        {
+          $project: {
+            _id: 1,
+            name: 1,
+            score: 1,
+            activities: '$computed.activities',
+            'googleAddress.timezone': 1,
+            logs: {
+              $filter: {
+                input: '$logs',
+                as: 'log',
+                cond: {
+                  $eq: ['$$log.type', this.vipFollowUpLogType]
+                }
+              }
+            }
+          }
+        }
+      ]
+    }).toPromise();
+    this.restaurants = restaurants;
+  }
+
   /**
    * VIP RTs:
     1. enabled,
@@ -246,30 +293,8 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
     }).toPromise();
     const dict = {};
     avgAll.forEach(x => dict[x.rtId] = x)
-    const restaurants = await this._api.get(environment.qmenuApiUrl + 'generic', {
-      resource: 'restaurant',
-      aggregate: [
-        { $match: { disabled: { $ne: true } } },
-        {
-          $project: {
-            _id: 1,
-            name: 1,
-            score: 1,
-            'googleAddress.timezone': 1,
-            logs: {
-              $filter: {
-                input: '$logs',
-                as: 'log',
-                cond: {
-                  $eq: ['$$log.type', this.vipFollowUpLogType]
-                }
-              }
-            }
-          }
-        }
-      ]
-    }).toPromise();
-    this.vipRTs = restaurants.filter(({ _id }) => !!dict[_id]).map(r => {
+
+    this.vipRTs = this.restaurants.filter(({ _id }) => !!dict[_id]).map(r => {
       let { logs, _id } = r;
       if (logs && logs.length > 0) {
         logs.sort((l1, l2) => new Date(l2.time).valueOf() - new Date(l1.time).valueOf());
@@ -278,6 +303,7 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
       let commissions = dict[_id];
       return { ...r, ...commissions };
     });
+    this.vipDict = dict;
     this.filter();
   }
 
@@ -343,6 +369,154 @@ export class MonitoringVipRestaurantsComponent implements OnInit {
     this.logEditingModal.hide();
   }
 
+  async getVipData() {
+    let data = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'invoice',
+        aggregate: [
+          {
+            $project: {
+                commission: {
+                  $cond: {
+                    if: { $gt: ['$commission', 0] }, then: '$commission', else: { $add: ['$commission', { $ifNull: ['$feesForQmenu', 0] }] }
+                  }
+                },
+                month: {
+                    $dateToString: {
+                        format: "%Y-%m",
+                        date: "$createdAt"
+                    }
+                },
+                createdAt: 1,
+                rtId: "$restaurant.id"
+              }
+          },
+          {
+            $match: {commission: {$gte: 150}, createdAt: {$gte: {$date: new Date(2016, 0)}}}
+          },
+          {
+            $group: { _id: "$month", rts: {$push: "$rtId"}}
+          },
+          {
+            $project: {month: "$_id", _id: 0, rts: 1}
+          }
+        ]
+    }).toPromise();
+    let temp = {};
+    data.forEach(({month, rts}) => {
+      let tmp = temp[month] || [];
+      tmp.push(...rts);
+      temp[month] = tmp;
+    });
+    let merged = Object.entries(temp).map(([month, rts]) => ({month, rts})).sort((a, b) => m2n(a.month) - m2n(b.month));
 
+    this.calcChurn(merged);
+    this.rtChartRender(merged);
+    this.ocChartRender();
+
+  }
+
+  calcChurn(data) {
+    let list = [], prev = [];
+    data.forEach(({month, rts}) => {
+      let gained = rts.filter(x => !prev.includes(x)).length;
+      let lost = prev.filter(x => !rts.includes(x)).length;
+      let item = {
+        month, start: prev.length, end: rts.length, gained, lost,
+      };
+      list.push(item);
+      prev = rts;
+    });
+    this.churnList = list.reverse();
+  }
+
+  rtChartRender(data) {
+    if (this.rtChart) {
+      this.rtChart.destroy();
+    }
+    let labels = data.map(x => month_format(x.month));
+    let datasets = [
+      {
+        label: 'VIP RT count',
+        data: data.map(({rts}) => rts.length),
+        borderColor: "#26C9C9",
+        backgroundColor: "#26C9C9", fill: false
+      }
+    ]
+    this.rtChart = new Chart(this.chartRT.nativeElement, {
+      options: {
+        responsive: true,
+        scaleShowValues: true,
+        scales: {
+          xAxes: [{
+            ticks: {
+              autoSkip: false
+            }
+          }]
+        },
+        legend: {
+          display: false,
+        },
+        title: {
+          display: true,
+          text: 'VIP RT count trend'
+        },
+        tooltips: { mode: 'index', intersect: false },
+      },
+      type: 'line',
+      data: { labels, datasets }
+    });
+  }
+
+  ocChartRender() {
+
+    let months = [], data = {}, rtCount = Object.keys(this.vipDict).length;
+    this.restaurants.forEach(({_id, activities}) => {
+      if (this.vipDict[_id] && activities) {
+        Object.entries(activities).forEach(([m, oc]) => {
+          if (!months.includes(m)) {
+            months.push(m)
+          }
+          let tmp = data[m] || 0;
+          tmp += oc;
+          data[m] = tmp;
+        });
+      }
+    });
+    if (this.ocChart) {
+      this.ocChart.destroy();
+    }
+    months.sort((a, b) => m2n(a) - m2n(b));
+    let datasets = [
+      {
+        label: 'Avg. order count per RT',
+        data: months.map((month) => Math.round(data[month] / rtCount)),
+        borderColor: "#26C9C9",
+        backgroundColor: "#26C9C9", fill: false
+      }
+    ]
+    this.ocChart = new Chart(this.chartOC.nativeElement, {
+      options: {
+        responsive: true,
+        scaleShowValues: true,
+        scales: {
+          xAxes: [{
+            ticks: {
+              autoSkip: false
+            }
+          }]
+        },
+        legend: {
+          display: false,
+        },
+        title: {
+          display: true,
+          text: 'Avg. order count per RT trend'
+        },
+        tooltips: { mode: 'index', intersect: false },
+      },
+      type: 'line',
+      data: { labels: months.map(month_format), datasets }
+    });
+  }
 
 }
