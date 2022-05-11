@@ -183,12 +183,14 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     payeeName: 1, // 1099k tab needs it
     form1099k: 1,
     customerPaidFeesTaxable: 1,
-    addons: 1
+    addons: 1,
+    'computed.activities': 1
   };
 
   showExplanations = false; // a flag to decide whether show English/Chinese translations,and the switch is closed by default.
   googleSearchText; // using redirect google search.
   knownUsers = [];
+  tier = 3;
   // use now time to compared with lastRefreshed to refresh time value
   now = new Date();
   timer;
@@ -736,6 +738,18 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     return ['CSR', 'CSR_MANAGER', 'ADMIN', 'GMB_SPECIALIST'].some(role => this._global.user.roles.includes(role));
   }
 
+  calcTier(rt) {
+    let months = [], cursor = new Date(), i = 0;
+      while (i < 6) {
+        cursor.setMonth(cursor.getMonth() - 1);
+        months.push(`${cursor.getFullYear()}${Helper.padNumber(cursor.getMonth() + 1)}`);
+        i++;
+      }
+    let activities = (rt.computed || {}).activities || {};
+    let totalOrders = months.reduce((a, c) => (activities[c] || 0) + a, 0);
+    return Helper.getTier(totalOrders / 6);
+  }
+
   displayValue(rt) {
     if (['GMB_SPECIALIST', 'ADMIN'].some(role => this._global.user.roles.includes(role))) {
       return (rt.score || 0).toFixed(1);
@@ -834,7 +848,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   }
 
   async loadDetails() {
-    
+
     this.readonly = true;
 
     if (this.id) {
@@ -869,6 +883,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           let formatted_address = this.restaurant.googleAddress.formatted_address || '';
           let name = this.restaurant.name || '';
           this.googleSearchText = "https://www.google.com/search?q=" + encodeURIComponent(name + " " + formatted_address);
+          this.tier = this.calcTier(rt);
           // set timer of rt portal
           this.refreshTime();
           this.timer = setInterval(() => this.refreshTime(), this.refreshDataInterval);
