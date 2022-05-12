@@ -122,8 +122,11 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
   feeVisibilities = {
     hidden: {}, expanded: {}
   }
+  channelTypeToFaClassMap = {
+    'Phone': 'fas fa-phone-volume',
+    'SMS': 'fas fa-comments',
+  };
   users;
-
   pagination = true;
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
@@ -255,10 +258,10 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       // --- phone and cellphone
       const channels = [];
       [1, 2, 3, 4].map(num => {
-        if (!channels.some(ch => ch.value === item[`Phone${num}`])) {
+        if (item[`Phone${num}`] && !channels.some(ch => ch.value === item[`Phone${num}`])) {
           channels.push({ type: 'Phone', value: item[`Phone${num}`] });
         }
-        if (!channels.some(ch => ch.value === item[`CellPhone${num}`])) {
+        if (item[`CellPhone${num}`] && !channels.some(ch => ch.value === item[`CellPhone${num}`])) {
           channels.push({ type: 'Phone', value: item[`CellPhone${num}`] });
         }
       });
@@ -373,17 +376,21 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
           let uniqueChannels = [];
           // merge duplicate channels
           if (bmRTsDict[bm_id]) {
+            let mainBizChannels = [];
             [...item.bchannels, ...(channels || [])].forEach(ch => {
-              if (!uniqueChannels.some(uniqueChannel => uniqueChannel.value === ch.value)) {
+              let { type, notifications } = ch;
+              if(this.showIsMainBizPhone({type, notifications}) && ch.value && !mainBizChannels.some(mainBizChannel => mainBizChannel.value === ch.value)) {
+                mainBizChannels.push(ch);
+              }
+              if (ch.value && !uniqueChannels.some(uniqueChannel => uniqueChannel.value === ch.value)) {
                 uniqueChannels.push(ch);
               }
             });
-            let mainBizChannels = uniqueChannels.filter(({type, notifications}) => this.showIsMainBizPhone({type, notifications}));
             let otherChannels = uniqueChannels.filter(ch => !mainBizChannels.some(mainBizChannel => mainBizChannel.value === ch.value));
             item.channels = [...mainBizChannels, ...otherChannels];
           } else {
             item.channels = channels || [];
-            let mainBizChannels = item.channels.filter(({type, notifications}) => this.showIsMainBizPhone({type, notifications}));
+            let mainBizChannels = item.channels.filter(ch => ch.value).filter(({type, notifications}) => this.showIsMainBizPhone({type, notifications}));
             let otherChannels = item.channels.filter(ch => !mainBizChannels.some(mainBizChannel => mainBizChannel.value === ch.value));
             item.channels = [...mainBizChannels, ...otherChannels];
           }
