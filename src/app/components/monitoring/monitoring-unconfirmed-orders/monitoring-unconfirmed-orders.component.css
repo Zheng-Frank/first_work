@@ -1,0 +1,12 @@
+.table th{
+  white-space: nowrap;
+}
+
+
+.text-unwrap {
+  white-space: nowrap;
+}
+
+.clickable {
+  cursor: pointer;
+}
