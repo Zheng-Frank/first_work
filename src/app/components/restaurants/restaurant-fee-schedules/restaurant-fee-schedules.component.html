@@ -108,5 +108,8 @@
       <small class="text-danger">*** WARNING! Are you sure {{(100 * (this.feeScheduleInEditing.rate || 0)).toFixed(1)}}%
         is the correct value for the rate field? ***</small>
     </div>
+    <div *ngIf="isQmenuCollect()" class="text-right">
+      <span class="text-warning"> <b> NOTE: </b> Selecting 'qmenu collect' disables editing of all fields except for: Start Date, End Date, Rate, and Fixed Amount </span>
+    </div>
   </q-form-builder>
 </q-modal>

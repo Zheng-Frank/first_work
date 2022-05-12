@@ -11,7 +11,7 @@ import { CurrencyPipe } from '@angular/common';
 import { environment } from 'src/environments/environment';
 import { Helper } from '../../../classes/helper';
 
-const FeeNames = ["service fee", "credit card fee", "monthly fee", "commission"];
+const FeeNames = ["service fee", "credit card fee", "monthly fee", "commission", "qmenu collect"];
 
 @Component({
   selector: 'app-restaurant-fee-schedules',
@@ -55,7 +55,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     required: true,
     inputType: "single-select",
     items: [
-      ...FeeNames.map(name => ({object: name, text: name, selected: false})),
+      ...FeeNames.map(name => ({ object: name, text: name, selected: false })),
       { object: "custom", text: "custom", selected: false }
     ]
   };
@@ -289,6 +289,11 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
       if (!this.fieldDescriptors.includes(this.customNameDescriptor)) {
         this.fieldDescriptors.splice(1, 0, this.customNameDescriptor)
       }
+    } else if (this.feeScheduleInEditing.name === 'qmenu collect') {
+      this.feeScheduleInEditing.payer = 'RESTAURANT';
+      this.feeScheduleInEditing.chargeBasis = 'ORDER_TOTAL'
+      this.feeScheduleInEditing.orderPaymentMethods = ['QMENU'];
+      this.feeScheduleInEditing.orderTypes = [];
     } else {
       if (this.fieldDescriptors.includes(this.customNameDescriptor)) {
         this.fieldDescriptors.splice(1, 1)
@@ -516,5 +521,9 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
 
   getExpiredFeeSchedules() {
     return this.feeSchedules.filter(fs => this.isFeeScheduleExpired(fs));
+  }
+
+  isQmenuCollect() {
+    return this.feeScheduleInEditing.name === 'qmenu collect';
   }
 }
