@@ -97,8 +97,8 @@
               </div>
               <div class="small gray-block" *ngIf="item.channels.length > 0">
                 <ng-container *ngFor="let channel of item.channels; let i = index;">
-                  <span class="{{showIsMainBizPhone(channel) ? 'text-danger': ''}}">
-                    {{channel.value}}<ng-container *ngIf="i !== item.channels.length-1">, </ng-container>
+                  <span class="{{showIsMainBizPhone(channel) ? 'text-danger': ''}} {{(i+1)%2 === 0 ? 'ml-1':''}}">
+                     {{channel.value}}<i class="{{channelTypeToFaClassMap[channel.type]}} ml-1"></i>
                   </span>
                 </ng-container>
               </div>
