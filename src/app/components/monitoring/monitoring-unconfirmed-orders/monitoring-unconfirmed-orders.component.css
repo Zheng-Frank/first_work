@@ -1,0 +1,16 @@
+.table th{
+  white-space: nowrap;
+}
+
+.table-inner tr:first-child td {
+  border-top: none;
+}
+
+
+.text-unwrap {
+  white-space: nowrap;
+}
+
+.clickable {
+  cursor: pointer;
+}

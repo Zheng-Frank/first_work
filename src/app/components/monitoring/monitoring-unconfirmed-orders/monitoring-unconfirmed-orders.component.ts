@@ -2,7 +2,22 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from "../../../services/api.service";
 import { environment } from "../../../../environments/environment";
 import { GlobalService } from "../../../services/global.service";
-import { Hour, Order, TimezoneHelper } from '@qmenu/ui'
+import { Hour, TimezoneHelper } from '@qmenu/ui';
+import { Helper } from 'src/app/classes/helper';
+
+const to_local_time = (datetime, timeZone) => {
+  return new Date(datetime).toLocaleString('en-US', { timeZone, hour: 'numeric', hour12: true, minute: 'numeric' })
+}
+
+const readable_ms = (ms) => {
+  let hours = Math.floor(ms / (1000 * 60 * 60));
+  ms = ms - (1000 * 60 * 60) * hours;
+  let minutes = Math.floor(ms / (1000 * 60));
+  ms = ms - minutes * 1000 * 60;
+  let seconds = Math.floor(ms / 1000);
+
+  return [Helper.padNumber(hours), Helper.padNumber(minutes), Helper.padNumber(seconds)].join(':');
+}
 
 @Component({
   selector: 'app-monitoring-unconfirmed-orders',
@@ -13,79 +28,26 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
   rtDict = {};
   rows = [];
-  // Rows that only contain qMenu Collect payments
-  qmenuRows = [];
-  allRows = [];
   now = new Date();
   descending = true;
   showOnlyQmenuCollected = false;
-
+  orders = [];
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
-
-  handleArrow() {
-    this.descending = !this.descending
-
-    if (this.descending) {
-      this.rows = this.rows.sort((a, b) => a.totalSum - b.totalSum)
-    } else {
-      this.rows = this.rows.sort((a, b) => b.totalSum - a.totalSum)
-    }
-
-  }
 
   async ngOnInit() {
     await this.getRTs();
     await this.query();
+    this.reorg();
     setInterval(() => { this.now = new Date(); }, 60000);
   }
 
-  convertTZ(date, tzString) {
-    return new Date(date)
-    // return new Date((typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", { timeZone: tzString }));
-  }
-
-
-  parseMillisecondsIntoReadableTime(milliseconds) {
-    //Get hours from milliseconds
-    var hours = milliseconds / (1000 * 60 * 60);
-    var absoluteHours = Math.floor(hours);
-    var h = absoluteHours > 9 ? absoluteHours : '0' + absoluteHours;
-
-    //Get remainder from hours and convert to minutes
-    var minutes = (hours - absoluteHours) * 60;
-    var absoluteMinutes = Math.floor(minutes);
-    var m = absoluteMinutes > 9 ? absoluteMinutes : '0' + absoluteMinutes;
-
-    //Get remainder from minutes and convert to seconds
-    var seconds = (minutes - absoluteMinutes) * 60;
-    var absoluteSeconds = Math.floor(seconds);
-    var s = absoluteSeconds > 9 ? absoluteSeconds : '0' + absoluteSeconds;
-
-
-    return h + ':' + m + ':' + s;
-  }
-
-
-  renderRestaurants(type) {
-    // this.currentCriteria = type
-    if (type === 'All') {
-      this.rows = this.allRows
-
-    } else if (type === 'QMENU COLLECT') {
-      this.rows = this.qmenuRows
-    } else {
-      this.rows = this.allRows
-      console.log("NO TYPE")
-    }
-    // this.rows = this.rows.sort((a, b) => a.totalAmount - b.totalAmount)
-    // console.log("NEW ROWS ", this.rows)
-  }
-
   async getRTs() {
-    let rts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+    let rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {},
+      query: {
+        disabled: {$ne: true}
+      },
       projection: {
         name: 1,
         channels: 1,
@@ -93,15 +55,16 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         'menus.hours': 1,
         closedHours: 1,
         'googleAddress.timezone': 1,
-        SkipOrderConfirmation: 1,
+        'googleAddress.formatted_address': 1,
+        skipOrderConfirmation: 1,
         pickupTimeEstimate: 1,
         deliveryTimeEstimate: 1,
       }
-    }).toPromise();
+    }, 2000);
 
     rts.forEach(rt => {
-      rt.menus.forEach(m => {
-        m.hours = m.hours.map(h => new Hour(h))
+      (rt.menus || []).forEach(m => {
+        m.hours = (m.hours || []).map(h => new Hour(h))
       })
       this.rtDict[rt._id] = rt;
     });
@@ -109,16 +72,32 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
 
   async query() {
     const start = new Date(), end = new Date();
-    start.setHours(start.getHours() - 4);
+    start.setHours(start.getHours() - 10);
     end.setMinutes(end.getMinutes() - 10);
+    const earlier = new Date();
+    earlier.setDate(earlier.getDate() - 2);
     const orders = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'order',
       aggregate: [
         {
           $match: {
+            $and: [
+              {createdAt: {$lt: {$date: end}}},
+              {createdAt: {$gt: {$date: earlier}}}
+            ]
+          }
+        },
+        {
+          $match: {
             $or: [
-              {createdAt: {$lt: {$date: end},$gt: {$date: start}}},
-              {timeToDeliver: {$gt: {$date: start}}},
+              {
+                $and: [
+                  {createdAt: {$lt: {$date: end}}},
+                  {createdAt: {$gt: {$date: start}}},
+                  {timeToDeliver: {$exists: false}}
+                ]
+              },
+              {timeToDeliver: {$gt: {$date: start}}}
             ]
           }
         },
@@ -126,20 +105,20 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
           $project: {
             orderNumber: 1,
             restaurant: 1,
-            orderItems: 1,
             type: 1,
+            total: '$computed.total',
             "paymentObj.method": 1,
             "paymentObj.paymentType": 1,
             timeToDeliver: 1,
             timeToDeliverEstimate: 1,
             status: {
-              $last: {
+              $arrayElemAt: [{
                   $map: {
                       input: "$statuses",
                       as: "st",
                       in: "$$st.status"
                   }
-              }
+              }, -1]
             },
             createdAt: 1,
           }
@@ -151,23 +130,27 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
           $sort: {createdAt: -1}
         }
       ],
-      limit: 100000
+      limit: 10
     }).toPromise()
 
     console.log('orders...', orders);
 
-    this.rows = [];
+    this.orders = [];
 
     orders.forEach(order => {
       let rt = this.rtDict[order.restaurant];
       if (!rt) return;
       // skip orders with RT skip confirmation
-      if (rt.SkipOrderConfirmation) {
+      if (rt.skipOrderConfirmation) {
         return;
       }
       // 1. non-scheduled
       if (!order.timeToDeliver) {
-        this.rows.push(order);
+        let shouldConfirmTime = new Date(order.createdAt);
+        // for non-scheduled order, should confirm in 10 mins after created
+        shouldConfirmTime.setMinutes(shouldConfirmTime.getMinutes() + 10);
+        order.shouldConfirmTime = shouldConfirmTime;
+        this.orders.push(order);
         return;
       }
       let { googleAddress: {timezone}, menus, pickupTimeEstimate, deliveryTimeEstimate } = rt;
@@ -191,7 +174,8 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       });
 
       if (inOpenTime) {
-        this.rows.push(order);
+        order.shouldConfirmTime = shouldConfirmTime;
+        this.orders.push(order);
         return;
       }
 
@@ -201,203 +185,117 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
       // Instead of 11:55AM as the order confirmation deadline (which is before RT even opens),
       // we go with the second option of RT open time+5 mins = 12:05PM.
 
-      let most_close_open_time, min_gap = Number.MAX_SAFE_INTEGER;
-      let today = shouldConfirmTime.getDay();
-      rt.menus.forEach(m => {
+      let nearby_opent_time, min_gap = Number.MAX_SAFE_INTEGER;
+      let today = shouldConfirmTime.toLocaleString('en-US', {timeZone: timezone, weekday: 'long'}),
+          year = shouldConfirmTime.getFullYear(),
+          month = shouldConfirmTime.getMonth();
+      (rt.menus || []).forEach(m => {
         (m.hours || []).forEach(h => {
-
-          const timePart = h.fromTime.toLocaleString('en-US', {timeZone: timezone, hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit'});
           const weekday = h.fromTime.toLocaleString('en-US', {timeZone: timezone, weekday: 'long'}); // Sunday, ....
-          let openTime;
+          // get datetime for confirm
+          let openTime = new Date(h.fromTime);
           switch(h.ocurrence) {
             case "YEARLY":
-              openTime = Hour.projectTimeToYearlyTarget(h.fromTime, shouldConfirmTime.getFullYear(), timezone);
+              openTime.setFullYear(year);
               break;
             case "MONTHLY":
-              openTime = Hour.projectTimeToMonthlyTarget(h.fromTime, shouldConfirmTime.getFullYear(), shouldConfirmTime.getMonth(), timezone);
+              openTime.setFullYear(year, month);
               break;
             case "ONE-TIME":
-              openTime = new Date(h.fromTime);
               break;
             case "WEEKLY":
             default:
               if (weekday !== today) {
                 return;
               }
-              openTime = Hour.projectTimeToWeeklyTarget(h.fromTime, h.fromTime, timezone);
+              openTime.setFullYear(year, month, shouldConfirmTime.getDate());
               break;
+          }
+          // if in closed hours, skip
+          if (closedHours.some(hour => {
+            let tzTime = TimezoneHelper.getTimezoneDateFromBrowserDate(shouldConfirmTime, timezone);
+            return tzTime >= hour.fromTime && tzTime <= hour.toTime;
+          })) {
+            return;
           }
           let diff = openTime.valueOf() - shouldConfirmTime.valueOf();
           if (diff < min_gap) {
-            most_close_open_time = openTime;
+            nearby_opent_time = openTime;
             min_gap = diff;
           }
-        })
+        });
       });
 
+      // check if now is later then opentime+5mins
 
-
+      if (nearby_opent_time) {
+        shouldConfirmTime = new Date(nearby_opent_time);
+        shouldConfirmTime.setMinutes(shouldConfirmTime.getMinutes() + 5);
+        if (new Date().valueOf() >= shouldConfirmTime.valueOf()) {
+          order.shouldConfirmTime = shouldConfirmTime;
+          this.orders.push(order);
+        }
+      }
     });
-
-
-    let totalSumRows = this.allRows.map(row => {
-      let orders = row.orders
-      console.log("ORDERS ", orders)
-      let sum = 0
-      for (let i = 0; i < orders.length; i++) {
-        if (orders[i].total) {
-          sum += orders[i].total
-        }
-      }
-      row.totalSum = sum
-      return row
-    })
-
-    console.log("TOTAL SUM ROWS ", totalSumRows)
-
-
-    this.qmenuRows = this.rows.filter(row => {
-      let orders = row.orders
-      if (orders) {
-        return orders.some(order => order.payment.method === 'QMENU')
-      } else {
-        return false
-      }
-    })
-
-    console.log("FINAL ROWS ", this.rows)
   }
 
+  async reorg() {
+    let dict = {};
+    this.orders.forEach(order => {
+      if (this.showOnlyQmenuCollected && order.paymentObj.paymentType !== 'QMENU') return;
+      let rt = this.rtDict[order.restaurant];
+      if (!rt) return;
+      let tmp = dict[rt._id] || {
+        restaurant: rt, orders: [], total:0,
+        channels: (rt.channels || []).filter(x => x.type !== 'Email' && x.notifications && x.notifications.includes('Business'))
+       }
+      tmp.orders.push(order);
+      tmp.total += order.total;
+      dict[rt._id] = tmp;
+    });
+    this.rows = Object.values(dict);
+  }
 
-  getTimes(order, row) {
+  getList() {
+    return this.rows.sort((a, b) => (a.total - b.total) * (this.descending ? -1 : 1))
+  }
 
-    // console.log("HERES ALL THE PROPERTIES ", properties)
+  isOverdue({shouldConfirmTime}) {
+    return new Date(this.now).valueOf() - new Date(shouldConfirmTime).valueOf() > 60 * 60 * 1000;
+  }
 
-    let fields = order.order
-    let timezone = row.timezone
-
-    if (!fields) {
-      console.log("FIELDS ARE EMPTY")
-    }
-    if (fields.timeToDeliver) {
-
-
-
-      // if (!fields.createdAt) {
-      //   return "MISSING DATE!"
-      // }
-
-      let createdAt = this.convertTZ(fields.createdAt, timezone)
-
-      console.log("CREATED AT TIMING ", createdAt, fields.createdAt, timezone)
-
-      let confirmBy: any
-
-      if (fields.type.toLowerCase() === 'delivery') {
-        // console.log("ORDER IS DELIVERY")
-
-        row.deliveryTimeEstimate = row.deliveryTimeEstimate ? row.deliveryTimeEstimate : 45
-
-        confirmBy = new Date(new Date(fields.timeToDeliver).getTime() - (row.deliveryTimeEstimate * 60 * 1000))
-
-      } else if (fields.type.toLowerCase() === 'pickup') {
-        // console.log("ORDER IS PICK UP")
-        row.pickupTimeEstimate = row.pickupTimeEstimate ? row.pickupTimeEstimate : 15
-
-        confirmBy = new Date(new Date(fields.timeToDeliver).getTime() - (row.pickupTimeEstimate * 60 * 1000))
-
-
-      } else {
-        // Dine in order
-        confirmBy = new Date(new Date(fields.timeToDeliver).getTime() - (15 * 60 * 1000))
-        console.log("ORDER NOT REGISTED AS PICK UP DELIVERY OR PICKUP")
-      }
-
-      let expectedDeliverTime = this.convertTZ(fields.timeToDeliver, timezone)
-      confirmBy = this.convertTZ(confirmBy, timezone)
-
-      let overnightOrder = false
-      if (new Date(fields.timeToDeliver).getTime() - new Date(fields.createdAt).getTime() > (8 * 60 * 60 * 1000)) {
-        overnightOrder = true
-      }
-
-      let lateTime = this.parseMillisecondsIntoReadableTime(new Date(this.now.getTime() - new Date(confirmBy).getTime()).getTime())
-
-      let oneHourOverdue = false
-      if (new Date(this.now.getTime() - new Date(confirmBy).getTime()).getTime() > 60 * 60 * 1000) {
-        oneHourOverdue = true
-      }
-
-      let scheduledString = `Scheduled for ${expectedDeliverTime.toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`
-      let placedAtString = `${this.capitalizeFirstLetter(fields.type.toString().toLowerCase())} order placed at ${createdAt.toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`
-
-      let confirmByString = overnightOrder ? `Confirm by ${new Date(confirmBy).toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })} (Late by ${lateTime} minutes) (order placed yesterday)` : `Confirm by ${new Date(confirmBy).toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })} (Late by ${lateTime})`
-
-      if (oneHourOverdue) {
-        return {
-          texts: [scheduledString, placedAtString, confirmByString],
-          overdue: true
-        }
-      } else {
-        return {
-          texts: [scheduledString, placedAtString, confirmByString],
-          overdue: false
-        }
-      }
-
-
+  getTimeDelay({shouldConfirmTime, timeToDeliver, createdAt, type}, timeZone) {
+    const lines = [], place_txt = `${type} order at ${to_local_time(createdAt, timeZone)}`;
+    let lateBy = new Date(this.now).valueOf() - new Date(shouldConfirmTime).valueOf();
+    if (!timeToDeliver) {
+      // non-scheduled
+      lines.push(place_txt)
+      lines.push(`Confirm by ${to_local_time(shouldConfirmTime, timeZone)}. (Late by ${readable_ms(lateBy)})`);
     } else {
-      if (fields.createdAt) {
-
-        let startTime = this.convertTZ(fields.createdAt, timezone)
-        let expectedConfirmation: any = new Date(startTime.getTime()).setMinutes(startTime.getMinutes() + 10)
-
-        let lateTime = this.parseMillisecondsIntoReadableTime(new Date(this.now.getTime() - new Date(expectedConfirmation).getTime()).getTime())
-
-
-        let oneHourOverdue = false
-        if (new Date(this.now.getTime() - new Date(expectedConfirmation).getTime()).getTime() > 60 * 60 * 1000) {
-          oneHourOverdue = true
-        }
-
-        expectedConfirmation = new Date(expectedConfirmation).toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' });
-
-
-
-        // console.log(lateTime)
-
-        return {
-          texts: [`${this.capitalizeFirstLetter(fields.type)} order at ${startTime.toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' })}`, `Confirm by ${expectedConfirmation}. (Late by ${lateTime})`],
-          overdue: oneHourOverdue
-        }
-
-
+      lines.push(`Scheduled for ${to_local_time(timeToDeliver, timeZone)}`);
+      lines.push(place_txt);
+      let confirm_txt = `Confirm by ${to_local_time(shouldConfirmTime, timeZone)} (Late by ${readable_ms(lateBy)})`
+      let created_date = new Date(createdAt).toLocaleString('en-US', {day: '2-digit', timeZone});
+      let scheduled_date = new Date(timeToDeliver).toLocaleString('en-US', {day: '2-digit', timeZone});
+      if (created_date !== scheduled_date) {
+        confirm_txt += " (order placed yesterday)"
       }
-
+      lines.push(confirm_txt);
     }
-
+    return lines;
   }
 
-  getOrderTimeForTimeZone(createdAt, timeZone) {
-    let time = this.convertTZ(createdAt, timeZone)
-    return time
+
+  getTimeOffsetByTimezone(timezone){
+    return Helper.getOffsetNumToEST(timezone);
   }
 
-  showChannel(channels) {
-
-    if (channels.type.toLowerCase() == 'email') {
-      return false
-    }
-
-    return (channels && channels.notifications && channels.notifications.includes('Business'))
+  getTimezoneCity(timezone){
+    return (timezone || '').split('/')[1] || '';
   }
 
   getDaysFromId(mongoId) {
     return Math.floor((this.now.valueOf() - parseInt(mongoId.substring(0, 8), 16) * 1000) / (24 * 3600000));
-  }
-
-  capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
   }
 
 }
