@@ -19,6 +19,11 @@ const readable_ms = (ms) => {
   return [Helper.padNumber(hours), Helper.padNumber(minutes), Helper.padNumber(seconds)].join(':');
 }
 
+enum SortByOptions {
+  TotalAmount = "Total order(s) amt",
+  LatestOrder = 'Latest orders'
+}
+
 @Component({
   selector: 'app-monitoring-unconfirmed-orders',
   templateUrl: './monitoring-unconfirmed-orders.component.html',
@@ -29,16 +34,17 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
   rtDict = {};
   rows = [];
   now = new Date();
-  descending = true;
+  sortBy = SortByOptions.TotalAmount;
   showOnlyQmenuCollected = false;
   orders = [];
+  ascends = {};
+  sortByOptions = [SortByOptions.TotalAmount, SortByOptions.LatestOrder];
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   async ngOnInit() {
     await this.getRTs();
-    await this.query();
-    this.reorg();
+    await this.reload();
     setInterval(() => { this.now = new Date(); }, 60000);
   }
 
@@ -70,6 +76,10 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
     });
   }
 
+  sortedOrders(orders, restaurantId) {
+    return orders.sort((a, b) => (a.total - b.total) * (this.ascends[restaurantId] ? 1 : -1));
+  }
+
   async query() {
     const start = new Date(), end = new Date();
     start.setHours(start.getHours() - 10);
@@ -97,7 +107,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
                   {timeToDeliver: {$exists: false}}
                 ]
               },
-              {timeToDeliver: {$gt: {$date: start}}}
+              {timeToDeliver: {$gt: start}}
             ]
           }
         },
@@ -130,10 +140,8 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
           $sort: {createdAt: -1}
         }
       ],
-      limit: 10
+      limit: 100000
     }).toPromise()
-
-    console.log('orders...', orders);
 
     this.orders = [];
 
@@ -173,7 +181,8 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
         return tzTime >= hour.fromTime && tzTime <= hour.toTime;
       });
 
-      if (inOpenTime) {
+      // if RT is open and should confirm time is passed now
+      if (inOpenTime && shouldConfirmTime.valueOf() <= this.now.valueOf()) {
         order.shouldConfirmTime = shouldConfirmTime;
         this.orders.push(order);
         return;
@@ -219,7 +228,7 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
             return;
           }
           let diff = openTime.valueOf() - shouldConfirmTime.valueOf();
-          if (diff < min_gap) {
+          if (diff < min_gap &&  diff >= 0) {
             nearby_opent_time = openTime;
             min_gap = diff;
           }
@@ -239,25 +248,36 @@ export class MonitoringUnconfirmedOrdersComponent implements OnInit {
     });
   }
 
+  async reload() {
+    await this.query();
+    this.reorg();
+  }
+
   async reorg() {
     let dict = {};
     this.orders.forEach(order => {
-      if (this.showOnlyQmenuCollected && order.paymentObj.paymentType !== 'QMENU') return;
+      if (this.showOnlyQmenuCollected && order.paymentObj.method !== 'QMENU') return;
       let rt = this.rtDict[order.restaurant];
       if (!rt) return;
       let tmp = dict[rt._id] || {
-        restaurant: rt, orders: [], total:0,
+        restaurant: rt, orders: [], total:0, latest: 0,
         channels: (rt.channels || []).filter(x => x.type !== 'Email' && x.notifications && x.notifications.includes('Business'))
        }
       tmp.orders.push(order);
       tmp.total += order.total;
+      tmp.latest = Math.max(new Date(order.createdAt).valueOf(), tmp.latest);
       dict[rt._id] = tmp;
     });
     this.rows = Object.values(dict);
   }
 
   getList() {
-    return this.rows.sort((a, b) => (a.total - b.total) * (this.descending ? -1 : 1))
+    if (this.sortBy === SortByOptions.TotalAmount) {
+      return this.rows.sort((a, b) => (b.total - a.total))
+    } else {
+      return this.rows.sort((a, b) => (b.latest - a.latest));
+    }
+
   }
 
   isOverdue({shouldConfirmTime}) {

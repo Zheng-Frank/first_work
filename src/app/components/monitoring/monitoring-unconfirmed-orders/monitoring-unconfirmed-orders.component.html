@@ -4,12 +4,20 @@
   </h2>
 
   <div class="card-body">
-    <div class="row">
+    <div class="row mb-3">
       <div class="col-auto">
         <label class="form-control-plaintext">
           <input class="mr-2" type="checkbox" [(ngModel)]="showOnlyQmenuCollected" (change)="reorg()" />
           Show Only qMenu Collect
         </label>
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-primary" (click)="reload()">Reload</button>
+      </div>
+      <div class="col-auto">
+        <select class="form-control" [(ngModel)]="sortBy">
+          <option *ngFor="let opt of sortByOptions" [value]="opt">Sort by: {{opt}}</option>
+        </select>
       </div>
     </div>
 
@@ -18,13 +26,7 @@
         <th>Restaurant</th>
         <th>Timezone (EST+/-)</th>
         <th>Phones</th>
-        <th>Order</th>
-        <th (click)='descending = !descending' class="clickable">
-          Amount
-          <i class="fas" [ngClass]="{ 'fa-arrow-up': !descending,  'fa-arrow-down': !!descending}"></i>
-        </th>
-        <th>Time (delay)</th>
-        <th>Payment</th>
+        <th colspan="4" style="width: 50%;">Orders</th>
       </tr>
       <tr *ngFor="let row of getList()">
         <td>
@@ -47,24 +49,35 @@
         </td>
         <td colspan="4">
           <table class="table table-sm table-inner">
+            <thead>
+              <tr>
+                <th style="width: 20%;">Order Number</th>
+                <th style="width: 10%;" (click)='ascends[row.restaurant._id] = !ascends[row.restaurant._id]' class="clickable">
+                  Amount
+                  <i class="fas" [ngClass]="{ 'fa-arrow-up': !!ascends[row.restaurant._id],  'fa-arrow-down': !ascends[row.restaurant._id]}"></i>
+                </th>
+                <th style="width: 50%;">Time (delay)</th>
+                <th style="width: 20%;">Payment</th>
+              </tr>
+            </thead>
             <tbody>
-              <tr *ngFor="let order of row.orders">
-                <td style="width: 20;">
+              <tr *ngFor="let order of sortedOrders(row.orders, row.restaurant._id)">
+                <td>
                   <div>{{ order.orderNumber }}</div>
                   <div>
                     <small class="text-warning">{{ order.createdAt | ago: now }}</small>
                   </div>
                 </td>
-                <td style="width: 10;">
+                <td>
                   <small class="text-warning">{{ order.total | currency }}</small>
                 </td>
-                <td style="width: 50;">
+                <td>
                   <div [ngClass]="{ 'text-danger': isOverdue(order)}"
                     *ngFor="let line of getTimeDelay(order, row.restaurant.googleAddress.timezone)">
                     {{ line }}
                   </div>
                 </td>
-                <td class="text-right" style="width: 20;">
+                <td>
                   <div>{{ order.paymentObj.method }}</div>
                   <div>{{ order.paymentObj.paymentType.toLowerCase() === "cash" ? null : order.paymentObj.paymentType }}</div>
                 </td>
