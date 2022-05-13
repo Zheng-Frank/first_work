@@ -61,11 +61,12 @@ export class DbScriptsComponent implements OnInit {
         {
           $project: {
             _id: 1,
-            name: 1
+            name: 1,
+            rateSchedules: 1
           }
         },
         {
-          $limit: 100
+          $limit: 1
         }
       ]
     }).toPromise();
