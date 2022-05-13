@@ -11,6 +11,8 @@ import {Helper} from 'src/app/classes/helper';
 import {Domain} from 'src/app/classes/domain';
 import * as FileSaver from 'file-saver';
 import {Transaction} from 'src/app/classes/transaction';
+import IRSHelper from '../1099k-dashboard/irs-fire-helper';
+
 
 @Component({
   selector: 'app-db-scripts',
@@ -25,6 +27,72 @@ export class DbScriptsComponent implements OnInit {
 
   ngOnInit() {
   }
+
+  download(name, content) {
+    let blob = new Blob([content], { type: 'text/plain; charset=utf-8' });
+    let node = document.createElement('a');
+    node.href = URL.createObjectURL(blob);
+    let dt = new Date();
+    let y = dt.getFullYear();
+    let M = IRSHelper.pad(dt.getMonth() + 1, 2, true)
+    let d = IRSHelper.pad(dt.getDate(), 2, true)
+    let h = IRSHelper.pad(dt.getHours(), 2, true)
+    let m = IRSHelper.pad(dt.getMinutes(), 2, true)
+    let s = IRSHelper.pad(dt.getSeconds(), 2, true)
+    node.download = `${name}-created_${[y, M, d, h, m, s].join('_')}.txt`;
+    node.click();
+    node.remove();
+  }
+
+  async convertToFeeSchedules() {
+    const rts = await this._api.get(environment.qmenuApiUrl + 'generic', {
+      resource: 'restaurant',
+      aggregate: [
+        {
+          $match: {
+            rateSchedules: {
+              $exists: true
+            }, 
+            "feeSchedules.0": {
+              $exists: false
+            }
+          }
+        },
+        {
+          $project: {
+            _id: 1,
+            name: 1
+          }
+        },
+        {
+          $limit: 100
+        }
+      ]
+    }).toPromise();
+    if (rts.length === 0) {
+      this._global.publishAlert(
+        AlertType.Warning,
+        `No restaurant needs to be converted!`
+      );
+      return;
+    }
+    
+    try {
+      const results = await this._api.post(environment.appApiUrl + "lambdas/data", {
+        name: "migrate-fee-schedules",
+        payload: {
+          restaurantIds: rts.map(rt => rt._id),
+        }
+      }).toPromise();
+      this.download('rate_schedule_convert_to_fee_schedules', JSON.stringify(rts));
+      this._global.publishAlert(AlertType.Success, "Successfully convert!");
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, "Failed!");
+    }
+  }
+
+  
 
   async calculateGmbPositiveScore() {
     const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
