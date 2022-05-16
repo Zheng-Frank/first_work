@@ -13,6 +13,7 @@ import { AlertType } from "../../../classes/alert-type";
 })
 export class RestaurantRateSchedulesComponent implements OnInit {
 
+  @Input() readonly = false;
   @Input() restaurant: Restaurant;
   @Input() users = [];
   editing = false;

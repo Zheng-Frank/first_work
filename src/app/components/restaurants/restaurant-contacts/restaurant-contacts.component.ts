@@ -17,6 +17,7 @@ import { FormSubmit } from '@qmenu/ui/classes';
 })
 export class RestaurantContactsComponent implements OnInit, OnChanges {
 
+  @Input() readonly = false;
   @Input() restaurant;
   @Input() viewOnly = false;
   @Output() updateRestaurant = new EventEmitter();

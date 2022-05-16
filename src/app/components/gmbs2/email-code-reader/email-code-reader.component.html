@@ -1,7 +1,7 @@
 <div class="card mb-2">
   <h3 class="card-title text-center pt-4 pb-2">
     <i class="fas fa-globe"></i> Web Settings</h3>
-  <ul class="list-group list-group-flush">
+  <ul class="list-group list-group-flush {{readonly ? 'disabled' : ''}}">
     <li class="list-group-item">
       <ng-container *ngIf="restaurant">
         <div class="form-group row">
@@ -42,10 +42,10 @@
               <p *ngIf="!showCompleteButtonSnippet" class="text-truncate">{{qmButtonTemplate}}</p>
             </div>
             <p *ngIf="showCompleteButtonSnippet">{{qmButtonTemplate}}</p>
-            <button class="btn btn-link p-0"
+            <button class="btn btn-link p-0 non-disbled"
               (click)="showCompleteButtonSnippet = !showCompleteButtonSnippet">{{showCompleteButtonSnippet ? 'less...' : 'more...'}}</button>
-            <div class="d-flex justify-content-end pt-1">
-              <button class="btn btn-link p-0" (click)="copyToClipcboard(qmButtonTemplate)"><i
+            <div class="d-flex justify-content-end pt-1 disbled">
+              <button class="btn btn-link p-0 non-disbled" (click)="copyToClipcboard(qmButtonTemplate)"><i
                   *ngIf="!isCopiedToClipboard" class="fas fa-clipboard"></i><i *ngIf="isCopiedToClipboard"
                   class="fas fa-check"></i> {{isCopiedToClipboard ? 'Copied!' : 'Copy to Clipboard'}}</button>
             </div>
@@ -64,7 +64,7 @@
           </ng-container>
         </ng-container>
         <!-- end with social media links panel -->
-        <div class="text-right">
+        <div class="text-right" *ngIf="!readonly">
           <div *ngIf="retrievedObj" class="mb-2">
             <span
               class="badge badge-{{requesterEmail === retrievedObj.email ? 'success' : 'warning'}}">{{retrievedObj.code}}</span>

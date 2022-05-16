@@ -16,6 +16,7 @@ import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
   styleUrls: ['./restaurant-profile.component.css']
 })
 export class RestaurantProfileComponent implements OnInit, OnChanges {
+  @Input() readonly = false;
   @Input() restaurant;
   @Input() editable;
   @Input() users = [];

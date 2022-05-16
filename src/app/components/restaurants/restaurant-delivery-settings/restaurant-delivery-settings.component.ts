@@ -15,6 +15,8 @@ declare var $: any;
   styleUrls: ['./restaurant-delivery-settings.component.css']
 })
 export class RestaurantDeliverySettingsComponent implements OnInit {
+  
+  @Input() readonly = false;
   @Input() restaurant: Restaurant;
   editing = false;
   clickedAddHour = false;

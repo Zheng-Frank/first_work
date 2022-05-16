@@ -22,7 +22,7 @@
         </div> -->
 
 
-        <div class="row mt-3">
+        <div class="row mt-3" *ngIf="!readonly">
           <button class="btn btn-link py-0 mr-3" (click)="checkPostmatesAvailability()"
             [qLoading]="checkingPostmatesAvailability">Check Postmates availability</button>
           <div *ngIf="postmatesAvailability && postmatesAvailability.indexOf('Available') >= 0; else notAvailable">
@@ -168,7 +168,7 @@
           </ng-container>
 
 
-          <app-restaurant-delivery-closed-hours [restaurant]="restaurant" *ngIf="!restaurant.courier">
+          <app-restaurant-delivery-closed-hours [readonly]="readonly" [restaurant]="restaurant" *ngIf="!restaurant.courier">
           </app-restaurant-delivery-closed-hours>
 
         </div>
@@ -327,7 +327,7 @@
         </div>
       </li>
 
-      <li class="list-group-item text-right" *ngIf="!editing">
+      <li class="list-group-item text-right" *ngIf="!editing && !readonly">
         <button (click)="toggleEditing()" class="btn btn-primary" role="button">Edit</button>
       </li>
       <li class="list-group-item text-right" *ngIf="editing">

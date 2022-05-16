@@ -14,7 +14,7 @@
             <th scope="col" *ngIf="havingMenuFilters()">Menu Filters</th>
             <th scope="col" *ngIf="havingNonEnglishLanguages()">Languages</th>
             <th scope="col" *ngIf="havingCopies()">Copies</th>
-            <th scope="col"></th>
+            <th scope="col" *ngIf="!readonly"></th>
           </tr>
         </thead>
         <tbody class="my-text-small">
@@ -49,11 +49,11 @@
             <td *ngIf="havingCopies()">
               {{n.copies ? n.copies + 'x' : ''}}
             </td>
-            <td>
+            <td *ngIf="!readonly">
               <button class="btn btn-link p-0" (click)="editNotification(n)">Edit</button>
             </td>
           </tr>
-          <tr>
+          <tr *ngIf="!readonly">
             <td colspan="3">
               <button class="btn btn-link px-0" (click)="editNotification()">+ Add Notification</button>
             </td>

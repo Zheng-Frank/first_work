@@ -16,6 +16,7 @@ import { Helper } from '../../../classes/helper';
 })
 export class RestaurantPaymentMeansComponent implements OnInit {
 
+  @Input() readonly = false;
   @Input() restaurant: Restaurant;
   @ViewChild('paymentMeansModal') paymentMeansModal: ModalComponent;
   @ViewChild('paymentEditor') paymentEditor: PaymentMeansEditorComponent;

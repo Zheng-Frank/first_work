@@ -30,18 +30,20 @@
             <td>{{showNotifications(channel.notifications)}}</td>
             <td>{{Languages[channel.language]}}</td>
             <td *ngIf="showProviders">{{getProvider(channel)}}</td>
-            <td>
+            <td *ngIf="!readonly">
               <button class="btn btn-link p0" (click)="editChannel(channel)" *ngIf="!viewOnly">Edit</button>
             </td>
           </tr>
-          <tr *ngIf="!viewOnly">
-            <td colspan="3">
-              <button class="btn btn-link px-0" (click)="editChannel()">+ Add A Channel</button>
-            </td>
-            <td [colSpan]="showProviders ? 4: 3" class="text-end" *ngIf="isAdminOrCsrManager()">
-              <label><input type="checkbox" [(ngModel)]="showProviders">Show Providers</label>
-            </td>
-          </tr>
+          <ng-container *ngIf="!readonly">
+            <tr *ngIf="!viewOnly">
+              <td colspan="3">
+                <button class="btn btn-link px-0" (click)="editChannel()">+ Add A Channel</button>
+              </td>
+              <td [colSpan]="showProviders ? 4: 3" class="text-end" *ngIf="isAdminOrCsrManager()">
+                <label><input type="checkbox" [(ngModel)]="showProviders">Show Providers</label>
+              </td>
+            </tr>
+          </ng-container>
         </tbody>
       </table>
     </li>
@@ -52,7 +54,7 @@
             <th scope="col">Name</th>
             <th scope="col">Position</th>
             <th scope="col">Channels</th>
-            <th scope="col"></th>
+            <th scope="col" *ngIf="!readonly"></th>
           </tr>
         </thead>
         <tbody>
@@ -64,19 +66,21 @@
                 {{c.type}}: {{c.value}}
               </div>
             </td>
-            <td>
+            <td *ngIf="!readonly">
               <button class="btn btn-link p0" (click)="editPerson(person)" *ngIf="!viewOnly">Edit</button>
             </td>
           </tr>
-          <tr *ngIf="!viewOnly">
-            <td colspan="3">
-              <button class="btn btn-link px-0" (click)="editPerson()">+ Add A Person</button>
-            </td>
-          </tr>
+          <ng-container *ngIf="!readonly">
+            <tr *ngIf="!viewOnly">
+              <td colspan="3">
+                <button class="btn btn-link px-0" (click)="editPerson()">+ Add A Person</button>
+              </td>
+            </tr>
+          </ng-container>
         </tbody>
       </table>
     </li>
-    <li class="list-group-item">
+    <li class="list-group-item" *ngIf="!readonly">
       <label>Custom Relationship Manager</label>
       <!-- <select [(ngModel)]="crm" class="form-control" (change)="updateCrm($event)"> -->
       <select [(ngModel)]="crm" class="form-control">

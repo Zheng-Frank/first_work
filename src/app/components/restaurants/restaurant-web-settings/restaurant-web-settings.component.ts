@@ -13,6 +13,8 @@ import { Helper } from 'src/app/classes/helper';
   styleUrls: ['./restaurant-web-settings.component.css']
 })
 export class RestaurantWebSettingsComponent implements OnInit, OnChanges {
+  
+  @Input() readonly = false;
   @Input() restaurant: Restaurant;
 
   retrievedCodeObject;

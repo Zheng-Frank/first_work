@@ -12,7 +12,7 @@ import { Helper } from '../../../classes/helper';
   styleUrls: ['./restaurant-delivery-closed-hours.component.css']
 })
 export class RestaurantDeliveryClosedHoursComponent implements OnInit {
-
+  @Input() readonly = false;
   @Input() restaurant: Restaurant;
   constructor(private _api: ApiService, private _global: GlobalService) {
     // this.initHourInEditing();
