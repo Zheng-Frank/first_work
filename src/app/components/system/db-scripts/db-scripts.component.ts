@@ -66,7 +66,7 @@ export class DbScriptsComponent implements OnInit {
           }
         },
         {
-          $limit: 100
+          $limit: 10
         }
       ]
     }).toPromise();
