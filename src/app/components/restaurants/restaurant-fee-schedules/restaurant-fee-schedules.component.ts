@@ -22,6 +22,8 @@ const FeeNames = ["service fee", "credit card fee", "monthly fee", "commission",
 export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   @ViewChild('modalFeeSchedule') modalFeeSchedule: ModalComponent;
   @ViewChild('editingForm') editingForm: FormBuilderComponent;
+
+  @Input() readonly = false;
   @Input() restaurant: Restaurant;
   @Input() users = [];
   @Input() updateFeeSchedulesEvent = {

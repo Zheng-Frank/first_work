@@ -12,8 +12,9 @@ import { Helper } from '../../../classes/helper';
   styleUrls: ['./restaurant-closed-hours.component.css']
 })
 export class RestaurantClosedHoursComponent implements OnInit, OnChanges {
-
+  @Input() readonly = false;
   @Input() restaurant: Restaurant;
+  
   constructor(private _global: GlobalService, private _prunedPatch: PrunedPatchService) {
   }
   now = new Date(); // to tell if a closed time is expired

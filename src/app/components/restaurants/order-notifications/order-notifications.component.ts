@@ -15,6 +15,7 @@ import { PrunedPatchService } from 'src/app/services/prunedPatch.service';
 })
 export class OrderNotificationsComponent implements OnInit, OnChanges {
   @ViewChild('modalNotification') modalNotification: ModalComponent;
+  @Input() readonly = false;
   @Input() restaurant;
   @Output() updateRestaurant = new EventEmitter();
 

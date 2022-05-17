@@ -14,8 +14,8 @@
           QR Agent: {{qrSettings.agent || 'None'}}
         </div>
         <div>
-          <a class="a_underline" *ngIf="!havingSpecialNumber()" href="javascript:void(0)" (click)="addSpecialPhoneNumber()">Add 234-567-8901</a>
-          <a class="a_underline" *ngIf="havingSpecialNumber()" href="javascript:void(0)" (click)="addSpecialPhoneNumber()">Remove 234-567-8901</a>
+          <a class="a_underline" *ngIf="!readonly && !havingSpecialNumber()" href="javascript:void(0)" (click)="addSpecialPhoneNumber()">Add 234-567-8901</a>
+          <a class="a_underline" *ngIf="!readonly && havingSpecialNumber()" href="javascript:void(0)" (click)="addSpecialPhoneNumber()">Remove 234-567-8901</a>
           <a class="a_underline ml-3" href="https://qrbiz.qmenu.com/#" target="_blank">Login in to qrbiz portal
             <i class="fa fa-info-circle icon-color" (mouseover)="showExplanation = true" (mouseout)="showExplanation = false">
             <div *ngIf="showExplanation" class="left talk radius">
@@ -42,7 +42,7 @@
           <button class="btn btn-primary" (click)="update()">&nbsp;&nbsp;OK&nbsp;&nbsp;</button>
         </div>
       </div>
-      <div class="text-right" *ngIf="!editing">
+      <div class="text-right" *ngIf="!editing && !readonly">
         <div>
           <button (click)="toggleEditing()" class="btn btn-primary">Edit</button>
         </div>

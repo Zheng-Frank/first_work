@@ -12,6 +12,7 @@ import { AlertType } from 'src/app/classes/alert-type';
   styleUrls: ['./restaurant-qr-settings.component.css']
 })
 export class RestaurantQrSettingsComponent {
+  @Input() readonly = false;
   @Input() restaurant: Restaurant;
 
   editing = false;

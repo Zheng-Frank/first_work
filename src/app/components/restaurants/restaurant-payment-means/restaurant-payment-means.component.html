@@ -7,12 +7,12 @@
       <div class="row">
         <div *ngFor="let pm of restaurant.paymentMeans || []" class="col-md-6 col-lg-6">
           <q-payment-means-viewer [paymentMeans]="pm"></q-payment-means-viewer>
-          <div>
+          <div *ngIf="!readonly">
             <button class="btn btn-link" style="padding-left: 0.3rem; margin-top: -1.5rem" (click)="edit(pm)">Edit</button>
           </div>
         </div>
       </div>
-      <button class="btn btn-link px-0" (click)="editNew()">+ Add A Payment Means</button>
+      <button class="btn btn-link px-0" *ngIf="!readonly" (click)="editNew()">+ Add A Payment Means</button>
     </li>
 
   </ul>

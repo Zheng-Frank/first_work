@@ -12,6 +12,8 @@ import { Restaurant } from '@qmenu/ui';
   styleUrls: ['./restaurant-service-settings.component.css']
 })
 export class RestaurantServiceSettingsComponent implements OnInit {
+  
+  @Input() readonly = false;
   @Input() restaurant;
   editing = false;
 

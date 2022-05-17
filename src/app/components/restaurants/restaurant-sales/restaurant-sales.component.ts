@@ -15,6 +15,7 @@ import { FormSubmit } from '@qmenu/ui/classes';
 export class RestaurantSalesComponent implements OnInit {
   @ViewChild('modalRateSchedule') modalRateSchedule: ModalComponent;
 
+  @Input() readonly = false;
   @Input() restaurant: Restaurant;
   @Input() users = [];
 

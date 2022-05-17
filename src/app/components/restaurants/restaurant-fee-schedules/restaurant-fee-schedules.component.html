@@ -38,7 +38,7 @@
             <th>Payer → Payee</th>
             <th>Assessment</th>
             <th>Conditions</th>
-            <th></th>
+            <th *ngIf="!readonly"></th>
           </tr>
         </thead>
         <tbody>
@@ -76,14 +76,14 @@
                 </div>
               </td>
 
-              <td>
+              <td *ngIf="!readonly">
                 <button class="btn btn-link p-0" (click)="edit(feeSchedule)">Edit</button>
               </td>
 
             </tr>
           </ng-container>
 
-          <tr>
+          <tr *ngIf="!readonly">
             <td colspan="4">
               <button class="btn btn-link px-0" (click)="edit()">+ Add New</button>
               <!-- <button class="btn btn-link px-0 text-danger" (click)="startover()"

@@ -24,6 +24,7 @@ enum socialMediaLinkTypes {
 export class EmailCodeReaderComponent implements OnInit {
 
   @ViewChild('socialMediaLinksModal') socialMediaLinksModal: ModalComponent;
+  @Input() readonly = false;
   @Input() restaurant;
 
   submitClicked = false;

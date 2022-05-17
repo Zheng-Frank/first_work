@@ -8,7 +8,7 @@
           <tr>
             <th>Date</th>
             <th>Agent Name</th>
-            <th></th>
+            <th *ngIf="!readonly"></th>
           </tr>
         </thead>
         <tbody>
@@ -17,11 +17,11 @@
             <td>{{rs.agent}} <span *ngIf="isDisabled(rs.agent)" class="text-danger">*DISABLED*</span>
             </td>
 
-            <td>
+            <td *ngIf="!readonly">
               <button class="btn btn-link p-0" (click)="edit(rs)">Edit</button>
             </td>
           </tr>
-          <tr>
+          <tr *ngIf="!readonly">
             <td colspan="4">
               <button class="btn btn-link px-0" (click)="edit()">+ Add New</button>
             </td>

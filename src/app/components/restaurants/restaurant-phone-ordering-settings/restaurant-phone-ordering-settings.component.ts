@@ -11,7 +11,8 @@ import { environment } from 'src/environments/environment';
   styleUrls: ['./restaurant-phone-ordering-settings.component.css']
 })
 export class RestaurantPhoneOrderingSettingsComponent implements OnInit {
-
+  
+  @Input() readonly = false;
   @Input() restaurant: any;
 
   channels: Channel[] = [];

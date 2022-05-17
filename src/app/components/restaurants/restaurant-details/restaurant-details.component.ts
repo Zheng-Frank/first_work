@@ -56,7 +56,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     feeSchedules: ['ADMIN', 'RATE_EDITOR', 'MARKETER', 'CSR', 'CSR_MANAGER'],
     paymentMeans: ['ACCOUNTANT', 'CSR', 'CSR_MANAGER', 'MARKETER'],
     serviceSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
-    promotions: [],
     qrSettings: ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
     closedHours: ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
     cloudPrinting: ['ADMIN', 'MENU_EDITOR', 'CSR', 'CSR_MANAGER', 'MARKETER'],
