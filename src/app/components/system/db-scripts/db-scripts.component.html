@@ -1,559 +1,567 @@
 <div class="card-group">
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Calculate GMB Positive Score</h5>
-            <p class="card-text">
-              Calculate tier for all RTs
-            </p>
-            <button class="btn btn-primary" (click)="calculateGmbPositiveScore()" [disabled]="false">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Convert rate schedules to fee schedules</h5>
+      <p class="card-text">
+        Converts 100 RTs at a time from rate schedules to fee schedules
+      </p>
+      <button class="btn btn-primary" (click)="convertToFeeSchedules()" [disabled]="false">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Calculate Orders per Month</h5>
-            <p class="card-text">
-              Calculate order count per month for all RTs
-            </p>
-            <button class="btn btn-primary" (click)="calculateActivities()" [disabled]="false">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Calculate GMB Positive Score</h5>
+      <p class="card-text">
+        Calculate tier for all RTs
+      </p>
+      <button class="btn btn-primary" (click)="calculateGmbPositiveScore()" [disabled]="false">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Check GMB Website Owner</h5>
-            <p class="card-text">
-                Find all RTs and gmbBiz data, compare gmbWebsite and qmenuWebsite, find RTs that:
-                1. gmbWebsite === qmenuWebsite and gmbOwner !== qmenu;
-                2. gmbWebsite !== qmenuWebsite and gmbOwner === qmenu.
-            </p>
-            <button class="btn btn-primary" (click)="checkGmbWebsiteOwner()" [disabled]="false">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Calculate Orders per Month</h5>
+      <p class="card-text">
+        Calculate order count per month for all RTs
+      </p>
+      <button class="btn btn-primary" (click)="calculateActivities()" [disabled]="false">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Form 1099K Calculator</h5>
-            <p class="card-text">
-                Calculate order and dollar amount totals for all RTs for the previous year. Data will be stored on the
-                form1099k property for each RT object. This script should be run each January.
-            </p>
-            <button class="btn btn-primary" (click)="calculateForm1099k()" [disabled]="false">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Check GMB Website Owner</h5>
+      <p class="card-text">
+        Find all RTs and gmbBiz data, compare gmbWebsite and qmenuWebsite, find RTs that:
+        1. gmbWebsite === qmenuWebsite and gmbOwner !== qmenu;
+        2. gmbWebsite !== qmenuWebsite and gmbOwner === qmenu.
+      </p>
+      <button class="btn btn-primary" (click)="checkGmbWebsiteOwner()" [disabled]="false">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Payment means 'ONE TIME'/'一次' migration</h5>
-            <p class="card-text">
-                Update payment means' oneTime field according to if it's memo contains 'ONE TIME'/'一次' (case
-                insensitive)
-            </p>
-            <button class="btn btn-primary" (click)="migratePaymentMeansOneTime()" [disabled]="false">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Form 1099K Calculator</h5>
+      <p class="card-text">
+        Calculate order and dollar amount totals for all RTs for the previous year. Data will be stored on the
+        form1099k property for each RT object. This script should be run each January.
+      </p>
+      <button class="btn btn-primary" (click)="calculateForm1099k()" [disabled]="false">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Migrate Order Notification Settings</h5>
-            <p class="card-text">Migrate RT's notification settings for when a customer places an order from the
-                channels property into the new orderNotifications property. (old settings are being deprecated)</p>
-            <button class="btn btn-primary" (click)="migrateOrderNotifications()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Payment means 'ONE TIME'/'一次' migration</h5>
+      <p class="card-text">
+        Update payment means' oneTime field according to if it's memo contains 'ONE TIME'/'一次' (case
+        insensitive)
+      </p>
+      <button class="btn btn-primary" (click)="migratePaymentMeansOneTime()" [disabled]="false">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Onetime Import Transactions</h5>
-            <p class="card-text">ONE TIME ONLY</p>
-            <button class="btn btn-primary" (click)="importSalaries()" [disabled]="false">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Migrate Order Notification Settings</h5>
+      <p class="card-text">Migrate RT's notification settings for when a customer places an order from the
+        channels property into the new orderNotifications property. (old settings are being deprecated)</p>
+      <button class="btn btn-primary" (click)="migrateOrderNotifications()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Set disabled RT's disabledAt field</h5>
-            <p class="card-text">Calculate all disabled RT's disabled time by it's order/log/apilog/createdAt, and save
-                to disabledAt field.(Safe to run multiple times.)</p>
-            <button class="btn btn-primary" (click)="disableAtMigrate()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Onetime Import Transactions</h5>
+      <p class="card-text">ONE TIME ONLY</p>
+      <button class="btn btn-primary" (click)="importSalaries()" [disabled]="false">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Preferred Language and Channel Language Migrate</h5>
-            <p class="card-text">Get Restaurant's preferred language by
-                preferredLanguage and salesAgent and order notification channel, update to the preferredLanguage field
-                and channel.language field.</p>
-            <button class="btn btn-primary" (click)="preferredLanguageMigrate()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Set disabled RT's disabledAt field</h5>
+      <p class="card-text">Calculate all disabled RT's disabled time by it's order/log/apilog/createdAt, and save
+        to disabledAt field.(Safe to run multiple times.)</p>
+      <button class="btn btn-primary" (click)="disableAtMigrate()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Correct Spaces Around Parentheses</h5>
-            <p class="card-text">Make spaces around parentheses in menus' name regular.(Safe to run multiple times.)</p>
-            <button class="btn btn-primary" (click)="regularSpacesAroundParentheses()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Preferred Language and Channel Language Migrate</h5>
+      <p class="card-text">Get Restaurant's preferred language by
+        preferredLanguage and salesAgent and order notification channel, update to the preferredLanguage field
+        and channel.language field.</p>
+      <button class="btn btn-primary" (click)="preferredLanguageMigrate()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Replace Chinese Quotation Marks And Parentheses to English</h5>
-            <p class="card-text">Find all menus with name includes Chinese quotation marks and parentheses, replace them
-                to corresponding English character.(Safe to run multiple times.)</p>
-            <button class="btn btn-primary" (click)="unifyQuotationMarksAndParenthesesInMenuName()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Correct Spaces Around Parentheses</h5>
+      <p class="card-text">Make spaces around parentheses in menus' name regular.(Safe to run multiple times.)</p>
+      <button class="btn btn-primary" (click)="regularSpacesAroundParentheses()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Extract Menu Number In Name</h5>
-            <p class="card-text">Find all menus which has number prefix in name, extract the number.</p>
-            <button class="btn btn-primary" (click)="extractMenuNumberInName()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Replace Chinese Quotation Marks And Parentheses to English</h5>
+      <p class="card-text">Find all menus with name includes Chinese quotation marks and parentheses, replace them
+        to corresponding English character.(Safe to run multiple times.)</p>
+      <button class="btn btn-primary" (click)="unifyQuotationMarksAndParenthesesInMenuName()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Detect Menu</h5>
-            <p class="card-text">Get all restaurants' id which has potential menu name issue.</p>
-            <button class="btn btn-primary" (click)="getRTsToCleanMenu()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Extract Menu Number In Name</h5>
+      <p class="card-text">Find all menus which has number prefix in name, extract the number.</p>
+      <button class="btn btn-primary" (click)="extractMenuNumberInName()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Remove Menus' Unnecessary Spaces</h5>
-            <p class="card-text">Remove all menus' unnecessary spaces, include preceding, tailing, and shrink continuous
-                spaces between words to one.</p>
-            <button class="btn btn-primary" (click)="removeAllMenuSpaces()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Detect Menu</h5>
+      <p class="card-text">Get all restaurants' id which has potential menu name issue.</p>
+      <button class="btn btn-primary" (click)="getRTsToCleanMenu()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Recover Menus</h5>
-            <p class="card-text">Hard coded RT Id, One time menus JSON. Eg., copy menus from API logs and replace RT's
-                menus with the copied ones</p>
-            <button class="btn btn-primary" (click)="recoverMenu()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Remove Menus' Unnecessary Spaces</h5>
+      <p class="card-text">Remove all menus' unnecessary spaces, include preceding, tailing, and shrink continuous
+        spaces between words to one.</p>
+      <button class="btn btn-primary" (click)="removeAllMenuSpaces()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Find Useless Menu Items</h5>
-            <p class="card-text">Hard coded RT Id for experiments only. Check console for result</p>
-            <button class="btn btn-primary" (click)="findNonUsedMis()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Recover Menus</h5>
+      <p class="card-text">Hard coded RT Id, One time menus JSON. Eg., copy menus from API logs and replace RT's
+        menus with the copied ones</p>
+      <button class="btn btn-primary" (click)="recoverMenu()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Menu De-duplication</h5>
-            <p class="card-text">Some menu has duplicated IDs. We'd like to remove duplicated ones (keep more expensive
-                ones since it's more likely to be the edited). Safe to run multiple times</p>
-            <button class="btn btn-primary" (click)="fixMenuDuplication()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Find Useless Menu Items</h5>
+      <p class="card-text">Hard coded RT Id for experiments only. Check console for result</p>
+      <button class="btn btn-primary" (click)="findNonUsedMis()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Migrate Menu Sorting Orders</h5>
-            <p class="card-text">Although we removed sortOrder, we like to maintain back-compatibility.
-                Safe to run multiple times</p>
-            <button class="btn btn-primary" (click)="fixMenuSortOrders()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Menu De-duplication</h5>
+      <p class="card-text">Some menu has duplicated IDs. We'd like to remove duplicated ones (keep more expensive
+        ones since it's more likely to be the edited). Safe to run multiple times</p>
+      <button class="btn btn-primary" (click)="fixMenuDuplication()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Fix Menu Hours</h5>
-            <p class="card-text">Find out which restaurants have bad menu hours (null as one hour) and remove bad hours.
-                Safe to run multiple times</p>
-            <button class="btn btn-primary" (click)="fixBadMenuHours()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Migrate Menu Sorting Orders</h5>
+      <p class="card-text">Although we removed sortOrder, we like to maintain back-compatibility.
+        Safe to run multiple times</p>
+      <button class="btn btn-primary" (click)="fixMenuSortOrders()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Get Most Used Phones</h5>
-            <p class="card-text">Find out which phones are mostly used and restaurants with most SMS phones</p>
-            <button class="btn btn-primary" (click)="getMostUsedPhones()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Fix Menu Hours</h5>
+      <p class="card-text">Find out which restaurants have bad menu hours (null as one hour) and remove bad hours.
+        Safe to run multiple times</p>
+      <button class="btn btn-primary" (click)="fixBadMenuHours()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Migrate Banned List to Blacklist</h5>
-            <p class="card-text">Oneway from banned customers to blacklist (phone, email, address). Rerun will only
-                create new instances but not alter existing blacklist.</p>
-            <button class="btn btn-primary" (click)="migrateBlacklist()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Get Most Used Phones</h5>
+      <p class="card-text">Find out which phones are mostly used and restaurants with most SMS phones</p>
+      <button class="btn btn-primary" (click)="getMostUsedPhones()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Calculate Commissions</h5>
-            <p class="card-text">Output year-end commissions collected</p>
-            <button class="btn btn-primary" (click)="calculateCommissions()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Migrate Banned List to Blacklist</h5>
+      <p class="card-text">Oneway from banned customers to blacklist (phone, email, address). Rerun will only
+        create new instances but not alter existing blacklist.</p>
+      <button class="btn btn-primary" (click)="migrateBlacklist()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Fix Sales Base and Bonus</h5>
-            <p class="card-text">If ownership changed and agent kept, we don't want to pay sales base and bonus twice.
-                This will erase sales base and bunus for new RT.
-                Safe to run multiple times.</p>
-            <button class="btn btn-primary" (click)="fixSalesBaseAndBonus()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Calculate Commissions</h5>
+      <p class="card-text">Output year-end commissions collected</p>
+      <button class="btn btn-primary" (click)="calculateCommissions()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Mutate RT Id</h5>
-            <p class="card-text">To invalidate all outstanding logins. Temp solution for insecure restaurants. Must
-                change hard-coded ids.</p>
-            <button class="btn btn-primary" (click)="mutateRtId()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Fix Sales Base and Bonus</h5>
+      <p class="card-text">If ownership changed and agent kept, we don't want to pay sales base and bonus twice.
+        This will erase sales base and bunus for new RT.
+        Safe to run multiple times.</p>
+      <button class="btn btn-primary" (click)="fixSalesBaseAndBonus()">Execute</button>
     </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Mutate RT Id</h5>
+      <p class="card-text">To invalidate all outstanding logins. Temp solution for insecure restaurants. Must
+        change hard-coded ids.</p>
+      <button class="btn btn-primary" (click)="mutateRtId()">Execute</button>
+    </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Purge Jobs</h5>
-            <p class="card-text">Remove old (more than 30 days) jobs</p>
-            <button class="btn btn-primary" (click)="purge('job')">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Purge Jobs</h5>
+      <p class="card-text">Remove old (more than 30 days) jobs</p>
+      <button class="btn btn-primary" (click)="purge('job')">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Purge Events</h5>
-            <p class="card-text">Remove old (more than 30 days) events</p>
-            <button class="btn btn-primary" (click)="purge('event')">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Purge Events</h5>
+      <p class="card-text">Remove old (more than 30 days) events</p>
+      <button class="btn btn-primary" (click)="purge('event')">Execute</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Fix Both Longhorn and Phoenix</h5>
-            <p class="card-text">Some restaurant have both printers. Remove Longhorn. Safe to run muliutiple tiimes</p>
-            <button class="btn btn-primary" (click)="fixLonghornPhoenix()">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Fix Both Longhorn and Phoenix</h5>
+      <p class="card-text">Some restaurant have both printers. Remove Longhorn. Safe to run muliutiple tiimes</p>
+      <button class="btn btn-primary" (click)="fixLonghornPhoenix()">Execute</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Migrate TME Restaurants</h5>
-            <p class="card-text">OK to run multiple times</p>
-            <button class="btn btn-primary" (click)="migrateTme()">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Migrate TME Restaurants</h5>
+      <p class="card-text">OK to run multiple times</p>
+      <button class="btn btn-primary" (click)="migrateTme()">Execute</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Inject Missed Timezones to Restaurants</h5>
-            <p class="card-text">OK to run multiple times</p>
-            <button class="btn btn-primary" (click)="injectTimezone()">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Inject Missed Timezones to Restaurants</h5>
+      <p class="card-text">OK to run multiple times</p>
+      <button class="btn btn-primary" (click)="injectTimezone()">Execute</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Sync</h5>
-            <p class="card-text">Three entities: Restaurants, GMB Business, Lead. </p>
-            <app-sync-buttons></app-sync-buttons>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Sync</h5>
+      <p class="card-text">Three entities: Restaurants, GMB Business, Lead. </p>
+      <app-sync-buttons></app-sync-buttons>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Remove Duplicated Leads</h5>
-            <p class="card-text">Remove duplicated leads, based on restaurantId</p>
-            <button class="btn btn-primary" (click)="removeDuplicates()">Remove Duplicates</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Remove Duplicated Leads</h5>
+      <p class="card-text">Remove duplicated leads, based on restaurantId</p>
+      <button class="btn btn-primary" (click)="removeDuplicates()">Remove Duplicates</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">qMenu: Migrate Address</h5>
-            <p class="card-text">No side effects. Migrating 'address' (in separate document) to 'restaurant' document as
-                googleAddress.
-            </p>
-            <button class="btn btn-primary" (click)="migrateAddress()">Migrate Address</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">qMenu: Migrate Address</h5>
+      <p class="card-text">No side effects. Migrating 'address' (in separate document) to 'restaurant' document as
+        googleAddress.
+      </p>
+      <button class="btn btn-primary" (click)="migrateAddress()">Migrate Address</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">qMenu: Fix Google Address</h5>
-            <p class="card-text">Some old restaurant's googleAddress has missing info (no locality, street_number etc.)
-            </p>
-            <button class="btn btn-primary" (click)="fixAddress()">Fix Address</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">qMenu: Fix Google Address</h5>
+      <p class="card-text">Some old restaurant's googleAddress has missing info (no locality, street_number etc.)
+      </p>
+      <button class="btn btn-primary" (click)="fixAddress()">Fix Address</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">qMenu: Migrate Email and Phones(Again)</h5>
-            <p class="card-text">No side effects. Consolidate phones and emails into new structure restaurant.channels
-            </p>
-            <button class="btn btn-primary" (click)="migrateEmailAndPhones()">Migrate Email and Phones</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">qMenu: Migrate Email and Phones(Again)</h5>
+      <p class="card-text">No side effects. Consolidate phones and emails into new structure restaurant.channels
+      </p>
+      <button class="btn btn-primary" (click)="migrateEmailAndPhones()">Migrate Email and Phones</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">qMenu: Remove Orphan Phones</h5>
-            <p class="card-text">Orphan Phone: Associated restaurant has been deleted. We need to remove them from
-                database.
-            </p>
-            <button class="btn btn-primary" (click)="removeOrphanPhones()"
-                [qLoading]="removingOrphanPhones">Remove</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">qMenu: Remove Orphan Phones</h5>
+      <p class="card-text">Orphan Phone: Associated restaurant has been deleted. We need to remove them from
+        database.
+      </p>
+      <button class="btn btn-primary" (click)="removeOrphanPhones()" [qLoading]="removingOrphanPhones">Remove</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Admin: Fix Call Logs (Data Corruption)</h5>
-            <p class="card-text">Some call logs is object instead of array. This will put logs in array.</p>
-            <button class="btn btn-primary" (click)="fixCallLogs()">Fix</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Admin: Fix Call Logs (Data Corruption)</h5>
+      <p class="card-text">Some call logs is object instead of array. This will put logs in array.</p>
+      <button class="btn btn-primary" (click)="fixCallLogs()">Fix</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">qMenu: Inject deliveryBy for historical orders</h5>
-            <p class="card-text">ONE TIME: (Disable after run)</p>
-            <button class="btn btn-primary" (click)="injectDeliveryBy()" [disabled]="true">Fix</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">qMenu: Inject deliveryBy for historical orders</h5>
+      <p class="card-text">ONE TIME: (Disable after run)</p>
+      <button class="btn btn-primary" (click)="injectDeliveryBy()" [disabled]="true">Fix</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">qMenu: Inject deliveryBy from order to invoice.orders</h5>
-            <p class="card-text">No side effects. We have invoices that didn't have deliveryBy injected</p>
-            <button class="btn btn-primary" (click)="injectDeliveryByToInvoice()">Fix</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">qMenu: Inject deliveryBy from order to invoice.orders</h5>
+      <p class="card-text">No side effects. We have invoices that didn't have deliveryBy injected</p>
+      <button class="btn btn-primary" (click)="injectDeliveryByToInvoice()">Fix</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Compute Invoice Derived Fields</h5>
-            <p class="card-text">Including total, subtotal etc. No side effects. We have to batch process existing
-                invoices.</p>
-            <button class="btn btn-primary" (click)="injectTotalEtcToInvoice()">Fix</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Compute Invoice Derived Fields</h5>
+      <p class="card-text">Including total, subtotal etc. No side effects. We have to batch process existing
+        invoices.</p>
+      <button class="btn btn-primary" (click)="injectTotalEtcToInvoice()">Fix</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Inject old GMB to new GMB</h5>
-            <p class="card-text">No side effects.</p>
-            <button class="btn btn-primary" (click)="convertGmb()">Convert</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Inject old GMB to new GMB</h5>
+      <p class="card-text">No side effects.</p>
+      <button class="btn btn-primary" (click)="convertGmb()">Convert</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Stripe Charge Problem</h5>
-            <p class="card-text">Get missing charge problem for stripe</p>
-            <button class="btn btn-primary" (click)="getStripeErrors()">Get Stripe Errors</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Stripe Charge Problem</h5>
+      <p class="card-text">Get missing charge problem for stripe</p>
+      <button class="btn btn-primary" (click)="getStripeErrors()">Get Stripe Errors</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Generic Testing</h5>
-            <p class="card-text">Some random queries.</p>
-            <button class="btn btn-primary" (click)="genericTesting()">Testing</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Generic Testing</h5>
+      <p class="card-text">Some random queries.</p>
+      <button class="btn btn-primary" (click)="genericTesting()">Testing</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Fix Missing Business Phone</h5>
-            <p class="card-text">Find restaurant missing business phone and patch. Check console.</p>
-            <button class="btn btn-primary" (click)="fixMissingBusinessPhones()">Fix</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Fix Missing Business Phone</h5>
+      <p class="card-text">Find restaurant missing business phone and patch. Check console.</p>
+      <button class="btn btn-primary" (click)="fixMissingBusinessPhones()">Fix</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Create Apply GMB Task for RT</h5>
-            <button class="btn btn-primary" (click)="createApplyGmbTask()">Start</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Create Apply GMB Task for RT</h5>
+      <button class="btn btn-primary" (click)="createApplyGmbTask()">Start</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Crawl Restaurant</h5>
-            <button class="btn btn-primary" (click)="crawlRestaurants()">Start</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Crawl Restaurant</h5>
+      <button class="btn btn-primary" (click)="crawlRestaurants()">Start</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Fix Null Menu and Duplicated Ids</h5>
-            <p class="card-text">It's OK to run multiple times </p>
-            <button class="btn btn-primary" (click)="fixMenu()">Fix</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Fix Null Menu and Duplicated Ids</h5>
+      <p class="card-text">It's OK to run multiple times </p>
+      <button class="btn btn-primary" (click)="fixMenu()">Fix</button>
     </div>
+  </div>
 
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Remove Empty Mi Size Option</h5>
-            <p class="card-text">It's OK to run multiple times </p>
-            <button class="btn btn-primary" (click)="removeEmptySizeOption()">Fix</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Remove Empty Mi Size Option</h5>
+      <p class="card-text">It's OK to run multiple times </p>
+      <button class="btn btn-primary" (click)="removeEmptySizeOption()">Fix</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Handle Holiday Closed Hours</h5>
-            <p class="card-text">This will add ALL closed hours for every restaurant. Send sms, using 8557592648. If
-                restaurant replies 'open',
-                system will remove the hours. </p>
-            <button class="btn btn-primary" (click)="handleHolidy()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Handle Holiday Closed Hours</h5>
+      <p class="card-text">This will add ALL closed hours for every restaurant. Send sms, using 8557592648. If
+        restaurant replies 'open',
+        system will remove the hours. </p>
+      <button class="btn btn-primary" (click)="handleHolidy()">Execute</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Fix Price String Type</h5>
-            <p class="card-text">Some item's price is sting instead of number. </p>
-            <button class="btn btn-primary" (click)="fixPriceDataType()">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Fix Price String Type</h5>
+      <p class="card-text">Some item's price is sting instead of number. </p>
+      <button class="btn btn-primary" (click)="fixPriceDataType()">Execute</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Remove Unused Invoices from Restaurant Object</h5>
-            <p class="card-text">Invoices are accidentally updated to be part of restaurant body. They should be
-                removed. No side effect.</p>
-            <button class="btn btn-primary" (click)="removeInvoiceFromRestaurant()">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Remove Unused Invoices from Restaurant Object</h5>
+      <p class="card-text">Invoices are accidentally updated to be part of restaurant body. They should be
+        removed. No side effect.</p>
+      <button class="btn btn-primary" (click)="removeInvoiceFromRestaurant()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Fix Rate Schedules</h5>
-            <p class="card-text">Remove special characters in agent names and turn eveything name lower case.</p>
-            <button class="btn btn-primary" (click)="fixRateSchedules()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Fix Rate Schedules</h5>
+      <p class="card-text">Remove special characters in agent names and turn eveything name lower case.</p>
+      <button class="btn btn-primary" (click)="fixRateSchedules()">Execute</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Compute Duplicated Restaurants</h5>
-            <p class="card-text">Restaurant was disabled, then enabled as a new restaurant. We should make the new
-                restaurant's previousRestaurantId to reduce double pay. Safe to run multiple times.</p>
-            <button class="btn btn-primary" (click)="computeDuplicates()">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Compute Duplicated Restaurants</h5>
+      <p class="card-text">Restaurant was disabled, then enabled as a new restaurant. We should make the new
+        restaurant's previousRestaurantId to reduce double pay. Safe to run multiple times.</p>
+      <button class="btn btn-primary" (click)="computeDuplicates()">Execute</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Compute and Inject Restaurant Scores</h5>
-            <p class="card-text">Recalculate every restaurant's score and save it to restaurant object</p>
-            <button class="btn btn-primary" (click)="injectRestaurantScores()">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Compute and Inject Restaurant Scores</h5>
+      <p class="card-text">Recalculate every restaurant's score and save it to restaurant object</p>
+      <button class="btn btn-primary" (click)="injectRestaurantScores()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Migrate gmbBiz to restaurants</h5>
-            <p class="card-text">Migrate existing gmbBiz to restaurants. Can run multiple-times.</p>
-            <button class="btn btn-primary" (click)="migrateGmbBizToRestaurants()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Migrate gmbBiz to restaurants</h5>
+      <p class="card-text">Migrate existing gmbBiz to restaurants. Can run multiple-times.</p>
+      <button class="btn btn-primary" (click)="migrateGmbBizToRestaurants()">Execute</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Migrate Old gmbOwnerships</h5>
-            <p class="card-text">Migrate old ownerships to account locations!</p>
-            <button class="btn btn-primary" (click)="migrateGmbOwnerships()">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Migrate Old gmbOwnerships</h5>
+      <p class="card-text">Migrate old ownerships to account locations!</p>
+      <button class="btn btn-primary" (click)="migrateGmbOwnerships()">Execute</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Migrate Order Delivery Address</h5>
-            <p class="card-text">Move deliveryAddress content to order. No side effects. If already moved, no action.
-            </p>
-            <button class="btn btn-primary" (click)="migrateOrderAddress()">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Migrate Order Delivery Address</h5>
+      <p class="card-text">Move deliveryAddress content to order. No side effects. If already moved, no action.
+      </p>
+      <button class="btn btn-primary" (click)="migrateOrderAddress()">Execute</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Migrate Order Payment, Customer, and Restaurant</h5>
-            <p class="card-text">Move payment content to order.paymentObj etc. No side effects. If already moved, no
-                action.
-            </p>
-            <button class="btn btn-primary" (click)="migrateOrderPaymentCustomerRestaurant()">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Migrate Order Payment, Customer, and Restaurant</h5>
+      <p class="card-text">Move payment content to order.paymentObj etc. No side effects. If already moved, no
+        action.
+      </p>
+      <button class="btn btn-primary" (click)="migrateOrderPaymentCustomerRestaurant()">Execute</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Migrate Order Statuses</h5>
-            <p class="card-text">Move order statuses to order
-            </p>
-            <button class="btn btn-primary" (click)="migrateOrderStatuses()">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Migrate Order Statuses</h5>
+      <p class="card-text">Move order statuses to order
+      </p>
+      <button class="btn btn-primary" (click)="migrateOrderStatuses()">Execute</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Delete Bing Images</h5>
-            <p class="card-text">Delete Bing Images for all the restaurants</p>
-            <button class="btn btn-primary" (click)="cleanBingImages()">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Delete Bing Images</h5>
+      <p class="card-text">Delete Bing Images for all the restaurants</p>
+      <button class="btn btn-primary" (click)="cleanBingImages()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Inject Images</h5>
-            <p class="card-text">Inject Images for all the restaurants</p>
-            <button class="btn btn-primary" (click)="injectImages()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Inject Images</h5>
+      <p class="card-text">Inject Images for all the restaurants</p>
+      <button class="btn btn-primary" (click)="injectImages()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Inject RequireZip/Billing Address</h5>
-            <p class="card-text">Inject RequireZip/Billing Address if CC payment type is QMENU</p>
-            <button class="btn btn-primary" (click)="injectRequireZipBillingAddress()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Inject RequireZip/Billing Address</h5>
+      <p class="card-text">Inject RequireZip/Billing Address if CC payment type is QMENU</p>
+      <button class="btn btn-primary" (click)="injectRequireZipBillingAddress()">Execute</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Find RTs with QMenu Collect CC</h5>
-            <p class="card-text"></p>
-            <button class="btn btn-primary" (click)="findQMenuCCRTs()">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Find RTs with QMenu Collect CC</h5>
+      <p class="card-text"></p>
+      <button class="btn btn-primary" (click)="findQMenuCCRTs()">Execute</button>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Get Worthy Domains</h5>
-            <p class="card-text">Get a list of domains worthy. Safe to run multiple times</p>
-            <button class="btn btn-primary" (click)="calculateDomainValue()">Execute</button>
-        </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Get Worthy Domains</h5>
+      <p class="card-text">Get a list of domains worthy. Safe to run multiple times</p>
+      <button class="btn btn-primary" (click)="calculateDomainValue()">Execute</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Get AWS Domains and Godaddy Domains</h5>
-            <p class="card-text">Get a list of aws domains and godaddy domains</p>
-            <button class="btn btn-primary" (click)="getAwsAndGodaddyDomains()">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Get AWS Domains and Godaddy Domains</h5>
+      <p class="card-text">Get a list of aws domains and godaddy domains</p>
+      <button class="btn btn-primary" (click)="getAwsAndGodaddyDomains()">Execute</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Get restaurants having orders in recent days (hard coded)</h5>
-            <button class="btn btn-primary" (click)="getRestaurantsHavingOrdersWithin()">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Get restaurants having orders in recent days (hard coded)</h5>
+      <button class="btn btn-primary" (click)="getRestaurantsHavingOrdersWithin()">Execute</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Find restaurants having qmenu.us or godaddy website </h5>
-            <button class="btn btn-primary" (click)="getRestaurantWithoutSingleDomain()">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Find restaurants having qmenu.us or godaddy website </h5>
+      <button class="btn btn-primary" (click)="getRestaurantWithoutSingleDomain()">Execute</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Find Chinese or English restaurants</h5>
-            <button class="btn btn-primary" (click)="getChineseOrEnglishRTs()">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Find Chinese or English restaurants</h5>
+      <button class="btn btn-primary" (click)="getChineseOrEnglishRTs()">Execute</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Find restaurants closed morn than 3 months</h5>
-            <button class="btn btn-primary" (click)="getRTsClosedForLong()">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Find restaurants closed morn than 3 months</h5>
+      <button class="btn btn-primary" (click)="getRTsClosedForLong()">Execute</button>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Delete past closed hours</h5>
-            <button class="btn btn-primary" (click)="deletePastClosedHours()">Execute</button>
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Delete past closed hours</h5>
+      <button class="btn btn-primary" (click)="deletePastClosedHours()">Execute</button>
     </div>
+  </div>
 
 
 
