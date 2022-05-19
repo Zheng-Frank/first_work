@@ -239,6 +239,8 @@ export class EmailCodeReaderComponent implements OnInit {
       }
     } else {
       this.domainMap = undefined;
+      this.redirect = false;
+      this.redirectOption = redirectTypes.BM_Site;
     }
   }
 
