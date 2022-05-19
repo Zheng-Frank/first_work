@@ -4,13 +4,61 @@
   <ul class="list-group list-group-flush {{readonly ? 'disabled' : ''}}">
     <li class="list-group-item">
       <ng-container *ngIf="restaurant">
-        <div class="form-group row">
-          <label class="col-4 col-form-label pt-0">qMenu Managed Website</label>
+        <div class="row">
+          <label class="col-4 col-form-label pt-0">
+            qMenu Managed Website
+            <div class="row ml-1" *ngIf="restaurant?.web?.qmenuWebsite">
+              <button class="btn btn-sm btn-link" (click)="showRedirectDetailSettings()">
+                {{ showDetailSettings ? 'Hide Detailed Settings' : 'Show Detailed Settings'}}
+                <i class="fa fa-angle-{{showDetailSettings ? 'up': 'down'}}"></i>
+              </button>
+            </div>
+          </label>
           <div class="col-8 text-left">
             <q-edit-label [value]="restaurant?.web?.qmenuWebsite" (edit)="onEdit($event, 'qmenuWebsite')">
             </q-edit-label>
             <button *ngIf="!restaurant?.web?.qmenuWebsite" class="btn btn-link" (click)="populateAlias()">Populate qMenu
               Alias</button>
+            <span class="ml-2">
+              (G-rank: {{googleRank}})
+            </span>
+          </div>
+        </div>
+        <div class="ml-2" *ngIf="showDetailSettings">
+          <div *ngIf="domainMap;else domainBlock;">
+            <div>
+              Autorenew: {{domainMap?.domainAutoRenew}}, Must Autorenew: {{domainMap?.shouldRenew}}, Type:
+              {{domainMap?.domainType}}, Expiration Date: {{domainMap?.domainExpiry | date: 'MMM dd yyyy'}},
+              Reasons: {{(domainMap?.reasons || []).join(', ')}}
+            </div>
+            <div>
+              <button class="btn btn-small btn-primary mr-3" (click)="applyAutoRenew(domainMap, false)"
+                *ngIf="domainMap.domainAutoRenew === true">Disable</button>
+              <button class="btn btn-small btn-success" (click)="applyAutoRenew(domainMap, true)"
+                *ngIf="domainMap.domainAutoRenew === false">Enable</button>
+            </div>
+          </div>
+          <ng-template #domainBlock>
+            <div class="ml-2">
+              No Domain Matched
+            </div>
+          </ng-template>
+          <hr>
+          <div class="ml-2 form-group">
+            <div>
+              <input type="checkbox" [(ngModel)]="redirect"> Redirect
+            </div>
+            <div class="form-inline" *ngIf="redirect">
+              <select [(ngModel)]="redirectOption" class="form-control mr-2">
+                <option *ngFor="let option of redirectOptions">{{ option }}</option>
+              </select>
+              <a *ngIf="redirectOption === redirectTypes.BM_Site">
+                {{ [bmRT?.CustomerDomainName, bmRT?.CustomerDomainName1].join(', ') }}
+              </a>
+              <q-edit-label *ngIf="redirectOption === redirectTypes.Other" [value]="restaurant?.web?.domainRedirectUrl"
+                (edit)="onEdit($event, 'domainRedirectUrl')"></q-edit-label>
+              <button class="btn btn-sm btn-primary ml-2" (click)="executeRedirect()">Execute</button>
+            </div>
           </div>
         </div>
         <div class="form-group row">

@@ -15,6 +15,11 @@ enum socialMediaLinkTypes {
   WHATSAPP = 'Whatsapp'
 }
 
+enum redirectTypes {
+  BM_Site = 'BM Site',
+  Other = 'Other'
+}
+
 @Component({
   selector: 'app-email-code-reader',
   templateUrl: './email-code-reader.component.html',
@@ -26,6 +31,7 @@ export class EmailCodeReaderComponent implements OnInit {
   @ViewChild('socialMediaLinksModal') socialMediaLinksModal: ModalComponent;
   @Input() readonly = false;
   @Input() restaurant;
+  @Input() bmRT;
 
   submitClicked = false;
   retrievedObj: any;
@@ -38,6 +44,14 @@ export class EmailCodeReaderComponent implements OnInit {
   showCompleteButtonSnippet = false;
   socialMediaLinks = [{ text: socialMediaLinkTypes.FACEBOOK, value: '' }, { text: socialMediaLinkTypes.TWITTER, value: '' }, { text: socialMediaLinkTypes.INSTAGRAM, value: '' }, { text: socialMediaLinkTypes.WECHAT, value: '' }, { text: socialMediaLinkTypes.WHATSAPP, value: '' }];
   existsSocialMediaLinks = [];
+  showDetailSettings = false;
+  redirectOptions = [redirectTypes.BM_Site, redirectTypes.Other];
+  redirectOption = redirectTypes.BM_Site;
+  redirect = false;
+  EXPIRY_DAYS_THRESHOLD = 60;
+  INVOICE_DAYS_THRESHOLD = 30 * 6;
+  domainMap;
+  googleRank; // show beside with qmenu website
   constructor(private _api: ApiService, private _cache: CacheService, private _global: GlobalService) { }
 
   async ngOnInit() {
@@ -61,7 +75,213 @@ export class EmailCodeReaderComponent implements OnInit {
      * [ {"Facebook": "111"},{"Twitter": "123"}]
      * 
      */
-    this.populateExistingSocialMedia();
+    await this.populateExistingSocialMedia();
+    await this.populateGoogleRank();
+  }
+
+  get redirectTypes() {
+    return redirectTypes;
+  }
+
+  async populateGoogleRank() {
+    const [googleRank] = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+      resource: "google-ranks",
+      query: {
+        restaurantId: this.restaurant._id,
+        ranks: {
+          $exists: true,
+          $ne: []
+        },
+        "ranks.rank": {
+          $exists: true
+        },
+        // createdAt: {
+        //   $gte: {
+        //     $date: new Date(new Date().valueOf() - 30 * 24 * 3600 * 1000) 
+        //   }
+        // }
+      },
+      projection: {
+        ranks: 1,
+        createdAt: 1
+      },
+      sort: {
+        _id: -1
+      },
+      limit: 1
+    }, 1);
+    let qmenuWebsite = (this.restaurant.web || {}).qmenuWebsite;
+    let rank = ((googleRank || {}).ranks || []).find(rank => rank.website === qmenuWebsite);
+    this.googleRank = (rank || {}).rank || 'N/A';
+  }
+
+  async showRedirectDetailSettings() {
+    this.showDetailSettings = !this.showDetailSettings;
+    if (this.showDetailSettings) {
+      // --- domains
+      const qmenuWebsite = (this.restaurant.web || {}).qmenuWebsite;
+      const rtDomain = qmenuWebsite.replace('http://', '').replace('https://', '').replace('www.', '').replace('/', '');
+      const nextCoupleWeeks = new Date();
+      nextCoupleWeeks.setDate(nextCoupleWeeks.getDate() + this.EXPIRY_DAYS_THRESHOLD);
+      const [domain] = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+        resource: 'domain',
+        query: {
+          // type: { $ne: 'AWS' },
+          expiry: { $lte: { $date: nextCoupleWeeks } },
+          name: { $eq: rtDomain }
+        },
+      }, 1);
+      if (domain) {
+        this.domainMap = {
+          _id: domain._id,
+          domainName: domain.name,
+          domainExpiry: domain.expiry,
+          domainStatus: domain.status,
+          domainType: domain.type,
+          domainAutoRenew: domain.autoRenew,
+          restaurantId: this.restaurant._id.toString(),
+          restaurantName: this.restaurant.name,
+          restaurantAlias: this.restaurant.alias,
+          restaurantAddress: this.restaurant.googleAddress.formatted_address,
+          restaurantDisabled: this.restaurant.disabled,
+          restaurantWeb: this.restaurant.web
+        }
+        // --- Auto renew conditions
+        const reasons = [];
+        const domainWhiteList = [
+          'myqmenu.com',
+          'qdasher.com',
+          'qmenu360.com',
+          'qmenu365.com',
+          'qmenu.biz',
+          'qmenu.us',
+          'qmenudemo.com',
+          'qmenufood.com',
+          'qmenuprint.com',
+          'qmenuschoice.com',
+          'qmenutest.com',
+          'qmorders.com',
+          '4043829768.com'
+        ];
+        // --- whitelist 
+        if (domainWhiteList.includes(this.domainMap.domainName.replace('http://', '').replace('https://', '').replace('/', ''))) {
+          reasons.push('Whitelisted domain');
+          this.domainMap.isWhitelistDomain = true;
+        }
+
+        // --- rt disabled
+        if (this.domainMap.restaurantDisabled && (this.domainMap.restaurantDisabled === true)) {
+          reasons.push('Restaurant is disabled');
+        }
+
+        if ((this.domainMap.restaurantDisabled && this.domainMap.restaurantDisabled === false) || (!this.domainMap.restaurantDisabled)) {
+          reasons.push('Restaurant is enabled');
+        }
+
+        // --- insisted website (rt uses its own domain)
+        if ((this.domainMap.restaurantWeb || {}).useBizMenuUrl === true) {
+          reasons.push('Insisted restaurant');
+          this.domainMap.restaurantInsisted = true;
+        }
+
+        // --- insisted all
+        if ((this.domainMap.restaurantWeb || {}).useBizWebsiteForAll === true) {
+          reasons.push('Insisted website for all');
+          this.domainMap.restaurantInsistedForAll = true;
+        }
+
+        // --- expiry time in upcoming expiryDaysTreshold days
+        const now = new Date();
+        const expiry = new Date(this.domainMap.domainExpiry);
+
+        const diffTime = expiry.getTime() - now.getTime();
+        const diffDays = Math.round(Math.abs(diffTime) / (1000 * 60 * 60 * 24));
+
+        if (diffTime < 0) {
+          reasons.push(`Expired ${diffDays} days ago`);
+          this.domainMap.expired = true;
+        }
+
+        if (diffTime > 0) {
+          if (diffDays <= this.EXPIRY_DAYS_THRESHOLD) {
+            reasons.push(`Will expire in less than ${diffDays} days`);
+            this.domainMap.expired = false;
+          } else {
+            reasons.push(`Will expire in more than ${diffDays} days`);
+            this.domainMap.expired = false;
+          }
+        }
+
+        // --- no invoices in the past 6 months
+        const hasInvoiceInLastMonths = this.restaurant;
+        if (hasInvoiceInLastMonths === true) {
+          reasons.push(`Have invoices for the past ${this.INVOICE_DAYS_THRESHOLD / 30} months`);
+          this.domainMap.hasInvoicesInLast6Months = true;
+        } else {
+          reasons.push(`Do not have invoices for over ${this.INVOICE_DAYS_THRESHOLD / 30} months`);
+          this.domainMap.hasInvoicesInLast6Months = false;
+        }
+
+        // --- no matching restaurant
+        if (!this.domainMap.restaurantId) {
+          reasons.push(`No restaurant linked to this domain`);
+        }
+
+        // --- should renew
+        if (this.domainMap.restaurantDisabled || this.domainMap.restaurantInsisted || this.domainMap.restaurantInsistedForAll || !this.domainMap.hasInvoicesInLast6Months || !this.domainMap.restaurantId) {
+          this.domainMap.shouldRenew = false;
+        } else if (this.domainMap.hasInvoicesInLast6Months) {
+          this.domainMap.shouldRenew = true;
+        }
+        this.domainMap.reasons = reasons;
+      } else {
+        this.domainMap = undefined;
+      }
+    } else {
+      this.domainMap = undefined;
+    }
+  }
+
+  async applyAutoRenew(domain, shouldRenew) {
+    try {
+      const payload = {
+        domain: domain.domainName,
+        shouldRenew
+      };
+
+      const result = await this._api.post(environment.appApiUrl + 'utils/renew-aws-domain', payload).toPromise();
+
+      await this._api.patch(environment.qmenuApiUrl + 'generic?resource=domain', [
+        {
+          old: { _id: domain._id },
+          new: { _id: domain._id, autoRenew: shouldRenew },
+        }
+      ]).toPromise();
+
+      await this.setAlias(domain.restaurantId, domain.restaurantAlias);
+
+
+      this._global.publishAlert(AlertType.Success, `Domain Rewnewal status for ${domain.domainName} updated successfully.`);
+    } catch (error) {
+      console.error(error);
+      this._global.publishAlert(AlertType.Danger, `Failed to update ${domain.domainName} renewal status.`);
+    }
+
+  }
+
+  async setAlias(restaurantId, restaurantAlias) {
+    const aliasUrl = environment.customerUrl + '#/' + restaurantAlias;
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+      {
+        old: { _id: restaurantId, web: {} },
+        new: { _id: restaurantId, web: { qmenuWebsite: aliasUrl } },
+      }
+    ]).toPromise();
+  }
+
+  // TODO: do an api call to republish website to AWS
+  executeRedirect() {
+
   }
 
   // need a existing social media link collection to check whether show input using to add media link 
