@@ -19,12 +19,14 @@
             </q-edit-label>
             <button *ngIf="!restaurant?.web?.qmenuWebsite" class="btn btn-link" (click)="populateAlias()">Populate qMenu
               Alias</button>
-            <span class="ml-2">
-              (G-rank: {{googleRank}})
-            </span>
           </div>
         </div>
+        <!-- start with show detail settings -->
         <div class="ml-2" *ngIf="showDetailSettings">
+          <div *ngIf="googleRank" class="ml-2">
+            <span class="">G-rank: {{googleRank}}</span>
+            <button class="btn btn-sm btn-link" (click)="calcGoogleRank()">Calculate</button>
+          </div>
           <div *ngIf="domainMap;else domainBlock;">
             <div>
               Autorenew: {{domainMap?.domainAutoRenew}}, Must Autorenew: {{domainMap?.shouldRenew}}, Type:
@@ -45,22 +47,11 @@
           </ng-template>
           <hr>
           <div class="ml-2 form-group">
-            <div>
-              <input type="checkbox" [(ngModel)]="redirect"> Redirect
-            </div>
-            <div class="form-inline" *ngIf="redirect">
-              <select [(ngModel)]="redirectOption" class="form-control mr-2">
-                <option *ngFor="let option of redirectOptions">{{ option }}</option>
-              </select>
-              <a *ngIf="redirectOption === redirectTypes.BM_Site">
-                {{ [bmRT?.CustomerDomainName, bmRT?.CustomerDomainName1].join(', ') }}
-              </a>
-              <q-edit-label *ngIf="redirectOption === redirectTypes.Other" [value]="restaurant?.web?.domainRedirectUrl"
-                (edit)="onEdit($event, 'domainRedirectUrl')"></q-edit-label>
-              <button class="btn btn-sm btn-primary ml-2" (click)="executeRedirect()">Execute</button>
-            </div>
+            <button class="btn btn-sm btn-primary" (click)="openRedirectModal()">Redirect URL</button>
+            <span *ngIf="currDomainRedirectUrl">Current: {{ currDomainRedirectUrl }}</span>
           </div>
         </div>
+        <!-- end with show detail settings -->
         <div class="form-group row">
           <label class="col-4 col-form-label pt-0">Website Template</label>
           <div class="col-8 text-left">
@@ -196,4 +187,33 @@
     </div>
   </q-modal>
   <!-- end with social media link modal -->
+  <!-- start with redirect modal -->
+  <q-modal #redirectModal>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">URL Redirect</h4>
+    <hr>
+    <div class="container">
+      <div class="mt-2">
+        <input type="checkbox" [(ngModel)]="redirect" (change)="onChangeRedirectOtherUrl()">
+        <label>Redirect to other URL</label>
+      </div>
+      <div *ngIf="redirect">
+        <select [(ngModel)]="redirectOption" class="form-control">
+          <option *ngFor="let option of redirectOptions">{{ option }}</option>
+        </select>
+        <span class="mt-2" *ngIf="redirectOption === redirectTypes.BM_Site">
+          {{ domainRedirectUrl }}
+        </span>
+        <input class="form-control mt-2" placeholder="Redirect URL" *ngIf="redirectOption === redirectTypes.Other" [(ngModel)]="domainRedirectUrl" />
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end p-4">
+      <button class="btn btn-secondary mr-2" (click)="redirectModal.close()">Cancel</button>
+      <button class="btn btn-primary" [disabled]="redirect && !domainRedirectUrl" (click)="executeRedirect()">OK</button>
+    </div>
+  </q-modal>
+  <!-- end with redirect modal -->
 </div>

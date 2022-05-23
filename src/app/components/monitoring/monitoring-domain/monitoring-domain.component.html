@@ -1,30 +1,36 @@
 <h1 class="text-center">Domains<br><small>{{filteredDomains.length}}</small></h1>
-<div class="clearfix my-2">
-    <div class="float-left form-inline">
-        <label for="">Filter by: </label>
-        <select class="form-control mr-2 mb-1" [(ngModel)]="mustRenew" (change)="filter()">
-            <option>Show All</option>
-            <option>Domains to Renew</option>
-            <option>Domains to not Renew</option>
-        </select>
-    </div>
+<div class="row">
+  <div class="col-auto mb-3">
+    <select [(ngModel)]="filters.mustRenew" class="custom-select" (change)="filter()">
+      <option [value]="''">Domains to Renew?</option>
+      <option *ngFor="let option of dropdowns('must_renew')" [value]="option">{{option}}</option>
+    </select>
+  </div>
+  <div class="col-auto mb-3">
+    <select [(ngModel)]="filters.hasRedirect" class="custom-select" (change)="filter()">
+      <option [value]="''">Has Redirect?</option>
+      <option *ngFor="let option of dropdowns('has_redirect')" [value]="option">{{option}}</option>
+    </select>
+  </div>
+  <div class="col-auto mb-3">
+    <button class="btn btn-small btn-success mr-3" (click)="applyBulkAutoRenew(true)">Enable Selected</button>
+  </div>
+  <div class="col-auto mb-3">
+    <button class="btn btn-small btn-primary" (click)="applyBulkAutoRenew(false)">Disable Selected</button>
+  </div>
+  <div class="col-auto mb-3">
+    <button class="btn btn-link" (click)="refresh()" [qLoading]="refreshing"><i class="fas fa-sync-alt"></i>
+      Reload</button>
+  </div>
+  <div class="col-auto mb-3">
+    <input type="checkbox" class="mt-2" [(ngModel)]="pagination">
+    <label class="mr-3 ml-1 mt-2">
+      Pagination
+    </label>
 </div>
 
-<div class="d-flex align-items-center justify-content-end">
-  <button class="btn btn-small btn-success mr-3" (click)="applyBulkAutoRenew(true)">Enable Selected</button>
-  <button class="btn btn-small btn-primary" (click)="applyBulkAutoRenew(false)">Disable Selected</button>
-</div>
-
-<div class="d-flex align-items-center justify-content-end">
-  <button class="btn btn-link" (click)="refresh()" [qLoading]="refreshing"><i class="fas fa-sync-alt"></i> Reload</button>
-</div>
-
-<q-table
-  [rows]="filteredDomains"
-  [tableColumnDescriptors]="myColumnDescriptors"
-  [compact]="true"
-  [pageSize]="pagination ? 100 : 100000"
->
+<q-table [rows]="filteredDomains" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true"
+  [pageSize]="pagination ? 100 : 100000">
   <tr *tableRowTemplate="let domain">
     <!-- count -->
     <td>
@@ -44,8 +50,17 @@
     <td>
       <div class="h-100 d-flex flex-column justify-content-center">
         <a href="http://{{ domain.domainName }}" target="_blank" class="font-weight-bold">{{ domain.domainName }}</a>
-        <div class="text-muted">
-            <small><a routerLink="/restaurants/{{ domain.restaurantId }}" target="_blank">{{domain.restaurantName}}</a></small>
+        <div class="text-muted" *ngIf="domain.restaurantId">
+          <small><a routerLink="/restaurants/{{ domain.restaurantId }}"
+              target="_blank">{{domain.restaurantName}}</a></small>
+          <small class="ml-2" *ngIf="domain.googleRank">(G-rank: {{domain.googleRank}})</small>
+        </div>
+        <div *ngIf="domain.restaurantId">
+          <button class="btn btn-sm btn-primary" (click)="openRedirectModal(domain)">Redirect URL</button>
+          <span *ngIf="domain.currDomainRedirectUrl">Current: {{ domain.currDomainRedirectUrl }}</span>
+        </div>
+        <div *ngIf="domain.matchingbmRT"> 
+          {{ domain.matchingbmRT | json }}
         </div>
       </div>
     </td>
@@ -67,31 +82,66 @@
     <!-- domain auto renew status -->
     <td>
       <div class="h-100 d-flex flex-column justify-content-center">
-        <div class="font-weight-bold {{domain.domainAutoRenew ? 'text-success': 'text-danger'}}">{{domain.domainAutoRenew ? 'ENABLED': 'DISABLED' }}</div>
+        <div class="font-weight-bold {{domain.domainAutoRenew ? 'text-success': 'text-danger'}}">
+          {{domain.domainAutoRenew ? 'ENABLED': 'DISABLED' }}</div>
       </div>
     </td>
 
     <!-- must auto renew -->
     <td>
       <div class="h-100 d-flex flex-column justify-content-center">
-        <div class="font-weight-bold {{domain.shouldRenew ? 'text-success': 'text-danger'}}">{{domain.shouldRenew ? 'YES': 'NO'}}</div>
+        <div class="font-weight-bold {{domain.shouldRenew ? 'text-success': 'text-danger'}}">
+          {{domain.shouldRenew ? 'YES': 'NO'}}</div>
       </div>
     </td>
 
     <!-- reasons -->
     <td>
       <div class="h-100 d-flex flex-column justify-content-center">
-          <small *ngFor='let reason of domain.reasons'>
-              {{reason}}
-          </small>
+        <small *ngFor='let reason of domain.reasons'>
+          {{reason}}
+        </small>
       </div>
     </td>
 
     <td>
       <div class="h-100 d-flex align-items-center">
-        <button class="btn btn-small btn-primary mr-3" (click)="applyAutoRenew(domain, false)" *ngIf="domain.domainAutoRenew === true">Disable</button> 
-        <button class="btn btn-small btn-success" (click)="applyAutoRenew(domain, true)" *ngIf="domain.domainAutoRenew === false">Enable</button> 
+        <button class="btn btn-small btn-primary mr-3" (click)="applyAutoRenew(domain, false)"
+          *ngIf="domain.domainAutoRenew === true">Disable</button>
+        <button class="btn btn-small btn-success" (click)="applyAutoRenew(domain, true)"
+          *ngIf="domain.domainAutoRenew === false">Enable</button>
       </div>
     </td>
   </tr>
 </q-table>
+
+<!-- start with redirect modal -->
+<q-modal #redirectModal>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">×</span>
+  </button>
+  <h4 class="text-center">URL Redirect</h4>
+  <hr>
+  <div class="container">
+    <div class="mt-2">
+      <input type="checkbox" [(ngModel)]="currRedirectDomain.redirect" (change)="onChangeRedirectOtherUrl()">
+      <label>Redirect to other URL</label>
+    </div>
+    <div *ngIf="currRedirectDomain.redirect">
+      <select [(ngModel)]="currRedirectDomain.redirectOption" class="form-control">
+        <option *ngFor="let option of currRedirectDomain.redirectOptions">{{ option }}</option>
+      </select>
+      <span class="mt-2" *ngIf="currRedirectDomain.redirectOption === redirectTypes.BM_Site">
+        {{ currRedirectDomain.domainRedirectUrl }}
+      </span>
+      <input class="form-control mt-2" placeholder="Redirect URL" *ngIf="currRedirectDomain.redirectOption === redirectTypes.Other" [(ngModel)]="currRedirectDomain.domainRedirectUrl" />
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-end p-4">
+    <button class="btn btn-secondary mr-2" (click)="redirectModal.close()">Cancel</button>
+    <button class="btn btn-primary" [disabled]="currRedirectDomain.redirect && !currRedirectDomain.domainRedirectUrl"
+      (click)="executeRedirect()">OK</button>
+  </div>
+</q-modal>
+<!-- end with redirect modal -->
