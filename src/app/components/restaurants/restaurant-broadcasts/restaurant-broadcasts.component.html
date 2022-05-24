@@ -19,14 +19,16 @@
       <td>{{r.name}}</td>
       <td style="width: 40%;">
         <span>
-          {{r.text.substr(0, 200)}}
-          <a *ngIf="r.text.length > 200" class="text-nowrap btn-link" (click)="showFullText(r)">...
-            Show More</a>
+          {{r.text.length > 200 ? r.text.substr(0, 200) : r.text}}
+          <a class="text-nowrap btn-link" (click)="showFullText(r)">Show</a>
         </span>
       <td>
         <span class="{{r.acknowledged ? 'text-success' : 'text-danger'}}">{{r.acknowledged ? '✓' : '✗'}}</span>
         <span *ngIf="r.acknowledged"
           class="ml-2">{{r.acknowledgedAt | dateTz: 'shortDate': restaurant?.googleAddress?.timezone}}</span>
+      </td>
+      <td>
+        <span *ngIf="r.sentAt">{{r.sentAt | dateTz: 'shortDate': restaurant?.googleAddress?.timezone}}</span>
       </td>
     </tr>
   </q-table>

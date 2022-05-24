@@ -28,7 +28,20 @@ export class RestaurantBroadcastsComponent implements OnInit {
       label: "Text"
     },
     {
-      label: "Acknowledged At"
+      label: "Acknowledged At",
+      paths: ['acknowledgedAt'],
+      sort: (a, b) => {
+        if ((a && !b) || (!a && b)) {
+          return 1;
+        } else if(a && b) {
+          return new Date(a).valueOf() - new Date(b).valueOf(); 
+        } else if (!a && !b) {
+          return -1;
+        }
+      }
+    },
+    {
+      label: 'Sent At'
     }
   ];
   pagination = false;
@@ -64,7 +77,8 @@ export class RestaurantBroadcastsComponent implements OnInit {
         name: b.name || '',
         text: b.template || '',
         acknowledged: broadcast.acknowledged || false,
-        acknowledgedAt: broadcast.acknowledgedAt 
+        acknowledgedAt: broadcast.acknowledgedAt,
+        sentAt: broadcast.sentAt
       }
       this.rows.push(item);
     });
