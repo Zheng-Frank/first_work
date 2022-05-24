@@ -182,10 +182,10 @@ export class MonitoringDomainComponent implements OnInit {
   }
 
   // do an api call to republish website to AWS
-  async executeRedirect(restaurantId) {
+  async executeRedirect() {
     if (confirm(`Are you sure ?`)) {
       this.redirectModal.hide();
-      let restaurant = this.restaurants.find(rt => rt._id === restaurantId);
+      let restaurant = this.restaurants.find(rt => rt._id === this.currRedirectDomain.restaurantId);
       // 1. update redirect domain 
       await this.setRedirectUrl(restaurant);
       // 2. republish to AWS
