@@ -417,7 +417,7 @@ export class MonitoringDomainComponent implements OnInit {
       const matchingRestaurant: any = this.getMatchingRestaurant(domain.name);
       if (matchingRestaurant) {
         const qmenuWebsite = (matchingRestaurant.web || {}).qmenuWebsite;
-        const needToRedirect = qmenuWebsite.indexOf('qmenu.us') === -1;
+        const needToRedirect = qmenuWebsite && qmenuWebsite.indexOf('qmenu.us') === -1;
         const matchbmRT = this.getMatchingbmRT(matchingRestaurant);
         const googleRank = this.getMatchingGoogleRank(matchingRestaurant);
         let { hasRediect, currDomainRedirectUrl, redirectOption, redirectOptions } = this.initRedirectDomainUrl(matchingRestaurant, matchbmRT);

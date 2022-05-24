@@ -45,10 +45,12 @@
               No Domain Matched
             </div>
           </ng-template>
-          <hr>
-          <div class="ml-2 form-group">
-            <button class="btn btn-sm btn-primary" *ngIf="needToRedirect()" (click)="openRedirectModal()">Redirect URL...</button>
-            <span *ngIf="currDomainRedirectUrl">Current: {{ currDomainRedirectUrl }}</span>
+          <div *ngIf="needToRedirect()">
+            <hr>
+            <div class="ml-2 form-group">
+              <button class="btn btn-sm btn-primary" (click)="openRedirectModal()">Redirect URL...</button>
+              <span *ngIf="currDomainRedirectUrl">Current: {{ currDomainRedirectUrl }}</span>
+            </div>
           </div>
         </div>
         <!-- end with show detail settings -->
@@ -203,9 +205,9 @@
         <select [(ngModel)]="redirectOption" class="form-control">
           <option *ngFor="let option of redirectOptions">{{ option }}</option>
         </select>
-        <span class="mt-2" *ngIf="redirectOption === redirectTypes.BM_Site">
+        <label class="mt-2" *ngIf="redirectOption === redirectTypes.BM_Site">
           {{ domainRedirectUrl }}
-        </span>
+        </label>
         <input class="form-control mt-2" placeholder="Redirect URL" *ngIf="redirectOption === redirectTypes.Other" [(ngModel)]="domainRedirectUrl" />
       </div>
     </div>

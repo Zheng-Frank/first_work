@@ -129,9 +129,9 @@
       <select [(ngModel)]="currRedirectDomain.redirectOption" class="form-control">
         <option *ngFor="let option of currRedirectDomain.redirectOptions">{{ option }}</option>
       </select>
-      <span class="mt-2" *ngIf="currRedirectDomain.redirectOption === redirectTypes.BM_Site">
+      <label class="mt-2" *ngIf="currRedirectDomain.redirectOption === redirectTypes.BM_Site">
         {{ currRedirectDomain.domainRedirectUrl }}
-      </span>
+      </label>
       <input class="form-control mt-2" placeholder="Redirect URL"
         *ngIf="currRedirectDomain.redirectOption === redirectTypes.Other"
         [(ngModel)]="currRedirectDomain.domainRedirectUrl" />

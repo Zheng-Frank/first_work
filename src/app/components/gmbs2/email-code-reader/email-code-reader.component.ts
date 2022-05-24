@@ -157,7 +157,7 @@ export class EmailCodeReaderComponent implements OnInit {
 
   needToRedirect() {
     const qmenuWebsite = (this.restaurant.web || {}).qmenuWebsite;
-    return qmenuWebsite.indexOf('qmenu.us') === -1;
+    return qmenuWebsite && qmenuWebsite.indexOf('qmenu.us') === -1;
   }
 
   async populateDomain() {
