@@ -1,3 +1,5 @@
+import { ViewChild } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import { environment } from './../../../../environments/environment';
 import { ApiService } from 'src/app/services/api.service';
 import { Input } from '@angular/core';
@@ -10,6 +12,7 @@ import { Component, OnInit } from '@angular/core';
 })
 export class RestaurantBroadcastsComponent implements OnInit {
 
+  @ViewChild('textPreviewModal') textPreviewModal;
   @Input() restaurant;
   rows = [];
   columnDescriptors = [
@@ -29,11 +32,20 @@ export class RestaurantBroadcastsComponent implements OnInit {
     }
   ];
   pagination = false;
-
-  constructor(private _api: ApiService) { }
+  current = '';
+  constructor(private _api: ApiService, private sanitizer: DomSanitizer) { }
 
   async ngOnInit() {
     await this.populateBroadcasts();
+  }
+
+  sanitized(origin) {
+    return this.sanitizer.bypassSecurityTrustHtml(origin);
+  }
+
+  showFullText(row) {
+    this.current = row;
+    this.textPreviewModal.show();
   }
 
   async populateBroadcasts() {
@@ -49,10 +61,10 @@ export class RestaurantBroadcastsComponent implements OnInit {
     (this.restaurant.broadcasts || []).forEach(broadcast => {
       const b = (broadcasts || []).find( b => b._id === broadcast._id) || {};
       let item = {
-        name: b.name,
-        text: b.template,
-        acknowledged: broadcast.acknowledged,
-        acknowledgedAt: broadcast.acknowledgedAt
+        name: b.name || '',
+        text: b.template || '',
+        acknowledged: broadcast.acknowledged || false,
+        acknowledgedAt: broadcast.acknowledgedAt 
       }
       this.rows.push(item);
     });

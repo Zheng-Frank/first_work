@@ -1,7 +1,7 @@
 <div class="pt-2">
   <div class="row mb-2">
     <div class="text-right col-12">
-      <label class="form-check-label mr-3">IVR Logs ({{filteredIvrRecords.length}})</label>
+      <label class="form-check-label mr-3">Broadcasts ({{rows.length}})</label>
       <input type="checkbox" [(ngModel)]="pagination">
       <label class="form-check-label ml-1">
         Pagination
@@ -14,14 +14,26 @@
   <q-table [rows]="rows" [tableColumnDescriptors]="columnDescriptors" [compact]="true"
     [pageSize]="pagination ? 100 : 100000">
     <tr *tableRowTemplate="let r;">
-      <td>{{rows.indexOf(ir) + 1}}</td>
+      <td>{{rows.indexOf(r) + 1}}</td>
       <td>{{r.name}}</td>
-      <td>{{r.text}}</td>
+      <td style="width: 40%;"> <span>
+          {{r.text.substr(0, 200)}}
+          <a *ngIf="r.text.length > 200" class="text-nowrap btn-link" (click)="showFullText(r)">...
+            Show More</a>
+        </span>
       <td>
-        <span class="{{r.acknowledged ? ''text-success : 'text-danger'}}">{{r.acknowledged ? '✓' : '✗'}}</span>
-        <span *ngIf="r.acknowledged" class="ml-2">{{r.acknowledgedAt}}</span>
+        <span class="{{r.acknowledged ? 'text-success' : 'text-danger'}}">{{r.acknowledged ? '✓' : '✗'}}</span>
+        <span *ngIf="r.acknowledged"
+          class="ml-2">{{r.acknowledgedAt | dateTz: 'shortDate': restaurant?.googleAddress?.timezone}}</span>
       </td>
     </tr>
   </q-table>
-
+  <q-modal #textPreviewModal [size]="'600px'">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h4 class="text-center">Text Preview</h4>
+    <hr>
+    <div style="overflow: auto" [innerHTML]="sanitized(current?.text)"></div>
+  </q-modal>
 </div>
