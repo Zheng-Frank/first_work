@@ -55,6 +55,10 @@ export class BulkMessagingComponent implements OnInit {
   ngOnInit() {
     this.onChange();
   }
+  
+  isAdmin() {
+    return this._global.user.roles.some(r => r === 'ADMIN');
+  }
 
   copyRTInfos(field) {
     let content = [];
