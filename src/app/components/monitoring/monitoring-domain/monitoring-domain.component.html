@@ -27,6 +27,7 @@
     <label class="mr-3 ml-1 mt-2">
       Pagination
     </label>
+  </div>
 </div>
 
 <q-table [rows]="filteredDomains" [tableColumnDescriptors]="myColumnDescriptors" [compact]="true"
@@ -56,11 +57,8 @@
           <small class="ml-2" *ngIf="domain.googleRank">(G-rank: {{domain.googleRank}})</small>
         </div>
         <div *ngIf="domain.restaurantId">
-          <button class="btn btn-sm btn-primary" (click)="openRedirectModal(domain)">Redirect URL</button>
+          <button class="btn btn-sm btn-primary" *ngIf="domain.needToRedirect" (click)="openRedirectModal(domain)">Redirect URL...</button>
           <span *ngIf="domain.currDomainRedirectUrl">Current: {{ domain.currDomainRedirectUrl }}</span>
-        </div>
-        <div *ngIf="domain.matchingbmRT"> 
-          {{ domain.matchingbmRT | json }}
         </div>
       </div>
     </td>
@@ -134,7 +132,9 @@
       <span class="mt-2" *ngIf="currRedirectDomain.redirectOption === redirectTypes.BM_Site">
         {{ currRedirectDomain.domainRedirectUrl }}
       </span>
-      <input class="form-control mt-2" placeholder="Redirect URL" *ngIf="currRedirectDomain.redirectOption === redirectTypes.Other" [(ngModel)]="currRedirectDomain.domainRedirectUrl" />
+      <input class="form-control mt-2" placeholder="Redirect URL"
+        *ngIf="currRedirectDomain.redirectOption === redirectTypes.Other"
+        [(ngModel)]="currRedirectDomain.domainRedirectUrl" />
     </div>
   </div>
 

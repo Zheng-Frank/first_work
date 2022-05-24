@@ -155,6 +155,11 @@ export class EmailCodeReaderComponent implements OnInit {
     this.googleRank = (googleRank || {}).rank;
   }
 
+  needToRedirect() {
+    const qmenuWebsite = (this.restaurant.web || {}).qmenuWebsite;
+    return qmenuWebsite.indexOf('qmenu.us') === -1;
+  }
+
   async populateDomain() {
     // --- domains
     const qmenuWebsite = (this.restaurant.web || {}).qmenuWebsite;
@@ -164,7 +169,6 @@ export class EmailCodeReaderComponent implements OnInit {
     const [domain] = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'domain',
       query: {
-        // type: { $ne: 'AWS' },
         expiry: { $lte: { $date: nextCoupleWeeks } },
         name: { $eq: rtDomain }
       },
@@ -304,9 +308,11 @@ export class EmailCodeReaderComponent implements OnInit {
     if (this.redirect) {
       if (this.bmRT) {
         this.redirectOption = redirectTypes.BM_Site;
+        this.redirectOptions = [redirectTypes.BM_Site, redirectTypes.Other];
         this.domainRedirectUrl = this.bmRT.CustomerDomainName ? this.bmRT.CustomerDomainName : this.bmRT.CustomerDomainName1 ? this.bmRT.CustomerDomainName1 : '';
       } else {
         this.redirectOption = redirectTypes.Other;
+        this.redirectOptions = [redirectTypes.Other];
         this.domainRedirectUrl = '';
       }
     }

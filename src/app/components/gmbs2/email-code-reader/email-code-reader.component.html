@@ -47,7 +47,7 @@
           </ng-template>
           <hr>
           <div class="ml-2 form-group">
-            <button class="btn btn-sm btn-primary" (click)="openRedirectModal()">Redirect URL</button>
+            <button class="btn btn-sm btn-primary" *ngIf="needToRedirect()" (click)="openRedirectModal()">Redirect URL...</button>
             <span *ngIf="currDomainRedirectUrl">Current: {{ currDomainRedirectUrl }}</span>
           </div>
         </div>
@@ -211,7 +211,7 @@
     </div>
 
     <div class="d-flex justify-content-end p-4">
-      <button class="btn btn-secondary mr-2" (click)="redirectModal.close()">Cancel</button>
+      <button class="btn btn-secondary mr-2" (click)="redirectModal.hide()">Cancel</button>
       <button class="btn btn-primary" [disabled]="redirect && !domainRedirectUrl" (click)="executeRedirect()">OK</button>
     </div>
   </q-modal>
