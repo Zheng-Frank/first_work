@@ -32,7 +32,7 @@ export class RestaurantBroadcastsComponent implements OnInit {
     }
   ];
   pagination = false;
-  current = '';
+  current;
   constructor(private _api: ApiService, private sanitizer: DomSanitizer) { }
 
   async ngOnInit() {
