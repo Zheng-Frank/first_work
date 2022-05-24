@@ -18,6 +18,7 @@
       <div class="col-md-12">
         <span>RTs in list: {{restaurants.length}}</span>
         <button class="btn btn-link" (click)="onClearRestaurants()">Clear</button>
+        <button class="btn btn-link" *ngFor="let copiedField of copies" (click)="copyRTInfos(copiedField)">Copy All {{copiedField}}s</button>
       </div>
     </div>
     <div class="bulk-container">
