@@ -66,6 +66,12 @@ enum refuseFormOptionTypes {
   Not_Refused = 'Not Refused'
 }
 
+enum DownloadFIREOptions {
+  AllWithInfo = "All RTs with Info",
+  AllRequired = 'All Required RTs',
+  Custom = 'Custom RTs'
+}
+
 const download = (name, taxYear, content) => {
   let blob = new Blob([content], { type: 'text/plain; charset=utf-8' });
   let node = document.createElement('a');
@@ -135,7 +141,8 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
   bulkOperationYear = '';
 
   searchFilter;
-  includeAllRequired = false;
+  downloadFIREOption = DownloadFIREOptions.AllWithInfo;
+  customDownloadRTs = '';
   system: any;
   now: Date = new Date();
   timer;
@@ -175,6 +182,14 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     this.filterRows();
   }
 
+  get DownloadFIREOptions() {
+    return DownloadFIREOptions;
+  }
+
+  get downloadFIREOptions() {
+    return Object.values(DownloadFIREOptions);
+  }
+
   calcPunishedMoney() {
     this.refuseFormRows = [];
     let refuseFormRows = this.rows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && form.refuseForm));
@@ -194,7 +209,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
         totalTransactions = this.round(totalTransactions + formDividedTotal);
         let rowPunishedMoney = this.round(formDividedTotal * 0.24);
         punishedMoney = this.round(punishedMoney + rowPunishedMoney);
-        // record total transaction and punished money of this rt 
+        // record total transaction and punished money of this rt
         colArr.push(formDividedTotal, rowPunishedMoney);
       } else {
         let formTotal = ((row.form1099k || []).find(form => form.year === +this.taxYear) || {}).total || 0;
@@ -452,9 +467,20 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
     this.tinTypeModal.hide();
   }
 
+  canDownloadFIRE() {
+    let rts = (this.customDownloadRTs || "").split(",").filter(x => !!x);
+    return (this.downloadFIREOption !== DownloadFIREOptions.Custom) || rts.length > 0;
+  }
+
   downloadFIRE() {
     try {
-      const { rows, errors } = IRSHelper.generate(this.taxYear, this.rows, this.includeAllRequired);
+      let rts = this.rows;
+      if (this.downloadFIREOption === DownloadFIREOptions.Custom) {
+        let ids = new Set((this.customDownloadRTs || "").split(",").filter(x => !!x).map(x => x.trim()));
+        rts = rts.filter(x => ids.has(x.id));
+      }
+      let includeAllRequired = this.downloadFIREOption === DownloadFIREOptions.AllRequired;
+      const { rows, errors } = IRSHelper.generate(this.taxYear, rts, includeAllRequired);
       if (errors.length > 0) {
         if (confirm('Some restaurants are missing payee and/or TIN. Do you want to proceed with download anyway?')) {
           download("Qmenu_FIRE_Submission", this.taxYear, rows.join('\n'))
