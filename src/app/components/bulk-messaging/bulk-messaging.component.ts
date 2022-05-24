@@ -62,28 +62,11 @@ export class BulkMessagingComponent implements OnInit {
 
   copyRTInfos(field) {
     let content = [];
-    switch (field) {
-      case copyTypes.SMS:
-        this.restaurants.map(rt => rt.channels).forEach(channels => {
-          const smsChannels = channels.filter(ch => ch.type === copyTypes.SMS).map(ch => ch.value);
-          smsChannels.forEach(smsChannel => content.indexOf(smsChannel) === -1 && content.push(smsChannel));
-        });
-        break;
-      case copyTypes.Email:
-        this.restaurants.map(rt => rt.channels).forEach(channels => {
-          const emailChannels = channels.filter(ch => ch.type === copyTypes.Email).map(ch => ch.value);
-          emailChannels.forEach(emailChannel => content.indexOf(emailChannel) === -1 && content.push(emailChannel));
-        });
-        break;
-      case copyTypes.Fax:
-        this.restaurants.map(rt => rt.channels).forEach(channels => {
-          const faxChannels = channels.filter(ch => ch.type === copyTypes.Fax).map(ch => ch.value);
-          faxChannels.forEach(faxChannel => content.indexOf(faxChannel) === -1 && content.push(faxChannel));
-        });
-        break;
-      default:
-        break;
-    }
+    this.restaurants.map(rt => rt.channels).forEach(channels => {
+      const fieldChannels = channels.filter(ch => ch.type === field).map(ch => ch.value);
+      fieldChannels.forEach(fieldChannel => content.indexOf(fieldChannel) === -1 && content.push(fieldChannel));
+    });
+  
     let text = `${content.join(', ')}`;
     const handleCopy = (e: ClipboardEvent) => {
       // clipboardData maybe null
