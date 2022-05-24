@@ -1,0 +1,27 @@
+<div class="pt-2">
+  <div class="row mb-2">
+    <div class="text-right col-12">
+      <label class="form-check-label mr-3">IVR Logs ({{filteredIvrRecords.length}})</label>
+      <input type="checkbox" [(ngModel)]="pagination">
+      <label class="form-check-label ml-1">
+        Pagination
+      </label>
+      <button class="btn btn-primary ml-4 mt-2" (click)="populateBroadcasts()">
+        <i class="fas fa-sync-alt"></i> Reload
+      </button>
+    </div>
+  </div>
+  <q-table [rows]="rows" [tableColumnDescriptors]="columnDescriptors" [compact]="true"
+    [pageSize]="pagination ? 100 : 100000">
+    <tr *tableRowTemplate="let r;">
+      <td>{{rows.indexOf(ir) + 1}}</td>
+      <td>{{r.name}}</td>
+      <td>{{r.text}}</td>
+      <td>
+        <span class="{{r.acknowledged ? ''text-success : 'text-danger'}}">{{r.acknowledged ? '✓' : '✗'}}</span>
+        <span *ngIf="r.acknowledged" class="ml-2">{{r.acknowledgedAt}}</span>
+      </td>
+    </tr>
+  </q-table>
+
+</div>
