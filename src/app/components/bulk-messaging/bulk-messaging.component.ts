@@ -48,14 +48,27 @@ export class BulkMessagingComponent implements OnInit {
   filterEPLRestaurants = [];
   selectTypes = [languageTypes.All, languageTypes.English, languageTypes.Chinese, languageTypes.None];
   selectType = languageTypes.All;
-  copies = [copyTypes.SMS, copyTypes.Email, copyTypes.Fax];
+  copies = [
+    {
+      text: 'SMSs',
+      value: copyTypes.SMS
+    },
+    {
+      text: 'Emails',
+      value: copyTypes.Email
+    },
+    {
+      text: 'Faxes',
+      value: copyTypes.Fax
+    }
+  ];
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
     this.onChange();
   }
-  
+
   isAdmin() {
     return this._global.user.roles.some(r => r === 'ADMIN');
   }
@@ -66,7 +79,7 @@ export class BulkMessagingComponent implements OnInit {
       const fieldChannels = channels.filter(ch => ch.type === field).map(ch => ch.value);
       fieldChannels.forEach(fieldChannel => content.indexOf(fieldChannel) === -1 && content.push(fieldChannel));
     });
-  
+
     let text = `${content.join(', ')}`;
     const handleCopy = (e: ClipboardEvent) => {
       // clipboardData maybe null

@@ -19,7 +19,7 @@
         <span>RTs in list: {{restaurants.length}}</span>
         <button class="btn btn-link" (click)="onClearRestaurants()">Clear</button>
         <ng-container *ngIf="isAdmin()">
-          <button class="btn btn-link" *ngFor="let copiedField of copies" (click)="copyRTInfos(copiedField)">Copy All {{copiedField}}s</button>
+          <button class="btn btn-link" *ngFor="let copiedField of copies" (click)="copyRTInfos(copiedField.value)">Copy All {{copiedField.text}}</button>
         </ng-container>
       </div>
     </div>
