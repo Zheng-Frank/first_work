@@ -38,6 +38,14 @@
   <label>{{field.label}}: </label>
   <input class="form-control" type="{{field.type || 'text'}}" [(ngModel)]="field.value">
 </div>
+<div class="mt-3" *ngFor="let field of template?.selects">
+  <label>{{field.label}}: </label>
+  <select class="form-control" [(ngModel)]="field.value">
+    <option *ngFor="let option of field.options" [value]="option" [selected]="option === field.value">
+      {{option}}
+    </option>
+  </select>
+</div>
 <ng-container *ngIf="hasSMS()">
   <div class="mt-3">
     <label>SMS Content: <a (click)="copySMSContent()" *ngIf="canSend()" class="btn-link">Copy</a></label>

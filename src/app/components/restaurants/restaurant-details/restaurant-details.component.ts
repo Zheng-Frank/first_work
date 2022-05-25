@@ -19,10 +19,15 @@ import { AlertType } from '../../../classes/alert-type';
 import { RestaurantProfileComponent } from '../restaurant-profile/restaurant-profile.component';
 import { Helper } from '../../../classes/helper';
 import { SendMessageComponent } from '../../utilities/send-message/send-message.component';
-import { EnglishRevisedOnlineServicesAgreement, FirstDelinquentNotice, SecondDelinquentNotice, ChineseRevisedOnlineServicesAgreement } from './html-message-templates';
+import { EnglishRevisedOnlineServicesAgreement, FirstDelinquentNotice, SecondDelinquentNotice, ChineseRevisedOnlineServicesAgreement, WinbackServicesAgreement } from './html-message-templates';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { RestaurantSetupEntryComponent } from '../restaurant-setup/restaurant-setup-entry/restaurant-setup-entry.component';
 declare var $: any;
+enum contractDurationTypes {
+  One_Year = 'one year',
+  Six_Months = '6 months',
+  Three_Months = '3 months'
+}
 
 @Component({
   selector: 'app-restaurant-details',
@@ -79,6 +84,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     autoPrintVersion: 1,
     blockedCities: 1,
     blockedZipCodes: 1,
+    broadcasts: 1,
     ccProcessingFlatFee: 1,
     ccProcessingRate: 1,
     ccProcessor: 1,
@@ -299,6 +305,13 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       'OPTION_TWO_CHECK': qMenuCollect ? '&#9745;' : '&#9744;'
     };
     return this.fillMessageTemplate(ChineseRevisedOnlineServicesAgreement, map);
+  }
+
+  getWinbackServicesAgreement() {
+    let map = {
+      ...this.getRtInfoMap()
+    };
+    return this.fillMessageTemplate(WinbackServicesAgreement, map);
   }
 
   async getDelinquentDates() {
@@ -548,6 +561,49 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
                 format: 'pdf'
               };
             }
+          },
+          {
+            title: "Exclusive Digital Ordering Provider Agreement",
+            subject: "Exclusive Digital Ordering Provider Agreement",
+            inputs: [
+              {
+                label: "Rt Name", value: '',
+                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "RT_NAME": value }, /%%(RT_NAME)%%/g)
+              },
+              {
+                label: "Effective Date", type: 'date', value: new Date().toISOString().split('T')[0],
+                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "EFFECTIVE_DATE": value }, /%%(EFFECTIVE_DATE)%%/g)
+              },
+              
+              {
+                label: "Benefit #1", value: '',
+                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "BENEFIT_1": value }, /%%(BENEFIT_1)%%/g)
+              },
+              {
+                label: "Benefit #2", value: '',
+                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "BENEFIT_2": value }, /%%(BENEFIT_2)%%/g)
+              },
+              {
+                label: "Benefit #3", value: '',
+                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "BENEFIT_3": value }, /%%(BENEFIT_3)%%/g)
+              },
+              {
+                label: "Benefit #4", value: '',
+                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "BENEFIT_4": value }, /%%(BENEFIT_4)%%/g)
+              },
+              {
+                label: "Benefit #5", value: '',
+                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "BENEFIT_5": value }, /%%(BENEFIT_5)%%/g)
+              }
+            ],
+            selects: [
+              {
+                label: "Contract Duration", value: contractDurationTypes.One_Year,
+                options: [contractDurationTypes.One_Year, contractDurationTypes.Six_Months, contractDurationTypes.Three_Months],
+                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "CONTRACT_DURATION": value }, /%%(CONTRACT_DURATION)%%/g)
+              },
+            ],
+            emailContent: this.getWinbackServicesAgreement()
           }
         );
       }
