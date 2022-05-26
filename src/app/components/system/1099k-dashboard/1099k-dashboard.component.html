@@ -37,16 +37,6 @@
     <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Filter by whether the form for the currently-selected tax year has been sent to the restaurant yet.
       (根据当前所选纳税年度的表格是否已发送到餐厅进行筛选。)"></i>
     <button class="btn btn-primary my-2 mx-2" (click)="rescan()"><i class="fas fa-sync"></i> Rescan</button>
-    <ng-container *ngIf="taxYear &&  taxYear !== 'All'">
-      <button class="my-2 mx-2 btn btn-primary" (click)="downloadFIRE()">Download FIRE Submission</button>
-      <i class="fa fa-info-circle mr-2" data-toggle="tooltip" data-placement="top"
-        title="We need to submit a document (similar to a CSV) to the FIRE website of the IRS. This document, among other things, contains a line for each legal entity for which we’ve submitted a 1099K form and the data values contained in each form. Before submitting it, we must make sure that all 1099K information for all restaurants is correct, that all customizations have been done first, and that TIN-matching has already been done and is verified."></i>
-      <label class="ml-2 form-control-plaintext" style="width: auto">
-        <input type="checkbox" [(ngModel)]="includeAllRequired"> Include all required RTs
-        <i class="mr-2 fa fa-info-circle" data-toggle="tooltip" data-placement="top"
-          title="This will include all RTs regardless of whether they have the needed TIN and/or payee info or whether they refused to cooperate."></i>
-      </label>
-    </ng-container>
     <!-- end sent or not -->
     <!-- start customize 1099k or not -->
     <select class="form-control mx-2" [(ngModel)]="customizeOption" (change)="filterRows()">
@@ -62,6 +52,34 @@
     <!-- end with refuse form filter -->
     <a *ngIf="taxYear &&  taxYear !== 'All'" class="btn btn-link" (click)="downloadTextTIN()">Download .txt for TIN
       Matching</a>
+  </div>
+  <hr />
+  <div *ngIf="taxYear &&  taxYear !== 'All'" class="mx-5">
+    <div class="mb-2"><strong>FIRE Submission .txt File</strong></div>
+    <div class="row mb-2">
+      <div class="col-auto">
+        <div class="input-group d-flex align-items-center">
+          <label class="mr-2">Include</label>
+          <select class="form-control custom-select" [(ngModel)]="downloadFIREOption" (change)="customDownloadRTs = ''">
+            <option *ngFor="let opt of downloadFIREOptions" [ngValue]="opt">{{opt}}</option>
+          </select>
+          <i class="ml-2 fa fa-info-circle" data-toggle="tooltip" data-placement="top"
+          title="This will include all RTs regardless of whether they have the needed TIN and/or payee info or whether they refused to cooperate."></i>
+        </div>
+      </div>
+    </div>
+    <div class="row mb-2" *ngIf="downloadFIREOption == DownloadFIREOptions.Custom">
+      <div class="col-6">
+        <textarea class="form-control" rows="8" placeholder="Enter comma-separated list of restaurant IDs" [(ngModel)]="customDownloadRTs"></textarea>
+      </div>
+    </div>
+    <div class="row mb-2">
+      <div class="col-auto">
+        <button class="btn btn-primary" [disabled]="!canDownloadFIRE()" (click)="downloadFIRE()">Download FIRE Submission</button>
+        <i class="fa fa-info-circle mr-2" data-toggle="tooltip" data-placement="top"
+          title="We need to submit a document (similar to a CSV) to the FIRE website of the IRS. This document, among other things, contains a line for each legal entity for which we’ve submitted a 1099K form and the data values contained in each form. Before submitting it, we must make sure that all 1099K information for all restaurants is correct, that all customizations have been done first, and that TIN-matching has already been done and is verified."></i>
+      </div>
+    </div>
   </div>
   <hr>
   <div class="form-inline mx-5 pl-1">
