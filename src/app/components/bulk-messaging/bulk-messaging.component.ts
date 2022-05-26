@@ -1,3 +1,4 @@
+import { AlertType } from './../../classes/alert-type';
 import { Component, OnInit, Input, SimpleChanges } from '@angular/core';
 import { ApiService } from 'src/app/services/api.service';
 import { GlobalService } from 'src/app/services/global.service';
@@ -8,6 +9,12 @@ enum languageTypes {
   Chinese = 'CHINESE',
   English = 'ENGLISH',
   None = 'NONE'
+}
+
+enum copyTypes {
+  SMS = 'SMS',
+  Email = 'Email',
+  Fax = 'Fax'
 }
 
 @Component({
@@ -41,11 +48,49 @@ export class BulkMessagingComponent implements OnInit {
   filterEPLRestaurants = [];
   selectTypes = [languageTypes.All, languageTypes.English, languageTypes.Chinese, languageTypes.None];
   selectType = languageTypes.All;
+  copies = [
+    {
+      text: 'SMSs',
+      value: copyTypes.SMS
+    },
+    {
+      text: 'Emails',
+      value: copyTypes.Email
+    },
+    {
+      text: 'Faxes',
+      value: copyTypes.Fax
+    }
+  ];
 
   constructor(private _api: ApiService, private _global: GlobalService) { }
 
   ngOnInit() {
     this.onChange();
+  }
+
+  isAdmin() {
+    return this._global.user.roles.some(r => r === 'ADMIN');
+  }
+
+  copyRTInfos(field) {
+    let content = [];
+    this.restaurants.map(rt => rt.channels).forEach(channels => {
+      const fieldChannels = channels.filter(ch => ch.type === field).map(ch => ch.value);
+      fieldChannels.forEach(fieldChannel => content.indexOf(fieldChannel) === -1 && content.push(fieldChannel));
+    });
+
+    let text = `${content.join(', ')}`;
+    const handleCopy = (e: ClipboardEvent) => {
+      // clipboardData maybe null
+      e.clipboardData && e.clipboardData.setData('text/plain', text);
+      e.preventDefault();
+      // removeEventListener should input second params
+      document.removeEventListener('copy', handleCopy);
+    };
+    document.addEventListener('copy', handleCopy);
+    document.execCommand('copy');
+    this._global.publishAlert(AlertType.Success, `${content.length} has copyed to your clipboard ~`, 1000);
   }
 
   onChange() {
@@ -74,8 +119,8 @@ export class BulkMessagingComponent implements OnInit {
 
   async onAddRestaurant() {
     this.restaurants.length = 0;
-    this.inputRestaurantString = this.inputRestaurantString.replace(/\s+/g,' ');
-    const restaurantIdList = this.inputRestaurantString.split(',').map(str=>str.trim());
+    this.inputRestaurantString = this.inputRestaurantString.replace(/\s+/g, ' ');
+    const restaurantIdList = this.inputRestaurantString.split(',').map(str => str.trim());
     let tempRestaurantIdList = [];
     restaurantIdList.forEach(rt => {
       if (tempRestaurantIdList.indexOf(rt) === -1) {
