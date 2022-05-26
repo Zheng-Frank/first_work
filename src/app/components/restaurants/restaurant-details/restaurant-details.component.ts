@@ -574,26 +574,26 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
                 label: "Effective Date", type: 'date', value: new Date().toISOString().split('T')[0],
                 apply: (tpl, value) => this.fillMessageTemplate(tpl, { "EFFECTIVE_DATE": value }, /%%(EFFECTIVE_DATE)%%/g)
               },
-              
+
               {
-                label: "Benefit #1", value: '',
-                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "BENEFIT_1": value }, /%%(BENEFIT_1)%%/g)
+                label: "Benefit #1", value: '', canEmpty: (inputs, label) => this.canBenefitEmpty(inputs, label),
+                apply: (tpl, value) => this.fillWinbackBenefitTepl(tpl, { "BENEFIT_1": value })
               },
               {
-                label: "Benefit #2", value: '',
-                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "BENEFIT_2": value }, /%%(BENEFIT_2)%%/g)
+                label: "Benefit #2", value: '', canEmpty: (inputs, label) => this.canBenefitEmpty(inputs, label),
+                apply: (tpl, value) => this.fillWinbackBenefitTepl(tpl, { "BENEFIT_2": value })
               },
               {
-                label: "Benefit #3", value: '',
-                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "BENEFIT_3": value }, /%%(BENEFIT_3)%%/g)
+                label: "Benefit #3", value: '', canEmpty: (inputs, label) => this.canBenefitEmpty(inputs, label),
+                apply: (tpl, value) => this.fillWinbackBenefitTepl(tpl, { "BENEFIT_3": value })
               },
               {
-                label: "Benefit #4", value: '',
-                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "BENEFIT_4": value }, /%%(BENEFIT_4)%%/g)
+                label: "Benefit #4", value: '', canEmpty: (inputs, label) => this.canBenefitEmpty(inputs, label),
+                apply: (tpl, value) => this.fillWinbackBenefitTepl(tpl, { "BENEFIT_4": value })
               },
               {
-                label: "Benefit #5", value: '',
-                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "BENEFIT_5": value }, /%%(BENEFIT_5)%%/g)
+                label: "Benefit #5", value: '', canEmpty: (inputs, label) => this.canBenefitEmpty(inputs, label),
+                apply: (tpl, value) => this.fillWinbackBenefitTepl(tpl, { "BENEFIT_5": value })
               }
             ],
             selects: [
@@ -630,6 +630,58 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       }
     }
     return templates;
+  }
+
+  // benefit can't be empty by divided
+  canBenefitEmpty(inputs, label) {
+    let index = inputs.findIndex(input => input.label === label);
+    console.log(label);
+    console.log(index);
+
+    switch (label) {
+      case 'Benefit #1':
+        if (!inputs[index].value) {
+          return [inputs[index + 1].value, inputs[index + 2].value, inputs[index + 3].value, inputs[index + 4].value].every(value => !value);
+        } else {
+          return true;
+        }
+      case 'Benefit #2':
+        // The previous item must not be empty, this item can be empty, when it has value
+        if (inputs[index].value) {
+          return inputs[index - 1].value;
+        } else {
+          return [inputs[index + 1].value, inputs[index + 2].value, inputs[index + 3].value].every(value => !value);
+        }
+      case 'Benefit #3':
+        // The first two items must not be empty, this item can be empty, when it has value
+        if (inputs[index].value) {
+          return [inputs[index - 1].value, inputs[index - 2].value].every(value => value);
+        } else {
+          return [inputs[index + 1].value, inputs[index + 2].value].every(value => !value);
+        }
+      case 'Benefit #4':
+        if (inputs[index].value) {
+          return [inputs[index - 1].value, inputs[index - 2].value, inputs[index - 3].value].every(value => value);
+        } else {
+          return [inputs[index + 1].value].every(value => !value);
+        }
+      case 'Benefit #5':
+        if (inputs[index].value) {
+          return [inputs[index - 1].value, inputs[index - 2].value, inputs[index - 3].value, inputs[index - 4].value].every(value => value);
+        } else {
+          return true;
+        }
+      default:
+        return true;
+    }
+  }
+
+  fillWinbackBenefitTepl(tpl, dataset) {
+    let [key, value] = Object.entries(dataset)[0];
+    let index = parseInt(key.split('_')[1]);
+    let wordIndex = String.fromCharCode('a'.charCodeAt(0) + index - 1);
+
+    return value ? tpl.replace(`<p>${wordIndex}.<span class="underline">%%BENEFIT_${index}%%</span></p>`, `<p>${wordIndex}.<span class="underline">${value}</span></p>`) : tpl.replace(`<p>${wordIndex}.<span class="underline">%%BENEFIT_${index}%%</span></p>`, '');
   }
 
   ngOnInit() {
@@ -795,11 +847,11 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
   calcTier(rt) {
     let months = [], cursor = new Date(), i = 0;
-      while (i < 6) {
-        cursor.setMonth(cursor.getMonth() - 1);
-        months.push(`${cursor.getFullYear()}${Helper.padNumber(cursor.getMonth() + 1)}`);
-        i++;
-      }
+    while (i < 6) {
+      cursor.setMonth(cursor.getMonth() - 1);
+      months.push(`${cursor.getFullYear()}${Helper.padNumber(cursor.getMonth() + 1)}`);
+      i++;
+    }
     let activities = (rt.computed || {}).activities || {};
     let totalOrders = months.reduce((a, c) => (activities[c] || 0) + a, 0);
     return Helper.getTier(totalOrders / 6);

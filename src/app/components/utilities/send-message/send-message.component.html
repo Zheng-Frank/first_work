@@ -36,7 +36,8 @@
 </div>
 <div class="mt-3" *ngFor="let field of template?.inputs">
   <label>{{field.label}}: </label>
-  <input class="form-control" type="{{field.type || 'text'}}" [(ngModel)]="field.value">
+  <input class="form-control" type="{{field.type || 'text'}}" *ngIf="!field.canEmpty" [(ngModel)]="field.value">
+  <input class="form-control" type="{{field.type || 'text'}}" *ngIf="!!field.canEmpty" (change)="canEmpty(field)" [(ngModel)]="field.value">
 </div>
 <div class="mt-3" *ngFor="let field of template?.selects">
   <label>{{field.label}}: </label>
