@@ -679,7 +679,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     let index = parseInt(key.split('_')[1]);
     let wordIndex = String.fromCharCode('a'.charCodeAt(0) + index - 1);
 
-    return value ? tpl.replace(`<p>${wordIndex}.<span class="underline">%%BENEFIT_${index}%%</span></p>`, `<p>${wordIndex}.<span class="underline">${value}</span></p>`) : tpl.replace(`<p>${wordIndex}.<span class="underline">%%BENEFIT_${index}%%</span></p>`, '');
+    return value ? tpl.replace(`<p>${wordIndex}. <span class="underline">%%BENEFIT_${index}%%</span></p>`, `<p>${wordIndex}. <span class="underline">${value}</span></p>`) : tpl.replace(`<p>${wordIndex}.<span class="underline">%%BENEFIT_${index}%%</span></p>`, '');
   }
 
   ngOnInit() {
