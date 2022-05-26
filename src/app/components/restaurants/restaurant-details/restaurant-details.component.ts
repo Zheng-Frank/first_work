@@ -635,8 +635,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
   // benefit can't be empty by divided
   canBenefitEmpty(inputs, label) {
     let index = inputs.findIndex(input => input.label === label);
-    console.log(label);
-    console.log(index);
 
     switch (label) {
       case 'Benefit #1':
