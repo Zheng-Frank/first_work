@@ -79,6 +79,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     autoPrintVersion: 1,
     blockedCities: 1,
     blockedZipCodes: 1,
+    broadcasts: 1,
     ccProcessingFlatFee: 1,
     ccProcessingRate: 1,
     ccProcessor: 1,

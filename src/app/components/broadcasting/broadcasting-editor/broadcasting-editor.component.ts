@@ -89,7 +89,7 @@ export class BroadcastingEditorComponent implements OnInit {
       for (const restaurant of restaurants) {
         const [_restaurant] = restaurant;
         if (_restaurant) {
-          const patchedBroadcasts = [...(_restaurant.broadcasts || []), { _id: this.broadcast._id }];
+          const patchedBroadcasts = [...(_restaurant.broadcasts || []), { _id: this.broadcast._id, sentAt: new Date() }];
           allPatchRequests.push(await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant',
             [{ old: { _id: _restaurant._id }, new: { _id: _restaurant._id, broadcasts: patchedBroadcasts } }]).toPromise());
         }
