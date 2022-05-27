@@ -15,6 +15,11 @@ enum socialMediaLinkTypes {
   WHATSAPP = 'Whatsapp'
 }
 
+enum redirectTypes {
+  BM_Site = 'BM Site',
+  Other = 'Other'
+}
+
 @Component({
   selector: 'app-email-code-reader',
   templateUrl: './email-code-reader.component.html',
@@ -24,8 +29,11 @@ enum socialMediaLinkTypes {
 export class EmailCodeReaderComponent implements OnInit {
 
   @ViewChild('socialMediaLinksModal') socialMediaLinksModal: ModalComponent;
+  @ViewChild('redirectModal') redirectModal: ModalComponent;
+  
   @Input() readonly = false;
   @Input() restaurant;
+  @Input() bmRT;
 
   submitClicked = false;
   retrievedObj: any;
@@ -38,6 +46,16 @@ export class EmailCodeReaderComponent implements OnInit {
   showCompleteButtonSnippet = false;
   socialMediaLinks = [{ text: socialMediaLinkTypes.FACEBOOK, value: '' }, { text: socialMediaLinkTypes.TWITTER, value: '' }, { text: socialMediaLinkTypes.INSTAGRAM, value: '' }, { text: socialMediaLinkTypes.WECHAT, value: '' }, { text: socialMediaLinkTypes.WHATSAPP, value: '' }];
   existsSocialMediaLinks = [];
+  showDetailSettings = false;
+  redirectOptions = [redirectTypes.Other];
+  redirectOption = redirectTypes.BM_Site;
+  redirect = false;
+  EXPIRY_DAYS_THRESHOLD = 60;
+  INVOICE_DAYS_THRESHOLD = 30 * 6;
+  domainMap;
+  googleRank; // show beside with qmenu website
+  domainRedirectUrl;
+  currDomainRedirectUrl;
   constructor(private _api: ApiService, private _cache: CacheService, private _global: GlobalService) { }
 
   async ngOnInit() {
@@ -61,7 +79,335 @@ export class EmailCodeReaderComponent implements OnInit {
      * [ {"Facebook": "111"},{"Twitter": "123"}]
      * 
      */
-    this.populateExistingSocialMedia();
+    await this.populateExistingSocialMedia();
+
+  }
+
+  get redirectTypes() {
+    return redirectTypes;
+  }
+
+  async calcGoogleRank() {
+    try {
+      this._global.publishAlert(AlertType.Info, 'Scraping...');
+      const ranks = await this._api.post(environment.appApiUrl + 'utils/menu', {
+        name: 'google-rank',
+        payload: {
+          restaurantId: this.restaurant._id,
+        }
+      }).toPromise();
+      this.googleRank = ((ranks || []).find(rank => rank.name === 'qmenu') || {}).rank;
+      this._global.publishAlert(AlertType.Success, 'Google ranks scraped!');
+    } catch (error) {
+      console.log(error);
+      this._global.publishAlert(AlertType.Danger, 'Error on retrieving google ranks');
+    }
+  }
+
+  async populateGoogleRank() {
+    const [googleRank] = await this._api.getBatch(environment.qmenuApiUrl + "generic", {
+      resource: "google-ranks",
+      aggregate: [
+        {
+          $match: {
+            restaurantId: this.restaurant._id,
+            ranks: {
+              $elemMatch: {
+                name: 'qmenu'
+              }
+            },
+            "ranks.rank": {
+              $exists: true
+            }
+          }
+        },
+        {
+          $project: {
+            rank: {
+              $arrayElemAt: [{
+                $map: {
+                  input: {
+                    $filter: {
+                      input: '$ranks',
+                      as: 'rank',
+                      cond: {
+                        $eq: ['$$rank.name', 'qmenu']
+                      }
+                    }
+                  },
+                  as: 'r',
+                  in: '$$r.rank'
+                }
+              }, 0]
+            }
+          }
+        },
+        {
+          $sort: {
+            _id: -1
+          }
+        },
+        {
+          $limit: 1
+        }
+      ]
+    }, 1);
+    this.googleRank = (googleRank || {}).rank;
+  }
+
+  needToRedirect() {
+    const qmenuWebsite = (this.restaurant.web || {}).qmenuWebsite;
+    return qmenuWebsite && qmenuWebsite.indexOf('qmenu.us') === -1;
+  }
+
+  async populateDomain() {
+    // --- domains
+    const qmenuWebsite = (this.restaurant.web || {}).qmenuWebsite;
+    const rtDomain = qmenuWebsite.replace('http://', '').replace('https://', '').replace('www.', '').replace('/', '');
+    const nextCoupleWeeks = new Date();
+    nextCoupleWeeks.setDate(nextCoupleWeeks.getDate() + this.EXPIRY_DAYS_THRESHOLD);
+    const [domain] = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+      resource: 'domain',
+      query: {
+        expiry: { $lte: { $date: nextCoupleWeeks } },
+        name: { $eq: rtDomain }
+      },
+      limit: 1
+    }, 1);
+    if (domain) {
+      this.domainMap = {
+        _id: domain._id,
+        domainName: domain.name,
+        domainExpiry: domain.expiry,
+        domainStatus: domain.status,
+        domainType: domain.type,
+        domainAutoRenew: domain.autoRenew,
+        restaurantId: this.restaurant._id.toString(),
+        restaurantName: this.restaurant.name,
+        restaurantAlias: this.restaurant.alias,
+        restaurantAddress: this.restaurant.googleAddress.formatted_address,
+        restaurantDisabled: this.restaurant.disabled,
+        restaurantWeb: this.restaurant.web
+      }
+      // --- Auto renew conditions
+      const reasons = [];
+      const domainWhiteList = [
+        'myqmenu.com',
+        'qdasher.com',
+        'qmenu360.com',
+        'qmenu365.com',
+        'qmenu.biz',
+        'qmenu.us',
+        'qmenudemo.com',
+        'qmenufood.com',
+        'qmenuprint.com',
+        'qmenuschoice.com',
+        'qmenutest.com',
+        'qmorders.com',
+        '4043829768.com'
+      ];
+      // --- whitelist 
+      if (domainWhiteList.includes(this.domainMap.domainName.replace('http://', '').replace('https://', '').replace('/', ''))) {
+        reasons.push('Whitelisted domain');
+        this.domainMap.isWhitelistDomain = true;
+      }
+
+      // --- rt disabled
+      if (this.domainMap.restaurantDisabled && (this.domainMap.restaurantDisabled === true)) {
+        reasons.push('Restaurant is disabled');
+      }
+
+      if ((this.domainMap.restaurantDisabled && this.domainMap.restaurantDisabled === false) || (!this.domainMap.restaurantDisabled)) {
+        reasons.push('Restaurant is enabled');
+      }
+
+      // --- insisted website (rt uses its own domain)
+      if ((this.domainMap.restaurantWeb || {}).useBizMenuUrl === true) {
+        reasons.push('Insisted restaurant');
+        this.domainMap.restaurantInsisted = true;
+      }
+
+      // --- insisted all
+      if ((this.domainMap.restaurantWeb || {}).useBizWebsiteForAll === true) {
+        reasons.push('Insisted website for all');
+        this.domainMap.restaurantInsistedForAll = true;
+      }
+
+      // --- expiry time in upcoming expiryDaysTreshold days
+      const now = new Date();
+      const expiry = new Date(this.domainMap.domainExpiry);
+
+      const diffTime = expiry.getTime() - now.getTime();
+      const diffDays = Math.round(Math.abs(diffTime) / (1000 * 60 * 60 * 24));
+
+      if (diffTime < 0) {
+        reasons.push(`Expired ${diffDays} days ago`);
+        this.domainMap.expired = true;
+      }
+
+      if (diffTime > 0) {
+        if (diffDays <= this.EXPIRY_DAYS_THRESHOLD) {
+          reasons.push(`Will expire in less than ${diffDays} days`);
+          this.domainMap.expired = false;
+        } else {
+          reasons.push(`Will expire in more than ${diffDays} days`);
+          this.domainMap.expired = false;
+        }
+      }
+
+      // --- no invoices in the past 6 months
+      // --- invoices
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setDate(sixMonthsAgo.getDate() - this.INVOICE_DAYS_THRESHOLD);
+
+      const [invoice] = await this._api.get(environment.qmenuApiUrl + 'generic', {
+        resource: 'invoice',
+        query: {
+          "restaurant.id": this.restaurant._id,
+          toDate: { $gte: { $date: sixMonthsAgo } },
+        },
+        projection: {
+          "restaurant.id": 1,
+        },
+        limit: 1
+      }).toPromise();
+
+      const hasInvoiceInLastMonths = !!invoice;
+      if (hasInvoiceInLastMonths) {
+        reasons.push(`Have invoices for the past ${this.INVOICE_DAYS_THRESHOLD / 30} months`);
+        this.domainMap.hasInvoicesInLast6Months = true;
+      } else {
+        reasons.push(`Do not have invoices for over ${this.INVOICE_DAYS_THRESHOLD / 30} months`);
+        this.domainMap.hasInvoicesInLast6Months = false;
+      }
+
+      // --- no matching restaurant
+      if (!this.domainMap.restaurantId) {
+        reasons.push(`No restaurant linked to this domain`);
+      }
+
+      // --- should renew
+      if (this.domainMap.restaurantDisabled || this.domainMap.restaurantInsisted || this.domainMap.restaurantInsistedForAll || !this.domainMap.hasInvoicesInLast6Months || !this.domainMap.restaurantId) {
+        this.domainMap.shouldRenew = false;
+      } else if (this.domainMap.hasInvoicesInLast6Months) {
+        this.domainMap.shouldRenew = true;
+      }
+      this.domainMap.reasons = reasons;
+    } else {
+      this.domainMap = undefined;
+    }
+  }
+
+  openRedirectModal() {
+    this.redirect = false;
+    this.redirectModal.show();
+  }
+
+  // change redirect checkbox in redirect modal will call this method 
+  onChangeRedirectOtherUrl() {  
+    if (this.redirect) {
+      if (this.bmRT) {
+        this.redirectOption = redirectTypes.BM_Site;
+        this.redirectOptions = [redirectTypes.BM_Site, redirectTypes.Other];
+        this.domainRedirectUrl = this.bmRT.CustomerDomainName ? this.bmRT.CustomerDomainName : this.bmRT.CustomerDomainName1 ? this.bmRT.CustomerDomainName1 : '';
+      } else {
+        this.redirectOption = redirectTypes.Other;
+        this.redirectOptions = [redirectTypes.Other];
+        this.domainRedirectUrl = '';
+      }
+    }
+  }
+
+  // redirect checkbox should be inited rather than set by default
+  initRedirectDomainUrl() {
+    if ((this.restaurant.web || {}).domainRedirectUrl) {
+      this.currDomainRedirectUrl = (this.restaurant.web || {}).domainRedirectUrl;
+      if (this.bmRT && ((this.bmRT.CustomerDomainName && Helper.areDomainsSame(this.domainRedirectUrl, this.bmRT.CustomerDomainName)) || (this.bmRT.CustomerDomainName1 && Helper.areDomainsSame(this.domainRedirectUrl, this.bmRT.CustomerDomainName1)))) {
+        this.redirectOption = redirectTypes.BM_Site;
+        this.redirectOptions = [redirectTypes.BM_Site, redirectTypes.Other];
+        this.currDomainRedirectUrl = `${this.currDomainRedirectUrl} (BM Site)`;
+      } else {
+        this.redirectOption = redirectTypes.Other;
+      }
+    }
+  }
+
+  async showRedirectDetailSettings() {
+    this.showDetailSettings = !this.showDetailSettings;
+    if (this.showDetailSettings) {
+      await this.populateGoogleRank();
+      await this.populateDomain();
+      this.initRedirectDomainUrl();
+    } else {
+      this.domainMap = undefined;
+    }
+  }
+
+  async applyAutoRenew(domain, shouldRenew) {
+    if (confirm(`Are you sure ?`)) {
+      try {
+        const payload = {
+          domain: domain.domainName,
+          shouldRenew
+        };
+
+        const result = await this._api.post(environment.appApiUrl + 'utils/renew-aws-domain', payload).toPromise();
+
+        await this._api.patch(environment.qmenuApiUrl + 'generic?resource=domain', [
+          {
+            old: { _id: domain._id },
+            new: { _id: domain._id, autoRenew: shouldRenew },
+          }
+        ]).toPromise();
+
+        await this.setAlias(domain.restaurantId, domain.restaurantAlias);
+
+
+        this._global.publishAlert(AlertType.Success, `Domain Rewnewal status for ${domain.domainName} updated successfully.`);
+      } catch (error) {
+        console.error(error);
+        this._global.publishAlert(AlertType.Danger, `Failed to update ${domain.domainName} renewal status.`);
+      }
+    }
+  }
+
+  async setAlias(restaurantId, restaurantAlias) {
+    const aliasUrl = environment.customerUrl + '#/' + restaurantAlias;
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+      {
+        old: { _id: restaurantId, web: {} },
+        new: { _id: restaurantId, web: { qmenuWebsite: aliasUrl } },
+      }
+    ]).toPromise();
+  }
+
+  async setRedirectUrl() {
+    const domainRedirectUrl = this.redirect ? this.domainRedirectUrl : '';
+    const restaurantId = this.restaurant._id;
+    const urlValidRegex = /http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?/
+    if (domainRedirectUrl && !urlValidRegex.test(domainRedirectUrl)) {
+      return this._global.publishAlert(AlertType.Danger, 'Please input valid redirected website');
+    }
+
+    await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [
+      {
+        old: { _id: restaurantId, web: {} },
+        new: { _id: restaurantId, web: { domainRedirectUrl: domainRedirectUrl } },
+      }
+    ]).toPromise();
+  }
+
+  // do an api call to republish website to AWS
+  async executeRedirect() {
+    if (confirm(`Are you sure ?`)) {
+      this.redirectModal.hide();
+      // 1. update redirect domain 
+      await this.setRedirectUrl();
+      // 2. republish to AWS
+      if (this.redirect) {
+        await this.injectWebsiteAws();
+      }
+    }
   }
 
   // need a existing social media link collection to check whether show input using to add media link 
@@ -351,6 +697,7 @@ background-image: linear-gradient(to right,#cd2730,#fa4b00,#cd2730);' href="http
       //Invalidate the domain cloudfront
       try {
         const result = await this._api.post(environment.appApiUrl + 'events', [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: "invalidate-domain", params: { domain: domain } } }]).toPromise();
+        this.initRedirectDomainUrl();
       } catch (error) {
         this._global.publishAlert(AlertType.Danger, JSON.stringify(error));
       }

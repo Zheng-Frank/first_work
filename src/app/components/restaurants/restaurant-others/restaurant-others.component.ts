@@ -12,6 +12,7 @@ import {Helper} from '../../../classes/helper';
 export class RestaurantOthersComponent implements OnInit {
 
   @Input() restaurant: Restaurant;
+  @Input() bmRT;
   @Input() managers = [];
   @Input() users = [];
   tabs = [];
