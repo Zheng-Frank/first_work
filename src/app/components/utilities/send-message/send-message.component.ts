@@ -19,7 +19,8 @@ interface MessageTemplate {
   subject: string;
   smsContent?: string;
   emailContent?: string;
-  inputs?: { label: string, type?: string, value: string, apply: (content: string, value: any) => string }[];
+  inputs?: { label: string, type?: string, value: string, canEmpty?: (inputs: any[], label: string) => boolean, apply: (content: string, value: any) => string }[];
+  selects?: { label: string, type?: string, value: string, options: any[], apply: (content: string, value: any) => string }[];
   smsPreview?: string;
   uploadHtml?: (body: string) => HtmlRenderParams;
 }
@@ -44,6 +45,7 @@ export class SendMessageComponent {
   emailContentMode = EmailContentModes.Origin;
   smsContentMode = EmailContentModes.Origin;
   customTemplate: MessageTemplate = { title: 'Custom', smsContent: '', subject: '', emailContent: '' };
+  disabledSendBtn = false;
 
   constructor(private _api: ApiService, private _global: GlobalService, private sanitizer: DomSanitizer) {
   }
@@ -92,6 +94,7 @@ export class SendMessageComponent {
       this.template = { ...this.customTemplate };
     }
     this.emailContentMode = EmailContentModes.Origin;
+    this.disabledSendBtn = false;
   }
 
   init() {
@@ -113,6 +116,11 @@ export class SendMessageComponent {
     return this.template.title === this.customTemplate.title;
   }
 
+  canEmpty(field) {
+    let { inputs } = this.template;
+    this.disabledSendBtn = !field.canEmpty(inputs, field.label) ? true : false;
+  }
+
   canSend() {
     if ((this.targets.length <= 0 && !this.isPhoneValid()) || !this.template) {
       return false;
@@ -125,8 +133,16 @@ export class SendMessageComponent {
       return false;
     }
     // all inputs must have value
-    if (this.template.inputs && inputs.some(field => !field.value)) {
-      return false;
+    if (inputs) {
+      const requiredFields = inputs.filter(field => !!!field.canEmpty);
+      if(requiredFields.some(field => !field.value)) {
+        return false;
+      }
+      const canEmptyFields = inputs.filter(field => !!field.canEmpty);
+      if(canEmptyFields.length > 0) {
+        return !this.disabledSendBtn;
+      }
+      return true;
     }
 
     return true;
@@ -230,7 +246,7 @@ export class SendMessageComponent {
 
   async send() {
     // fill inputs
-    let { inputs, smsContent, emailContent, smsPreview, uploadHtml } = this.template;
+    let { inputs, selects, smsContent, emailContent, smsPreview, uploadHtml } = this.template;
     if (inputs) {
       inputs.forEach(field => {
         if (smsContent) {
@@ -244,18 +260,34 @@ export class SendMessageComponent {
         }
       });
     }
-    let uploadParams = uploadHtml(smsPreview);
-    // some rt use sms to receive agreement, and need to generate a mediaUrl using email html content
-    if (uploadParams) {
-      const loadParameters = {
-        'content-type': uploadParams.contentType,
-        body: uploadParams.body
-      };
-      const formatParams = uploadParams.format;
-      smsContent = await this.generateFormatHtml(loadParameters, formatParams, smsContent);
-
-      if (!smsContent) {
-        return this._global.publishAlert(AlertType.Danger, 'Generate sms content fail due to network error !')
+    if(selects) {
+      selects.forEach(field => {
+        if (smsContent) {
+          smsContent = field.apply(smsContent, field.value);
+        }
+        if (emailContent) {
+          emailContent = field.apply(emailContent, field.value);
+        }
+        if (smsPreview) {
+          smsPreview = field.apply(smsPreview, field.value);
+        }
+      });
+    }
+    
+    if (uploadHtml) {
+      let uploadParams = uploadHtml(smsPreview);
+      // some rt use sms to receive agreement, and need to generate a mediaUrl using email html content
+      if (uploadParams) {
+        const loadParameters = {
+          'content-type': uploadParams.contentType,
+          body: uploadParams.body
+        };
+        const formatParams = uploadParams.format;
+        smsContent = await this.generateFormatHtml(loadParameters, formatParams, smsContent);
+  
+        if (!smsContent) {
+          return this._global.publishAlert(AlertType.Danger, 'Generate sms content fail due to network error !')
+        }
       }
     }
 

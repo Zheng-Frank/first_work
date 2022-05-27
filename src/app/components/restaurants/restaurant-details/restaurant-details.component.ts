@@ -19,10 +19,15 @@ import { AlertType } from '../../../classes/alert-type';
 import { RestaurantProfileComponent } from '../restaurant-profile/restaurant-profile.component';
 import { Helper } from '../../../classes/helper';
 import { SendMessageComponent } from '../../utilities/send-message/send-message.component';
-import { EnglishRevisedOnlineServicesAgreement, FirstDelinquentNotice, SecondDelinquentNotice, ChineseRevisedOnlineServicesAgreement } from './html-message-templates';
+import { EnglishRevisedOnlineServicesAgreement, FirstDelinquentNotice, SecondDelinquentNotice, ChineseRevisedOnlineServicesAgreement, WinbackServicesAgreement } from './html-message-templates';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import { RestaurantSetupEntryComponent } from '../restaurant-setup/restaurant-setup-entry/restaurant-setup-entry.component';
 declare var $: any;
+enum contractDurationTypes {
+  One_Year = 'one year',
+  Six_Months = '6 months',
+  Three_Months = '3 months'
+}
 
 @Component({
   selector: 'app-restaurant-details',
@@ -302,6 +307,13 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     return this.fillMessageTemplate(ChineseRevisedOnlineServicesAgreement, map);
   }
 
+  getWinbackServicesAgreement() {
+    let map = {
+      ...this.getRtInfoMap()
+    };
+    return this.fillMessageTemplate(WinbackServicesAgreement, map);
+  }
+
   async getDelinquentDates() {
     let rtId = this.restaurant._id;
     const [firstOrder] = await this._api.get(environment.qmenuApiUrl + "generic", {
@@ -549,6 +561,49 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
                 format: 'pdf'
               };
             }
+          },
+          {
+            title: "Exclusive Digital Ordering Provider Agreement",
+            subject: "Exclusive Digital Ordering Provider Agreement",
+            inputs: [
+              {
+                label: "Rt Name", value: '',
+                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "RT_NAME": value }, /%%(RT_NAME)%%/g)
+              },
+              {
+                label: "Effective Date", type: 'date', value: new Date().toISOString().split('T')[0],
+                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "EFFECTIVE_DATE": value }, /%%(EFFECTIVE_DATE)%%/g)
+              },
+
+              {
+                label: "Benefit #1", value: '', canEmpty: (inputs, label) => this.canBenefitEmpty(inputs, label),
+                apply: (tpl, value) => this.fillWinbackBenefitTepl(tpl, { "BENEFIT_1": value })
+              },
+              {
+                label: "Benefit #2", value: '', canEmpty: (inputs, label) => this.canBenefitEmpty(inputs, label),
+                apply: (tpl, value) => this.fillWinbackBenefitTepl(tpl, { "BENEFIT_2": value })
+              },
+              {
+                label: "Benefit #3", value: '', canEmpty: (inputs, label) => this.canBenefitEmpty(inputs, label),
+                apply: (tpl, value) => this.fillWinbackBenefitTepl(tpl, { "BENEFIT_3": value })
+              },
+              {
+                label: "Benefit #4", value: '', canEmpty: (inputs, label) => this.canBenefitEmpty(inputs, label),
+                apply: (tpl, value) => this.fillWinbackBenefitTepl(tpl, { "BENEFIT_4": value })
+              },
+              {
+                label: "Benefit #5", value: '', canEmpty: (inputs, label) => this.canBenefitEmpty(inputs, label),
+                apply: (tpl, value) => this.fillWinbackBenefitTepl(tpl, { "BENEFIT_5": value })
+              }
+            ],
+            selects: [
+              {
+                label: "Contract Duration", value: contractDurationTypes.One_Year,
+                options: [contractDurationTypes.One_Year, contractDurationTypes.Six_Months, contractDurationTypes.Three_Months],
+                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "CONTRACT_DURATION": value }, /%%(CONTRACT_DURATION)%%/g)
+              },
+            ],
+            emailContent: this.getWinbackServicesAgreement()
           }
         );
       }
@@ -575,6 +630,56 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
       }
     }
     return templates;
+  }
+
+  // benefit can't be empty by divided
+  canBenefitEmpty(inputs, label) {
+    let index = inputs.findIndex(input => input.label === label);
+
+    switch (label) {
+      case 'Benefit #1':
+        if (!inputs[index].value) {
+          return [inputs[index + 1].value, inputs[index + 2].value, inputs[index + 3].value, inputs[index + 4].value].every(value => !value);
+        } else {
+          return true;
+        }
+      case 'Benefit #2':
+        // The previous item must not be empty, this item can be empty, when it has value
+        if (inputs[index].value) {
+          return inputs[index - 1].value;
+        } else {
+          return [inputs[index + 1].value, inputs[index + 2].value, inputs[index + 3].value].every(value => !value);
+        }
+      case 'Benefit #3':
+        // The first two items must not be empty, this item can be empty, when it has value
+        if (inputs[index].value) {
+          return [inputs[index - 1].value, inputs[index - 2].value].every(value => value);
+        } else {
+          return [inputs[index + 1].value, inputs[index + 2].value].every(value => !value);
+        }
+      case 'Benefit #4':
+        if (inputs[index].value) {
+          return [inputs[index - 1].value, inputs[index - 2].value, inputs[index - 3].value].every(value => value);
+        } else {
+          return [inputs[index + 1].value].every(value => !value);
+        }
+      case 'Benefit #5':
+        if (inputs[index].value) {
+          return [inputs[index - 1].value, inputs[index - 2].value, inputs[index - 3].value, inputs[index - 4].value].every(value => value);
+        } else {
+          return true;
+        }
+      default:
+        return true;
+    }
+  }
+
+  fillWinbackBenefitTepl(tpl, dataset) {
+    let [key, value] = Object.entries(dataset)[0];
+    let index = parseInt(key.split('_')[1]);
+    let wordIndex = String.fromCharCode('a'.charCodeAt(0) + index - 1);
+
+    return value ? tpl.replace(`<p>${wordIndex}. <span class="underline">%%BENEFIT_${index}%%</span></p>`, `<p>${wordIndex}. <span class="underline">${value}</span></p>`) : tpl.replace(`<p>${wordIndex}.<span class="underline">%%BENEFIT_${index}%%</span></p>`, '');
   }
 
   ngOnInit() {
@@ -740,11 +845,11 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
 
   calcTier(rt) {
     let months = [], cursor = new Date(), i = 0;
-      while (i < 6) {
-        cursor.setMonth(cursor.getMonth() - 1);
-        months.push(`${cursor.getFullYear()}${Helper.padNumber(cursor.getMonth() + 1)}`);
-        i++;
-      }
+    while (i < 6) {
+      cursor.setMonth(cursor.getMonth() - 1);
+      months.push(`${cursor.getFullYear()}${Helper.padNumber(cursor.getMonth() + 1)}`);
+      i++;
+    }
     let activities = (rt.computed || {}).activities || {};
     let totalOrders = months.reduce((a, c) => (activities[c] || 0) + a, 0);
     return Helper.getTier(totalOrders / 6);
