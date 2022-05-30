@@ -509,7 +509,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
         templates["Other"].push({
           title: "qMenu Online Service Agreement (Eng)",
           subject: "qMenu Online Service Agreement (Eng)",
-          inputs: [
+          formElems: [
             {
               label: "Signature", value: '',
               apply: (tpl, value) => this.fillMessageTemplate(tpl, { "SIGNATURE": value }, /%%(SIGNATURE)%%/g)
@@ -537,7 +537,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           {
             title: "qMenu Online Service Agreement (中文)",
             subject: "qMenu Online Service Agreement (中文)",
-            inputs: [
+            formElems: [
               {
                 label: "Signature", value: '',
                 apply: (tpl, value) => this.fillMessageTemplate(tpl, { "SIGNATURE": value }, /%%(SIGNATURE)%%/g)
@@ -565,7 +565,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           {
             title: "Exclusive Digital Ordering Provider Agreement",
             subject: "Exclusive Digital Ordering Provider Agreement",
-            inputs: [
+            formElems: [
               {
                 label: "Rt Name", value: '',
                 apply: (tpl, value) => this.fillMessageTemplate(tpl, { "RT_NAME": value }, /%%(RT_NAME)%%/g)
@@ -574,7 +574,11 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
                 label: "Effective Date", type: 'date', value: new Date().toISOString().split('T')[0],
                 apply: (tpl, value) => this.fillMessageTemplate(tpl, { "EFFECTIVE_DATE": value }, /%%(EFFECTIVE_DATE)%%/g)
               },
-
+              {
+                label: "Contract Duration", value: contractDurationTypes.One_Year,
+                options: [contractDurationTypes.One_Year, contractDurationTypes.Six_Months, contractDurationTypes.Three_Months],
+                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "CONTRACT_DURATION": value }, /%%(CONTRACT_DURATION)%%/g)
+              },
               {
                 label: "Benefit #1", value: '', canEmpty: (inputs, label) => this.canBenefitEmpty(inputs, label),
                 apply: (tpl, value) => this.fillWinbackBenefitTepl(tpl, { "BENEFIT_1": value })
@@ -596,13 +600,6 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
                 apply: (tpl, value) => this.fillWinbackBenefitTepl(tpl, { "BENEFIT_5": value })
               }
             ],
-            selects: [
-              {
-                label: "Contract Duration", value: contractDurationTypes.One_Year,
-                options: [contractDurationTypes.One_Year, contractDurationTypes.Six_Months, contractDurationTypes.Three_Months],
-                apply: (tpl, value) => this.fillMessageTemplate(tpl, { "CONTRACT_DURATION": value }, /%%(CONTRACT_DURATION)%%/g)
-              },
-            ],
             emailContent: this.getWinbackServicesAgreement()
           }
         );
@@ -616,7 +613,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
           {
             title: "Second Delinquent Message",
             subject: "Second Delinquent Message",
-            inputs: [
+            formElems: [
               {
                 label: "First Delinquent Notice Sent on", type: 'date', value: '',
                 apply: (tpl, value) => {
@@ -679,7 +676,7 @@ export class RestaurantDetailsComponent implements OnInit, OnDestroy {
     let index = parseInt(key.split('_')[1]);
     let wordIndex = String.fromCharCode('a'.charCodeAt(0) + index - 1);
 
-    return value ? tpl.replace(`<p>${wordIndex}. <span class="underline">%%BENEFIT_${index}%%</span></p>`, `<p>${wordIndex}. <span class="underline">${value}</span></p>`) : tpl.replace(`<p>${wordIndex}.<span class="underline">%%BENEFIT_${index}%%</span></p>`, '');
+    return value ? tpl.replace(`<p>${wordIndex}. <span class="underline">%%BENEFIT_${index}%%</span></p>`, `<p>${wordIndex}. <span class="underline">${value}</span></p>`) : tpl.replace(`<p>${wordIndex}. <span class="underline">%%BENEFIT_${index}%%</span></p>`, '');
   }
 
   ngOnInit() {
