@@ -139,6 +139,13 @@ export class MonitoringDomainComponent implements OnInit {
         new: { _id: restaurantId, web: { domainRedirectUrl: domainRedirectUrl } },
       }
     ]).toPromise();
+     // update origin data
+     const matchbmRT = this.getMatchingbmRT(matchingRestaurant);
+     let { hasRediect, currDomainRedirectUrl, redirectOption, redirectOptions } = this.initRedirectDomainUrl(matchingRestaurant, matchbmRT);
+     this.currRedirectDomain.hasRediect = hasRediect;
+     this.currRedirectDomain.currDomainRedirectUrl = currDomainRedirectUrl;
+     this.currRedirectDomain.redirectOption = redirectOption;
+     this.currRedirectDomain.redirectOptions = redirectOptions;
   }
 
   async injectWebsiteAws(matchingRestaurant) {
@@ -165,13 +172,6 @@ export class MonitoringDomainComponent implements OnInit {
       //Invalidate the domain cloudfront
       try {
         const result = await this._api.post(environment.appApiUrl + 'events', [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: "invalidate-domain", params: { domain: domain } } }]).toPromise();
-        // update origin data
-        const matchbmRT = this.getMatchingbmRT(matchingRestaurant);
-        let { hasRediect, currDomainRedirectUrl, redirectOption, redirectOptions } = this.initRedirectDomainUrl(matchingRestaurant, matchbmRT);
-        this.currRedirectDomain.hasRediect = hasRediect;
-        this.currRedirectDomain.currDomainRedirectUrl = currDomainRedirectUrl;
-        this.currRedirectDomain.redirectOption = redirectOption;
-        this.currRedirectDomain.redirectOptions = redirectOptions;
       } catch (error) {
         this._global.publishAlert(AlertType.Danger, JSON.stringify(error));
       }
@@ -339,7 +339,6 @@ export class MonitoringDomainComponent implements OnInit {
     let redirectOptions = [redirectTypes.Other];
     if ((matchingRestaurant.web || {}).domainRedirectUrl) {
       hasRediect = true;
-      currDomainRedirectUrl = (matchingRestaurant.web || {}).domainRedirectUrl;
       if (matchingbmRT && ((matchingbmRT.CustomerDomainName && Helper.areDomainsSame(currDomainRedirectUrl, matchingbmRT.CustomerDomainName)) || (matchingbmRT.CustomerDomainName1 && Helper.areDomainsSame(currDomainRedirectUrl, matchingbmRT.CustomerDomainName1)))) {
         redirectOption = redirectTypes.BM_Site;
         redirectOptions = [redirectTypes.BM_Site, redirectTypes.Other];
@@ -348,6 +347,7 @@ export class MonitoringDomainComponent implements OnInit {
         redirectOption = redirectTypes.Other;
       }
     }
+    currDomainRedirectUrl = (matchingRestaurant.web || {}).domainRedirectUrl;
 
     return {
       hasRediect, // use filter domain which has been redirected
@@ -410,7 +410,7 @@ export class MonitoringDomainComponent implements OnInit {
         'restaurant.disabled': 1
       },
       limit: 25000
-    }, 5000);
+    }, 3000);
 
     // flat map
     this.domainMap = this.domains.map(domain => {
