@@ -19,8 +19,7 @@ interface MessageTemplate {
   subject: string;
   smsContent?: string;
   emailContent?: string;
-  inputs?: { label: string, type?: string, value: string, canEmpty?: (inputs: any[], label: string) => boolean, apply: (content: string, value: any) => string }[];
-  selects?: { label: string, type?: string, value: string, options: any[], apply: (content: string, value: any) => string }[];
+  formElems?: { label: string, type?: string, value: string, options?: any[], canEmpty?: (inputs: any[], label: string) => boolean, apply: (content: string, value: any) => string }[],
   smsPreview?: string;
   uploadHtml?: (body: string) => HtmlRenderParams;
 }
@@ -117,15 +116,15 @@ export class SendMessageComponent {
   }
 
   canEmpty(field) {
-    let { inputs } = this.template;
-    this.disabledSendBtn = !field.canEmpty(inputs, field.label) ? true : false;
+    let { formElems } = this.template;
+    this.disabledSendBtn = !field.canEmpty(formElems, field.label) ? true : false;
   }
 
   canSend() {
     if ((this.targets.length <= 0 && !this.isPhoneValid()) || !this.template) {
       return false;
     }
-    let { subject, emailContent, smsContent, inputs } = this.template;
+    let { subject, emailContent, smsContent, formElems } = this.template;
     if (this.hasEmail() && (!emailContent || !subject)) {
       return false;
     }
@@ -133,12 +132,12 @@ export class SendMessageComponent {
       return false;
     }
     // all inputs must have value
-    if (inputs) {
-      const requiredFields = inputs.filter(field => !!!field.canEmpty);
+    if (formElems) {
+      const requiredFields = formElems.filter(field => !!!field.canEmpty);
       if(requiredFields.some(field => !field.value)) {
         return false;
       }
-      const canEmptyFields = inputs.filter(field => !!field.canEmpty);
+      const canEmptyFields = formElems.filter(field => !!field.canEmpty);
       if(canEmptyFields.length > 0) {
         return !this.disabledSendBtn;
       }
@@ -204,9 +203,9 @@ export class SendMessageComponent {
   }
   // generate a sms html link and copy it to clipboard
   async copySMSContent() {
-    let { inputs, smsContent, emailContent, smsPreview, uploadHtml } = this.template;
-    if (inputs) {
-      inputs.forEach(field => {
+    let { formElems, smsContent, emailContent, smsPreview, uploadHtml } = this.template;
+    if (formElems) {
+      formElems.forEach(field => {
         if (smsContent) {
           smsContent = field.apply(smsContent, field.value);
         }
@@ -246,22 +245,9 @@ export class SendMessageComponent {
 
   async send() {
     // fill inputs
-    let { inputs, selects, smsContent, emailContent, smsPreview, uploadHtml } = this.template;
-    if (inputs) {
-      inputs.forEach(field => {
-        if (smsContent) {
-          smsContent = field.apply(smsContent, field.value);
-        }
-        if (emailContent) {
-          emailContent = field.apply(emailContent, field.value);
-        }
-        if (smsPreview) {
-          smsPreview = field.apply(smsPreview, field.value);
-        }
-      });
-    }
-    if(selects) {
-      selects.forEach(field => {
+    let { formElems, smsContent, emailContent, smsPreview, uploadHtml } = this.template;
+    if (formElems) {
+      formElems.forEach(field => {
         if (smsContent) {
           smsContent = field.apply(smsContent, field.value);
         }
