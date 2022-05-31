@@ -320,15 +320,13 @@ export class EmailCodeReaderComponent implements OnInit {
 
   // redirect checkbox should be inited rather than set by default
   initRedirectDomainUrl() {
-    if ((this.restaurant.web || {}).domainRedirectUrl) {
-      this.currDomainRedirectUrl = (this.restaurant.web || {}).domainRedirectUrl;
-      if (this.bmRT && ((this.bmRT.CustomerDomainName && Helper.areDomainsSame(this.domainRedirectUrl, this.bmRT.CustomerDomainName)) || (this.bmRT.CustomerDomainName1 && Helper.areDomainsSame(this.domainRedirectUrl, this.bmRT.CustomerDomainName1)))) {
-        this.redirectOption = redirectTypes.BM_Site;
-        this.redirectOptions = [redirectTypes.BM_Site, redirectTypes.Other];
-        this.currDomainRedirectUrl = `${this.currDomainRedirectUrl} (BM Site)`;
-      } else {
-        this.redirectOption = redirectTypes.Other;
-      }
+    this.currDomainRedirectUrl = (this.restaurant.web || {}).domainRedirectUrl;
+    if (this.bmRT && ((this.bmRT.CustomerDomainName && Helper.areDomainsSame(this.domainRedirectUrl, this.bmRT.CustomerDomainName)) || (this.bmRT.CustomerDomainName1 && Helper.areDomainsSame(this.domainRedirectUrl, this.bmRT.CustomerDomainName1)))) {
+      this.redirectOption = redirectTypes.BM_Site;
+      this.redirectOptions = [redirectTypes.BM_Site, redirectTypes.Other];
+      this.currDomainRedirectUrl = `${this.currDomainRedirectUrl} (BM Site)`;
+    } else {
+      this.redirectOption = redirectTypes.Other;
     }
   }
 
@@ -395,6 +393,8 @@ export class EmailCodeReaderComponent implements OnInit {
         new: { _id: restaurantId, web: { domainRedirectUrl: domainRedirectUrl } },
       }
     ]).toPromise();
+    (this.restaurant.web || {}).domainRedirectUrl = domainRedirectUrl;
+    this.initRedirectDomainUrl();
   }
 
   // do an api call to republish website to AWS
@@ -697,7 +697,6 @@ background-image: linear-gradient(to right,#cd2730,#fa4b00,#cd2730);' href="http
       //Invalidate the domain cloudfront
       try {
         const result = await this._api.post(environment.appApiUrl + 'events', [{ queueUrl: `https://sqs.us-east-1.amazonaws.com/449043523134/events-v3`, event: { name: "invalidate-domain", params: { domain: domain } } }]).toPromise();
-        this.initRedirectDomainUrl();
       } catch (error) {
         this._global.publishAlert(AlertType.Danger, JSON.stringify(error));
       }
