@@ -330,9 +330,14 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
           this.chargeBasisDescriptor.items = [this.chargeBasisPreTotal];
           this.feeScheduleInEditing.chargeBasis = ChargeBasis.OrderPreTotal;
         } else {
-          // non-cc fees should only have OrderSubtotal
-          this.chargeBasisDescriptor.items = [this.chargeBasisSubtotal];
-          this.feeScheduleInEditing.chargeBasis = ChargeBasis.OrderSubtotal;
+          // custom fee can cancel restriction of charge basis
+          if (this.feeScheduleInEditing.name === 'custom') {
+            this.chargeBasisDescriptor.items = [this.chargeBasisSubtotal, this.chargeBasisPreTotal];
+          } else {
+            // non-cc fees should only have OrderSubtotal
+            this.chargeBasisDescriptor.items = [this.chargeBasisSubtotal];
+            this.feeScheduleInEditing.chargeBasis = ChargeBasis.OrderSubtotal;
+          }
         }
         break;
       case 'RESTAURANT':
