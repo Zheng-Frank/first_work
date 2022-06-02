@@ -474,13 +474,17 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
 
   downloadFIRE() {
     try {
-      let rts = this.rows;
+      let rts = this.rows, options = {
+        includeAllRequired: this.downloadFIREOption === DownloadFIREOptions.AllRequired,
+        custom: false
+      };
       if (this.downloadFIREOption === DownloadFIREOptions.Custom) {
         let ids = new Set((this.customDownloadRTs || "").split(",").filter(x => !!x).map(x => x.trim()));
         rts = rts.filter(x => ids.has(x.id));
+        options.custom = true;
       }
-      let includeAllRequired = this.downloadFIREOption === DownloadFIREOptions.AllRequired;
-      const { rows, errors } = IRSHelper.generate(this.taxYear, rts, includeAllRequired);
+      const { rows, errors } = IRSHelper.generate(this.taxYear, rts, options);
+
       if (errors.length > 0) {
         if (confirm('Some restaurants are missing payee and/or TIN. Do you want to proceed with download anyway?')) {
           download("Qmenu_FIRE_Submission", this.taxYear, rows.join('\n'))

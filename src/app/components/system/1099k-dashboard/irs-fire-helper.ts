@@ -18,7 +18,7 @@ interface Field {
   length: number, // field value length
   blank?: boolean, // if field value is blank
   email?: boolean, // if field value is email
-  numeric?: boolean // if field value is number
+  numeric?: boolean // if field value is number, currently only used to mark the padding prefix, 0 for number, space for others
 }
 
 const TFields: Field[] = [
@@ -92,7 +92,7 @@ const BFields: Field[] = [
   {name: "CorrectionIndicator", index: 2, length: 1, blank: true},
   {name: "PayeeNameControl", index: 3, length: 4},
   {name: "PayeeTINType", index: 4, length: 1},
-  {name: "PayeeTIN", index: 5, length: 9},
+  {name: "PayeeTIN", index: 5, length: 9, numeric: true},
   // like the RT Mongo DB (up to 20 chars,
   // maybe use last 20 chars instead of first 20 to ensure uniqueness,
   // whatever is better at ensuring uniqueness!)
@@ -120,7 +120,7 @@ const BFields: Field[] = [
   {name: "Blank_StateIncome", index: 26, length: 12, numeric: true, blank: true},
   {name: "Blank", index: 27, length: 16, blank: true},
   {name: "ForeignCountryIndicator", index: 28, length: 1, blank: true},
-  {name: "PayeeName", index: 29, length: 40},
+  {name: "PayeeName", index: 29, length: 40, numeric: true},
   {name: "SecondPayeeName", index: 30, length: 40, blank: true},
   {name: "PayeeAddress", index: 31, length: 40},
   {name: "Blank", index: 32, length: 40, blank: true},
@@ -344,19 +344,21 @@ class Renderer {
     return renderRow(AFields, data)
   }
 
-  static bckfRow(year, list, includeAll = false) {
+  static bckfRow(year, list, {custom = false, includeAllRequired = false}) {
     let sequence = 3, states = {}, rows = [], errors = [];
     let sum = {type: 'C', GrossAmount: 0, CardNotPresentTransactions: 0, NumberOfPayees: 0};
     list.forEach(item => {
-      item.form1099k.filter(x => x.required && (!x.refuseForm || includeAll) && x.year === Number(year))
+      item.form1099k.filter(x => (custom || (x.required && (!x.refuseForm || includeAllRequired))) && x.year === Number(year))
         .forEach(form => {
           // verify data
           let tin = form.periodTin || item.rtTIN,
             payeeName = form.periodPayeeName || item.payeeName;
-          if ((!tin || !payeeName) && !includeAll) {
-            // skip rts in-completed
+          if ((!tin || !payeeName) && !includeAllRequired) {
+            // skip rts in-completed if not custom
             errors.push(item.id)
-            return;
+            if (!custom) {
+              return;
+            }
           }
           let data = {
             type: 'B', PaymentYear: year,
@@ -412,8 +414,8 @@ class Renderer {
 
 }
 
-const generate = (year, list, includeAll) => {
-  let { rows, totalPayees, errors } = Renderer.bckfRow(year, list, includeAll);
+const generate = (year, list, options) => {
+  let { rows, totalPayees, errors } = Renderer.bckfRow(year, list, options);
   rows.unshift(Renderer.aRow(year))
   rows.unshift(Renderer.tRow(year, totalPayees))
   return { rows, errors};
