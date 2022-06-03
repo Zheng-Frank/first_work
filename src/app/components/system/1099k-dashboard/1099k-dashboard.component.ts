@@ -192,7 +192,7 @@ export class Dashboard1099KComponent implements OnInit, OnDestroy {
 
   calcPunishedMoney() {
     this.refuseFormRows = [];
-    let refuseFormRows = this.rows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && form.refuseForm));
+    let refuseFormRows = this.filteredRows.filter(row => (row.form1099k || []).some(form => form.year === +this.taxYear && form.refuseForm));
     let punishedMoney = 0;
     let totalTransactions = 0;
     refuseFormRows.forEach((row) => {
