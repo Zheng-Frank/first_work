@@ -429,5 +429,9 @@ export class RestaurantDeliverySettingsComponent implements OnInit {
       }
     }
   }
+  timeEstimateDeliveryRequired(): boolean {
+    return this.selectedCourier.name === 'Self delivery' && this.restaurant.courier && !this.restaurant.deliveryTimeEstimate;
+  }
+
 }
 

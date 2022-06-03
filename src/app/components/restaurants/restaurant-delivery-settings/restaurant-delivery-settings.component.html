@@ -332,7 +332,12 @@
       </li>
       <li class="list-group-item text-right" *ngIf="editing">
         <button class="btn btn-secondary" (click)="toggleEditing()" style="min-width: 6rem">Cancel</button>
-        <button class="btn btn-primary" [disabled]="!deliveryAreaValid()" (click)="update()" style="min-width: 6rem">OK</button>
+        <button class="btn btn-primary" [disabled]="!deliveryAreaValid() || timeEstimateDeliveryRequired()" (click)="update()" style="min-width: 6rem">OK</button>
+      </li>
+      <li class="list-group-item text-left" *ngIf="editing">
+        <div *ngIf="timeEstimateDeliveryRequired()" class="text-danger font-weight-bold">
+          You need to add a time estimate for delivery before changing to self-delivery
+        </div>
       </li>
     </ul>
   </div>

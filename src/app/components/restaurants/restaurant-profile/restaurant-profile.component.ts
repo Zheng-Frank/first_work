@@ -611,11 +611,11 @@ export class RestaurantProfileComponent implements OnInit, OnChanges {
     if (pickupEnabled) {
       REQUIRED_FIELDS.push("pickupTimeEstimate");
     }
-
-    if (deliveryEnabled) {
+    
+    if (deliveryEnabled && this.restaurant.courier == null)
+    {
       REQUIRED_FIELDS.push("deliveryTimeEstimate");
     }
-
     // any new required fields added will also need an entry in nonPermittedValuesMap
     const nonPermittedValuesMap = {
       "taxRate": [null, undefined, ""],
