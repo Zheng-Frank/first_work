@@ -147,11 +147,11 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
       {label: 'Other attch.', paths: ["otherAttachments"], render: atts => atts && atts.length > 0 ? "Has": "No"},
       {
         label: 'Logs', paths: ["logs"], render: (logs, r) => {
-          return logs ? `"[${logs.map(({username, time, problem, response}) => {
+          return logs.length > 0 ? `"[${logs.map(({username, time, problem, response}) => {
             return "[" + [
               "User: " + username,
               "time: " + new Date(time).toISOString(),
-              `problem: "${problem}"`, `response: "${response}"`
+              `problem: "${problem.replace(/\n/g, "\\n")}"`, `response: "${response.replace(/\n/g, "\\n")}"`
             ].join(", ") + "]"
           }).join(", ")}]"` : ""
         }
