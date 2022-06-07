@@ -75,10 +75,13 @@
       <div class="col-auto mb-3">
         <button class="btn btn-primary" (click)="query()"><i class="fas fa-sync"></i> Reload</button>
       </div>
+      <div class="col-auto mb-3">
+        <button class="btn btn-primary" (click)="download()"><i class="fas fa-download"></i> Download CSV</button>
+      </div>
     </div>
 
     <q-table [rows]="list" [tableColumnDescriptors]="restaurantsColumnDescriptors" [compact]="true"
-      [pageSize]="100000">
+      [pageSize]="200">
       <tr *tableRowTemplate="let r">
         <td>{{list.indexOf(r) + 1}}</td>
         <td>
