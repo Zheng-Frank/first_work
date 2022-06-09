@@ -592,15 +592,19 @@ export class Helper {
       return result;
     }
 
-    static downloadCSV(filename: string, fields: {paths: string[], label: string}[], data: object[]) {
+    static downloadCSV(filename: string, fields: {paths?: string[], label: string, render?: (value: any, item?: any) => any}[], data: object[]) {
       let lines = [fields.map(({label}) => label).join(",")];
       data.forEach(item => {
-        lines.push(fields.map(({paths}) => {
-          let keys = [...paths].reverse(), key = keys.pop(), value = item;
+        lines.push(fields.map(({paths, render}) => {
+          let keys = [...(paths || [])].reverse(), key = keys.pop(), value = item;
           while (key && value) {
             value = value[key]
             key = keys.pop();
           }
+          if (render) {
+            value = render(value, item)
+          }
+
           return (value === null || value === undefined) ? '' : value;
         }).join(','))
       })

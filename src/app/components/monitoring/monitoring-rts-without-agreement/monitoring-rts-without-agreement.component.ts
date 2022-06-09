@@ -131,6 +131,37 @@ export class MonitoringRtsWithoutAgreementComponent implements OnInit {
     return this.filters.checkedProviders.includes(provider);
   }
 
+  download() {
+    let fields = [
+      { label: 'Restaurant', paths: ['name'], render: v => `"${v}"` },
+      { label: 'Agent', paths: ['agent'] },
+      { label: 'Salesperson', paths: ['salesperson'] },
+      { label: 'Timezone', render: (_, r) => `${r.googleAddress.timezone}(${r.timezoneOffset})` },
+      { label: 'CreatedAt', paths: ['createdAt'], render: dt => dt.toISOString() },
+      { label: 'GMB ownership', paths: ['gmbOwner'] },
+      {
+        label: 'Agreement', paths: ["agreementSentAt"], render: (dt, r) => {
+          return dt ? dt.toISOString() : "NOT SENT";
+        }
+      },
+      {label: 'Other attch.', paths: ["otherAttachments"], render: atts => atts && atts.length > 0 ? "Has": "No"},
+      {
+        label: 'Logs', paths: ["logs"], render: (logs, r) => {
+          return logs.length > 0 ? `"[${logs.map(({username, time, problem, response}) => {
+            return "[" + [
+              "User: " + username,
+              "time: " + new Date(time).toISOString(),
+              `problem: "${problem.replace(/\n/g, "\\n")}"`, `response: "${response.replace(/\n/g, "\\n")}"`
+            ].join(", ") + "]"
+          }).join(", ")}]"` : ""
+        }
+      }
+    ];
+
+    let filename = "RTs Service Agreement.csv";
+    Helper.downloadCSV(filename, fields, this.list);
+  }
+
   async query() {
     this.restaurants = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
