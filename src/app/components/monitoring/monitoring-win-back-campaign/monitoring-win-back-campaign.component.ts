@@ -47,6 +47,11 @@ enum gmbClosedOptions {
   Not_Closed = 'Not_Closed'
 }
 
+enum GMBWebsiteOptions {
+  Qmenu = 'Qmenu',
+  Other = 'Other',
+}
+
 enum churnedTier1Options {
   // Last_Week = 'Last Week',
   Last_Month = 'Last Month'
@@ -98,7 +103,8 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     OPMSort: '',
     gmbOwner: '',
     gmbClosed: '',
-    churnedTier1: ''
+    churnedTier1: '',
+    gmbWebsite: ''
   };
   rows = [];
   list = [];
@@ -112,7 +118,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
     [ChargeBasis.OrderTotal]: 'order total',
     [ChargeBasis.Commission]: 'commission',
   };
-  
+
   logVisibilities = {
     hidden: {}, expanded: {}
   }
@@ -316,7 +322,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       if (qm_id && !qmRTsDict[qm_id]) {
         return;
       }
-      
+
       let ordersPerMonth = last6Months.reduce((a, c) => a + (rest[`OC${c}`] || 0), 0) / 6;
       let tier = Helper.getTier(ordersPerMonth);
       if (tier <= 1) {
@@ -328,7 +334,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
           return;
         }
       }
-      
+
       let item: any = { name: rt_name, tier, ordersPerMonth, bm_id, qm_id, logs: [], win_back_logs: [], rateSchedules: [], feeSchedules: [] };
       let gmb_potential = false;
       // Have filter to show RTs that recently churned from tier 1 in the last week or month
@@ -418,11 +424,11 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
           slide = [];
         }
       })
-      
+
       if (!gmb_potential && !slides.length && !item.logs.some(log => log.type === WIN_BACK_CAMPAIGN_LOG_TYPE)) {
         return;
       }
-      
+
       let flatten = slides.map(s => {
         let start = s[0].month.split(''), end = s[s.length - 1].month.split('');
         start.splice(4, 0, '-');
@@ -508,14 +514,15 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       opm_sort: OPMSortOptions,
       gmb_owner: gmbOwnerOptions,
       gmb_closed: gmbClosedOptions,
-      churned_tier1: churnedTier1Options
+      churned_tier1: churnedTier1Options,
+      gmb_website: GMBWebsiteOptions
     }[key])
   }
 
   filter() {
     let list = this.rows;
 
-    let { keyword, hasLogs, platform, potentialType, currentTier, OPMSort, gmbOwner, gmbClosed, churnedTier1 } = this.filters;
+    let { keyword, hasLogs, platform, potentialType, currentTier, OPMSort, gmbOwner, gmbClosed, churnedTier1, gmbWebsite } = this.filters;
     switch (platform) {
       case PlatformOptions.Qmenu:
         list = list.filter(x => !!x.qm_id);
@@ -539,6 +546,17 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
         list = list.filter(x => x.qhasGmb || x.bhasGmb);
         break;
     }
+
+   // currently, we cannot detect if beyondmenu has gmbwebsite
+    switch (gmbWebsite) {
+      case GMBWebsiteOptions.Qmenu:
+        list = list.filter(rt => rt.qhasGMBWebsite)
+        break;
+      case GMBWebsiteOptions.Other:
+        list = list.filter(rt => !rt.qhasGMBWebsite)
+        break;
+    }
+
 
     switch (potentialType) {
       case Tier1PotentialTypeOptions.GMB_Based:
