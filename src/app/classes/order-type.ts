@@ -4,3 +4,11 @@ export enum OrderType {
     DineIn = 'DINE-IN',
     Pickup = 'PICKUP',
 }
+
+export enum OrderSourceLimitationString {
+  ONLINE = 'ONLINE',
+  QR = 'QR',
+  POS = 'POS',
+  GFO = 'GFO',
+  PHONE = 'PHONE',
+}
