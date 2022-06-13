@@ -176,7 +176,19 @@
 
     <td>{{row.collected | currency:'USD':'symbol'}}</td>
     <td>{{row.commission | percent}}</td>
-    <td>{{row.earned | currency:'USD':'symbol'}}</td>
+    <td class="text-nowrap">
+      <ng-container *ngIf="hasOnetimeBonus()">
+        <ng-container *ngIf="row.earned > 0 && row.onetime > 0">
+          <div>{{(row.earned + row.onetime) | money}}</div>
+          <div class="text-muted"><small>{{row.earned | money}} + {{row.onetime | money}}(One-time)</small></div>
+        </ng-container>
+        <ng-container *ngIf="row.earned <= 0 && row.onetime > 0">
+          {{row.onetime | money}}(One-time)
+        </ng-container>
+        <ng-container *ngIf="row.onetime <= 0">{{row.earned | money}}</ng-container>
+      </ng-container>
+      <ng-container *ngIf="!hasOnetimeBonus()">{{row.earned | money}}</ng-container>
+    </td>
     <td>{{row.notEarned | currency:'USD':'symbol'}}</td>
     <td>
       <span *ngIf="row.restaurant.salesBase">{{row.qualifiedSalesBase | currency:'USD':'symbol'}}</span>
