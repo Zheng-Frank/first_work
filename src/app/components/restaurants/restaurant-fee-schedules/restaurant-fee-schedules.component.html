@@ -16,9 +16,9 @@
         </h5>
       </li>
       <li>
-        The fee schedules below will be generated for you based on your answers to the above questions. 
-        You can make specific edits to the fee schedules here if needed, 
-        but if you edit your answers to the questions above, 
+        The fee schedules below will be generated for you based on your answers to the above questions.
+        You can make specific edits to the fee schedules here if needed,
+        but if you edit your answers to the questions above,
         the fee schedules below will be regenerated.
         (以下费用表将根据你对上述问题的回答为您生成。
         如果需要，你可以在此处对费用明细表进行特定编辑，
@@ -67,13 +67,19 @@
 
               <td>
                 <div *ngIf="feeSchedule.orderTypes && feeSchedule.orderTypes.length > 0" class="text-lowercase">
-                  {{feeSchedule.orderTypes.join(', ')}}
+                  <span class="font-weight-bold text-capitalize">Order Types:</span> {{feeSchedule.orderTypes.join(', ')}}
                 </div>
 
                 <div *ngIf="feeSchedule.orderPaymentMethods && feeSchedule.orderPaymentMethods.length > 0"
                   class="text-lowercase">
-                  {{feeSchedulePaymentMethodsLimitationString(feeSchedule)}}
+                  <span class="font-weight-bold text-capitalize">Payment Methods:</span> {{feeSchedulePaymentMethodsLimitationString(feeSchedule)}}
                 </div>
+
+                <div *ngIf="feeSchedule.orderSource && feeSchedule.orderSource.length > 0"
+                  class="text-lowercase">
+                  <span class="font-weight-bold text-capitalize">Order Source:</span> {{feeScheduleOrderSourceLimitationString(feeSchedule)}}
+                </div>
+
               </td>
 
               <td *ngIf="!readonly">

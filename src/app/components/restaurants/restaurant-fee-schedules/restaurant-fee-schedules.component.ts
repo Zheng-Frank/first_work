@@ -3,7 +3,7 @@ import { Restaurant, FeeSchedule, ChargeBasis, TimezoneHelper } from '@qmenu/ui'
 import { ApiService } from "../../../services/api.service";
 import { GlobalService } from "../../../services/global.service";
 import { PrunedPatchService } from "../../../services/prunedPatch.service";
-import { OrderType } from 'src/app/classes/order-type';
+import { OrderType, OrderSourceLimitationString } from 'src/app/classes/order-type';
 import { ModalComponent, FormBuilderComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { FormSubmit } from '@qmenu/ui/classes';
 import { OrderPaymentMethod } from 'src/app/classes/order-payment-method';
@@ -169,6 +169,18 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   };
 
   unsuitRate = 0.06;
+
+  limitationOfOrderSource = {
+    field: "orderSource",
+    label: "Limitation of Order Source (订单来源限制)",
+    required: false,
+    inputType: "multi-select",
+    items: [
+      { object: OrderSourceLimitationString.ONLINE, text: "ONLINE", selected: false },
+      { object: OrderSourceLimitationString.QR, text: "QR", selected: false },
+      { object: OrderSourceLimitationString.PHONE, text: "PHONE", selected: false },
+    ],
+  };
 
   constructor(private _currencyPipe: CurrencyPipe, private _api: ApiService, private _global: GlobalService, private _prunedPatch: PrunedPatchService) {
     this.username = this._global.user.username;
@@ -373,7 +385,8 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
           this.rateDescriptor,
           this.amountDescriptor,
           this.orderTypesDescriptor,
-          this.orderPaymentMethodsDescriptor
+          this.orderPaymentMethodsDescriptor,
+          this.limitationOfOrderSource,
         );
         break;
       case ChargeBasis.Monthly:
@@ -385,6 +398,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
         this.fieldDescriptors.push(
           this.rateDescriptor,
           this.orderTypesDescriptor,
+          this.limitationOfOrderSource,
         );
         break;
       default:
@@ -520,6 +534,10 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
 
   feeSchedulePaymentMethodsLimitationString(feeSchedule: FeeSchedule) {
     return feeSchedule.orderPaymentMethods.join(', ');
+  }
+
+  feeScheduleOrderSourceLimitationString(feeSchedule: FeeSchedule) {
+    return feeSchedule.orderSource.join(', ');
   }
 
   isFeeScheduleExpired(feeSchedule) {
