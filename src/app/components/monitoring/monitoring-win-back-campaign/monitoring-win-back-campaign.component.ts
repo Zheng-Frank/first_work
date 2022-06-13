@@ -49,7 +49,9 @@ enum gmbClosedOptions {
 
 enum GMBWebsiteOptions {
   Qmenu = 'Qmenu',
-  Other = 'Other',
+  BeyondMenu = 'Bmenu',
+  Neither = 'Neither B nor Q',
+  Either = 'Either B or Q'
 }
 
 enum churnedTier1Options {
@@ -237,6 +239,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
         query: { _id: { $exists: true } },
         payload: {
           BusinessEntityID: 1,
+          CustomerDomainName: 1,
           Address: 1,
           City: 1,
           State: 1,
@@ -349,6 +352,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
         if (bmRT) {
           item.address = bmRT.baddress;
           item.bhasGmb = bmRT.bhasGmb;
+          item.bwebsite = bmRT.bwebsite;
           if(!qmRTsDict[qm_id]) {
             item.channels = bmRT.bchannels;
           } else {
@@ -403,6 +407,7 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
           let key = place_id + cid;
           item.qhasGmb = (gmbWebsiteOwnerDict[key] || gmbWebsiteOwnerDict[_id + cid]) && accounts.some(acc => (acc.locations || []).some(loc => loc.cid === cid && loc.status === 'Published' && ['PRIMARY_OWNER', 'OWNER', 'CO_OWNER', 'MANAGER'].includes(loc.role)));
           item.qhasGMBWebsite = gmbWebsiteOwnerDict[key] === 'qmenu' || gmbWebsiteOwnerDict[_id + cid] === 'qmenu';
+          item.bhasGMBWebsite = (gmbWebsiteOwnerDict[key] === 'beyondmenu' || gmbWebsiteOwnerDict[_id + cid] === 'beyondmenu') || (item.bwebsite && gmbWebsiteDict[key] === item.bwebsite);
           item.gmbClosed = gmbClosed;
           item.googleSearchText = "https://www.google.com/search?q=" + encodeURIComponent(item.name + " " + address);
           // When loading the page, all the logs should be collapsed by default, the same as rate/fee
@@ -552,8 +557,14 @@ export class MonitoringWinBackCampaignComponent implements OnInit {
       case GMBWebsiteOptions.Qmenu:
         list = list.filter(rt => rt.qhasGMBWebsite)
         break;
-      case GMBWebsiteOptions.Other:
-        list = list.filter(rt => !rt.qhasGMBWebsite)
+      case GMBWebsiteOptions.BeyondMenu:
+        list = list.filter(rt => rt.bhasGMBWebsite)
+        break;
+      case GMBWebsiteOptions.Either:
+        list = list.filter(rt => rt.qhasGMBWebsite || rt.bhasGMBWebsite)
+        break;
+      case GMBWebsiteOptions.Neither:
+        list = list.filter(rt => !rt.qhasGMBWebsite && !rt.bhasGMBWebsite)
         break;
     }
 
