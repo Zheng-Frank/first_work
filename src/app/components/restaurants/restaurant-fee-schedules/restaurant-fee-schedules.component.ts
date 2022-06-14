@@ -3,7 +3,7 @@ import { Restaurant, FeeSchedule, ChargeBasis, TimezoneHelper } from '@qmenu/ui'
 import { ApiService } from "../../../services/api.service";
 import { GlobalService } from "../../../services/global.service";
 import { PrunedPatchService } from "../../../services/prunedPatch.service";
-import { OrderType, OrderSourceLimitationString } from 'src/app/classes/order-type';
+import { OrderType, OrderSource } from 'src/app/classes/order-type';
 import { ModalComponent, FormBuilderComponent } from "@qmenu/ui/bundles/qmenu-ui.umd";
 import { FormSubmit } from '@qmenu/ui/classes';
 import { OrderPaymentMethod } from 'src/app/classes/order-payment-method';
@@ -176,9 +176,9 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
     required: false,
     inputType: "multi-select",
     items: [
-      { object: OrderSourceLimitationString.ONLINE, text: "ONLINE", selected: false },
-      { object: OrderSourceLimitationString.QR, text: "QR", selected: false },
-      { object: OrderSourceLimitationString.PHONE, text: "PHONE", selected: false },
+      { object: OrderSource.ONLINE, text: "ONLINE", selected: false },
+      { object: OrderSource.QR, text: "QR", selected: false },
+      { object: OrderSource.PHONE, text: "PHONE", selected: false },
     ],
   };
 
@@ -537,7 +537,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   }
 
   feeScheduleOrderSourceLimitationString(feeSchedule: FeeSchedule) {
-    return feeSchedule.orderSource.join(', ');
+    return feeSchedule.orderSources.join(', ');
   }
 
   isFeeScheduleExpired(feeSchedule) {
