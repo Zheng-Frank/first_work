@@ -171,7 +171,7 @@ export class RestaurantFeeSchedulesComponent implements OnInit, OnChanges {
   unsuitRate = 0.06;
 
   limitationOfOrderSource = {
-    field: "orderSource",
+    field: "orderSources",
     label: "Limitation of Order Source (订单来源限制)",
     required: false,
     inputType: "multi-select",
