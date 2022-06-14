@@ -16,14 +16,18 @@
           <option *ngFor="let option of dropdowns('platform')" [value]="option">{{option}}</option>
         </select>
       </div>
-      <!-- start with gmb owner filter -->
       <div class="col-auto mb-3">
         <select [(ngModel)]="filters.gmbOwner" class="custom-select">
           <option [value]="''">GMB owner?</option>
           <option *ngFor="let option of dropdowns('gmb_owner')" [value]="option">{{option}}</option>
         </select>
       </div>
-      <!-- end with gmb owner filter -->
+      <div class="col-auto mb-3">
+        <select [(ngModel)]="filters.gmbWebsite" class="custom-select">
+          <option [value]="''">GMB website?</option>
+          <option *ngFor="let option of dropdowns('gmb_website')" [value]="option">{{option}}</option>
+        </select>
+      </div>
       <div class="col-auto mb-3">
         <select [(ngModel)]="filters.hasLogs" class="custom-select">
           <option [value]="''">Has logs?</option>
