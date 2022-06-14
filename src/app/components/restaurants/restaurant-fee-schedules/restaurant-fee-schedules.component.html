@@ -75,7 +75,7 @@
                   <span class="font-weight-bold text-capitalize">Payment Methods:</span> {{feeSchedulePaymentMethodsLimitationString(feeSchedule)}}
                 </div>
 
-                <div *ngIf="feeSchedule.orderSource && feeSchedule.orderSource.length > 0"
+                <div *ngIf="feeSchedule.orderSources && feeSchedule.orderSources.length > 0"
                   class="text-lowercase">
                   <span class="font-weight-bold text-capitalize">Order Source:</span> {{feeScheduleOrderSourceLimitationString(feeSchedule)}}
                 </div>
