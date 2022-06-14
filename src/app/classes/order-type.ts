@@ -5,7 +5,7 @@ export enum OrderType {
     Pickup = 'PICKUP',
 }
 
-export enum OrderSourceLimitationString {
+export enum OrderSource {
   ONLINE = 'ONLINE',
   QR = 'QR',
   POS = 'POS',
