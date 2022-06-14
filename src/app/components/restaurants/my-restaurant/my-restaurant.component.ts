@@ -177,6 +177,10 @@ export class MyRestaurantComponent implements OnInit {
     return ['ADMIN', 'CSR_MANAGER'].some(role => this._global.user.roles.includes(role));
   }
 
+  hasOnetimeBonus() {
+    return this.username === 'charity';
+  }
+
   async getTeamUsers() {
     const users = await this._api.get(environment.qmenuApiUrl + "generic", {
       resource: "user",
@@ -535,6 +539,7 @@ export class MyRestaurantComponent implements OnInit {
         adjustment: 1,
         transactionAdjustment: 1,
         createdAt: 1,
+        total: 1,
         // previousBalance: 1
       }
     }, 15000);
@@ -796,7 +801,21 @@ export class MyRestaurantComponent implements OnInit {
     row.notCollected = 0;
     row.earned = 0;
     row.notEarned = 0;
-    let { rateSchedules, feeSchedules, googleAddress: { timezone } } = row.restaurant;
+    row.onetime = 0;
+    let { rateSchedules, feeSchedules, googleAddress: { timezone }, createdAt } = row.restaurant;
+    // calculate onetime $40 for charity
+    if (this.hasOnetimeBonus()) {
+      // $40 for every saled RT before 2019/09/10
+      if (new Date(createdAt).valueOf() < new Date(2019, 8, 10).valueOf()) {
+        row.onetime = 40;
+      } else {
+        // $40 for every saled RT with at least $10 invoice after 2019/09/10
+        if (row.invoices.some(i => i.total >= 10)) {
+          row.onetime = 40;
+        }
+      }
+    }
+
     let periods = this.getCommissionPeriods(feeSchedules, rateSchedules, timezone);
     let latest = periods[0] || { rate: 0 };
     row.commission = latest.rate || 0;
