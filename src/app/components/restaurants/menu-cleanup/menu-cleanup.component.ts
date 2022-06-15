@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {ApiService} from '../../../services/api.service';
 import {GlobalService} from '../../../services/global.service';
-import {Helper} from '../../../classes/helper';
+import { MenuCleaner } from 'src/app/classes/menu-cleaner';
 
 declare var $;
 @Component({
@@ -33,20 +33,6 @@ export class MenuCleanupComponent implements OnInit {
     this.flattened.splice(index, 1, item);
   }
 
-  parsePrefixNum (name) {
-    // 1) A. XXX; A1. XXX; A 1. XXX A12. XXX; A1 XXX; A12 XXX; AB1 XXX; AB12 XXX; AB12. XXX; AB1. XXX;
-    let regex1 = /^(?<to_rm>(?<num>([a-z]{0,2}\s?\d*))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
-    // 2) 1. XXX; #1. XXX; 1A XXX; 12A XXX; 11B. XXX; 1B. XXX;
-    let regex2 = /^(?<to_rm>(?<num>(#?\d+[a-z]{0,2}))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
-    // 3) No. 1 XXX; NO. 12 XXX;
-    let regex3 = /^(?<to_rm>(?<num>(No\.\s?\d+))\s+)(?<word>\S+)\s*/i;
-    // 4) 中文 A1. XXX
-    let regex4 = /^(?<zh>[^\x00-\xff]+\s*)(?<to_rm>(?<num>([a-z]{1,2}\s?\d+))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
-    // 5) (XL) A1. XXX
-    let regex5 = /^(?<mark>\(\w+\)\s*)(?<to_rm>(?<num>([a-z]{1,2}\s?\d+))(((?<dot>\.)\s?)|(\s)))(?<word>\S+)\s*/i;
-    return [regex1, regex2, regex3, regex4, regex5].reduce((a, c) => a || name.match(c), null);
-  }
-
 
   detect(item, indices) {
     let { name } = item;
@@ -62,7 +48,7 @@ export class MenuCleanupComponent implements OnInit {
     }
 
     // extract the possible number info from menu's name
-    let numMatched = this.parsePrefixNum(name);
+    let numMatched = MenuCleaner.parsePrefixNum(name);
     // if name itself has a number, like 3 cups chicken, 4 pcs XXX etc. these will extract the measure word to judge
     let measureWords = [
       'piece', 'pieces', 'pc', 'pcs', 'pc.', 'pcs.', 'cups', 'cup',
@@ -126,7 +112,7 @@ export class MenuCleanupComponent implements OnInit {
       }
     } else {
 
-      let extracted = Helper.extractMenuItemNames(name);
+      let extracted = MenuCleaner.extractMenuItemNames(name);
       if (extracted) {
         let { zh, en } = extracted;
         // en maybe empty, and if user does not input the en and save, the EN will alse be empty;
@@ -158,7 +144,7 @@ export class MenuCleanupComponent implements OnInit {
     let changed = false;
     menus.forEach(menu => {
       menu.mcs.forEach(mc => {
-        changed = changed || (!!Helper.extractMenuItemNumber(mc));
+        changed = changed || (!!MenuCleaner.extractMenuItemNumber(mc));
       });
     });
     return changed;
@@ -226,9 +212,11 @@ export class MenuCleanupComponent implements OnInit {
       this.flattened = [...(warnings.sort(sortNumber)), ...(normals.sort(sortNumber))];
       // if the auto clean is enough for all menus
       // just save the cleaned menus
-      if (!this.flattened.length && autoChanged) {
-        this.save.emit({menus: this.cleanFields(this.copied), translations: this.translations});
-      }
+      // if (!this.flattened.length && autoChanged) {
+      //   this.save.emit({menus: this.cleanFields(this.copied), translations: this.translations});
+      // }
+      console.log('auto...', autoChanged)
+      console.log('flatten...', this.flattened)
     }
   }
 
