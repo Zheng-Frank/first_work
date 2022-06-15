@@ -7,6 +7,7 @@ import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
 import {AlertType} from '../../../classes/alert-type';
 import {MenuCleanupComponent} from '../../restaurants/menu-cleanup/menu-cleanup.component';
 import {Helper} from '../../../classes/helper';
+import { MenuCleaner } from 'src/app/classes/menu-cleaner';
 import {PrunedPatchService} from '../../../services/prunedPatch.service';
 
 @Component({
@@ -32,14 +33,13 @@ export class CleanMenusComponent implements OnInit {
   }
 
   async getRTs() {
-    let rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
+    const rts = await this._api.getBatch(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {disabled: {$ne: true}},
-      projection: {name: 1},
-      limit: 20000
-    }, 10000);
-    let needCleanMenus = new Set(require('./rts-need-clean-menu.json'));
-    this.restaurants = rts.filter(rt => needCleanMenus.has(rt._id));
+      query: { disabled: { $ne: true } },
+      projection: { 'menus.name': 1, 'menus.mcs.name': 1, 'menus.mcs.mis.name': 1, 'menus.mcs.mis.number': 1, name: 1, translations: 1 }
+    }, 500);
+
+    this.restaurants = rts.filter(rt => MenuCleaner.needClean(rt));
   }
   previewClose() {
     this.restaurant = null;
@@ -58,7 +58,7 @@ export class CleanMenusComponent implements OnInit {
     this.restaurant.menus.forEach(menu => {
       menu.mcs.forEach(mc => {
         // @ts-ignore
-        let {numbers, confidence} = Helper.extractMenuItemNumber(mc) || {};
+        let {numbers, confidence} = MenuCleaner.extractMenuItemNumber(mc) || {};
         if (numbers) {
           this.extractedMcs.push({menu: menu.name, ...mc, numbers, confidence});
         }
