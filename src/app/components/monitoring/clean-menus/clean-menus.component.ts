@@ -1,14 +1,14 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
-import {ApiService} from '../../../services/api.service';
-import {GlobalService} from '../../../services/global.service';
-import {environment} from '../../../../environments/environment';
-import {Menu, Restaurant} from '@qmenu/ui';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { ApiService } from '../../../services/api.service';
+import { GlobalService } from '../../../services/global.service';
+import { environment } from '../../../../environments/environment';
+import { Menu, Restaurant } from '@qmenu/ui';
 import { ModalComponent } from '@qmenu/ui/bundles/qmenu-ui.umd';
-import {AlertType} from '../../../classes/alert-type';
-import {MenuCleanupComponent} from '../../restaurants/menu-cleanup/menu-cleanup.component';
-import {Helper} from '../../../classes/helper';
+import { AlertType } from '../../../classes/alert-type';
+import { MenuCleanupComponent } from '../../restaurants/menu-cleanup/menu-cleanup.component';
+import { Helper } from '../../../classes/helper';
 import { MenuCleaner } from 'src/app/classes/menu-cleaner';
-import {PrunedPatchService} from '../../../services/prunedPatch.service';
+import { PrunedPatchService } from '../../../services/prunedPatch.service';
 
 @Component({
   selector: 'app-clean-menus',
@@ -49,8 +49,8 @@ export class CleanMenusComponent implements OnInit {
   async previewAuto(rt) {
     let [restaurant] = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {_id: {$oid: rt._id}},
-      projection: {name: 1, menus: 1, translations: 1},
+      query: { _id: { $oid: rt._id } },
+      projection: { name: 1, menus: 1, translations: 1 },
       limit: 1
     }).toPromise();
     this.restaurant = restaurant;
@@ -58,9 +58,9 @@ export class CleanMenusComponent implements OnInit {
     this.restaurant.menus.forEach(menu => {
       menu.mcs.forEach(mc => {
         // @ts-ignore
-        let {numbers, confidence} = MenuCleaner.extractMenuItemNumber(mc) || {};
+        let { numbers, confidence } = MenuCleaner.extractMenuItemNumber(mc) || {};
         if (numbers) {
-          this.extractedMcs.push({menu: menu.name, ...mc, numbers, confidence});
+          this.extractedMcs.push({ menu: menu.name, ...mc, numbers, confidence });
         }
       });
     });
@@ -70,8 +70,8 @@ export class CleanMenusComponent implements OnInit {
   async clean(rt) {
     let [restaurant] = await this._api.get(environment.qmenuApiUrl + 'generic', {
       resource: 'restaurant',
-      query: {_id: {$oid: rt._id}},
-      projection: {name: 1, menus: 1, translations: 1},
+      query: { _id: { $oid: rt._id } },
+      projection: { name: 1, menus: 1, translations: 1 },
       limit: 1
     }).toPromise();
     this.restaurant = restaurant;
@@ -96,11 +96,11 @@ export class CleanMenusComponent implements OnInit {
     this.handleIDsOnly = false;
   }
 
-  async cleanupSave({menus, translations}: any) {
+  async cleanupSave({ menus, translations }: any) {
     try {
       await this._prunedPatch.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
-        old: {_id: this.restaurant['_id']},
-        new: {_id: this.restaurant['_id'], menus, translations}
+        old: { _id: this.restaurant['_id'] },
+        new: { _id: this.restaurant['_id'], menus, translations }
       }]).toPromise();
       this._global.publishAlert(AlertType.Success, 'Success!');
       // @ts-ignore
