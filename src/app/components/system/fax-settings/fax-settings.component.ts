@@ -19,9 +19,9 @@ export class FaxSettingsComponent implements OnInit {
 
   }
 
-  isAdmin() {
+  isAdminOrCSRManger() {
     let roles = this._global.user.roles || [];
-    return roles.includes('ADMIN');
+    return ['ADMIN', 'CSR_MANAGER'].some(role => roles.includes(role));
   }
 
   async setDefault(faxProvider) {
