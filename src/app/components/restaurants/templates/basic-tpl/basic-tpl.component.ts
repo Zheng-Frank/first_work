@@ -44,6 +44,7 @@ export class BasicTplComponent implements OnInit {
   sectionEphone = '';
   privacyPolicyText;
   privacyPolicyLink;
+  copyrightName;
 
   isCustomTemplate = false;
 
@@ -638,6 +639,7 @@ export class BasicTplComponent implements OnInit {
 
     newTemplate.privacyPolicyText = this.sanitizeText(this.privacyPolicyText);
     newTemplate.privacyPolicyLink = this.sanitizeText(this.privacyPolicyLink);
+    newTemplate.copyrightName = this.copyrightName.trim();
 
     try {
       await this._api.patch(environment.qmenuApiUrl + 'generic?resource=restaurant', [{
