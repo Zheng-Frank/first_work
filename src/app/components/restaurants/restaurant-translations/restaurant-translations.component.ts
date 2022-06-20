@@ -90,6 +90,7 @@ export class RestaurantTranslationsComponent implements OnInit {
         new: {_id: this.restaurant._id, translations: nonEmptyTranslations}
       }
     ]).toPromise();
+    this.restaurant.translations = nonEmptyTranslations
   }
 
   private async populateTranslations() {
